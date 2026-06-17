@@ -47,6 +47,18 @@ model Contribution {
   @@index([donorId])
 }
 
+model Expenditure {
+  id          String   @id @default(cuid())
+  payee       String
+  amountCents Int
+  category    String   @default("Operations") // Media, Field, Fundraising, Compliance, Operations, Travel
+  memo        String?
+  paidAt      DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([category])
+}
+
 enum VolunteerStatus {
   NEW
   ACTIVE

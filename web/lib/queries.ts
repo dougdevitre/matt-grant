@@ -16,9 +16,10 @@ export type DonorRow = {
 export async function getOverview() {
   if (!dbConfigured) return { connected: false as const };
   try {
-    const [donorCount, contribs, volunteers, tasks, milestones] = await Promise.all([
+    const [donorCount, contribs, spent, volunteers, tasks, milestones] = await Promise.all([
       prisma.donor.count(),
       prisma.contribution.aggregate({ _sum: { amountCents: true } }),
+      prisma.expenditure.aggregate({ _sum: { amountCents: true } }),
       prisma.volunteer.groupBy({ by: ["status"], _count: true }),
       prisma.task.groupBy({ by: ["status"], _count: true }),
       prisma.milestone.findMany({ orderBy: { sortOrder: "asc" } }),
@@ -27,9 +28,13 @@ export async function getOverview() {
     const volByStatus = Object.fromEntries(volunteers.map((v) => [v.status, v._count]));
     const taskByStatus = Object.fromEntries(tasks.map((t) => [t.status, t._count]));
 
+    const raisedCents = contribs._sum.amountCents ?? 0;
+    const spentCents = spent._sum.amountCents ?? 0;
     return {
       connected: true as const,
-      raisedCents: contribs._sum.amountCents ?? 0,
+      raisedCents,
+      spentCents,
+      cashOnHandCents: raisedCents - spentCents,
       donorCount,
       volunteerTotal: volunteers.reduce((s, v) => s + v._count, 0),
       volActive: volByStatus["ACTIVE"] ?? 0,
@@ -71,6 +76,31 @@ export async function getVolunteers() {
     return { connected: true, rows };
   } catch {
     return { connected: false, rows: [] };
+  }
+}
+
+export async function getFinance() {
+  if (!dbConfigured)
+    return { connected: false, raisedCents: 0, spentCents: 0, expenditures: [] as Awaited<ReturnType<typeof prisma.expenditure.findMany>>, byCategory: [] as { category: string; cents: number }[] };
+  try {
+    const [contribs, expenditures] = await Promise.all([
+      prisma.contribution.aggregate({ _sum: { amountCents: true } }),
+      prisma.expenditure.findMany({ orderBy: { paidAt: "desc" } }),
+    ]);
+    const map = new Map<string, number>();
+    for (const e of expenditures) map.set(e.category, (map.get(e.category) ?? 0) + e.amountCents);
+    const byCategory = [...map.entries()]
+      .map(([category, cents]) => ({ category, cents }))
+      .sort((a, b) => b.cents - a.cents);
+    return {
+      connected: true,
+      raisedCents: contribs._sum.amountCents ?? 0,
+      spentCents: expenditures.reduce((s, e) => s + e.amountCents, 0),
+      expenditures,
+      byCategory,
+    };
+  } catch {
+    return { connected: false, raisedCents: 0, spentCents: 0, expenditures: [], byCategory: [] };
   }
 }
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Countdown } from "@/components/Countdown";
+import { Reveal } from "@/components/Reveal";
 import { CAMPAIGN, PRIORITIES, VALUES } from "@/lib/site";
 
 export default function HomePage() {
@@ -71,16 +72,18 @@ export default function HomePage() {
         </div>
 
         <ol className="mt-12 grid gap-px overflow-hidden rounded-lg border border-line bg-line md:grid-cols-2">
-          {PRIORITIES.map((p) => (
-            <li key={p.id} className="group bg-white p-8 transition-colors hover:bg-paper">
-              <div className="flex items-baseline gap-4">
-                <span className="font-mono text-sm text-gold">{p.n}</span>
-                <h3 className="font-display text-2xl font-semibold leading-snug text-ink">
-                  {p.title}
-                </h3>
-              </div>
-              <p className="mt-4 text-slate">{p.summary}</p>
-              <p className="mt-4 font-mono text-xs uppercase tracking-eyebrow text-field">{p.short}</p>
+          {PRIORITIES.map((p, i) => (
+            <li key={p.id} className="group bg-white transition-colors hover:bg-paper">
+              <Reveal delay={i * 80} className="h-full p-8">
+                <div className="flex items-baseline gap-4">
+                  <span className="font-mono text-sm text-gold">{p.n}</span>
+                  <h3 className="font-display text-2xl font-semibold leading-snug text-ink">
+                    {p.title}
+                  </h3>
+                </div>
+                <p className="mt-4 text-slate">{p.summary}</p>
+                <p className="mt-4 font-mono text-xs uppercase tracking-eyebrow text-field">{p.short}</p>
+              </Reveal>
             </li>
           ))}
         </ol>

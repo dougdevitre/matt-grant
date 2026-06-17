@@ -26,9 +26,9 @@ export default async function OverviewPage() {
         <DbNotice />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Stat label="Raised (primary)" value="$0" />
+          <Stat label="Cash on hand" value="$0" />
           <Stat label="Donors" value="0" />
           <Stat label="Active volunteers" value="0" />
-          <Stat label="Tasks open" value="0" />
         </div>
       </>
     );
@@ -44,9 +44,9 @@ export default async function OverviewPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Raised (primary)" value={dollars(o.raisedCents)} sub={`${pct}% of goal`} />
+        <Stat label="Cash on hand" value={dollars(o.cashOnHandCents)} sub={`${dollars(o.spentCents)} spent`} />
         <Stat label="Donors" value={String(o.donorCount)} />
         <Stat label="Active volunteers" value={String(o.volActive)} sub={`${o.volunteerTotal} total`} />
-        <Stat label="Tasks open" value={String(o.tasksTodo + o.tasksDoing)} sub={`${o.tasksDone} done`} />
       </div>
 
       {/* Fundraising thermometer */}

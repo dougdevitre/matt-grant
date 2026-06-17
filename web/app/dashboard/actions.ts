@@ -31,6 +31,24 @@ export async function addDonor(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
+export async function addExpenditure(formData: FormData) {
+  requireDb();
+  const payee = String(formData.get("payee") ?? "").trim();
+  const amount = Number(formData.get("amount") ?? 0);
+  const amountCents = Math.round((isFinite(amount) ? amount : 0) * 100);
+  if (!payee || amountCents <= 0) return;
+  await prisma.expenditure.create({
+    data: {
+      payee,
+      amountCents,
+      category: String(formData.get("category") ?? "Operations"),
+      memo: String(formData.get("memo") ?? "").trim() || null,
+    },
+  });
+  revalidatePath("/dashboard/finance");
+  revalidatePath("/dashboard");
+}
+
 export async function updateVolunteerStatus(formData: FormData) {
   requireDb();
   const id = String(formData.get("id") ?? "");

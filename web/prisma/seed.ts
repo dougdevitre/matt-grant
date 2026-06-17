@@ -67,6 +67,17 @@ async function main() {
     ],
   });
 
+  await prisma.expenditure.createMany({
+    data: [
+      { payee: "Anedot / WinRed processing fees", amountCents: 8200, category: "Fundraising", memo: "Q2 platform fees" },
+      { payee: "Lamar Outdoor — district billboard", amountCents: 120000, category: "Media", memo: "I-44 corridor, 4 weeks" },
+      { payee: "Yard signs (1,000 units)", amountCents: 240000, category: "Field" },
+      { payee: "NGP VAN / voter file access", amountCents: 75000, category: "Field", memo: "Cycle subscription" },
+      { payee: "Compliance counsel — FEC review", amountCents: 90000, category: "Compliance" },
+      { payee: "Event venue — Kirkwood town hall", amountCents: 45000, category: "Operations" },
+    ],
+  });
+
   const m = (phase: string, title: string, target: string, done: boolean, sortOrder: number, detail?: string) => ({
     phase, title, target: new Date(target), done, sortOrder, detail: detail ?? null,
   });
@@ -84,7 +95,7 @@ async function main() {
     ],
   });
 
-  console.log(`Seeded ${donors.length} donors, 4 volunteers, 7 tasks, 8 milestones.`);
+  console.log(`Seeded ${donors.length} donors, 6 expenditures, 4 volunteers, 7 tasks, 8 milestones.`);
 }
 
 main()
