@@ -9,6 +9,7 @@ const ITEMS = [
   { href: "/dashboard/finance", label: "Finance", icon: "▦" },
   { href: "/dashboard/compliance", label: "Compliance", icon: "▣" },
   { href: "/dashboard/map", label: "3D field map", icon: "◎" },
+  { href: "/dashboard/targets", label: "Precinct targets", icon: "◉" },
   { href: "/dashboard/volunteers", label: "Volunteers", icon: "✶" },
   { href: "/dashboard/tasks", label: "Task board", icon: "▥" },
   { href: "/dashboard/plan", label: "Strategic plan", icon: "★" },
