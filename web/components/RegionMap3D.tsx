@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { CATEGORIES, MAP_CENTER, MAP_ZOOM, POIS, PRECINCTS, type Category } from "@/lib/mapData";
+import { CATEGORIES, MAP_CENTER, MAP_ZOOM, PRECINCTS, type Category } from "@/lib/mapData";
 
 // Free, no-API-key vector basemap (OpenStreetMap-based). Swap the style for
 // OpenFreeMap "liberty"/"bright" or a MapTiler key if you want a different look.
@@ -13,12 +13,15 @@ type Props = {
   visible: Category[];
   buildings: boolean;
   turnout: boolean;
+  pois: GeoJSON.FeatureCollection;
 };
 
-export default function RegionMap3D({ visible, buildings, turnout }: Props) {
+export default function RegionMap3D({ visible, buildings, turnout, pois }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const ready = useRef(false);
+  const poisRef = useRef(pois);
+  poisRef.current = pois;
 
   // Init once.
   useEffect(() => {
@@ -74,18 +77,8 @@ export default function RegionMap3D({ visible, buildings, turnout }: Props) {
         },
       });
 
-      // POIs.
-      m.addSource("pois", {
-        type: "geojson",
-        data: {
-          type: "FeatureCollection",
-          features: POIS.map((p) => ({
-            type: "Feature",
-            properties: { name: p.name, category: p.category, note: p.note ?? "" },
-            geometry: { type: "Point", coordinates: [p.lng, p.lat] },
-          })),
-        },
-      });
+      // POIs (live from /api/geo when available, else sample).
+      m.addSource("pois", { type: "geojson", data: poisRef.current });
       m.addLayer({
         id: "poi-circles",
         source: "pois",
@@ -161,6 +154,14 @@ export default function RegionMap3D({ visible, buildings, turnout }: Props) {
 
   // Re-apply when toggles change.
   useEffect(syncVisibility, [visible, buildings, turnout]);
+
+  // Push new POI data (e.g. live polling places) into the map when it arrives.
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !ready.current) return;
+    const src = m.getSource("pois") as maplibregl.GeoJSONSource | undefined;
+    src?.setData(pois);
+  }, [pois]);
 
   return <div ref={container} className="h-full w-full" />;
 }

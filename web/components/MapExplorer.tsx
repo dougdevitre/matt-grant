@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CATEGORIES, POIS, type Category } from "@/lib/mapData";
 
 // MapLibre touches window/WebGL — load client-only.
@@ -14,15 +14,50 @@ const RegionMap3D = dynamic(() => import("@/components/RegionMap3D"), {
 
 const ALL: Category[] = ["schools", "public", "partners", "polling"];
 
+const sampleFC: GeoJSON.FeatureCollection = {
+  type: "FeatureCollection",
+  features: POIS.map((p) => ({
+    type: "Feature",
+    properties: { name: p.name, category: p.category, note: p.note ?? "" },
+    geometry: { type: "Point", coordinates: [p.lng, p.lat] },
+  })),
+};
+
 export function MapExplorer() {
   const [visible, setVisible] = useState<Category[]>(ALL);
   const [buildings, setBuildings] = useState(true);
   const [turnout, setTurnout] = useState(true);
+  const [pois, setPois] = useState<GeoJSON.FeatureCollection>(sampleFC);
+  const [pollingLive, setPollingLive] = useState<boolean | null>(null);
+
+  // Pull live layers (real St. Louis County polling places) once on mount.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/geo/pois")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((fc) => {
+        if (cancelled) return;
+        setPois({ type: "FeatureCollection", features: fc.features });
+        setPollingLive(!!fc.meta?.pollingLive);
+      })
+      .catch(() => !cancelled && setPollingLive(false));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const toggle = (c: Category) =>
     setVisible((v) => (v.includes(c) ? v.filter((x) => x !== c) : [...v, c]));
 
-  const count = (c: Category) => POIS.filter((p) => p.category === c).length;
+  const counts = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const f of pois.features) {
+      const c = (f.properties?.category as string) ?? "";
+      m[c] = (m[c] ?? 0) + 1;
+    }
+    return m;
+  }, [pois]);
+  const count = (c: Category) => counts[c] ?? 0;
 
   return (
     <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
@@ -42,6 +77,11 @@ export function MapExplorer() {
                   <span className="flex-1">
                     <span className="text-sm font-semibold text-ink">{CATEGORIES[c].label}</span>
                     <span className="ml-2 font-mono text-xs text-slate">{count(c)}</span>
+                    {c === "polling" && pollingLive && (
+                      <span className="ml-2 rounded-sm bg-field/15 px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-field">
+                        live
+                      </span>
+                    )}
                   </span>
                 </label>
               </li>
@@ -66,17 +106,19 @@ export function MapExplorer() {
         </div>
 
         <div className="card border-gold/40 bg-gold/5 p-5 text-xs text-slate">
-          <p className="font-semibold text-ink">Sample data.</p>
+          <p className="font-semibold text-ink">
+            Polling places: {pollingLive === null ? "loading…" : pollingLive ? "live county data" : "sample (county feed unreachable)"}.
+          </p>
           <p className="mt-1">
-            Points and turnout are illustrative. Swap in official layers (St. Louis County GIS, MSDIS, Census, OSM) —
-            see <span className="font-mono">candidate/data-and-map-plan.md</span>.
+            Schools, public places, partners, and turnout columns are illustrative. Add official layers (MSDIS schools,
+            OSM public places, precinct results) — see <span className="font-mono">candidate/data-and-map-plan.md</span>.
           </p>
         </div>
       </div>
 
       {/* Map */}
       <div className="h-[68vh] min-h-[420px] overflow-hidden rounded-lg border border-line shadow-card">
-        <RegionMap3D visible={visible} buildings={buildings} turnout={turnout} />
+        <RegionMap3D visible={visible} buildings={buildings} turnout={turnout} pois={pois} />
       </div>
     </div>
   );

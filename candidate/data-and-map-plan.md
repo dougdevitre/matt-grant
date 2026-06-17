@@ -29,6 +29,12 @@ loadable as GeoJSON. Sample data ships in `web/lib/mapData.ts`; this is how to m
 - OpenStreetMap Overpass: <https://overpass-turbo.eu/> (export GeoJSON)
 - NCES EDGE (schools): <https://nces.ed.gov/programs/edge/>
 
+**Already wired (live in the app):** the official polling-places layer streams into `/dashboard/map`
+via the proxy `app/api/geo/pois` from
+`https://services6.arcgis.com/wkbq75VVf2MvUvs7/arcgis/rest/services/4_7_2026_Polling_Places/FeatureServer/0/query?...&f=geojson`
+(196 records, fields: name, address, zipcode). It falls back to sample points if the county feed is
+unreachable. Add more layers in `web/lib/geoSources.ts`.
+
 **ArcGIS → GeoJSON in one line:** any ArcGIS Hub dataset serves GeoJSON at
 `https://<hub-host>/datasets/<dataset-id>.geojson`, or query a FeatureServer directly:
 `https://services.arcgis.com/.../FeatureServer/0/query?where=1=1&outFields=*&f=geojson`.
