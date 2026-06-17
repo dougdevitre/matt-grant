@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
-import { CATEGORIES, POIS, type Category } from "@/lib/mapData";
+import { CATEGORIES, POIS, PRECINCTS, type Category } from "@/lib/mapData";
 
 // MapLibre touches window/WebGL — load client-only.
 const RegionMap3D = dynamic(() => import("@/components/RegionMap3D"), {
@@ -29,8 +29,10 @@ export function MapExplorer() {
   const [turnout, setTurnout] = useState(true);
   const [pois, setPois] = useState<GeoJSON.FeatureCollection>(sampleFC);
   const [pollingLive, setPollingLive] = useState<boolean | null>(null);
+  const [precincts, setPrecincts] = useState<GeoJSON.FeatureCollection>(PRECINCTS);
+  const [precinctsLive, setPrecinctsLive] = useState<boolean | null>(null);
 
-  // Pull live layers (real St. Louis County polling places) once on mount.
+  // Pull live layers (real St. Louis County polling places + precinct turnout) on mount.
   useEffect(() => {
     let cancelled = false;
     fetch("/api/geo/pois")
@@ -41,6 +43,16 @@ export function MapExplorer() {
         setPollingLive(!!fc.meta?.pollingLive);
       })
       .catch(() => !cancelled && setPollingLive(false));
+
+    fetch("/api/geo/precincts")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((fc) => {
+        if (cancelled) return;
+        setPrecincts({ type: "FeatureCollection", features: fc.features });
+        setPrecinctsLive(!!fc.meta?.live);
+      })
+      .catch(() => !cancelled && setPrecinctsLive(false));
+
     return () => {
       cancelled = true;
     };
@@ -92,10 +104,19 @@ export function MapExplorer() {
         <div className="card p-5">
           <p className="eyebrow text-slate">3D blend</p>
           <label className="mt-3 flex cursor-pointer items-center justify-between text-sm">
-            <span className="font-semibold text-ink">Turnout columns</span>
+            <span className="font-semibold text-ink">
+              Turnout columns
+              {precinctsLive && (
+                <span className="ml-2 rounded-sm bg-field/15 px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-field">live</span>
+              )}
+            </span>
             <input type="checkbox" checked={turnout} onChange={() => setTurnout((v) => !v)} />
           </label>
-          <p className="mt-1 text-xs text-slate">Height = precinct turnout; color = GOP-primary intensity (illustrative).</p>
+          <p className="mt-1 text-xs text-slate">
+            {precinctsLive
+              ? "Real MO-02 precinct turnout (Nov 2024 general). Height + heat = turnout %."
+              : "Height + heat = precinct turnout (loading live data…)."}
+          </p>
           <label className="mt-4 flex cursor-pointer items-center justify-between text-sm">
             <span className="font-semibold text-ink">3D buildings</span>
             <input type="checkbox" checked={buildings} onChange={() => setBuildings((v) => !v)} />
@@ -107,18 +128,19 @@ export function MapExplorer() {
 
         <div className="card border-gold/40 bg-gold/5 p-5 text-xs text-slate">
           <p className="font-semibold text-ink">
-            Polling places: {pollingLive === null ? "loading…" : pollingLive ? "live county data" : "sample (county feed unreachable)"}.
+            Live: polling {pollingLive === null ? "…" : pollingLive ? "✓" : "✕"} · precinct turnout{" "}
+            {precinctsLive === null ? "…" : precinctsLive ? "✓" : "✕"} (St. Louis County GIS).
           </p>
           <p className="mt-1">
-            Schools, public places, partners, and turnout columns are illustrative. Add official layers (MSDIS schools,
-            OSM public places, precinct results) — see <span className="font-mono">candidate/data-and-map-plan.md</span>.
+            Schools, public places, and partners are still sample. Add MSDIS schools + OSM public places —
+            see <span className="font-mono">candidate/data-and-map-plan.md</span>.
           </p>
         </div>
       </div>
 
       {/* Map */}
       <div className="h-[68vh] min-h-[420px] overflow-hidden rounded-lg border border-line shadow-card">
-        <RegionMap3D visible={visible} buildings={buildings} turnout={turnout} pois={pois} />
+        <RegionMap3D visible={visible} buildings={buildings} turnout={turnout} pois={pois} precincts={precincts} />
       </div>
     </div>
   );

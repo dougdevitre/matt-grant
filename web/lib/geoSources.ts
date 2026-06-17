@@ -8,7 +8,14 @@
 export const ARCGIS = {
   polling2026:
     "https://services6.arcgis.com/wkbq75VVf2MvUvs7/arcgis/rest/services/4_7_2026_Polling_Places/FeatureServer/0/query",
+  // Nov 5 2024 general-election precincts with check-ins + registered voters
+  // (real turnout = TOTAL_CHECKINS / RV_COUNT). 1,200 precincts countywide.
+  precincts2024:
+    "https://services6.arcgis.com/wkbq75VVf2MvUvs7/arcgis/rest/services/November2024_Dashboard_Precincts_view/FeatureServer/0/query",
 };
+
+// MO-02 filter value as stored in the county layer's congressional_district field.
+export const CD2_WHERE = "congressional_district='US Representative District 2'";
 
 export function arcgisGeojsonUrl(base: string): string {
   const params = new URLSearchParams({

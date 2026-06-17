@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { CATEGORIES, MAP_CENTER, MAP_ZOOM, PRECINCTS, type Category } from "@/lib/mapData";
+import { CATEGORIES, MAP_CENTER, MAP_ZOOM, type Category } from "@/lib/mapData";
 
 // Free, no-API-key vector basemap (OpenStreetMap-based). Swap the style for
 // OpenFreeMap "liberty"/"bright" or a MapTiler key if you want a different look.
@@ -14,14 +14,17 @@ type Props = {
   buildings: boolean;
   turnout: boolean;
   pois: GeoJSON.FeatureCollection;
+  precincts: GeoJSON.FeatureCollection;
 };
 
-export default function RegionMap3D({ visible, buildings, turnout, pois }: Props) {
+export default function RegionMap3D({ visible, buildings, turnout, pois, precincts }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const ready = useRef(false);
   const poisRef = useRef(pois);
   poisRef.current = pois;
+  const precinctsRef = useRef(precincts);
+  precinctsRef.current = precincts;
 
   // Init once.
   useEffect(() => {
@@ -60,20 +63,22 @@ export default function RegionMap3D({ visible, buildings, turnout, pois }: Props
         /* basemap schema differs — skip buildings */
       }
 
-      // Precinct turnout columns (blended boundary + results data → 3D height).
-      m.addSource("precincts", { type: "geojson", data: PRECINCTS });
+      // Precinct turnout columns: real MO-02 Nov-2024 turnout (clamped for the
+      // height/color ramp; raw value shown in the popup). Height + heat = turnout.
+      const clampTurnout: maplibregl.ExpressionSpecification = ["min", 100, ["coalesce", ["get", "turnout"], 0]];
+      m.addSource("precincts", { type: "geojson", data: precinctsRef.current });
       m.addLayer({
         id: "precinct-extrude",
         source: "precincts",
         type: "fill-extrusion",
         paint: {
           "fill-extrusion-color": [
-            "interpolate", ["linear"], ["get", "lean"],
-            0.45, "#E0A53B", 0.6, "#cf7a39", 0.7, "#B5343B",
+            "interpolate", ["linear"], clampTurnout,
+            0, "#d8d5cc", 35, "#E0A53B", 60, "#cf7a39", 85, "#B5343B",
           ],
-          "fill-extrusion-height": ["*", ["get", "turnout"], 80],
+          "fill-extrusion-height": ["*", clampTurnout, 70],
           "fill-extrusion-base": 0,
-          "fill-extrusion-opacity": 0.55,
+          "fill-extrusion-opacity": 0.6,
         },
       });
 
@@ -118,10 +123,16 @@ export default function RegionMap3D({ visible, buildings, turnout, pois }: Props
       m.on("click", "precinct-extrude", (e) => {
         const f = e.features?.[0];
         if (!f) return;
-        const pr = f.properties as { name: string; turnout: number };
+        const pr = f.properties as { name: string; municipality?: string; turnout?: number; registered?: number };
+        const lines = [
+          `<strong>${pr.name}</strong>`,
+          pr.municipality ? pr.municipality : "",
+          pr.turnout != null ? `Turnout (Nov '24): <strong>${pr.turnout}%</strong>` : "Turnout: n/a",
+          pr.registered ? `Registered: ${pr.registered.toLocaleString()}` : "",
+        ].filter(Boolean);
         new maplibregl.Popup({ closeButton: false, offset: 12 })
           .setLngLat(e.lngLat)
-          .setHTML(`<strong>${pr.name}</strong><br/>Turnout (illustrative): ${pr.turnout}%`)
+          .setHTML(lines.join("<br/>"))
           .addTo(m);
       });
 
@@ -159,9 +170,15 @@ export default function RegionMap3D({ visible, buildings, turnout, pois }: Props
   useEffect(() => {
     const m = map.current;
     if (!m || !ready.current) return;
-    const src = m.getSource("pois") as maplibregl.GeoJSONSource | undefined;
-    src?.setData(pois);
+    (m.getSource("pois") as maplibregl.GeoJSONSource | undefined)?.setData(pois);
   }, [pois]);
+
+  // Push live precinct turnout when it arrives.
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !ready.current) return;
+    (m.getSource("precincts") as maplibregl.GeoJSONSource | undefined)?.setData(precincts);
+  }, [precincts]);
 
   return <div ref={container} className="h-full w-full" />;
 }
