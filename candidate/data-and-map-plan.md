@@ -18,18 +18,29 @@ county**. So St. Louis County GIS only covers the **St. Louis County portion** o
   to the MO-02 precinct polygons (point-in-polygon). Sites in MO-01/MO-03 are excluded.
 - **Missing** — the rest of MO-02 in other counties.
 
-**Which counties depends on the map legally in effect for 2026** (open question — referendum +
-litigation):
+**The map in effect is now settled (verified June 2026).** Missouri's 2025 mid-decade map was signed
+2025-09-28 and upheld by the MO Supreme Court 2026-03-24 (4-3); local election officials are using it
+for the Aug 4 2026 primary. A citizen ballot initiative could still suspend it.
 
-| Map | MO-02 counties beyond St. Louis Co. | County GIS / election authority to add |
+| Era | MO-02 counties beyond St. Louis Co. | Notes |
 |---|---|---|
-| **2022 map** (used 2024) | St. Charles Co. (+ part of Warren) | St. Charles Co. GIS / Election Authority; Warren Co. Clerk |
-| **2025 proposed map** | Jefferson, Franklin, Washington, Crawford, Gasconade | Each county's GIS / Clerk (smaller, more likely shapefile/PDF than ArcGIS) |
+| **OLD 2022 map** (used 2024) | St. Charles Co. (+ part of Warren) | What our St. Louis Co. 2024 precinct tags reflect (western county) |
+| **NEW 2025 map** (Aug 4 2026) | **Jefferson, Washington, Crawford, Gasconade** | St. Charles & Warren moved to MO-03; **Franklin is NOT in MO-02** |
 
-To make the map/targets whole-district: confirm the map in effect, then add one geo-proxy source per
-county (same pattern as `lib/geoSources.ts`), normalize precinct turnout (check-ins ÷ registered or
-the county's own field), and merge. Counties without ArcGIS feeds may need a PDF-results → CSV →
-precinct-shapefile join.
+Two consequences for this app:
+
+1. **St. Louis County footprint** — our turnout columns are tagged to the OLD map (western county). The
+   new MO-02 is the **southern** St. Louis suburbs, so re-derive the St. Louis slice against a 2026
+   precinct layer (e.g. `8_5_2025_Precincts` / `November_4__2025_Dashboard_Precincts_view`) once those
+   carry the new congressional assignment.
+2. **Rural counties** — add one geo-proxy per county (pattern in `lib/geoSources.ts`). Jefferson has
+   ArcGIS precinct polygons; Washington/Crawford/Gasconade have no ArcGIS feed → use Census VTD
+   boundaries + SOS county-level turnout/registration. None publish precinct-level turnout, so
+   whole-district turnout columns are not feasible from live feeds — only St. Louis County does.
+
+Sources: [2025 Missouri redistricting](https://en.wikipedia.org/wiki/2025_Missouri_redistricting) ·
+[Inside Elections analysis](https://www.insideelections.com/news/article/a-detailed-analysis-of-missouris-new-congressional-map) ·
+[STLPR — officials using new map (Jun 2026)](https://www.stlpr.org/government-politics-issues/2026-06-16/local-election-officials-missouri-gerrymandered-congressional-map).
 
 ---
 

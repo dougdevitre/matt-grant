@@ -2,6 +2,7 @@ import { MO02_COUNTIES, RESOLUTION_LABEL, STATUS_LABEL, type Status } from "@/li
 
 const statusStyle: Record<Status, string> = {
   live: "bg-field/15 text-field",
+  "live-old-map": "bg-brick/12 text-brick",
   available: "bg-gold/20 text-[#8a6010]",
   "needs-source": "bg-line text-slate",
 };
@@ -13,16 +14,21 @@ export function DistrictCoverage() {
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="eyebrow text-brick">Data coverage</p>
-          <h2 className="mt-1 font-display text-2xl font-semibold text-ink">MO-02 counties (2025 map)</h2>
+          <h2 className="mt-1 font-display text-2xl font-semibold text-ink">MO-02 counties (2025 enacted map)</h2>
         </div>
-        <p className="font-mono text-xs text-slate">{live}/{MO02_COUNTIES.length} counties live</p>
+        <p className="font-mono text-xs text-slate">{live} of {MO02_COUNTIES.length} fully live</p>
       </div>
 
-      <p className="mb-5 max-w-prose text-sm text-slate">
-        MO-02 spans more than St. Louis County. Precinct-level turnout is only published by St. Louis
-        County; the added rural counties offer boundaries/polling at best, with turnout at the county
-        level (SOS). This tracks exactly what's wired and what's next.
-      </p>
+      <div className="mb-5 rounded-sm border border-brick/30 bg-brick/5 px-4 py-3 text-sm text-slate">
+        <p className="font-semibold text-ink">Map note — verified June 2026.</p>
+        <p className="mt-1">
+          The 2025 mid-decade map (signed Sep 28 2025; upheld by the MO Supreme Court Mar 24 2026) is being
+          used for the Aug 4 2026 primary — a ballot initiative could still suspend it. The new MO-02 = southern
+          St. Louis County suburbs + Jefferson, Washington, Crawford, Gasconade. <strong>St. Charles &amp; Warren
+          moved out to MO-03; Franklin is not in the new MO-02.</strong> Our live St. Louis County turnout is
+          tagged to the OLD (western-county) lines and needs re-derivation against the new boundary.
+        </p>
+      </div>
 
       <div className="grid gap-3 lg:grid-cols-2">
         {MO02_COUNTIES.map((c) => (
