@@ -7,6 +7,30 @@ loadable as GeoJSON. Sample data ships in `web/lib/mapData.ts`; this is how to m
 > Educational planning doc. Verify every dataset's vintage and licensing before public use. Map
 > figures shipped in the app (turnout, partner points) are illustrative placeholders.
 
+## 0. District coverage — MO-02 ≠ St. Louis County (important)
+
+St. Louis County is split across **MO-01, MO-02, and MO-03**, and MO-02 reaches **beyond the
+county**. So St. Louis County GIS only covers the **St. Louis County portion** of the district:
+
+- **Precinct turnout + target list** — already filtered to MO-02 (`congressional_district_20`), but
+  only the St. Louis County precincts (41 county municipalities).
+- **Polling places** — the county layer has no district field, so the app now **spatially clips** it
+  to the MO-02 precinct polygons (point-in-polygon). Sites in MO-01/MO-03 are excluded.
+- **Missing** — the rest of MO-02 in other counties.
+
+**Which counties depends on the map legally in effect for 2026** (open question — referendum +
+litigation):
+
+| Map | MO-02 counties beyond St. Louis Co. | County GIS / election authority to add |
+|---|---|---|
+| **2022 map** (used 2024) | St. Charles Co. (+ part of Warren) | St. Charles Co. GIS / Election Authority; Warren Co. Clerk |
+| **2025 proposed map** | Jefferson, Franklin, Washington, Crawford, Gasconade | Each county's GIS / Clerk (smaller, more likely shapefile/PDF than ArcGIS) |
+
+To make the map/targets whole-district: confirm the map in effect, then add one geo-proxy source per
+county (same pattern as `lib/geoSources.ts`), normalize precinct turnout (check-ins ÷ registered or
+the county's own field), and merge. Counties without ArcGIS feeds may need a PDF-results → CSV →
+precinct-shapefile join.
+
 ---
 
 ## 1. Best geodata sources (the map's base layers)

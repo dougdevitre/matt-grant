@@ -61,6 +61,29 @@ export async function fetchPrecinctRows(): Promise<{ live: boolean; rows: Precin
   }
 }
 
+// CD2 precinct polygons (St. Louis County portion) for spatial filtering —
+// e.g. clipping the county-wide polling layer down to the district.
+export async function fetchCd2Geometry(): Promise<GeoJSON.FeatureCollection | null> {
+  const params = new URLSearchParams({
+    where: PRECINCT_SOURCE.where,
+    outFields: "precinct",
+    returnGeometry: "true",
+    outSR: "4326",
+    maxAllowableOffset: "0.0006",
+    geometryPrecision: "5",
+    resultRecordCount: "2000",
+    f: "geojson",
+  });
+  try {
+    const res = await fetch(`${PRECINCT_SOURCE.url}?${params.toString()}`, { next: { revalidate: 86400 } });
+    if (!res.ok) return null;
+    const fc = (await res.json()) as GeoJSON.FeatureCollection;
+    return fc?.features?.length ? fc : null;
+  } catch {
+    return null;
+  }
+}
+
 // Rank by the chosen strategy, assign vote-coverage tiers (A=top precincts that
 // together make 40% of the metric, B to 70%, C the rest) and a recommended play.
 export function scoreRows(rows: PrecinctRow[], strategy: Strategy): { scored: ScoredRow[]; medianTurnout: number; totals: { expected: number; registered: number } } {

@@ -132,8 +132,10 @@ export function MapExplorer() {
             {precinctsLive === null ? "…" : precinctsLive ? "✓" : "✕"} (St. Louis County GIS).
           </p>
           <p className="mt-1">
-            Schools, public places, and partners are still sample. Add MSDIS schools + OSM public places —
-            see <span className="font-mono">candidate/data-and-map-plan.md</span>.
+            <strong>Coverage = St. Louis County portion of MO-02</strong> (polling clipped to the district).
+            MO-02 also spans other counties not in this feed — see{" "}
+            <span className="font-mono">candidate/data-and-map-plan.md</span>. Schools, public places, and
+            partners are still sample.
           </p>
         </div>
       </div>

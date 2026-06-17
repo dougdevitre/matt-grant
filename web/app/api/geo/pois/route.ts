@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import { ARCGIS, arcgisGeojsonUrl, type PoiFeature } from "@/lib/geoSources";
+import { fetchCd2Geometry } from "@/lib/precincts";
 import { POIS } from "@/lib/mapData";
 
 // Cache the upstream pull for a day; polling locations rarely change mid-cycle.
@@ -48,7 +50,23 @@ export async function GET() {
   const nonPolling = sampleFeatures().filter((f) => f.properties.category !== "polling");
 
   const live = await livePolling();
-  const polling = live ?? sampleFeatures().filter((f) => f.properties.category === "polling");
+  let polling = live ?? sampleFeatures().filter((f) => f.properties.category === "polling");
+
+  // The county polling layer has no district field, so clip it to the MO-02
+  // precinct polygons (St. Louis County portion). Without this it would show
+  // MO-01/MO-03 sites too.
+  let districtFiltered = false;
+  const countyCount = polling.length;
+  if (live) {
+    const geo = await fetchCd2Geometry();
+    if (geo) {
+      const polys = geo.features.filter((f) => f.geometry?.type === "Polygon" || f.geometry?.type === "MultiPolygon");
+      polling = polling.filter((f) =>
+        polys.some((poly) => booleanPointInPolygon(f.geometry.coordinates, poly as GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon>)),
+      );
+      districtFiltered = true;
+    }
+  }
 
   const features = [...nonPolling, ...polling];
   const live_layers = live ? ["polling"] : [];
@@ -57,7 +75,14 @@ export async function GET() {
     {
       type: "FeatureCollection",
       features,
-      meta: { live_layers, pollingCount: polling.length, pollingLive: !!live },
+      meta: {
+        live_layers,
+        pollingCount: polling.length,
+        pollingLive: !!live,
+        districtFiltered,
+        countyCount, // before clipping, for reference
+        coverage: "St. Louis County portion of MO-02",
+      },
     },
     { headers: { "cache-control": "public, s-maxage=86400, stale-while-revalidate=43200" } },
   );
