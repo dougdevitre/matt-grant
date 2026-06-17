@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/dashboard/Notice";
 import { MapExplorer } from "@/components/MapExplorer";
+import { DistrictCoverage } from "@/components/dashboard/DistrictCoverage";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,7 @@ export default function MapPage() {
         not in this feed. Schools, public places, and partners are sample for now.
       </p>
       <MapExplorer />
+      <DistrictCoverage />
     </>
   );
 }
