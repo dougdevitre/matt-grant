@@ -1,0 +1,73 @@
+"use client";
+
+import { useActionState } from "react";
+import { submitContact, type ContactResult } from "@/app/(site)/contact/actions";
+
+const INTERESTS = ["Knock doors", "Make calls", "Host an event", "Yard sign", "Donate", "Other"];
+
+const field =
+  "w-full rounded-sm border border-line bg-white px-4 py-3 text-ink placeholder:text-slate/60 focus:border-field";
+
+export function ContactForm() {
+  const [state, action, pending] = useActionState<ContactResult | null, FormData>(submitContact, null);
+
+  return (
+    <form action={action} className="card p-8">
+      <p className="eyebrow text-brick">Get involved</p>
+      <h2 className="mt-2 font-display text-2xl font-semibold">Join the team.</h2>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className="mb-1 block text-sm font-semibold text-ink">Name</span>
+          <input name="name" required className={field} placeholder="Your name" />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-sm font-semibold text-ink">City</span>
+          <input name="city" className={field} placeholder="e.g. Kirkwood" />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-sm font-semibold text-ink">Email</span>
+          <input type="email" name="email" className={field} placeholder="you@example.com" />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-sm font-semibold text-ink">Phone</span>
+          <input name="phone" className={field} placeholder="(314) 555-0123" />
+        </label>
+      </div>
+
+      <fieldset className="mt-5">
+        <legend className="mb-2 text-sm font-semibold text-ink">I'd like to…</legend>
+        <div className="flex flex-wrap gap-2">
+          {INTERESTS.map((i) => (
+            <label key={i} className="cursor-pointer">
+              <input type="checkbox" name="interests" value={i} className="peer sr-only" />
+              <span className="inline-block rounded-sm border border-line px-3 py-1.5 text-sm text-slate peer-checked:border-field peer-checked:bg-field peer-checked:text-paper">
+                {i}
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <label className="mt-5 block">
+        <span className="mb-1 block text-sm font-semibold text-ink">Message (optional)</span>
+        <textarea name="message" rows={3} className={field} placeholder="Anything you'd like us to know" />
+      </label>
+
+      <button type="submit" disabled={pending} className="btn-primary mt-6 w-full disabled:opacity-60">
+        {pending ? "Sending…" : "Count me in"}
+      </button>
+
+      {state && (
+        <p
+          role="status"
+          className={`mt-4 rounded-sm border px-4 py-3 text-sm ${
+            state.ok ? "border-field/40 bg-field/10 text-field" : "border-brick/40 bg-brick/10 text-brick"
+          }`}
+        >
+          {state.message}
+        </p>
+      )}
+    </form>
+  );
+}

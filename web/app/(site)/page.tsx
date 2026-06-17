@@ -1,0 +1,147 @@
+import Link from "next/link";
+import { Countdown } from "@/components/Countdown";
+import { CAMPAIGN, PRIORITIES, VALUES } from "@/lib/site";
+
+export default function HomePage() {
+  return (
+    <>
+      {/* HERO — the thesis: conviction + the clock */}
+      <section className="relative overflow-hidden bg-ink text-paper">
+        <div className="absolute inset-0 bg-grid opacity-[0.5]" aria-hidden />
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brick via-gold to-field" aria-hidden />
+        <div className="container-page relative grid gap-14 py-20 sm:py-28 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+          <div className="animate-rise-in">
+            <p className="eyebrow text-gold">{CAMPAIGN.committee} · {CAMPAIGN.district}</p>
+            <h1 className="mt-5 font-display text-5xl font-semibold leading-[1.02] sm:text-6xl lg:text-7xl">
+              Put Missouri's{" "}
+              <span className="text-gold">children</span> first.
+            </h1>
+            <p className="mt-6 max-w-xl text-lg text-paper/80">
+              Matt Grant is a neighbor, a dad, and a problem-solver. Twenty-three years in the
+              courtroom taught him how to bring people together and get results — and he's running
+              for Congress to do exactly that.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
+                Donate now
+              </a>
+              <Link href="/about" className="btn-gold">
+                Meet Matt &amp; the issues
+              </Link>
+            </div>
+          </div>
+
+          <div className="card animate-rise-in bg-field/40 p-8 backdrop-blur ring-1 ring-paper/10">
+            <p className="eyebrow text-paper/70">Election day · primary</p>
+            <p className="mt-1 font-display text-2xl font-semibold text-paper">
+              {CAMPAIGN.electionLabel}
+            </p>
+            <div className="mt-6">
+              <Countdown iso={CAMPAIGN.electionDate} />
+            </div>
+            <p className="mt-6 border-t border-paper/15 pt-4 text-sm text-paper/70">
+              "Matt does not just talk — he takes action." Every day on this clock is a day to
+              reach one more neighbor.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* VALUES strip */}
+      <section className="border-b border-line bg-white">
+        <div className="container-page flex flex-wrap items-center gap-x-8 gap-y-3 py-5">
+          <span className="eyebrow text-slate">What guides this campaign</span>
+          {VALUES.map((v) => (
+            <span key={v} className="star font-display text-lg text-ink">
+              {v}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* PRIORITIES — the ledger */}
+      <section className="container-page py-20 sm:py-24">
+        <div className="max-w-prose">
+          <p className="eyebrow text-brick">The platform</p>
+          <h2 className="mt-3 text-4xl font-semibold sm:text-5xl">Four fights worth winning.</h2>
+          <p className="mt-4 text-lg text-slate">
+            Not a wish list — a docket. Each one is concrete, accountable, and built for results
+            across the aisle.
+          </p>
+        </div>
+
+        <ol className="mt-12 grid gap-px overflow-hidden rounded-lg border border-line bg-line md:grid-cols-2">
+          {PRIORITIES.map((p) => (
+            <li key={p.id} className="group bg-white p-8 transition-colors hover:bg-paper">
+              <div className="flex items-baseline gap-4">
+                <span className="font-mono text-sm text-gold">{p.n}</span>
+                <h3 className="font-display text-2xl font-semibold leading-snug text-ink">
+                  {p.title}
+                </h3>
+              </div>
+              <p className="mt-4 text-slate">{p.summary}</p>
+              <p className="mt-4 font-mono text-xs uppercase tracking-eyebrow text-field">{p.short}</p>
+            </li>
+          ))}
+        </ol>
+
+        <div className="mt-8">
+          <Link href="/about" className="btn-ghost">
+            Read the full positions →
+          </Link>
+        </div>
+      </section>
+
+      {/* MEET MATT band */}
+      <section className="bg-ink text-paper">
+        <div className="container-page grid gap-12 py-20 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+          <div className="relative">
+            <div className="aspect-[4/5] w-full rounded-lg bg-gradient-to-br from-field to-ink ring-1 ring-paper/10" aria-hidden>
+              <div className="grid h-full place-items-center">
+                <span className="font-display text-[7rem] leading-none text-gold/30">MG</span>
+              </div>
+            </div>
+            <span className="absolute -bottom-4 -right-3 rounded-sm bg-gold px-4 py-2 font-mono text-xs uppercase tracking-eyebrow text-ink">
+              Eagle Scout · Dad · Litigator
+            </span>
+          </div>
+          <div>
+            <p className="eyebrow text-gold">Meet Matt</p>
+            <h2 className="mt-3 text-4xl font-semibold sm:text-5xl">
+              From three public schools to a 23-year legal career — and now, public service.
+            </h2>
+            <p className="mt-5 text-lg text-paper/80">
+              Matt learned the value of hard work, integrity, and community early — earning the rank
+              of Eagle Scout in the Boy Scouts of America. As an Equity Partner at Husch Blackwell,
+              he built teams that delivered efficient results for Missouri's families and businesses.
+              In Congress, he'll work across the aisle to get things done.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="/about" className="btn-gold">Matt's full story</Link>
+              <Link href="/contact" className="btn-ghost border-paper/30 text-paper hover:border-paper">
+                Volunteer
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CLOSING CTA */}
+      <section className="container-page py-20 text-center sm:py-28">
+        <p className="eyebrow text-brick">Join the effort</p>
+        <h2 className="mx-auto mt-3 max-w-3xl text-4xl font-semibold sm:text-5xl">
+          This race is decided one neighbor at a time.
+        </h2>
+        <p className="mx-auto mt-4 max-w-xl text-lg text-slate">
+          Chip in, knock a door, or make a call. Every bit of help moves the clock in our favor.
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
+            Donate now
+          </a>
+          <Link href="/contact" className="btn-ink">Get involved</Link>
+        </div>
+      </section>
+    </>
+  );
+}

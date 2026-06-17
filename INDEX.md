@@ -1,0 +1,104 @@
+# Matt Grant for Congress: Use-Case Index
+
+Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026 · Matt Grant for Congress Committee. Find what you need by starting with what you are trying to do.
+
+---
+
+## "Tell me about Matt Grant and this campaign"
+
+- [candidate/profile.md](candidate/profile.md) -- Bio, career, values, contact, and how to donate
+- [candidate/platform.md](candidate/platform.md) -- The four priorities and the CHILD Protection Act
+- [candidate/strategic-plan.md](candidate/strategic-plan.md) -- The plan to win MO-02 on August 4, 2026
+
+## "I'm thinking about running"
+
+- [workflows/should-i-run.md](workflows/should-i-run.md) -- Viability assessment and decision framework
+- [references/campaign-lifecycle.md](references/campaign-lifecycle.md) -- Understand the 7 phases of a campaign
+- [references/roles.md](references/roles.md) -- Who you need on your team
+- [references/glossary.md](references/glossary.md) -- 65+ campaign terms defined
+
+## "I'm ready to file and set up"
+
+- [workflows/filing-checklist.md](workflows/filing-checklist.md) -- Step-by-step filing for candidacy
+- [workflows/first-30-days.md](workflows/first-30-days.md) -- Day-by-day launch plan
+- [workflows/treasurer-setup.md](workflows/treasurer-setup.md) -- Treasurer duties, systems, and liability
+- [tools/campaign-tech-stack.md](tools/campaign-tech-stack.md) -- Technology recommendations by budget tier
+
+## "I need to raise money"
+
+- [workflows/fundraising-plan.md](workflows/fundraising-plan.md) -- Goal-setting, call time, events, and major donors
+- [workflows/donation-intake.md](workflows/donation-intake.md) -- Processing every contribution correctly
+- [messaging/email-fundraising.md](messaging/email-fundraising.md) -- Email fundraising templates and strategy
+- [tools/contribution-tracker.md](tools/contribution-tracker.md) -- Tracking and reconciling donations
+- [tools/donor-limit-checker.md](tools/donor-limit-checker.md) -- Check whether a donor can give more
+
+## "I need to build my message"
+
+- [messaging/positioning-framework.md](messaging/positioning-framework.md) -- Core message development with the Message Box
+- [messaging/stump-speech-builder.md](messaging/stump-speech-builder.md) -- Speech templates at every length
+- [messaging/debate-prep.md](messaging/debate-prep.md) -- Debate preparation and pivot techniques
+- [messaging/press-release-templates.md](messaging/press-release-templates.md) -- Press release format and templates
+- [messaging/social-media-strategy.md](messaging/social-media-strategy.md) -- Platform strategy, content planning, compliance
+- [messaging/podcast-campaign.md](messaging/podcast-campaign.md) -- Guesting and launching your own podcast
+
+## "I need campaign strategy"
+
+- [workflows/campaign-plan-builder.md](workflows/campaign-plan-builder.md) -- Full campaign plan template
+- [workflows/voter-targeting.md](workflows/voter-targeting.md) -- Identify and prioritize voters to contact
+- [tactics/voter-personas.md](tactics/voter-personas.md) -- Psychographic voter profiles
+- [tactics/coalition-building.md](tactics/coalition-building.md) -- Assembling a winning coalition
+- [tactics/primary-general-strategy.md](tactics/primary-general-strategy.md) -- Primary vs. general election differences
+- [tactics/low-cost-high-impact.md](tactics/low-cost-high-impact.md) -- 20+ small-budget tactics ranked by cost-per-vote
+
+## "I need to contact voters"
+
+- [voter-engagement-tools.md](voter-engagement-tools.md) -- 15 interactive voter engagement tools
+- [workflows/volunteer-management.md](workflows/volunteer-management.md) -- Recruiting, training, and retaining volunteers
+- [workflows/gotv-plan.md](workflows/gotv-plan.md) -- Get Out The Vote operations
+- [tactics/ballot-chase-program.md](tactics/ballot-chase-program.md) -- Tracking and chasing ballots
+
+## "I need compliance help"
+
+- [federal/](federal/) -- 6 files covering FEC rules, contribution limits, disclosure, digital ads, prohibited contributions, and compliance calendar
+- [states/](states/) -- State-specific election law for 11 states (see [states/_state-index.md](states/_state-index.md))
+- [workflows/compliance-report-prep.md](workflows/compliance-report-prep.md) -- Pre-filing checklist for finance reports
+- [workflows/coordination-rules.md](workflows/coordination-rules.md) -- When outside-group activity becomes illegal
+- [tools/disclaimer-generator.md](tools/disclaimer-generator.md) -- Generate "Paid for by" disclaimers
+- [tools/filing-deadline-calendar.md](tools/filing-deadline-calendar.md) -- Calendar events for filing deadlines
+
+## "I'm under attack / facing a crisis"
+
+- [tactics/crisis-management.md](tactics/crisis-management.md) -- The RESPOND framework for campaign crises
+- [tactics/issue-response-engine.md](tactics/issue-response-engine.md) -- Eight response formats for any issue
+- [workflows/opposition-research.md](workflows/opposition-research.md) -- Ethical oppo research on opponents and yourself
+
+## "I need to grow my network"
+
+- [tactics/influence-network-targeting.md](tactics/influence-network-targeting.md) -- Power mapping your community
+- [outreach/endorsement-playbook.md](outreach/endorsement-playbook.md) -- Earning, announcing, and leveraging endorsements
+- [outreach/stakeholder-correspondence.md](outreach/stakeholder-correspondence.md) -- Templates for writing to every audience
+- [tactics/surrogate-program.md](tactics/surrogate-program.md) -- Building and managing campaign surrogates
+
+## "The election is coming"
+
+- [tactics/ballot-chase-program.md](tactics/ballot-chase-program.md) -- Systematic ballot tracking and chasing
+- [tactics/election-protection.md](tactics/election-protection.md) -- Poll watchers, recounts, and provisional ballots
+- [workflows/gotv-plan.md](workflows/gotv-plan.md) -- Final-push GOTV operations
+- [tactics/scheduling-advance.md](tactics/scheduling-advance.md) -- Candidate time management and advance work
+
+## "The election is over"
+
+- [workflows/post-election.md](workflows/post-election.md) -- Win, lose, or recount: what to do next
+
+## "I want to generate a document"
+
+- [commands.md](commands.md) -- All slash commands for instant document generation
+- [commands/commands.md](commands/commands.md) -- Detailed command reference
+- [artifacts/campaign-documents.md](artifacts/campaign-documents.md) -- Master template reference for every document type
+
+## Quick Reference
+
+- [references/agency-directory.md](references/agency-directory.md) -- Election agencies in all 50 states and DC
+- [references/glossary.md](references/glossary.md) -- 65+ terms defined
+- [references/ethics-and-guardrails.md](references/ethics-and-guardrails.md) -- What this skill will and will not do
+- [states/_state-index.md](states/_state-index.md) -- State coverage map
