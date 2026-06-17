@@ -20,6 +20,7 @@ const THEMES = [
 const BRAND_KIT = [
   { file: "og-card.png", label: "Social share card (1200×630)" },
   { file: "avatar-circle.png", label: "Round profile photo (800)" },
+  { file: "headshot-print-300dpi.jpg", label: "Print headshot — mailers (300 DPI)" },
   { file: "portrait-1200.png", label: "Portrait (1200)" },
   { file: "portrait-800.png", label: "Portrait (800)" },
   { file: "icon-512.png", label: "App icon (512)" },

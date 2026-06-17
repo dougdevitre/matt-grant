@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { CAMPAIGN, NAV } from "@/lib/site";
@@ -13,8 +14,8 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 border-b border-line/80 bg-paper/85 backdrop-blur-md">
       <div className="container-page flex h-[68px] items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
-          <span className="grid h-9 w-9 place-items-center rounded-sm bg-ink font-display text-lg font-semibold text-gold">
-            ★
+          <span className="relative block h-10 w-10 overflow-hidden rounded-full ring-2 ring-gold">
+            <Image src="/brand/avatar-circle.png" alt="Matt Grant" fill sizes="40px" className="object-cover" />
           </span>
           <span className="leading-tight">
             <span className="block font-display text-lg font-semibold text-ink">Matt Grant</span>

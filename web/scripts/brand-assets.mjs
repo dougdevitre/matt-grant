@@ -91,6 +91,14 @@ async function main() {
   const A = 800;
   await sharp(await squareCover(src, A)).composite([{ input: circle(A), blend: "dest-in" }]).png().toFile(path.join(BRAND, "avatar-circle.png"));
 
+  // Print-resolution headshot for mailers — 6×7.5in @ 300 DPI, RGB JPEG.
+  // (Send to the printer; they handle any CMYK conversion.)
+  await sharp(src)
+    .resize(1800, 2250, { fit: "cover", position: "north" })
+    .withMetadata({ density: 300 })
+    .jpeg({ quality: 92, chromaSubsampling: "4:4:4" })
+    .toFile(path.join(BRAND, "headshot-print-300dpi.jpg"));
+
   await buildOgCard(src);
 
   const files = (await readdir(BRAND)).filter((f) => f !== "matt-grant-source.png" && /\.(png|jpe?g|webp)$/.test(f));
