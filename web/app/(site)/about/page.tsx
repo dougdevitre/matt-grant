@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { CAMPAIGN, PRIORITIES, VALUES } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -33,23 +34,35 @@ export default function AboutPage() {
   return (
     <>
       <section className="border-b border-line bg-white">
-        <div className="container-page py-16 sm:py-20">
-          <p className="eyebrow text-brick">About Matt</p>
-          <h1 className="mt-3 max-w-3xl text-4xl font-semibold sm:text-6xl">
-            A neighbor, a dad, and a problem-solver.
-          </h1>
-          <p className="mt-6 max-w-prose text-lg text-slate">
-            Matt Grant has spent his life bringing people together to get results. From three public
-            schools to a legal career and now public service, he learned the value of hard work,
-            integrity, and community — and he's running for Congress to make sure every child in
-            Missouri's 2nd District has a fair shot.
-          </p>
-          <div className="mt-7 flex flex-wrap gap-2">
-            {VALUES.map((v) => (
-              <span key={v} className="rounded-sm border border-line px-3 py-1 font-mono text-xs uppercase tracking-eyebrow text-field">
-                {v}
-              </span>
-            ))}
+        <div className="container-page grid gap-10 py-16 sm:py-20 lg:grid-cols-[1.5fr_1fr] lg:items-center">
+          <div>
+            <p className="eyebrow text-brick">About Matt</p>
+            <h1 className="mt-3 max-w-3xl text-4xl font-semibold sm:text-6xl">
+              A neighbor, a dad, and a problem-solver.
+            </h1>
+            <p className="mt-6 max-w-prose text-lg text-slate">
+              Matt Grant has spent his life bringing people together to get results. From three public
+              schools to a legal career and now public service, he learned the value of hard work,
+              integrity, and community — and he's running for Congress to make sure every child in
+              Missouri's 2nd District has a fair shot.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-2">
+              {VALUES.map((v) => (
+                <span key={v} className="rounded-sm border border-line px-3 py-1 font-mono text-xs uppercase tracking-eyebrow text-field">
+                  {v}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="relative mx-auto aspect-[4/5] w-full max-w-xs overflow-hidden rounded-lg border border-line shadow-card lg:max-w-none">
+            <Image
+              src="/brand/portrait-800.png"
+              alt="Matt Grant"
+              fill
+              sizes="(max-width: 1024px) 80vw, 33vw"
+              className="object-cover"
+              priority
+            />
           </div>
         </div>
       </section>

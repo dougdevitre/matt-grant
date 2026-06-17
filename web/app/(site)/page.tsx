@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Countdown } from "@/components/Countdown";
 import { Reveal } from "@/components/Reveal";
 import { CAMPAIGN, PRIORITIES, VALUES } from "@/lib/site";
@@ -99,10 +100,15 @@ export default function HomePage() {
       <section className="bg-ink text-paper">
         <div className="container-page grid gap-12 py-20 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
           <div className="relative">
-            <div className="aspect-[4/5] w-full rounded-lg bg-gradient-to-br from-field to-ink ring-1 ring-paper/10" aria-hidden>
-              <div className="grid h-full place-items-center">
-                <span className="font-display text-[7rem] leading-none text-gold/30">MG</span>
-              </div>
+            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-lg ring-1 ring-paper/10">
+              <Image
+                src="/brand/portrait-800.png"
+                alt="Matt Grant"
+                fill
+                sizes="(max-width: 1024px) 100vw, 40vw"
+                className="object-cover"
+                priority
+              />
             </div>
             <span className="absolute -bottom-4 -right-3 rounded-sm bg-gold px-4 py-2 font-mono text-xs uppercase tracking-eyebrow text-ink">
               Eagle Scout · Dad · Litigator

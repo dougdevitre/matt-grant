@@ -42,6 +42,27 @@ Add keys to turn on real auth and data.
 3. Build command `npm run build` runs `prisma generate` then `next build`.
 4. After first deploy, run `npm run db:push` and `npm run db:seed` against the prod DB.
 
+## Brand assets (Matt's photo → every size)
+
+One headshot drives the favicon, social share card, portraits, profile photo, and the in-app
+graphics studio.
+
+```bash
+# 1. Save the real headshot here (overwrite the placeholder):
+#    web/public/brand/matt-grant-source.png   (or .jpg)
+# 2. Regenerate every derived asset:
+npm run brand
+```
+
+This produces `public/brand/` (icon-16/32/48/192/512, og-card 1200×630 with photo + slogan,
+portrait-400/800/1200, avatar-circle) plus `app/icon.png` + `app/apple-icon.png` (favicon /
+Apple touch icon). The site's OG card, favicon, and About/Home portraits use them automatically.
+
+**Graphics studio** (`/dashboard/studio`) generates campaign graphics — IG/FB square & story, X
+header, Facebook cover, web banner, yard sign — from the photo with editable copy and a one-click
+PNG download, via the `/api/graphics` route. Until the real photo is dropped in, a branded "MG"
+placeholder stands in.
+
 ## Notes
 
 - Donor PII lives in the database — handle securely (see repo `SECURITY.md`).
