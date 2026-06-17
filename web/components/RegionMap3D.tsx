@@ -65,7 +65,8 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
 
       // Precinct turnout columns: real MO-02 Nov-2024 turnout (clamped for the
       // height/color ramp; raw value shown in the popup). Height + heat = turnout.
-      const clampTurnout: maplibregl.ExpressionSpecification = ["min", 100, ["coalesce", ["get", "turnout"], 0]];
+      // Ramp tuned to PRIMARY turnout (~8–40%) so precinct variation reads clearly.
+      const t: maplibregl.ExpressionSpecification = ["coalesce", ["get", "turnout"], 0];
       m.addSource("precincts", { type: "geojson", data: precinctsRef.current });
       m.addLayer({
         id: "precinct-extrude",
@@ -73,10 +74,10 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         type: "fill-extrusion",
         paint: {
           "fill-extrusion-color": [
-            "interpolate", ["linear"], clampTurnout,
-            0, "#d8d5cc", 35, "#E0A53B", 60, "#cf7a39", 85, "#B5343B",
+            "interpolate", ["linear"], t,
+            8, "#d8d5cc", 18, "#E0A53B", 28, "#cf7a39", 40, "#B5343B",
           ],
-          "fill-extrusion-height": ["*", clampTurnout, 70],
+          "fill-extrusion-height": ["*", t, 130],
           "fill-extrusion-base": 0,
           "fill-extrusion-opacity": 0.6,
         },
@@ -127,7 +128,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         const lines = [
           `<strong>${pr.name}</strong>`,
           pr.municipality ? pr.municipality : "",
-          pr.turnout != null ? `Turnout (Nov '24): <strong>${pr.turnout}%</strong>` : "Turnout: n/a",
+          pr.turnout != null ? `Primary turnout (Aug '24): <strong>${pr.turnout}%</strong>` : "Turnout: n/a",
           pr.registered ? `Registered: ${pr.registered.toLocaleString()}` : "",
         ].filter(Boolean);
         new maplibregl.Popup({ closeButton: false, offset: 12 })

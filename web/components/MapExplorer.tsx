@@ -114,7 +114,7 @@ export function MapExplorer() {
           </label>
           <p className="mt-1 text-xs text-slate">
             {precinctsLive
-              ? "Real MO-02 precinct turnout (Nov 2024 general). Height + heat = turnout %."
+              ? "Real MO-02 primary turnout (Aug 2024) — the Aug 4 electorate. Height + heat = turnout %."
               : "Height + heat = precinct turnout (loading live data…)."}
           </p>
           <label className="mt-4 flex cursor-pointer items-center justify-between text-sm">

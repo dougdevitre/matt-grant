@@ -8,14 +8,20 @@
 export const ARCGIS = {
   polling2026:
     "https://services6.arcgis.com/wkbq75VVf2MvUvs7/arcgis/rest/services/4_7_2026_Polling_Places/FeatureServer/0/query",
-  // Nov 5 2024 general-election precincts with check-ins + registered voters
-  // (real turnout = TOTAL_CHECKINS / RV_COUNT). 1,200 precincts countywide.
-  precincts2024:
+  // Nov 5 2024 GENERAL precincts (high-turnout electorate). Alt layer.
+  precinctsGeneral2024:
     "https://services6.arcgis.com/wkbq75VVf2MvUvs7/arcgis/rest/services/November2024_Dashboard_Precincts_view/FeatureServer/0/query",
 };
 
-// MO-02 filter value as stored in the county layer's congressional_district field.
-export const CD2_WHERE = "congressional_district='US Representative District 2'";
+// Precinct layer that drives the map's turnout columns. We use the Aug 6 2024
+// PRIMARY — the same low-turnout, high-intensity electorate Matt faces on the
+// Aug 4 2026 primary ballot. Real turnout = TOTAL_CHECKINS / RV_COUNT.
+// Note: this layer's congressional field is named `congressional_district_20`.
+export const PRECINCT_SOURCE = {
+  url: "https://services6.arcgis.com/wkbq75VVf2MvUvs7/arcgis/rest/services/August_2024_Precincts_view/FeatureServer/0/query",
+  where: "congressional_district_20='US Representative District 2'",
+  label: "St. Louis County — Aug 6 2024 primary",
+};
 
 export function arcgisGeojsonUrl(base: string): string {
   const params = new URLSearchParams({

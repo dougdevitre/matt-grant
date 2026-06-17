@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import { ARCGIS, CD2_WHERE } from "@/lib/geoSources";
+import { PRECINCT_SOURCE } from "@/lib/geoSources";
 import { PRECINCTS } from "@/lib/mapData";
 
-// Real MO-02 precinct turnout from the St. Louis County Nov 2024 dashboard layer.
+// Real MO-02 PRIMARY turnout (Aug 6 2024) per precinct from St. Louis County.
 // Turnout isn't stored directly, so we derive it: TOTAL_CHECKINS / RV_COUNT.
 export const revalidate = 86400;
 
 function liveUrl(): string {
   const params = new URLSearchParams({
-    where: CD2_WHERE,
+    where: PRECINCT_SOURCE.where,
     outFields: "precinct,municipality,TOTAL_CHECKINS,RV_COUNT",
     returnGeometry: "true",
     outSR: "4326",
@@ -17,7 +17,7 @@ function liveUrl(): string {
     resultRecordCount: "2000",
     f: "geojson",
   });
-  return `${ARCGIS.precincts2024}?${params.toString()}`;
+  return `${PRECINCT_SOURCE.url}?${params.toString()}`;
 }
 
 export async function GET() {
@@ -54,7 +54,7 @@ export async function GET() {
       {
         type: "FeatureCollection",
         features,
-        meta: { live: true, source: "St. Louis County — Nov 5 2024 general", count: features.length, withTurnout: withData },
+        meta: { live: true, source: PRECINCT_SOURCE.label, count: features.length, withTurnout: withData },
       },
       { headers: { "cache-control": "public, s-maxage=86400, stale-while-revalidate=43200" } },
     );
