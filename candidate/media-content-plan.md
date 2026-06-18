@@ -12,10 +12,11 @@ library**, and a path to **automated posting** (API / connector / MCP).
 
 - **Public Media page** (`/media`) — downloads the brand assets (logo variants, headshot, the *Four
   Fights* infographic, the *New Standard of Service* banner, the campaign deck) and renders the
-  50-post calendar with **Copy caption**, **Share to X**, **Share to Facebook**, and **Graphic ↓**.
+  50-post calendar with **Copy caption**, **Share to X**, **Share to Facebook**, **Square ↓**
+  (1080×1080 feed), and **Story ↓** (1080×1920).
 - **`lib/socialPosts.ts`** — the typed index of 50 posts (the source of truth; also exported to S3).
-- **S3 content library** — `s3://matt-grant-for-congress/public/social/` (`manifest.json`, `INDEX.md`,
-  `graphics/`).
+- **S3 content library** — `s3://matt-grant-for-congress/public/social/` (`feed/`, `stories/`,
+  `captions/manifest.json`, `captions/INDEX.md`).
 
 ## 2. Content taxonomy (every post is tagged)
 
@@ -35,15 +36,19 @@ caption, hashtags, channel(s), persona, coalition, CTA, and a suggested graphic.
 
 ## 4. S3 content library structure
 
-```
+```text
 s3://matt-grant-for-congress/public/social/
-├── manifest.json     # the 50 posts (machine-readable; the Media page / API read this)
-├── INDEX.md          # human-readable index
-└── graphics/         # one image per post: D-50.png … D-1.png  (generate in the Studio, upload here)
+├── feed/             # 1080×1080 square posts: D-50.png … D-1.png
+├── stories/          # 1080×1920 story/reel covers: D-50.png … D-1.png
+└── captions/
+    ├── manifest.json # the 50 posts (machine-readable; the Media page / API read this)
+    └── INDEX.md      # human-readable index
 ```
 
-Add a post's artwork by generating it in **/dashboard/studio**, then uploading to
-`public/social/graphics/<id>.png` — the Media page's "Graphic ↓" link picks it up automatically.
+Add a post's artwork by generating it with `web/scripts/generate-social-graphics.mjs` (or the
+**/dashboard/studio**), then uploading to `public/social/feed/<id>.png` and
+`public/social/stories/<id>.png` — the Media page's **Square ↓** / **Story ↓** links pick them up
+automatically.
 
 ## 5. Posting integration — phased
 

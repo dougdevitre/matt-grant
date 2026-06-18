@@ -54,7 +54,7 @@ high-res in `private/raw/` and only put export-ready files in `public/`.
 | Category | What to produce | Status |
 |---|---|---|
 | **Brand kit** | Logo (4 variants, PNG **+ SVG**), 300-DPI headshot, color/font spec, social avatars, favicon | ◐ logo + headshot (need SVG + 300-DPI photo) |
-| **Social** | Feed squares, **stories (1080×1920)**, reels covers, profile + cover banners per platform | ◑ 50 feed graphics + 50 captions done; stories next |
+| **Social** | Feed squares, **stories (1080×1920)**, reels covers, profile + cover banners per platform | ◑ 50 feed + 50 stories + 50 captions done; platform banners next |
 | **Video** | Launch video, 15/30/60s ads, testimonials, town-hall clips, CHILD-Act explainer, b-roll | ☐ |
 | **Print** | Yard signs, large signs, **3–4 mailers**, door hangers, palm cards, posters, business cards, petition/volunteer forms | ☐ |
 | **Digital ads** | Creative at 1200×628, 1080×1080, 1080×1920, 300×250, 728×90 + ad copy | ☐ |
