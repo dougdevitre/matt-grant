@@ -57,7 +57,7 @@ export function SiteFooter() {
                 {CAMPAIGN.phone}
               </a>
             </li>
-            <li className="text-paper/60">{CAMPAIGN.address}</li>
+            <li className="text-paper/75">{CAMPAIGN.address}</li>
           </ul>
         </div>
 
@@ -76,7 +76,7 @@ export function SiteFooter() {
       </div>
 
       <div className="border-t border-paper/15">
-        <div className="container-page flex flex-col gap-2 py-6 text-xs text-paper/55 sm:flex-row sm:items-center sm:justify-between">
+        <div className="container-page flex flex-col gap-2 py-6 text-xs text-paper/70 sm:flex-row sm:items-center sm:justify-between">
           <p>{CAMPAIGN.paidForBy}</p>
           <p>© {CAMPAIGN.committee}. All rights reserved.</p>
         </div>

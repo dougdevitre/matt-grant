@@ -132,7 +132,9 @@ export function MediaLibrary() {
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
           {VIDEOS.map((v) => (
             <figure key={v.key} className="overflow-hidden rounded-sm border border-line">
-              <video src={v.url} className="aspect-video w-full bg-ink object-cover" muted loop playsInline controls preload="metadata" />
+              {/* TODO(a11y, WCAG 1.2.2): add <track kind="captions" src="…vtt"> once
+                  caption files are authored — these campaign videos carry audio. */}
+              <video src={v.url} aria-label={v.label} className="aspect-video w-full bg-ink object-cover" muted loop playsInline controls preload="metadata" />
               <figcaption className="flex items-center justify-between px-3 py-2 text-xs">
                 <span className="text-ink">{v.label}</span>
                 <a href={v.url} target="_blank" rel="noopener noreferrer" download className="font-mono text-field">MP4 ↓</a>
