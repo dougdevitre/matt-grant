@@ -1,167 +1,136 @@
+<div align="center">
+
 # Matt Grant for Congress
+### Missouri's 2nd District · Primary Election Day — August 4, 2026
 
-The official campaign, compliance, and strategy skill for **Matt Grant's run for the U.S. House of Representatives, Missouri — District 2 (MO-02)** in the **August 4, 2026 primary**, operated by the **Matt Grant for Congress Committee**.
+**A neighbor, a dad, and a problem-solver — running to put Missouri's children first.**
 
-> Matt Grant is a neighbor, a dad, and a problem-solver. He's spent his life bringing people together to get results, and he's running for Congress to put Missouri's children first. Matt does not just talk, he takes action.
+[**Donate**](https://secure.winred.com/matt-grant-for-congress/donate-today) ·
+[**Meet Matt & the Issues**](candidate/platform.md) ·
+[**The Plan to Win**](candidate/strategic-plan.md)
 
-## Campaign quick reference
+</div>
 
-| Field | Detail |
+---
+
+## Missouri families deserve someone who shows up — and gets results.
+
+Dear neighbor,
+
+You already know the feeling. The campaign signs change, the speeches sound the same, and yet the
+basics families count on never seem to get fixed. After **more than a decade** of the same approach,
+too many Missouri kids are still waiting on a fair shot.
+
+**Matt Grant is running to change that — and he doesn't just talk, he takes action.**
+
+Matt is a neighbor and a dad. He went to three public schools, earned the rank of **Eagle Scout**,
+and built a 23-year legal career bringing people together to win hard fights for Missouri's families
+and businesses. He's not a career politician chasing a seat. He's a problem-solver running to fix
+something specific — and to put **children first**.
+
+This isn't about tearing anyone down. It's about a higher standard. Here's the standard Matt is
+willing to be held to:
+
+| What Missouri deserves | What Matt commits to |
 |---|---|
-| **Candidate** | Matt Grant (Matthew Grant) |
-| **Office** | U.S. House of Representatives, Missouri — District 2 (MO-02) |
-| **Election** | Primary — August 4, 2026 |
-| **Committee** | Matt Grant for Congress Committee |
-| **Email** | mattgrantforcongress@gmail.com |
-| **Phone** | (314) 255-7760 |
-| **Address** | 701 Market Street, Suite 110, PMB 1709, St. Louis, MO 63101 |
-| **Donate (WinRed)** | <https://secure.winred.com/matt-grant-for-congress/donate-today> |
+| Service, not careerism | **Term limits for the House and Senate — including his own.** |
+| A representative you can actually reach | **Open town halls in every county. You shouldn't need a fundraiser invitation to reach your member of Congress.** |
+| Results, not press releases | **23 years winning by building coalitions across the aisle.** |
+| Someone fighting for *your* kids | **The CHILD Protection Act — cleaning up the family-court system no one else is willing to touch.** |
 
-Start here:
+Read those again. Every one is a promise Matt will keep — and a contrast you can feel without anyone
+having to name names. Fresh energy isn't a slogan. It's a willingness to limit your own power, show
+up where it's hard, and fight for the people who don't have a lobbyist.
 
-- [candidate/profile.md](candidate/profile.md) — Matt Grant's bio, career, values, and contact
-- [candidate/platform.md](candidate/platform.md) — His four priorities and the CHILD Protection Act
-- [candidate/strategic-plan.md](candidate/strategic-plan.md) — The strategic plan to win MO-02 on August 4, 2026
+**That's the choice on August 4.**
 
-This skill is built on a general-purpose campaign toolkit ("get-elected") that retains full capability for any U.S. race — so the same engine that runs Matt's campaign can help anyone run a legally compliant, strategically sound campaign for public office, from school board to Congress.
+---
 
-## The web app — campaign site + campaign manager
+## The platform — four fights worth winning
 
-The [`web/`](web/) folder is a Next.js app that turns this skill into a live product:
+1. **End corruption in the family court system.** Children are too often caught in a system that
+   protects insiders instead of kids. Matt champions the **CHILD Protection Act** — *Corruption
+   Hiding Inside Legal Dockets* — and federal oversight that ties Title IV-D grant money to states
+   that keep their family courts clean.
+2. **Term limits for the House and Senate** — with a grandfather clause so reform actually passes.
+   Public service was never meant to be a lifelong career.
+3. **A smaller, leaner federal government** — a hiring freeze and voluntary early-retirement packages
+   to right-size Washington without leaving families behind.
+4. **Lower taxes by cutting waste** — go after fraud, waste, and bloated headcount first, so relief
+   is funded by efficiency, not gimmicks.
 
-- **Public campaign website** — home, About Matt / Issues, Donate (WinRed), Press, and Contact, built from Matt's real positions with a modern "Ledger & Banner" identity and a live countdown to August 4.
-- **Campaign manager** (`/dashboard`) — a staff "war room" with a fundraising thermometer, a donor ledger (FEC employer/occupation tracking + contribution-limit flags), a volunteer pipeline fed by the public contact form, a task board, a milestone timeline, and the strategic plan to win MO-02.
+> *Families, fair justice, honesty, service, and opportunity for all — those are the values that
+> guide this campaign.*
 
-Stack: Next.js + Tailwind + Prisma/PostgreSQL + Clerk auth, deployable on Vercel. See [`web/README.md`](web/README.md) for setup and deploy steps. The dashboard's planning figures are illustrative placeholders, and its compliance helpers are educational, not legal advice.
+Full detail: [candidate/profile.md](candidate/profile.md) · [candidate/platform.md](candidate/platform.md)
 
-## What This Skill Does
+---
 
-It is a comprehensive campaign assistant that provides guidance across every phase of running for office:
+## Built to win: the campaign operating system
 
-- **Campaign Finance Compliance** — Federal FEC rules and state-specific filing requirements, contribution limits, disclosure deadlines, and reporting obligations.
-- **Campaign Strategy** — Race analysis, voter targeting, timeline planning, staffing structures, and budget frameworks tailored to the office you are seeking.
-- **Messaging and Communications** — Platform development, stump speeches, debate preparation, press releases, op-eds, and issue framing.
-- **GOTV (Get Out The Vote)** — Canvassing plans, phone bank scripts, poll watcher coordination, Election Day logistics, and early/absentee vote strategies.
-- **Voter Engagement Tools** — 15 interactive tools for town halls, petition drives, voter registration events, community listening sessions, and more.
+This repository isn't just a website — it's the campaign's entire operating system, built to
+out-organize a bigger budget with discipline and real data.
 
-## How to Use It
+**For voters — the public campaign site**
+- A fast, modern campaign website: Matt's story, the issues, press, and contact.
+- One-click **donate** through WinRed and a live **countdown** to Election Day.
+- Shareable, on-brand graphics and a clear ask on every page.
 
-Get Elected is a Claude AI skill. It triggers automatically when you ask campaign-related questions. You can also invoke any of its 80+ slash commands directly for instant artifact generation — everything from a fundraising plan to a compliance checklist to a volunteer onboarding packet.
+**For the team — the "War Room" dashboard** *(staff-only)*
+- **Finance** — donor ledger with FEC employer/occupation tracking and contribution-limit flags,
+  expenditures, and live cash-on-hand.
+- **Compliance** — an FEC filing-deadline calendar so nothing slips.
+- **3D field map of MO-02** — real St. Louis County precinct turnout, every polling place, and all
+  of the district's counties, drawn from live county GIS.
+- **Precinct targets** — an auto-ranked field plan that turns turnout data into printable walk lists.
+- **Graphics studio** — generate campaign social posts, yard signs, and banners from Matt's photo.
+- **Asset library** — logo and brand files on a fast CDN.
+- **Opposition research** — the opponent's *public* legislative record (votes + bills) pulled
+  straight from Congress.gov and the House Clerk, so every contrast is fact-checkable and sourced —
+  never a fabricated claim.
+- **Strategic plan + task board** to run the final stretch to August 4.
 
-Examples:
+**Under the hood:** Next.js · AWS DynamoDB · S3 + CloudFront · Clerk auth · deployed on AWS Amplify.
+Setup and deploy: [web/README.md](web/README.md) · [docs/RUNBOOK.md](docs/RUNBOOK.md) ·
+[docs/DEPLOY-AWS.md](docs/DEPLOY-AWS.md).
 
-- "Summarize Matt Grant's platform for a one-pager."
-- "What are the federal campaign finance rules for a U.S. House race in Missouri?"
-- "Help me write a stump speech about putting Missouri's children first."
-- "Build the field plan for the final 30 days before August 4, 2026."
-- `/campaign-plan` — Generate a full campaign plan framework
-- `/fundraising-strategy` — Build a fundraising strategy with timelines and targets
-- `/compliance-checklist` — Produce a filing and compliance checklist for the race
+---
 
-## Directory Structure
+## Join the effort
 
-```
-matt-grant-for-congress/
-├── candidate/           # Matt Grant — profile, platform, strategic plan
-├── references/          # Core reference materials and legal foundations
-├── federal/             # Federal election law, FEC rules, and compliance guides
-├── states/              # State-specific election law and filing requirements
-│   ├── AZ/
-│   ├── CA/
-│   ├── FL/
-│   ├── GA/
-│   ├── IL/
-│   ├── MI/
-│   ├── MO/              # Full coverage — complete state model
-│   ├── NY/
-│   ├── OH/
-│   ├── PA/
-│   └── TX/
-├── workflows/           # Step-by-step campaign workflow guides
-├── tools/               # Calculators, generators, and planning utilities
-├── messaging/           # Speech templates, talking points, and comms frameworks
-├── outreach/            # Voter contact, canvassing, and coalition-building
-├── tactics/             # Field strategy, digital tactics, and GOTV operations
-├── artifacts/           # Templates and generated document frameworks
-├── commands.md          # Full catalog of 80+ slash commands
-└── voter-engagement-tools.md  # 15 interactive voter engagement tools
-```
+This race is decided one neighbor at a time.
 
-## Coverage
+- **[Donate today](https://secure.winred.com/matt-grant-for-congress/donate-today)** — every dollar
+  funds doors knocked and neighbors reached before August 4.
+- **Volunteer** — knock doors, make calls, host an event, or put up a sign. Reach the campaign at
+  **mattgrantforcongress@gmail.com** · **(314) 255-7760**.
 
-Matt Grant's race is federal (U.S. House, MO-02), so it is governed by **FEC** rules plus **Missouri** ballot-access and state law — both fully covered here. The underlying toolkit also carries state-specific coverage for **11 states**, so it remains useful for any U.S. campaign:
+---
 
-| State | Abbreviation | Coverage Level |
-|-------|--------------|----------------|
-| Arizona | AZ | Core coverage |
-| California | CA | Core coverage |
-| Florida | FL | Core coverage |
-| Georgia | GA | Core coverage |
-| Illinois | IL | Core coverage |
-| Michigan | MI | Core coverage |
-| Missouri | MO | **Full coverage** |
-| New York | NY | Core coverage |
-| Ohio | OH | Core coverage |
-| Pennsylvania | PA | Core coverage |
-| Texas | TX | Core coverage |
+## What's in this repo
 
-Missouri serves as the complete state model with exhaustive coverage of every office level, filing deadline, contribution limit, and compliance requirement. Other states include core coverage sufficient to guide candidates through the major requirements of running for office.
+| Path | What it is |
+|---|---|
+| [`web/`](web/) | The campaign website + War Room dashboard (the live app) |
+| [`candidate/`](candidate/) | Matt's profile, platform, strategic plan, and contrast positioning |
+| [`docs/`](docs/) | Deploy + operations runbooks (AWS Amplify, DynamoDB, S3) |
+| `workflows/` · `tactics/` · `messaging/` · `federal/` · `states/` | The **get-elected** campaign engine — a nonpartisan toolkit for running a legally compliant, strategically sound race |
 
-Federal election law and FEC compliance guidance apply to all 50 states.
-
-## Slash Commands
-
-Over **80 slash commands** provide instant artifact generation for every aspect of a campaign. Commands span categories including:
-
-- Campaign planning and launch
-- Finance and fundraising
-- Legal compliance and filing
-- Messaging and communications
-- Field operations and GOTV
-- Digital strategy and social media
-- Volunteer management
-- Opposition research frameworks
-
-Run any command by name to generate a ready-to-use document, checklist, or plan.
-
-## Voter Engagement Tools
-
-**15 interactive tools** help candidates build genuine connections with voters:
-
-- Town hall planning and facilitation guides
-- Voter registration drive toolkits
-- Community listening session frameworks
-- Petition and ballot initiative support
-- Neighborhood canvassing systems
-- Phone and text banking scripts
-- Coalition-building workshops
-- And more
+The campaign engine is built on a general-purpose toolkit that retains full capability for any U.S.
+race, school board to Congress.
 
 ## Guardrails
 
-Get Elected operates under strict guardrails to ensure responsible use:
+- **Faithful, not fabricated.** Matt's positions are documented from his published platform. No
+  invented policy, quotes, polls, or endorsements. Opponent contrast uses only sourced public record.
+- **Educational, not legal advice.** Compliance tooling is informational — verify with the FEC and
+  Missouri Ethics Commission.
+- **No dark arts.** No voter suppression, disinformation, fake endorsements, or illegal coordination.
 
-- **Nonpartisan tooling** — The underlying skill is a neutral campaign toolkit that serves candidates of any party or no party. It documents Matt Grant's own stated positions faithfully but does not editorialize, and it does not advocate any ideology beyond the candidate's published platform.
-- **No Invented Law** — All legal and compliance information is grounded in referenced source material. The skill will never fabricate statutes, regulations, or filing requirements. It will not invent endorsements, polling data, or claims beyond the candidate's documented positions.
-- **Educational Only** — This skill provides educational information to help citizens participate in democracy. It is not a substitute for professional legal, financial, or strategic counsel.
-- **No Dark Arts** — This skill will not assist with voter suppression, disinformation, illegal coordination, fabricated endorsements, or any other unethical campaign practice.
+---
 
-## Contributing
+<div align="center">
 
-Contributions are welcome. Areas where help is especially valuable:
+**Paid for by the Matt Grant for Congress Committee.**
 
-- Adding or expanding state-specific coverage beyond the current 11 states
-- Updating legal references to reflect new legislation or rule changes
-- Improving templates and artifact quality
-- Adding new slash commands for underserved campaign needs
-- Testing workflows against real-world campaign scenarios
-
-Please open an issue or submit a pull request. All contributions must maintain the nonpartisan, educational character of the project.
-
-## Disclaimer
-
-Get Elected provides **educational information only** and does **not** constitute legal advice. Campaign finance law, election law, and filing requirements vary by jurisdiction and change frequently. Always consult a qualified attorney, your state or local election authority, or the Federal Election Commission for authoritative guidance specific to your race and jurisdiction. Use of this skill does not create an attorney-client relationship or any other professional advisory relationship.
-
-## License
-
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+</div>
