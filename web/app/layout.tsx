@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Public_Sans, Spline_Sans_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { clerkEnabled } from "@/lib/auth";
@@ -24,8 +24,20 @@ const mono = Spline_Sans_Mono({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  themeColor: "#0F2540", // navy browser chrome on mobile
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://mattgrantforcongress.org"),
+  icons: {
+    icon: [
+      { url: "/brand/icon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/brand/icon-16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: { url: "/brand/icon-192.png", sizes: "192x192" },
+    shortcut: "/brand/icon-192.png",
+  },
   title: {
     default: `${CAMPAIGN.candidate} for Congress — ${CAMPAIGN.districtShort}`,
     template: `%s · ${CAMPAIGN.candidate} for Congress`,
