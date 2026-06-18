@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Countdown } from "@/components/Countdown";
 import { Reveal } from "@/components/Reveal";
+import { HeroVideo } from "@/components/HeroVideo";
 import { CAMPAIGN, PRIORITIES, VALUES } from "@/lib/site";
 
 export default function HomePage() {
@@ -9,7 +10,11 @@ export default function HomePage() {
     <>
       {/* HERO — the thesis: conviction + the clock */}
       <section className="relative overflow-hidden bg-ink text-paper">
-        <div className="absolute inset-0 bg-grid opacity-[0.5]" aria-hidden />
+        <HeroVideo />
+        {/* Scrim: darkest on the left where the headline sits, clearing toward the right so the video reads */}
+        <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/45" aria-hidden />
+        <div className="absolute inset-0 bg-ink/30" aria-hidden />
+        <div className="absolute inset-0 bg-grid opacity-[0.35] mix-blend-soft-light" aria-hidden />
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brick via-gold to-field" aria-hidden />
         <div className="container-page relative grid gap-14 py-20 sm:py-28 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           <div className="animate-rise-in">

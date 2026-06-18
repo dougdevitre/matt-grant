@@ -3,6 +3,11 @@
 import { useMemo, useState } from "react";
 import { SOCIAL_POSTS, PILLARS, type Pillar, type SocialPost } from "@/lib/socialPosts";
 import { ASSETS_CDN, SITE_URL, BRAND_DOWNLOADS, PRINT_DOWNLOADS, CAMPAIGN } from "@/lib/site";
+import manifest from "@/lib/assets.manifest.json";
+
+type Asset = { key: string; url: string; label: string; bytes: number };
+const FLYERS = (manifest.groups.marketing as Asset[]).filter((a) => a.key.includes("/flyers/"));
+const VIDEOS = manifest.groups.video as Asset[];
 
 const pillarColor: Record<Pillar, string> = {
   "Children First": "bg-brick/12 text-brick",
@@ -104,6 +109,42 @@ export function MediaLibrary() {
             >
               <span>{b.label}</span>
               <span className="font-mono text-xs text-field">PDF ↓</span>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* Video */}
+      <section className="card mb-8 p-6">
+        <p className="eyebrow text-slate">Video</p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          {VIDEOS.map((v) => (
+            <figure key={v.key} className="overflow-hidden rounded-sm border border-line">
+              <video src={v.url} className="aspect-video w-full bg-ink object-cover" muted loop playsInline controls preload="metadata" />
+              <figcaption className="flex items-center justify-between px-3 py-2 text-xs">
+                <span className="text-ink">{v.label}</span>
+                <a href={v.url} target="_blank" rel="noopener noreferrer" download className="font-mono text-field">MP4 ↓</a>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+
+      {/* Flyers */}
+      <section className="card mb-8 p-6">
+        <p className="eyebrow text-slate">Flyers — {FLYERS.length} designs</p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {FLYERS.map((f) => (
+            <a
+              key={f.key}
+              href={f.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+              className="flex items-center justify-between rounded-sm border border-line px-3 py-2 text-sm text-ink hover:border-ink"
+            >
+              <span>{f.label}</span>
+              <span className="font-mono text-xs text-field">↓</span>
             </a>
           ))}
         </div>

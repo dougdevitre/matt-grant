@@ -42,10 +42,15 @@ const config: Config = {
           "0%": { transform: "translateX(-100%)" },
           "100%": { transform: "translateX(100%)" },
         },
+        "fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "0.9" },
+        },
       },
       animation: {
         "rise-in": "rise-in 0.7s cubic-bezier(0.22,1,0.36,1) both",
         sweep: "sweep 8s linear infinite",
+        "fade-in": "fade-in 1.2s ease both",
       },
     },
   },

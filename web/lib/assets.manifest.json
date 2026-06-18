@@ -1,0 +1,950 @@
+{
+  "bucket": "matt-grant-for-congress",
+  "cdn": "https://d5jzyan9wboi3.cloudfront.net",
+  "count": 155,
+  "bytes": 104317309,
+  "groups": {
+    "brand": [
+      {
+        "key": "public/brand/headshot.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/brand/headshot.png",
+        "label": "Headshot",
+        "bytes": 20891
+      },
+      {
+        "key": "public/brand/icons/icon-256.jpg",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/brand/icons/icon-256.jpg",
+        "label": "Icon 256",
+        "bytes": 12624
+      },
+      {
+        "key": "public/brand/icons/icon-256.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/brand/icons/icon-256.png",
+        "label": "Icon 256",
+        "bytes": 20891
+      },
+      {
+        "key": "public/brand/logo-blue.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/brand/logo-blue.png",
+        "label": "Logo Blue",
+        "bytes": 1105890
+      },
+      {
+        "key": "public/brand/logo-lockup.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/brand/logo-lockup.png",
+        "label": "Logo Lockup",
+        "bytes": 1895484
+      },
+      {
+        "key": "public/brand/logo-red.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/brand/logo-red.png",
+        "label": "Logo Red",
+        "bytes": 1122849
+      },
+      {
+        "key": "public/brand/logo-white.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/brand/logo-white.png",
+        "label": "Logo White",
+        "bytes": 929288
+      },
+      {
+        "key": "public/brand/logo.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/brand/logo.png",
+        "label": "Logo",
+        "bytes": 929288
+      }
+    ],
+    "marketing": [
+      {
+        "key": "public/marketing/banner-standard-of-service.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/banner-standard-of-service.png",
+        "label": "Banner Standard Of Service",
+        "bytes": 4483448
+      },
+      {
+        "key": "public/marketing/deck/mandate/page-01.jpg",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/deck/mandate/page-01.jpg",
+        "label": "Page 01",
+        "bytes": 62172
+      },
+      {
+        "key": "public/marketing/deck/mandate/page-02.jpg",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/deck/mandate/page-02.jpg",
+        "label": "Page 02",
+        "bytes": 145380
+      },
+      {
+        "key": "public/marketing/deck/mandate/page-03.jpg",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/deck/mandate/page-03.jpg",
+        "label": "Page 03",
+        "bytes": 140980
+      },
+      {
+        "key": "public/marketing/deck/mandate/page-04.jpg",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/deck/mandate/page-04.jpg",
+        "label": "Page 04",
+        "bytes": 152222
+      },
+      {
+        "key": "public/marketing/deck/mandate/page-05.jpg",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/deck/mandate/page-05.jpg",
+        "label": "Page 05",
+        "bytes": 108493
+      },
+      {
+        "key": "public/marketing/deck/mandate/page-06.jpg",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/deck/mandate/page-06.jpg",
+        "label": "Page 06",
+        "bytes": 121341
+      },
+      {
+        "key": "public/marketing/deck/mandate/page-07.jpg",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/deck/mandate/page-07.jpg",
+        "label": "Page 07",
+        "bytes": 115670
+      },
+      {
+        "key": "public/marketing/deck/mandate/page-08.jpg",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/deck/mandate/page-08.jpg",
+        "label": "Page 08",
+        "bytes": 125406
+      },
+      {
+        "key": "public/marketing/deck/mandate/page-09.jpg",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/deck/mandate/page-09.jpg",
+        "label": "Page 09",
+        "bytes": 91393
+      },
+      {
+        "key": "public/marketing/deck/mandate/page-10.jpg",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/deck/mandate/page-10.jpg",
+        "label": "Page 10",
+        "bytes": 111164
+      },
+      {
+        "key": "public/marketing/deck/mandate/page-11.jpg",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/deck/mandate/page-11.jpg",
+        "label": "Page 11",
+        "bytes": 101430
+      },
+      {
+        "key": "public/marketing/deck/mandate/page-12.jpg",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/deck/mandate/page-12.jpg",
+        "label": "Page 12",
+        "bytes": 129237
+      },
+      {
+        "key": "public/marketing/flyers/mg-flyer-built-for-missouri.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/flyers/mg-flyer-built-for-missouri.png",
+        "label": "Built For Missouri",
+        "bytes": 2333120
+      },
+      {
+        "key": "public/marketing/flyers/mg-flyer-built-in-missouri.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/flyers/mg-flyer-built-in-missouri.png",
+        "label": "Built In Missouri",
+        "bytes": 2505804
+      },
+      {
+        "key": "public/marketing/flyers/mg-flyer-campaign-operating-system.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/flyers/mg-flyer-campaign-operating-system.png",
+        "label": "Campaign Operating System",
+        "bytes": 2260320
+      },
+      {
+        "key": "public/marketing/flyers/mg-flyer-common-sense-real-results.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/flyers/mg-flyer-common-sense-real-results.png",
+        "label": "Common Sense Real Results",
+        "bytes": 2342660
+      },
+      {
+        "key": "public/marketing/flyers/mg-flyer-dad-neighbor-problem-solver.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/flyers/mg-flyer-dad-neighbor-problem-solver.png",
+        "label": "Dad Neighbor Problem Solver",
+        "bytes": 2136354
+      },
+      {
+        "key": "public/marketing/flyers/mg-flyer-every-county-every-voice.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/flyers/mg-flyer-every-county-every-voice.png",
+        "label": "Every County Every Voice",
+        "bytes": 2340391
+      },
+      {
+        "key": "public/marketing/flyers/mg-flyer-new-generation-of-leadership.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/flyers/mg-flyer-new-generation-of-leadership.png",
+        "label": "New Generation Of Leadership",
+        "bytes": 2036038
+      },
+      {
+        "key": "public/marketing/flyers/mg-flyer-proven-priorities.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/flyers/mg-flyer-proven-priorities.png",
+        "label": "Proven Priorities",
+        "bytes": 2216397
+      },
+      {
+        "key": "public/marketing/flyers/mg-flyer-rooted-in-missouri-values.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/flyers/mg-flyer-rooted-in-missouri-values.png",
+        "label": "Rooted In Missouri Values",
+        "bytes": 2357015
+      },
+      {
+        "key": "public/marketing/flyers/mg-flyer-service-before-self.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/flyers/mg-flyer-service-before-self.png",
+        "label": "Service Before Self",
+        "bytes": 2395166
+      },
+      {
+        "key": "public/marketing/flyers/mg-flyer-solutions-for-missouri-families.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/flyers/mg-flyer-solutions-for-missouri-families.png",
+        "label": "Solutions For Missouri Families",
+        "bytes": 2582707
+      },
+      {
+        "key": "public/marketing/flyers/mg-flyer-strong-families-strong-communities.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/flyers/mg-flyer-strong-families-strong-communities.png",
+        "label": "Strong Families Strong Communities",
+        "bytes": 2397433
+      },
+      {
+        "key": "public/marketing/flyers/mg-flyer-washington-left-unfixed.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/flyers/mg-flyer-washington-left-unfixed.png",
+        "label": "Washington Left Unfixed",
+        "bytes": 2135940
+      },
+      {
+        "key": "public/marketing/grant-campaign-engine.pdf",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/grant-campaign-engine.pdf",
+        "label": "Grant Campaign Engine",
+        "bytes": 6547095
+      },
+      {
+        "key": "public/marketing/infographic.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/marketing/infographic.png",
+        "label": "Infographic",
+        "bytes": 4476271
+      }
+    ],
+    "print": [
+      {
+        "key": "public/print/mg-print-mailer-back-6x9.pdf",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/print/mg-print-mailer-back-6x9.pdf",
+        "label": "Mailer Back 6x9",
+        "bytes": 620016
+      },
+      {
+        "key": "public/print/mg-print-mailer-back-6x9.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/print/mg-print-mailer-back-6x9.png",
+        "label": "Mailer Back 6x9",
+        "bytes": 343206
+      },
+      {
+        "key": "public/print/mg-print-mailer-front-6x9.pdf",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/print/mg-print-mailer-front-6x9.pdf",
+        "label": "Mailer Front 6x9",
+        "bytes": 438848
+      },
+      {
+        "key": "public/print/mg-print-mailer-front-6x9.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/print/mg-print-mailer-front-6x9.png",
+        "label": "Mailer Front 6x9",
+        "bytes": 848884
+      },
+      {
+        "key": "public/print/mg-print-palmcard-back-4x6.pdf",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/print/mg-print-palmcard-back-4x6.pdf",
+        "label": "Palmcard Back 4x6",
+        "bytes": 276658
+      },
+      {
+        "key": "public/print/mg-print-palmcard-back-4x6.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/print/mg-print-palmcard-back-4x6.png",
+        "label": "Palmcard Back 4x6",
+        "bytes": 145006
+      },
+      {
+        "key": "public/print/mg-print-palmcard-front-4x6.pdf",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/print/mg-print-palmcard-front-4x6.pdf",
+        "label": "Palmcard Front 4x6",
+        "bytes": 267259
+      },
+      {
+        "key": "public/print/mg-print-palmcard-front-4x6.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/print/mg-print-palmcard-front-4x6.png",
+        "label": "Palmcard Front 4x6",
+        "bytes": 552747
+      },
+      {
+        "key": "public/print/mg-print-yardsign-24x18.pdf",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/print/mg-print-yardsign-24x18.pdf",
+        "label": "Yardsign 24x18",
+        "bytes": 571459
+      },
+      {
+        "key": "public/print/mg-print-yardsign-24x18.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/print/mg-print-yardsign-24x18.png",
+        "label": "Yardsign 24x18",
+        "bytes": 608518
+      }
+    ],
+    "social": [
+      {
+        "key": "public/social/captions/INDEX.md",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/captions/INDEX.md",
+        "label": "INDEX",
+        "bytes": 4304
+      },
+      {
+        "key": "public/social/captions/manifest.json",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/captions/manifest.json",
+        "label": "Manifest",
+        "bytes": 30761
+      },
+      {
+        "key": "public/social/feed/D-1.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-1.png",
+        "label": "D 1",
+        "bytes": 269376
+      },
+      {
+        "key": "public/social/feed/D-10.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-10.png",
+        "label": "D 10",
+        "bytes": 268181
+      },
+      {
+        "key": "public/social/feed/D-11.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-11.png",
+        "label": "D 11",
+        "bytes": 269343
+      },
+      {
+        "key": "public/social/feed/D-12.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-12.png",
+        "label": "D 12",
+        "bytes": 271939
+      },
+      {
+        "key": "public/social/feed/D-13.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-13.png",
+        "label": "D 13",
+        "bytes": 264724
+      },
+      {
+        "key": "public/social/feed/D-14.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-14.png",
+        "label": "D 14",
+        "bytes": 260813
+      },
+      {
+        "key": "public/social/feed/D-15.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-15.png",
+        "label": "D 15",
+        "bytes": 266342
+      },
+      {
+        "key": "public/social/feed/D-16.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-16.png",
+        "label": "D 16",
+        "bytes": 264420
+      },
+      {
+        "key": "public/social/feed/D-17.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-17.png",
+        "label": "D 17",
+        "bytes": 261157
+      },
+      {
+        "key": "public/social/feed/D-18.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-18.png",
+        "label": "D 18",
+        "bytes": 264373
+      },
+      {
+        "key": "public/social/feed/D-19.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-19.png",
+        "label": "D 19",
+        "bytes": 262849
+      },
+      {
+        "key": "public/social/feed/D-2.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-2.png",
+        "label": "D 2",
+        "bytes": 268258
+      },
+      {
+        "key": "public/social/feed/D-20.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-20.png",
+        "label": "D 20",
+        "bytes": 265608
+      },
+      {
+        "key": "public/social/feed/D-21.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-21.png",
+        "label": "D 21",
+        "bytes": 266966
+      },
+      {
+        "key": "public/social/feed/D-22.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-22.png",
+        "label": "D 22",
+        "bytes": 258373
+      },
+      {
+        "key": "public/social/feed/D-23.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-23.png",
+        "label": "D 23",
+        "bytes": 272697
+      },
+      {
+        "key": "public/social/feed/D-24.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-24.png",
+        "label": "D 24",
+        "bytes": 269210
+      },
+      {
+        "key": "public/social/feed/D-25.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-25.png",
+        "label": "D 25",
+        "bytes": 269773
+      },
+      {
+        "key": "public/social/feed/D-26.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-26.png",
+        "label": "D 26",
+        "bytes": 267987
+      },
+      {
+        "key": "public/social/feed/D-27.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-27.png",
+        "label": "D 27",
+        "bytes": 263169
+      },
+      {
+        "key": "public/social/feed/D-28.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-28.png",
+        "label": "D 28",
+        "bytes": 264807
+      },
+      {
+        "key": "public/social/feed/D-29.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-29.png",
+        "label": "D 29",
+        "bytes": 266761
+      },
+      {
+        "key": "public/social/feed/D-3.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-3.png",
+        "label": "D 3",
+        "bytes": 263772
+      },
+      {
+        "key": "public/social/feed/D-30.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-30.png",
+        "label": "D 30",
+        "bytes": 262757
+      },
+      {
+        "key": "public/social/feed/D-31.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-31.png",
+        "label": "D 31",
+        "bytes": 261855
+      },
+      {
+        "key": "public/social/feed/D-32.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-32.png",
+        "label": "D 32",
+        "bytes": 262714
+      },
+      {
+        "key": "public/social/feed/D-33.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-33.png",
+        "label": "D 33",
+        "bytes": 266765
+      },
+      {
+        "key": "public/social/feed/D-34.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-34.png",
+        "label": "D 34",
+        "bytes": 263674
+      },
+      {
+        "key": "public/social/feed/D-35.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-35.png",
+        "label": "D 35",
+        "bytes": 260468
+      },
+      {
+        "key": "public/social/feed/D-36.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-36.png",
+        "label": "D 36",
+        "bytes": 262278
+      },
+      {
+        "key": "public/social/feed/D-37.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-37.png",
+        "label": "D 37",
+        "bytes": 266558
+      },
+      {
+        "key": "public/social/feed/D-38.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-38.png",
+        "label": "D 38",
+        "bytes": 263661
+      },
+      {
+        "key": "public/social/feed/D-39.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-39.png",
+        "label": "D 39",
+        "bytes": 264517
+      },
+      {
+        "key": "public/social/feed/D-4.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-4.png",
+        "label": "D 4",
+        "bytes": 269700
+      },
+      {
+        "key": "public/social/feed/D-40.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-40.png",
+        "label": "D 40",
+        "bytes": 268669
+      },
+      {
+        "key": "public/social/feed/D-41.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-41.png",
+        "label": "D 41",
+        "bytes": 276780
+      },
+      {
+        "key": "public/social/feed/D-42.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-42.png",
+        "label": "D 42",
+        "bytes": 259413
+      },
+      {
+        "key": "public/social/feed/D-43.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-43.png",
+        "label": "D 43",
+        "bytes": 264250
+      },
+      {
+        "key": "public/social/feed/D-44.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-44.png",
+        "label": "D 44",
+        "bytes": 277191
+      },
+      {
+        "key": "public/social/feed/D-45.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-45.png",
+        "label": "D 45",
+        "bytes": 260935
+      },
+      {
+        "key": "public/social/feed/D-46.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-46.png",
+        "label": "D 46",
+        "bytes": 268932
+      },
+      {
+        "key": "public/social/feed/D-47.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-47.png",
+        "label": "D 47",
+        "bytes": 271684
+      },
+      {
+        "key": "public/social/feed/D-48.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-48.png",
+        "label": "D 48",
+        "bytes": 265203
+      },
+      {
+        "key": "public/social/feed/D-49.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-49.png",
+        "label": "D 49",
+        "bytes": 267236
+      },
+      {
+        "key": "public/social/feed/D-5.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-5.png",
+        "label": "D 5",
+        "bytes": 264209
+      },
+      {
+        "key": "public/social/feed/D-50.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-50.png",
+        "label": "D 50",
+        "bytes": 261781
+      },
+      {
+        "key": "public/social/feed/D-6.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-6.png",
+        "label": "D 6",
+        "bytes": 265802
+      },
+      {
+        "key": "public/social/feed/D-7.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-7.png",
+        "label": "D 7",
+        "bytes": 267912
+      },
+      {
+        "key": "public/social/feed/D-8.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-8.png",
+        "label": "D 8",
+        "bytes": 266971
+      },
+      {
+        "key": "public/social/feed/D-9.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-9.png",
+        "label": "D 9",
+        "bytes": 268079
+      },
+      {
+        "key": "public/social/README.md",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/README.md",
+        "label": "README",
+        "bytes": 668
+      },
+      {
+        "key": "public/social/stories/D-1.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-1.png",
+        "label": "D 1",
+        "bytes": 406443
+      },
+      {
+        "key": "public/social/stories/D-10.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-10.png",
+        "label": "D 10",
+        "bytes": 405269
+      },
+      {
+        "key": "public/social/stories/D-11.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-11.png",
+        "label": "D 11",
+        "bytes": 406029
+      },
+      {
+        "key": "public/social/stories/D-12.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-12.png",
+        "label": "D 12",
+        "bytes": 408729
+      },
+      {
+        "key": "public/social/stories/D-13.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-13.png",
+        "label": "D 13",
+        "bytes": 400885
+      },
+      {
+        "key": "public/social/stories/D-14.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-14.png",
+        "label": "D 14",
+        "bytes": 395620
+      },
+      {
+        "key": "public/social/stories/D-15.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-15.png",
+        "label": "D 15",
+        "bytes": 402658
+      },
+      {
+        "key": "public/social/stories/D-16.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-16.png",
+        "label": "D 16",
+        "bytes": 399454
+      },
+      {
+        "key": "public/social/stories/D-17.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-17.png",
+        "label": "D 17",
+        "bytes": 395697
+      },
+      {
+        "key": "public/social/stories/D-18.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-18.png",
+        "label": "D 18",
+        "bytes": 399349
+      },
+      {
+        "key": "public/social/stories/D-19.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-19.png",
+        "label": "D 19",
+        "bytes": 398294
+      },
+      {
+        "key": "public/social/stories/D-2.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-2.png",
+        "label": "D 2",
+        "bytes": 405333
+      },
+      {
+        "key": "public/social/stories/D-20.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-20.png",
+        "label": "D 20",
+        "bytes": 400749
+      },
+      {
+        "key": "public/social/stories/D-21.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-21.png",
+        "label": "D 21",
+        "bytes": 403488
+      },
+      {
+        "key": "public/social/stories/D-22.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-22.png",
+        "label": "D 22",
+        "bytes": 391818
+      },
+      {
+        "key": "public/social/stories/D-23.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-23.png",
+        "label": "D 23",
+        "bytes": 410061
+      },
+      {
+        "key": "public/social/stories/D-24.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-24.png",
+        "label": "D 24",
+        "bytes": 406034
+      },
+      {
+        "key": "public/social/stories/D-25.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-25.png",
+        "label": "D 25",
+        "bytes": 407265
+      },
+      {
+        "key": "public/social/stories/D-26.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-26.png",
+        "label": "D 26",
+        "bytes": 404819
+      },
+      {
+        "key": "public/social/stories/D-27.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-27.png",
+        "label": "D 27",
+        "bytes": 398243
+      },
+      {
+        "key": "public/social/stories/D-28.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-28.png",
+        "label": "D 28",
+        "bytes": 399141
+      },
+      {
+        "key": "public/social/stories/D-29.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-29.png",
+        "label": "D 29",
+        "bytes": 403289
+      },
+      {
+        "key": "public/social/stories/D-3.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-3.png",
+        "label": "D 3",
+        "bytes": 400087
+      },
+      {
+        "key": "public/social/stories/D-30.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-30.png",
+        "label": "D 30",
+        "bytes": 398573
+      },
+      {
+        "key": "public/social/stories/D-31.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-31.png",
+        "label": "D 31",
+        "bytes": 396614
+      },
+      {
+        "key": "public/social/stories/D-32.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-32.png",
+        "label": "D 32",
+        "bytes": 398112
+      },
+      {
+        "key": "public/social/stories/D-33.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-33.png",
+        "label": "D 33",
+        "bytes": 402790
+      },
+      {
+        "key": "public/social/stories/D-34.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-34.png",
+        "label": "D 34",
+        "bytes": 398662
+      },
+      {
+        "key": "public/social/stories/D-35.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-35.png",
+        "label": "D 35",
+        "bytes": 394159
+      },
+      {
+        "key": "public/social/stories/D-36.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-36.png",
+        "label": "D 36",
+        "bytes": 397101
+      },
+      {
+        "key": "public/social/stories/D-37.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-37.png",
+        "label": "D 37",
+        "bytes": 402492
+      },
+      {
+        "key": "public/social/stories/D-38.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-38.png",
+        "label": "D 38",
+        "bytes": 399177
+      },
+      {
+        "key": "public/social/stories/D-39.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-39.png",
+        "label": "D 39",
+        "bytes": 400026
+      },
+      {
+        "key": "public/social/stories/D-4.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-4.png",
+        "label": "D 4",
+        "bytes": 407050
+      },
+      {
+        "key": "public/social/stories/D-40.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-40.png",
+        "label": "D 40",
+        "bytes": 405471
+      },
+      {
+        "key": "public/social/stories/D-41.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-41.png",
+        "label": "D 41",
+        "bytes": 414658
+      },
+      {
+        "key": "public/social/stories/D-42.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-42.png",
+        "label": "D 42",
+        "bytes": 391820
+      },
+      {
+        "key": "public/social/stories/D-43.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-43.png",
+        "label": "D 43",
+        "bytes": 399924
+      },
+      {
+        "key": "public/social/stories/D-44.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-44.png",
+        "label": "D 44",
+        "bytes": 414041
+      },
+      {
+        "key": "public/social/stories/D-45.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-45.png",
+        "label": "D 45",
+        "bytes": 395039
+      },
+      {
+        "key": "public/social/stories/D-46.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-46.png",
+        "label": "D 46",
+        "bytes": 405778
+      },
+      {
+        "key": "public/social/stories/D-47.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-47.png",
+        "label": "D 47",
+        "bytes": 408523
+      },
+      {
+        "key": "public/social/stories/D-48.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-48.png",
+        "label": "D 48",
+        "bytes": 401137
+      },
+      {
+        "key": "public/social/stories/D-49.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-49.png",
+        "label": "D 49",
+        "bytes": 403380
+      },
+      {
+        "key": "public/social/stories/D-5.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-5.png",
+        "label": "D 5",
+        "bytes": 400365
+      },
+      {
+        "key": "public/social/stories/D-50.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-50.png",
+        "label": "D 50",
+        "bytes": 395692
+      },
+      {
+        "key": "public/social/stories/D-6.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-6.png",
+        "label": "D 6",
+        "bytes": 401213
+      },
+      {
+        "key": "public/social/stories/D-7.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-7.png",
+        "label": "D 7",
+        "bytes": 404824
+      },
+      {
+        "key": "public/social/stories/D-8.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-8.png",
+        "label": "D 8",
+        "bytes": 403447
+      },
+      {
+        "key": "public/social/stories/D-9.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/social/stories/D-9.png",
+        "label": "D 9",
+        "bytes": 404826
+      }
+    ],
+    "video": [
+      {
+        "key": "public/video/mg-video-fixing-missouris-broken-system.mp4",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/video/mg-video-fixing-missouris-broken-system.mp4",
+        "label": "Fixing Missouris Broken System",
+        "bytes": 3538636
+      },
+      {
+        "key": "public/video/mg-video-intro-animation.mp4",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/video/mg-video-intro-animation.mp4",
+        "label": "Intro Animation",
+        "bytes": 1667991
+      },
+      {
+        "key": "public/video/mg-video-logo-animation.mp4",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/video/mg-video-logo-animation.mp4",
+        "label": "Logo Animation",
+        "bytes": 1975865
+      }
+    ],
+    "web": [
+      {
+        "key": "public/web/dashboard-built-to-win.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/web/dashboard-built-to-win.png",
+        "label": "Dashboard Built To Win",
+        "bytes": 2079978
+      },
+      {
+        "key": "public/web/dashboard-war-room.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/web/dashboard-war-room.png",
+        "label": "Dashboard War Room",
+        "bytes": 2001094
+      },
+      {
+        "key": "public/web/st-louis-arch.png",
+        "url": "https://d5jzyan9wboi3.cloudfront.net/public/web/st-louis-arch.png",
+        "label": "St Louis Arch",
+        "bytes": 1962619
+      }
+    ]
+  }
+}
