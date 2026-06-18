@@ -7,8 +7,8 @@ export function DbNotice() {
     <div className="mb-6 rounded-sm border border-gold/50 bg-gold/10 px-5 py-4 text-sm text-ink">
       <p className="font-semibold">Database not connected.</p>
       <p className="mt-1 text-slate">
-        Set <code className="font-mono text-xs">DATABASE_URL</code> (Vercel Postgres / Neon), then run{" "}
-        <code className="font-mono text-xs">npm run db:push</code> and{" "}
+        Set <code className="font-mono text-xs">DYNAMODB_TABLE</code> (+ AWS creds), then run{" "}
+        <code className="font-mono text-xs">npm run db:create-table</code> and{" "}
         <code className="font-mono text-xs">npm run db:seed</code>. Until then the manager shows
         empty state.
         {!clerkEnabled && (

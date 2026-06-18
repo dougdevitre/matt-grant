@@ -1,8 +1,32 @@
-import { prisma, dbConfigured } from "@/lib/db";
+import { QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { ddb, TABLE, PK, dbConfigured } from "@/lib/db";
 
-// All dashboard reads go through here so a missing/unreachable DB degrades to
-// empty state instead of crashing the page. Returns `connected: false` when
-// DATABASE_URL is unset or the query throws.
+// All dashboard reads. Each entity type is one DynamoDB partition, so a Query by
+// PK lists them; aggregation happens in code (campaign-scale data is small).
+
+type Item = Record<string, unknown>;
+
+async function queryAll(pk: string): Promise<Item[]> {
+  const items: Item[] = [];
+  let ExclusiveStartKey: Record<string, unknown> | undefined;
+  do {
+    const out = await ddb.send(
+      new QueryCommand({
+        TableName: TABLE,
+        KeyConditionExpression: "PK = :pk",
+        ExpressionAttributeValues: { ":pk": pk },
+        ExclusiveStartKey,
+      }),
+    );
+    items.push(...((out.Items as Item[]) ?? []));
+    ExclusiveStartKey = out.LastEvaluatedKey as Record<string, unknown> | undefined;
+  } while (ExclusiveStartKey);
+  return items;
+}
+
+type Contribution = { amountCents: number };
+const sumContribs = (d: Item) =>
+  ((d.contributions as Contribution[] | undefined) ?? []).reduce((s, c) => s + (c.amountCents || 0), 0);
 
 export type DonorRow = {
   id: string;
@@ -13,34 +37,62 @@ export type DonorRow = {
   totalCents: number;
 };
 
+export type VolunteerRow = {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  city: string | null;
+  interests: string | null;
+  status: string;
+};
+
+export type TaskRow = {
+  id: string;
+  title: string;
+  detail: string | null;
+  category: string;
+  status: string;
+  priority: string;
+};
+
+export type ExpenditureRow = {
+  id: string;
+  payee: string;
+  amountCents: number;
+  category: string;
+  memo: string | null;
+};
+
+const PRIORITY_ORDER: Record<string, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+
 export async function getOverview() {
   if (!dbConfigured) return { connected: false as const };
   try {
-    const [donorCount, contribs, spent, volunteers, tasks, milestones] = await Promise.all([
-      prisma.donor.count(),
-      prisma.contribution.aggregate({ _sum: { amountCents: true } }),
-      prisma.expenditure.aggregate({ _sum: { amountCents: true } }),
-      prisma.volunteer.groupBy({ by: ["status"], _count: true }),
-      prisma.task.groupBy({ by: ["status"], _count: true }),
-      prisma.milestone.findMany({ orderBy: { sortOrder: "asc" } }),
+    const [donors, exps, vols, tasks, miles] = await Promise.all([
+      queryAll(PK.donors),
+      queryAll(PK.expenditures),
+      queryAll(PK.volunteers),
+      queryAll(PK.tasks),
+      queryAll(PK.milestones),
     ]);
-
-    const volByStatus = Object.fromEntries(volunteers.map((v) => [v.status, v._count]));
-    const taskByStatus = Object.fromEntries(tasks.map((t) => [t.status, t._count]));
-
-    const raisedCents = contribs._sum.amountCents ?? 0;
-    const spentCents = spent._sum.amountCents ?? 0;
+    const raisedCents = donors.reduce((s, d) => s + sumContribs(d), 0);
+    const spentCents = exps.reduce((s, e) => s + (Number(e.amountCents) || 0), 0);
+    const byStatus = (rows: Item[], status: string) => rows.filter((r) => r.status === status).length;
+    const milestones = miles
+      .sort((a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0))
+      .map((m) => ({ id: String(m.SK), phase: String(m.phase), title: String(m.title), target: String(m.target), done: !!m.done }));
     return {
       connected: true as const,
       raisedCents,
       spentCents,
       cashOnHandCents: raisedCents - spentCents,
-      donorCount,
-      volunteerTotal: volunteers.reduce((s, v) => s + v._count, 0),
-      volActive: volByStatus["ACTIVE"] ?? 0,
-      tasksTodo: taskByStatus["TODO"] ?? 0,
-      tasksDoing: taskByStatus["DOING"] ?? 0,
-      tasksDone: taskByStatus["DONE"] ?? 0,
+      donorCount: donors.length,
+      volunteerTotal: vols.length,
+      volActive: byStatus(vols, "ACTIVE"),
+      tasksTodo: byStatus(tasks, "TODO"),
+      tasksDoing: byStatus(tasks, "DOING"),
+      tasksDone: byStatus(tasks, "DONE"),
       milestones,
     };
   } catch {
@@ -51,65 +103,102 @@ export async function getOverview() {
 export async function getDonors(): Promise<{ connected: boolean; rows: DonorRow[] }> {
   if (!dbConfigured) return { connected: false, rows: [] };
   try {
-    const donors = await prisma.donor.findMany({
-      orderBy: { createdAt: "desc" },
-      include: { contributions: true },
-    });
-    const rows = donors.map((d) => ({
-      id: d.id,
-      name: d.name,
-      city: d.city,
-      employer: d.employer,
-      occupation: d.occupation,
-      totalCents: d.contributions.reduce((s, c) => s + c.amountCents, 0),
-    }));
+    const donors = await queryAll(PK.donors);
+    const rows = donors
+      .map((d) => ({
+        id: String(d.SK),
+        name: String(d.name),
+        city: (d.city as string) ?? null,
+        employer: (d.employer as string) ?? null,
+        occupation: (d.occupation as string) ?? null,
+        totalCents: sumContribs(d),
+        createdAt: String(d.createdAt ?? ""),
+      }))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     return { connected: true, rows };
   } catch {
     return { connected: false, rows: [] };
   }
 }
 
-export async function getVolunteers() {
-  if (!dbConfigured) return { connected: false, rows: [] as Awaited<ReturnType<typeof prisma.volunteer.findMany>> };
+export async function getVolunteers(): Promise<{ connected: boolean; rows: VolunteerRow[] }> {
+  if (!dbConfigured) return { connected: false, rows: [] };
   try {
-    const rows = await prisma.volunteer.findMany({ orderBy: { createdAt: "desc" } });
+    const items = await queryAll(PK.volunteers);
+    const rows = items
+      .map((v) => ({
+        id: String(v.SK),
+        name: String(v.name),
+        email: (v.email as string) ?? null,
+        phone: (v.phone as string) ?? null,
+        city: (v.city as string) ?? null,
+        interests: (v.interests as string) ?? null,
+        status: String(v.status ?? "NEW"),
+        createdAt: String(v.createdAt ?? ""),
+      }))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     return { connected: true, rows };
   } catch {
     return { connected: false, rows: [] };
   }
 }
 
-export async function getFinance() {
-  if (!dbConfigured)
-    return { connected: false, raisedCents: 0, spentCents: 0, expenditures: [] as Awaited<ReturnType<typeof prisma.expenditure.findMany>>, byCategory: [] as { category: string; cents: number }[] };
+export async function getTasks(): Promise<{ connected: boolean; rows: TaskRow[] }> {
+  if (!dbConfigured) return { connected: false, rows: [] };
   try {
-    const [contribs, expenditures] = await Promise.all([
-      prisma.contribution.aggregate({ _sum: { amountCents: true } }),
-      prisma.expenditure.findMany({ orderBy: { paidAt: "desc" } }),
-    ]);
+    const items = await queryAll(PK.tasks);
+    const rows = items
+      .map((t) => ({
+        id: String(t.SK),
+        title: String(t.title),
+        detail: (t.detail as string) ?? null,
+        category: String(t.category ?? "Field"),
+        status: String(t.status ?? "TODO"),
+        priority: String(t.priority ?? "MEDIUM"),
+        createdAt: String(t.createdAt ?? ""),
+      }))
+      .sort(
+        (a, b) =>
+          (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1) ||
+          a.createdAt.localeCompare(b.createdAt),
+      );
+    return { connected: true, rows };
+  } catch {
+    return { connected: false, rows: [] };
+  }
+}
+
+export async function getFinance(): Promise<{
+  connected: boolean;
+  raisedCents: number;
+  spentCents: number;
+  expenditures: ExpenditureRow[];
+  byCategory: { category: string; cents: number }[];
+}> {
+  if (!dbConfigured) return { connected: false, raisedCents: 0, spentCents: 0, expenditures: [], byCategory: [] };
+  try {
+    const [donors, exps] = await Promise.all([queryAll(PK.donors), queryAll(PK.expenditures)]);
+    const expenditures = exps
+      .map((e) => ({
+        id: String(e.SK),
+        payee: String(e.payee),
+        amountCents: Number(e.amountCents) || 0,
+        category: String(e.category ?? "Operations"),
+        memo: (e.memo as string) ?? null,
+        paidAt: String(e.paidAt ?? ""),
+      }))
+      .sort((a, b) => b.paidAt.localeCompare(a.paidAt));
     const map = new Map<string, number>();
     for (const e of expenditures) map.set(e.category, (map.get(e.category) ?? 0) + e.amountCents);
-    const byCategory = [...map.entries()]
-      .map(([category, cents]) => ({ category, cents }))
-      .sort((a, b) => b.cents - a.cents);
+    const byCategory = [...map.entries()].map(([category, cents]) => ({ category, cents })).sort((a, b) => b.cents - a.cents);
     return {
       connected: true,
-      raisedCents: contribs._sum.amountCents ?? 0,
+      raisedCents: donors.reduce((s, d) => s + sumContribs(d), 0),
       spentCents: expenditures.reduce((s, e) => s + e.amountCents, 0),
       expenditures,
       byCategory,
     };
   } catch {
     return { connected: false, raisedCents: 0, spentCents: 0, expenditures: [], byCategory: [] };
-  }
-}
-
-export async function getTasks() {
-  if (!dbConfigured) return { connected: false, rows: [] as Awaited<ReturnType<typeof prisma.task.findMany>> };
-  try {
-    const rows = await prisma.task.findMany({ orderBy: [{ priority: "desc" }, { createdAt: "asc" }] });
-    return { connected: true, rows };
-  } catch {
-    return { connected: false, rows: [] };
   }
 }

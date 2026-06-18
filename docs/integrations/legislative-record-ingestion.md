@@ -1,7 +1,7 @@
 # Legislative Record Ingestion — Integration (matt-grant stack)
 
-> Status: **Implemented** · Adapted from the proposed AWS/DynamoDB plan to this repo's
-> actual stack: **Next.js + Prisma/PostgreSQL + Clerk on Vercel** (no AWS).
+> Status: **Implemented** · Stack: **Next.js + AWS DynamoDB (single table) + Clerk**, deployed on
+> **AWS Amplify** (Vercel optional). This matches the original plan's DynamoDB storage intent.
 
 ## Purpose
 
@@ -10,15 +10,15 @@ sponsored/cosponsored legislation, roll-call vote positions — from primary fed
 campaign app so contrast research is sourceable and fact-checkable. All data is public record
 (Congress.gov API + House Clerk roll-call XML). Every stored row carries its primary `sourceUrl`.
 
-## Stack reconciliation (vs the original plan)
+## How it maps to the original plan
 
-| Plan assumed | This repo |
+| Plan | This repo |
 |---|---|
-| AWS Lambda + EventBridge | Next.js route handler + **Vercel Cron** (`vercel.json`) |
-| DynamoDB single-table + S3 snapshot | **Prisma/PostgreSQL** models (`Legislator`/`LegVote`/`LegBill`/`IngestRun`) |
-| SSM SecureString secrets | **Vercel env** (`CONGRESS_GOV_API_KEY`, `CRON_SECRET`) |
-| Express router + `requireStaff` | Next.js routes; **Clerk** middleware gates `/api/research/member(*)` |
-| `wagner-ingest` modules copied in | Built fresh under `web/lib/integrations/legislative/` |
+| Scheduled ingest | Next.js route handler; cron via **Vercel Cron** or **EventBridge** on AWS |
+| **DynamoDB single-table** | ✅ DynamoDB single table (items keyed by PK/SK in `lib/db.ts`) |
+| SSM SecureString secrets | ✅ **SSM** `/matt-grant/*` (→ host env) |
+| Staff-gated reads | Next.js routes; **Clerk** middleware gates `/api/research/member(*)` |
+| `wagner-ingest` modules | Built fresh under `web/lib/integrations/legislative/` |
 
 ## Files
 
@@ -28,21 +28,21 @@ web/lib/integrations/legislative/
 ├── config.ts           # env-based (key, bioguide, vote year, roll range)
 ├── congressClient.ts   # Congress.gov v3 (member, sponsored, cosponsored; paginated)
 ├── clerkVotes.ts       # House Clerk roll{NNN}.xml → member position (bioguide = @name-id)
-├── store.ts            # Prisma upserts (idempotent) + read helpers
-└── ingest.ts           # orchestrator; records an IngestRun
+├── store.ts            # DynamoDB upserts (idempotent) + read helpers
+└── ingest.ts           # orchestrator; records an IngestRun item
 web/app/api/research/
 ├── ingest/route.ts                       # GET (cron) + POST; CRON_SECRET bearer
 └── member/[bioguideId]/{route,votes,bills}/route.ts   # Clerk-gated reads
 web/app/dashboard/research/page.tsx       # staff UI (votes + bills, source links, filters)
-web/vercel.json                           # weekly cron (Mon 08:00 UTC)
+web/vercel.json                           # weekly cron (Vercel); EventBridge on AWS
 ```
 
-## Data model (Prisma)
+## Data model (DynamoDB single-table, idempotent upserts)
 
-- `Legislator` (PK `bioguideId`) — profile + party/state/district.
-- `LegVote` — `@@unique([bioguideId, year, rollNumber])` → idempotent upsert.
-- `LegBill` — `@@unique([bioguideId, relation, congress, billType, number])`.
-- `IngestRun` — run status/counts/errors for visibility.
+- Legislator — `PK=LEGISLATOR`, `SK=<bioguideId>`.
+- Vote — `PK=VOTES#<bioguideId>`, `SK=<year>#<roll4>`.
+- Bill — `PK=BILLS#<bioguideId>`, `SK=<relation>#<congress>#<type>#<number>`.
+- IngestRun — `PK=INGESTRUN#<bioguideId>`, `SK=<startedAt ISO>` (latest = query desc, limit 1).
 
 ## Security
 
@@ -53,8 +53,8 @@ web/vercel.json                           # weekly cron (Mon 08:00 UTC)
 
 ## Run it
 
-1. Add env: `DATABASE_URL`, `CONGRESS_GOV_API_KEY`, `CRON_SECRET` (+ optional `RESEARCH_*`).
-2. `npm run db:push` to create the tables.
+1. Add env: `DYNAMODB_TABLE`, `AWS_REGION`, `CONGRESS_GOV_API_KEY`, `CRON_SECRET` (+ optional `RESEARCH_*`).
+2. `npm run db:create-table` to create the table (research items share the app's single table).
 3. Trigger once: `curl -X POST -H "Authorization: Bearer $CRON_SECRET" https://<host>/api/research/ingest`.
 4. View at `/dashboard/research`. Weekly cron keeps it fresh.
 

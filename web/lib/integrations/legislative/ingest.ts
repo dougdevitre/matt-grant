@@ -1,4 +1,5 @@
-import { prisma } from "@/lib/db";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { ddb, TABLE, PK } from "@/lib/db";
 import { loadConfig } from "./config";
 import { CongressClient } from "./congressClient";
 import { fetchMemberVotes } from "./clerkVotes";
@@ -6,12 +7,15 @@ import { persist } from "./store";
 import type { NormalizedDataset } from "./types";
 
 // Orchestrates a full ingestion: Congress.gov (member + bills) + Clerk (votes),
-// persists via upserts, and records an IngestRun for run-status visibility.
+// persists via upserts, and records an IngestRun item for run-status visibility.
 export async function runIngest(): Promise<NormalizedDataset["counts"]> {
   const cfg = loadConfig();
   if (!cfg.apiKey) throw new Error("CONGRESS_GOV_API_KEY is not set");
 
-  const run = await prisma.ingestRun.create({ data: { target: cfg.bioguideId } });
+  const startedAt = new Date().toISOString();
+  const runKey = { PK: PK.ingestRuns(cfg.bioguideId), SK: startedAt };
+  await ddb.send(new PutCommand({ TableName: TABLE, Item: { ...runKey, target: cfg.bioguideId, ok: false, startedAt } }));
+
   try {
     const client = new CongressClient(cfg.apiKey);
     const [member, sponsored, cosponsored, votes] = await Promise.all([
@@ -32,16 +36,20 @@ export async function runIngest(): Promise<NormalizedDataset["counts"]> {
     };
 
     await persist(dataset);
-    await prisma.ingestRun.update({
-      where: { id: run.id },
-      data: { ok: true, finishedAt: new Date(), counts: dataset.counts },
-    });
+    await ddb.send(
+      new PutCommand({
+        TableName: TABLE,
+        Item: { ...runKey, target: cfg.bioguideId, ok: true, startedAt, finishedAt: new Date().toISOString(), counts: dataset.counts },
+      }),
+    );
     return dataset.counts;
   } catch (err) {
-    await prisma.ingestRun.update({
-      where: { id: run.id },
-      data: { ok: false, finishedAt: new Date(), error: String(err) },
-    });
+    await ddb.send(
+      new PutCommand({
+        TableName: TABLE,
+        Item: { ...runKey, target: cfg.bioguideId, ok: false, startedAt, finishedAt: new Date().toISOString(), error: String(err) },
+      }),
+    );
     throw err;
   }
 }

@@ -1,6 +1,7 @@
 "use server";
 
-import { prisma, dbConfigured } from "@/lib/db";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { ddb, TABLE, PK, newId, dbConfigured } from "@/lib/db";
 
 export type ContactResult = { ok: boolean; message: string };
 
@@ -17,7 +18,6 @@ export async function submitContact(_prev: ContactResult | null, formData: FormD
   }
 
   if (!dbConfigured) {
-    // No DB yet — don't pretend we saved it.
     return {
       ok: false,
       message: "Our intake isn't connected yet. Please email mattgrantforcongress@gmail.com and we'll follow up.",
@@ -25,17 +25,23 @@ export async function submitContact(_prev: ContactResult | null, formData: FormD
   }
 
   try {
-    await prisma.volunteer.create({
-      data: {
-        name,
-        email: email || null,
-        phone: phone || null,
-        city: city || null,
-        interests: interests || null,
-        notes: message || null,
-        status: "NEW",
-      },
-    });
+    await ddb.send(
+      new PutCommand({
+        TableName: TABLE,
+        Item: {
+          PK: PK.volunteers,
+          SK: newId(),
+          name,
+          email: email || undefined,
+          phone: phone || undefined,
+          city: city || undefined,
+          interests: interests || undefined,
+          notes: message || undefined,
+          status: "NEW",
+          createdAt: new Date().toISOString(),
+        },
+      }),
+    );
     return { ok: true, message: "Thank you! The campaign will be in touch soon. Onward to August 4." };
   } catch {
     return {

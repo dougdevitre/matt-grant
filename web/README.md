@@ -9,7 +9,8 @@ The campaign's public website **and** internal campaign manager, in one Next.js 
 
 ## Stack
 
-Next.js 15 (App Router) · Tailwind CSS · Prisma + PostgreSQL · Clerk auth · deploys on Vercel.
+Next.js 15 (App Router) · Tailwind CSS · AWS DynamoDB (single table) · Clerk auth · deploys on
+AWS Amplify (or Vercel).
 
 Fonts: Fraunces (display) · Public Sans (body) · Spline Sans Mono (data).
 
@@ -18,13 +19,13 @@ Fonts: Fraunces (display) · Public Sans (body) · Spline Sans Mono (data).
 ```bash
 cd web
 npm install
-cp .env.example .env.local      # fill in DATABASE_URL + Clerk keys
-npm run db:push                 # create tables
+cp .env.example .env.local      # fill in DYNAMODB_TABLE + AWS_REGION + Clerk keys
+npm run db:create-table         # create the DynamoDB table (needs AWS creds)
 npm run db:seed                 # load illustrative sample data
 npm run dev                     # http://localhost:3000
 ```
 
-The app **builds and runs without any keys**: without `DATABASE_URL` the dashboard shows empty
+The app **builds and runs without any keys**: without `DYNAMODB_TABLE` the dashboard shows empty
 state with a setup notice; without Clerk keys the dashboard runs in open "demo mode" (no sign-in).
 Add keys to turn on real auth and data.
 
@@ -32,15 +33,14 @@ Add keys to turn on real auth and data.
 
 | Variable | Purpose |
 |---|---|
-| `DATABASE_URL` | Postgres connection (Vercel Postgres / Neon / Supabase). |
+| `DYNAMODB_TABLE` / `AWS_REGION` | DynamoDB table (creds via IAM role or AWS chain). |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` | Staff auth for `/dashboard`. |
 
-## Deploy (Vercel)
+## Deploy
 
-1. Import the repo; set **Root Directory** to `web`.
-2. Add the env vars above (Vercel Postgres provisions `DATABASE_URL` automatically).
-3. Build command `npm run build` runs `prisma generate` then `next build`.
-4. After first deploy, run `npm run db:push` and `npm run db:seed` against the prod DB.
+See [`../docs/DEPLOY-AWS.md`](../docs/DEPLOY-AWS.md) (Amplify recommended) and
+[`../docs/RUNBOOK.md`](../docs/RUNBOOK.md) for the full go-live steps. Root Directory is `web`;
+the app's IAM role needs DynamoDB read/write on the table.
 
 ## Brand assets (Matt's photo → every size)
 

@@ -1,85 +1,123 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma, dbConfigured } from "@/lib/db";
+import { PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { ddb, TABLE, PK, newId, dbConfigured } from "@/lib/db";
 
 function requireDb() {
-  if (!dbConfigured) throw new Error("Database not connected. Set DATABASE_URL.");
+  if (!dbConfigured) throw new Error("Database not connected. Set DYNAMODB_TABLE.");
 }
+
+const str = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim() || undefined;
 
 export async function addDonor(formData: FormData) {
   requireDb();
-  const name = String(formData.get("name") ?? "").trim();
+  const name = str(formData, "name");
   if (!name) return;
   const amount = Number(formData.get("amount") ?? 0);
   const amountCents = Math.round((isFinite(amount) ? amount : 0) * 100);
-
-  await prisma.donor.create({
-    data: {
-      name,
-      email: String(formData.get("email") ?? "").trim() || null,
-      city: String(formData.get("city") ?? "").trim() || null,
-      employer: String(formData.get("employer") ?? "").trim() || null,
-      occupation: String(formData.get("occupation") ?? "").trim() || null,
-      contributions:
-        amountCents > 0
-          ? { create: [{ amountCents, method: String(formData.get("method") ?? "WinRed") }] }
-          : undefined,
-    },
-  });
+  const now = new Date().toISOString();
+  await ddb.send(
+    new PutCommand({
+      TableName: TABLE,
+      Item: {
+        PK: PK.donors,
+        SK: newId(),
+        name,
+        email: str(formData, "email"),
+        city: str(formData, "city"),
+        employer: str(formData, "employer"),
+        occupation: str(formData, "occupation"),
+        contributions:
+          amountCents > 0
+            ? [{ amountCents, method: str(formData, "method") ?? "WinRed", election: "PRIMARY", receivedAt: now }]
+            : [],
+        createdAt: now,
+      },
+    }),
+  );
   revalidatePath("/dashboard/donors");
   revalidatePath("/dashboard");
 }
 
 export async function addExpenditure(formData: FormData) {
   requireDb();
-  const payee = String(formData.get("payee") ?? "").trim();
+  const payee = str(formData, "payee");
   const amount = Number(formData.get("amount") ?? 0);
   const amountCents = Math.round((isFinite(amount) ? amount : 0) * 100);
   if (!payee || amountCents <= 0) return;
-  await prisma.expenditure.create({
-    data: {
-      payee,
-      amountCents,
-      category: String(formData.get("category") ?? "Operations"),
-      memo: String(formData.get("memo") ?? "").trim() || null,
-    },
-  });
+  await ddb.send(
+    new PutCommand({
+      TableName: TABLE,
+      Item: {
+        PK: PK.expenditures,
+        SK: newId(),
+        payee,
+        amountCents,
+        category: str(formData, "category") ?? "Operations",
+        memo: str(formData, "memo"),
+        paidAt: new Date().toISOString(),
+      },
+    }),
+  );
   revalidatePath("/dashboard/finance");
   revalidatePath("/dashboard");
 }
 
 export async function updateVolunteerStatus(formData: FormData) {
   requireDb();
-  const id = String(formData.get("id") ?? "");
-  const status = String(formData.get("status") ?? "") as "NEW" | "ACTIVE" | "INACTIVE";
-  if (!id) return;
-  await prisma.volunteer.update({ where: { id }, data: { status } });
+  const id = str(formData, "id");
+  const status = str(formData, "status");
+  if (!id || !status) return;
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: PK.volunteers, SK: id },
+      UpdateExpression: "SET #s = :s",
+      ExpressionAttributeNames: { "#s": "status" },
+      ExpressionAttributeValues: { ":s": status },
+    }),
+  );
   revalidatePath("/dashboard/volunteers");
   revalidatePath("/dashboard");
 }
 
 export async function addTask(formData: FormData) {
   requireDb();
-  const title = String(formData.get("title") ?? "").trim();
+  const title = str(formData, "title");
   if (!title) return;
-  await prisma.task.create({
-    data: {
-      title,
-      category: String(formData.get("category") ?? "Field"),
-      priority: (String(formData.get("priority") ?? "MEDIUM") as "LOW" | "MEDIUM" | "HIGH"),
-    },
-  });
+  await ddb.send(
+    new PutCommand({
+      TableName: TABLE,
+      Item: {
+        PK: PK.tasks,
+        SK: newId(),
+        title,
+        category: str(formData, "category") ?? "Field",
+        priority: str(formData, "priority") ?? "MEDIUM",
+        status: "TODO",
+        createdAt: new Date().toISOString(),
+      },
+    }),
+  );
   revalidatePath("/dashboard/tasks");
   revalidatePath("/dashboard");
 }
 
 export async function setTaskStatus(formData: FormData) {
   requireDb();
-  const id = String(formData.get("id") ?? "");
-  const status = String(formData.get("status") ?? "") as "TODO" | "DOING" | "DONE";
-  if (!id) return;
-  await prisma.task.update({ where: { id }, data: { status } });
+  const id = str(formData, "id");
+  const status = str(formData, "status");
+  if (!id || !status) return;
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: PK.tasks, SK: id },
+      UpdateExpression: "SET #s = :s",
+      ExpressionAttributeNames: { "#s": "status" },
+      ExpressionAttributeValues: { ":s": status },
+    }),
+  );
   revalidatePath("/dashboard/tasks");
   revalidatePath("/dashboard");
 }

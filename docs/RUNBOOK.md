@@ -13,24 +13,27 @@ The web app lives in `web/`. Set Vercel's **Root Directory = `web`** everywhere 
 | Service | Sign up / console | Used for |
 |---|---|---|
 | Vercel | <https://vercel.com/signup> | hosting the app |
-| Database | Vercel Postgres (<https://vercel.com/docs/storage/vercel-postgres>) or Neon (<https://neon.tech>) | donors, tasks, research store |
+| AWS DynamoDB | (you have AWS) — console → DynamoDB | donors, tasks, research store (single table) |
 | Clerk | <https://dashboard.clerk.com> | staff sign-in to `/dashboard` |
 | Congress.gov | <https://api.congress.gov/sign-up/> | opponent legislative record |
 | AWS | (you have it) — <https://console.aws.amazon.com/cloudshell> | SSM secret store |
 
 ---
 
-## 1. Database **[you]**
+## 1. Database — DynamoDB **[you]**
 
-1. Create a Postgres DB — **Vercel Postgres** (Storage tab → Create → Postgres) is simplest; it sets
-   `DATABASE_URL` on the project automatically. Or create a **Neon** DB and copy its connection string.
-2. Locally, put it in `web/.env.local` (`cp web/.env.example web/.env.local` first), then:
+The app uses a single **DynamoDB** table (on-demand billing; no servers, no connection pooling).
+
+1. Set `DYNAMODB_TABLE` (and `AWS_REGION`) in `web/.env.local` (`cp web/.env.example web/.env.local`).
+   AWS creds come from your default chain — `aws configure` (local) or the IAM role (Amplify).
+2. Create the table + load sample data:
    ```bash
    cd web
    npm install
-   npm run db:push     # create all tables
-   npm run db:seed     # load illustrative sample data (optional)
+   npm run db:create-table   # one PK/SK table, PAY_PER_REQUEST
+   npm run db:seed           # illustrative sample data (optional)
    ```
+3. The app's IAM role/user needs `dynamodb:GetItem,PutItem,UpdateItem,Query,BatchWriteItem` on the table.
 
 ## 2. Clerk auth **[you]**
 
@@ -48,13 +51,15 @@ The web app lives in `web/`. Set Vercel's **Root Directory = `web`** everywhere 
 1. Save Matt's headshot to `web/public/brand/matt-grant-source.png` (overwrite the placeholder).
 2. `cd web && npm run brand` — regenerates favicon, OG card, portraits, avatar, print headshot.
 
-## 4. Deploy to Vercel **[you]**
+## 4. Deploy **[you]**
 
-1. <https://vercel.com/new> → import `dougdevitre/matt-grant`.
-2. **Root Directory → `web`**. Framework auto-detects Next.js.
-3. Add env vars (Settings → Environment Variables, Production): `DATABASE_URL`,
+Recommended: **AWS Amplify Hosting** — see [DEPLOY-AWS.md](DEPLOY-AWS.md) (you already pay for AWS).
+On Vercel instead: <https://vercel.com/new> → import `dougdevitre/matt-grant`.
+
+1. **Root Directory → `web`**. Framework auto-detects Next.js.
+2. Add env vars (Production): `DYNAMODB_TABLE`, `AWS_REGION`,
    `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` (research vars come in step 6).
-4. Deploy. After first deploy, run `npm run db:push` against the prod DB if you didn't in step 1.
+3. Give the host's role DynamoDB IAM perms on the table; deploy.
 
 ## 5. SSM secrets + auto-sync **[you]**
 
@@ -82,8 +87,8 @@ Store secrets in SSM (source of truth) and let the GitHub Action mirror them to 
 
 ## 6. Turn on opponent research ingestion **[you]**
 
-1. Env vars present (from step 5 sync, or add manually on Vercel): `CONGRESS_GOV_API_KEY`,
-   `CRON_SECRET`, `DATABASE_URL`. Redeploy so they load.
+1. Env vars present (from step 5 sync, or added manually): `CONGRESS_GOV_API_KEY`,
+   `CRON_SECRET`, `DYNAMODB_TABLE`. Redeploy so they load.
 2. Trigger the first ingest:
    ```bash
    curl -X POST -H "authorization: Bearer <CRON_SECRET>" https://<your-domain>/api/research/ingest
