@@ -24,7 +24,7 @@ export function SiteHeader() {
           />
         </Link>
 
-        <nav className="hidden items-center gap-7 md:flex">
+        <nav className="hidden items-center gap-6 lg:flex">
           {NAV.map((item) => {
             const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
             return (
@@ -42,14 +42,14 @@ export function SiteHeader() {
           })}
         </nav>
 
-        <div className="hidden md:block">
+        <div className="hidden lg:block">
           <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
             Donate
           </a>
         </div>
 
         <button
-          className="md:hidden btn-ghost px-3 py-2"
+          className="lg:hidden btn-ghost px-3 py-2"
           aria-label="Toggle menu"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
@@ -59,7 +59,7 @@ export function SiteHeader() {
       </div>
 
       {open && (
-        <div className="border-t border-line bg-paper md:hidden">
+        <div className="border-t border-line bg-paper lg:hidden">
           <nav className="container-page flex flex-col py-3">
             {NAV.map((item) => (
               <Link
