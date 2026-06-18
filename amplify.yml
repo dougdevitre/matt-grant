@@ -33,8 +33,9 @@ applications:
               for k in DASHBOARD_ALLOWLIST CLERK_WEBHOOK_SIGNING_SECRET; do
                 v=$(aws ssm get-parameter --name "/matt-grant/$k" --with-decryption \
                       --query 'Parameter.Value' --output text 2>/dev/null || true)
-                [ -n "$v" ] && [ "$v" != "None" ] && echo "$k=$v" >> .env.production
+                if [ -n "$v" ] && [ "$v" != "None" ]; then echo "$k=$v" >> .env.production; fi
               done
+              echo "SSM param pull complete."
         build:
           commands:
             - npm run build
