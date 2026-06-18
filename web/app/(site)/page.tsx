@@ -157,6 +157,45 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* CAMPAIGN HQ — member sign-in band */}
+      <section className="relative overflow-hidden bg-ink text-paper">
+        <div className="absolute inset-x-0 top-0 flex h-1" aria-hidden>
+          <span className="h-full w-2/5 bg-brick" /><span className="h-full w-1/5 bg-paper" /><span className="h-full w-2/5 bg-field" />
+        </div>
+        <div className="container-page py-20 sm:py-24">
+          <div className="max-w-2xl">
+            <p className="eyebrow text-gold">Campaign HQ · members only</p>
+            <h2 className="mt-3 text-4xl font-semibold sm:text-5xl">The command center for the team.</h2>
+            <p className="mt-4 text-lg text-paper/80">
+              Sign in to the War Room — the private side of the campaign where the team runs fundraising,
+              field, volunteers, and strategy. Everything below the surface of the public site.
+            </p>
+          </div>
+
+          <ul className="mt-12 grid gap-px overflow-hidden rounded-lg bg-paper/10 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              ["◈", "Fundraising & donors", "Log contributions and stay FEC-clean."],
+              ["▦", "Finance & compliance", "Cash on hand, spending, filing calendar."],
+              ["◎", "3D field map & targets", "Precinct turnout map + ranked GOTV targets."],
+              ["✶", "Volunteer & task hub", "Organize the team and the to-do list."],
+              ["❖", "Graphics & asset studio", "Generate on-brand assets on demand."],
+              ["⚖", "Opp research & strategy", "The record and the plan to win MO-02."],
+            ].map(([icon, title, copy]) => (
+              <li key={title} className="bg-ink p-6">
+                <span className="font-mono text-2xl text-gold" aria-hidden>{icon}</span>
+                <p className="mt-3 font-display text-lg font-semibold">{title}</p>
+                <p className="mt-1 text-sm text-paper/70">{copy}</p>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-10 flex flex-wrap items-center gap-4">
+            <Link href="/sign-in" className="btn-gold">Sign in to HQ</Link>
+            <span className="text-sm text-paper/60">Campaign staff &amp; organizers · access by invitation.</span>
+          </div>
+        </div>
+      </section>
+
       {/* CLOSING CTA — full-bleed district band */}
       <section className="relative overflow-hidden bg-ink text-paper">
         <Image

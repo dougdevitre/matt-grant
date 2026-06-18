@@ -90,6 +90,12 @@ Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026
 
 - [workflows/post-election.md](workflows/post-election.md) -- Win, lose, or recount: what to do next
 
+## "I want to print & produce materials"
+
+- [candidate/library-print-and-produce-guide.md](candidate/library-print-and-produce-guide.md) -- Supporter guide: print flyers/signs/banners and make swag & video at the St. Louis County Library — what to print, how, and how to use it responsibly (MO sign & electioneering law)
+- [candidate/walgreens-print-plan.md](candidate/walgreens-print-plan.md) -- Same-day Walgreens photo prints of campaign assets via the native Photo Prints API
+- [tools/disclaimer-generator.md](tools/disclaimer-generator.md) -- Generate the required "Paid for by" disclaimer for any printed piece
+
 ## "I want to generate a document"
 
 - [commands.md](commands.md) -- All slash commands for instant document generation

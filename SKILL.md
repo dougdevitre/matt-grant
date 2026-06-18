@@ -152,6 +152,7 @@ Load only what is needed for the current task:
 | `candidate/profile.md` | User asks about Matt Grant, his bio, career, values, contact info, or how to donate |
 | `candidate/platform.md` | User asks about Matt Grant's priorities, positions, or the CHILD Protection Act |
 | `candidate/strategic-plan.md` | User asks how Matt Grant plans to win MO-02 — theory of victory, timeline, fundraising/field targets, GOTV, messaging |
+| `candidate/library-print-and-produce-guide.md` | User (or a supporter) asks how to print campaign materials, make yard/window signs, banners, swag, or video, where to print cheaply, or how to post/distribute materials legally — covers St. Louis County Library mobile printing + creative lab and Missouri sign/electioneering rules |
 
 **Core reference files:**
 
