@@ -158,6 +158,11 @@ Instant-generation triggers. When a user types any of these commands, generate t
 | `/watchers` | Poll watcher program: recruitment, training agenda, credentialing checklist, incident report template |
 | `/recountprep` | Recount preparation: state rules, attorney briefing, observer deployment, fundraising for legal costs |
 
+### Print & Field Materials
+| Command | Output |
+|---|---|
+| `/print-at-library` | Step-by-step guide to print campaign materials (and make signs, banners, swag, video) at the St. Louis County Library, with what-to-print picks and the responsible-use rules — sourced from `candidate/library-print-and-produce-guide.md` |
+
 ### Post-Election
 | Command | Output |
 |---|---|
