@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { getOverview } from "@/lib/queries";
+import { listStaff } from "@/lib/staff";
 import { dollars } from "@/lib/money";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
+import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 
 // Illustrative primary-cycle fundraising goal — replace with the real number.
 const GOAL_CENTS = 25000000; // $250,000
@@ -37,10 +39,13 @@ export default async function OverviewPage() {
   const pct = Math.min(100, Math.round((o.raisedCents / GOAL_CENTS) * 100));
   const taskTotal = o.tasksTodo + o.tasksDoing + o.tasksDone;
   const doneMiles = o.milestones.filter((m) => m.done).length;
+  const teamInvited = (await listStaff()).filter((s) => s.status === "active").length;
 
   return (
     <>
       <PageHeader kicker="Campaign manager" title="Overview" />
+
+      <OnboardingChecklist hasData={o.donorCount > 0 || o.volunteerTotal > 0} teamInvited={teamInvited} />
 
       <HowTo
         steps={[

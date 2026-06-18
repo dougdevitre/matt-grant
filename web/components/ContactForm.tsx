@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { submitContact, type ContactResult } from "@/app/(site)/contact/actions";
 
@@ -57,6 +58,16 @@ export function ContactForm() {
       <button type="submit" disabled={pending} className="btn-primary mt-6 w-full disabled:opacity-60">
         {pending ? "Sending…" : "Count me in"}
       </button>
+
+      <p className="mt-4 text-xs leading-relaxed text-slate">
+        We&apos;ll use your information only to follow up about the campaign — we never sell it. By submitting,
+        you agree to receive campaign updates and, if you provide a phone number, calls or texts about the
+        campaign; reply STOP to any text to opt out. See our{" "}
+        <Link href="/data-policy" className="underline hover:text-brick">
+          Data Policy
+        </Link>
+        .
+      </p>
 
       {state && (
         <p

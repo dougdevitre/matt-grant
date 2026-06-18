@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { CAMPAIGN, ASSETS_CDN } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -63,9 +64,20 @@ export default function DonatePage() {
           Donate another amount on WinRed →
         </a>
         <p className="mt-6 border-t border-line pt-5 text-xs leading-relaxed text-slate">
-          Contributions to {CAMPAIGN.committee} are not tax-deductible. Federal law requires us to
-          use best efforts to collect and report the name, mailing address, occupation, and employer
-          of individuals whose contributions exceed $200 in an election cycle. {CAMPAIGN.paidForBy}
+          By contributing you confirm that this gift is made from your own funds, on a personal card in
+          your own name, and that you are a U.S. citizen or lawfully admitted permanent resident. Federal
+          law prohibits contributions from corporations, labor unions, federal contractors, and foreign
+          nationals.
+        </p>
+        <p className="mt-3 text-xs leading-relaxed text-slate">
+          Contributions to {CAMPAIGN.committee} are not tax-deductible. Federal law requires us to use
+          best efforts to collect and report the name, mailing address, occupation, and employer of
+          individuals whose contributions exceed $200 in an election cycle, and contributions over $200
+          are reported to and published by the FEC. See our{" "}
+          <Link href="/data-policy" className="underline hover:text-brick">
+            Data Policy
+          </Link>
+          . {CAMPAIGN.paidForBy}
         </p>
       </div>
     </section>

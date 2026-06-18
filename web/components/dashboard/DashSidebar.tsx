@@ -17,6 +17,7 @@ const ITEMS = [
   { href: "/dashboard/tasks", label: "Task board", icon: "▥" },
   { href: "/dashboard/research", label: "Opp. research", icon: "⚖" },
   { href: "/dashboard/plan", label: "Strategic plan", icon: "★" },
+  { href: "/dashboard/team", label: "Team & access", icon: "⚇" },
 ];
 
 export function DashSidebar() {

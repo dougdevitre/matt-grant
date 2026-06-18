@@ -29,5 +29,8 @@ export async function staffGate(): Promise<{ ok: boolean; email: string | null }
   const user = await currentUser();
   const email =
     user?.primaryEmailAddress?.emailAddress ?? user?.emailAddresses?.[0]?.emailAddress ?? null;
-  return { ok: emailAllowed(email), email };
+  // Allowed if in the env allowlist OR invited via the DynamoDB staff list.
+  if (emailAllowed(email)) return { ok: true, email };
+  const { isStaffEmail } = await import("@/lib/staff");
+  return { ok: await isStaffEmail(email), email };
 }

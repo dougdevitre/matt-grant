@@ -26,6 +26,7 @@ export const PK = {
   tasks: "TASK",
   milestones: "MILESTONE",
   expenditures: "EXPENDITURE",
+  staff: "STAFF",
   legislators: "LEGISLATOR",
   votes: (bioguideId: string) => `VOTES#${bioguideId}`,
   bills: (bioguideId: string) => `BILLS#${bioguideId}`,
