@@ -31,6 +31,14 @@ export const NAV = [
 
 export const SITE_URL = "https://mattgrantforcongress.org";
 
+// Media booking. Set NEXT_PUBLIC_MEDIA_BOOKING_URL to a Calendly/Cal.com/Zoom
+// scheduling link when one exists; until then the press kit falls back to a
+// prefilled email to the campaign.
+export const MEDIA = {
+  bookingUrl: process.env.NEXT_PUBLIC_MEDIA_BOOKING_URL ?? "",
+  email: "mattgrantforcongress@gmail.com",
+} as const;
+
 // Public CloudFront base for downloadable brand assets (objects under public/).
 export const ASSETS_CDN = "https://d5jzyan9wboi3.cloudfront.net";
 

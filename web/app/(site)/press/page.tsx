@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CAMPAIGN } from "@/lib/site";
+import { PressKit } from "@/components/PressKit";
 
 export const metadata: Metadata = {
   title: "Press",
@@ -116,6 +117,8 @@ export default function PressPage() {
         Official statements and press releases from the campaign. For interviews and media
         inquiries, contact us directly.
       </p>
+
+      <PressKit />
 
       <h2 className="mt-16 font-display text-2xl font-semibold sm:text-3xl">In the news</h2>
       <p className="mt-3 max-w-prose text-slate">
