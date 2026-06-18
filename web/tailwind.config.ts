@@ -12,8 +12,8 @@ const config: Config = {
         // "Ledger & Banner" civic identity — see globals.css for usage.
         ink: "#0F2540", // primary authority navy
         field: "#16365C", // deep field blue
-        gold: "#E0A53B", // heartland gold (Eagle Scout / MO wheat)
-        brick: "#B5343B", // urgency / primary CTA, used sparingly
+        gold: "#2563EB", // campaign accent BLUE (token name kept for compatibility — red/white/blue palette)
+        brick: "#B5343B", // red — urgency / primary CTA
         paper: "#FBFAF6", // warm white
         slate: "#5A6472", // muted body / captions
         line: "#E4E2DA", // hairline borders

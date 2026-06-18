@@ -15,7 +15,7 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/45" aria-hidden />
         <div className="absolute inset-0 bg-ink/30" aria-hidden />
         <div className="absolute inset-0 bg-grid opacity-[0.35] mix-blend-soft-light" aria-hidden />
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brick via-gold to-field" aria-hidden />
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brick via-paper to-field" aria-hidden />
         <div className="container-page relative grid gap-14 py-20 sm:py-28 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           <div className="animate-rise-in">
             <p className="eyebrow text-gold">{CAMPAIGN.committee} · {CAMPAIGN.district}</p>

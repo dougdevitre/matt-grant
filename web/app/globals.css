@@ -59,7 +59,7 @@
     @apply btn bg-brick text-paper hover:bg-[#9c2a30];
   }
   .btn-gold {
-    @apply btn bg-gold text-ink hover:bg-[#c98f2c];
+    @apply btn bg-gold text-paper hover:bg-[#1d4ed8];
   }
   .btn-ink {
     @apply btn bg-ink text-paper hover:bg-field;
