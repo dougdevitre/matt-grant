@@ -50,6 +50,7 @@ export const BRAND_DOWNLOADS = [
   { file: "marketing/infographic.png", label: "The Four Fights — infographic" },
   { file: "marketing/banner-standard-of-service.png", label: "A New Standard of Service — banner" },
   { file: "marketing/grant-campaign-engine.pdf", label: "Campaign overview deck (PDF)" },
+  { file: "marketing/child-protection-act-brief.pdf", label: "CHILD Protection Act — one-pager (PDF)" },
 ] as const;
 
 // Print-ready PDFs (RGB + 0.125" bleed) — yard sign, palm card, mailer.
