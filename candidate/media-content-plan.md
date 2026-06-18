@@ -14,7 +14,7 @@ library**, and a path to **automated posting** (API / connector / MCP).
   Fights* infographic, the *New Standard of Service* banner, the campaign deck) and renders the
   50-post calendar with **Copy caption**, **Share to X**, **Share to Facebook**, and **Graphic ↓**.
 - **`lib/socialPosts.ts`** — the typed index of 50 posts (the source of truth; also exported to S3).
-- **S3 content library** — `s3://matt-grant-assets/public/social/` (`manifest.json`, `INDEX.md`,
+- **S3 content library** — `s3://matt-grant-for-congress/public/social/` (`manifest.json`, `INDEX.md`,
   `graphics/`).
 
 ## 2. Content taxonomy (every post is tagged)
@@ -36,7 +36,7 @@ caption, hashtags, channel(s), persona, coalition, CTA, and a suggested graphic.
 ## 4. S3 content library structure
 
 ```
-s3://matt-grant-assets/public/social/
+s3://matt-grant-for-congress/public/social/
 ├── manifest.json     # the 50 posts (machine-readable; the Media page / API read this)
 ├── INDEX.md          # human-readable index
 └── graphics/         # one image per post: D-50.png … D-1.png  (generate in the Studio, upload here)
