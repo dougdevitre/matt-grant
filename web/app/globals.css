@@ -96,3 +96,16 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Print: isolate the supporter action plan so it prints clean (no nav/footer). */
+@media print {
+  body { background: #fff !important; }
+  .no-print { display: none !important; }
+  /* hide everything, then reveal only the printable plan */
+  body * { visibility: hidden; }
+  .printable, .printable * { visibility: visible; }
+  .printable {
+    position: absolute; left: 0; top: 0; width: 100%;
+    border: 0 !important; box-shadow: none !important; padding: 0 !important;
+  }
+}

@@ -24,6 +24,7 @@ export const NAV = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About Matt" },
   { href: "/issues", label: "Issues" },
+  { href: "/act", label: "Take Action" },
   { href: "/donate", label: "Donate" },
   { href: "/media", label: "Media" },
   { href: "/press", label: "Press" },
