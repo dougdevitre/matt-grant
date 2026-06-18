@@ -86,8 +86,12 @@ moment.
   the **Four Fights infographic band** (home + about issues), and the **Donate 2-column hero image**.
   These hit the emptiest, highest-traffic surfaces.
 - **Phase 2:** About career/issue dividers, Contact panel, Media + Press headers.
-- **Phase 3 (best quality):** commission/собрать a **real photo library** (district, families, events)
-  into `private/photos/`, then swap the brand-scene placeholders for authentic photography.
+- **Phase 3 (best quality) — pipeline scaffolded ✅:** the `private/photos/` library
+  (candidate/family/events/district/broll) exists with a README; `sync-photos.mjs` ingests a shoot
+  privately, `promote-photo.mjs` renders web-optimized derivatives (1600/800/og) to
+  `public/web/photos/` and records them in `lib/webPhotos.json`, and `webPhoto(name)` lets a page use
+  a real photo with a brand-scene fallback. **Remaining:** an actual photo shoot, then swap
+  placeholders for the promoted photos.
 
 ## 4. Guardrails
 
