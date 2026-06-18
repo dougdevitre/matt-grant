@@ -28,7 +28,8 @@ export function volunteerWelcome(firstName = "there"): Email {
       preheader: "Thanks for stepping up — here's how to start.",
       eyebrow: "Welcome aboard",
       title,
-      heroImage: { src: img("marketing/banner-standard-of-service.png"), alt: "A New Standard of Service" },
+      subtitle: "You just made this campaign stronger. Here's how to start making a difference.",
+      heroImage: { src: img("brand/headshot.png"), alt: "Matt Grant" },
       bodyHtml: `<p>Thank you for joining the campaign. This race is won one neighbor at a time, and you just made it stronger.</p>
         <p>Here's how to make an immediate difference:</p>
         <ul>
@@ -53,6 +54,7 @@ export function donationThankYou(firstName = "Friend", amount?: number): Email {
       preheader: "Your support funds doors knocked and calls made.",
       eyebrow: "Receipt of support",
       title,
+      subtitle: "Your support is the engine of this campaign — thank you.",
       bodyHtml: `<p>Your contribution of <strong>${amt}</strong> goes straight to the work: doors knocked, calls made, and neighbors reached before ${CAMPAIGN.electionLabel}.</p>
         <p>Matt doesn't just talk — he takes action, and so do you. Thank you for being part of it.</p>
         <p style="font-size:13px;color:#6B7280;">Contributions to ${CAMPAIGN.committee} are not tax-deductible. Federal law requires us to use best efforts to collect and report the name, mailing address, occupation, and employer of individuals whose contributions exceed $200 in an election cycle.</p>`,
@@ -90,7 +92,7 @@ export function issueSpotlight(slug: string): Email {
       preheader: issue.tagline,
       eyebrow: issue.eyebrow,
       title: issue.title,
-      heroImage: { src: issue.graphic, alt: issue.title },
+      subtitle: issue.tagline,
       bodyHtml: `<p>${issue.argument}</p>
         <p><strong>Matt's commitment:</strong> ${issue.commitment}</p>
         <p style="margin-top:20px;font-weight:bold;color:#0F2540;">Explore the other fights:</p>`,
@@ -115,6 +117,7 @@ export function campaignNewsletter(): Email {
       preheader: "Where Matt stands, and your plan to help.",
       eyebrow: "Campaign update",
       title,
+      subtitle: "Where Matt stands — and how you can move this race forward.",
       heroImage: { src: img("marketing/infographic.png"), alt: "The Four Fights" },
       bodyHtml: `<p>Here's where Matt stands on the issues that matter most for Missouri's 2nd District — and how you can move this race forward before ${CAMPAIGN.electionLabel}.</p>`,
       cards: ISSUES.map(issueCard),
@@ -135,7 +138,8 @@ export function gotvReminder(daysOut = 7): Email {
       preheader: `Primary election: ${CAMPAIGN.electionLabel}.`,
       eyebrow: "Get out the vote",
       title,
-      heroImage: { src: img("social/feed/D-1.png"), alt: "Election day — go vote" },
+      subtitle: `The primary is ${CAMPAIGN.electionLabel}. Make your plan to vote.`,
+      heroImage: { src: img("web/st-louis-arch.png"), alt: "Missouri's 2nd District" },
       bodyHtml: `<p>The primary is <strong>${CAMPAIGN.electionLabel}</strong>. Every vote in this race counts — make your plan now.</p>
         <ul>
           <li>Confirm your polling place and hours.</li>
@@ -159,7 +163,8 @@ export function fundraisingAppeal(): Email {
       preheader: "Every dollar funds doors, calls, and mail.",
       eyebrow: "Chip in",
       title,
-      heroImage: { src: img("marketing/flyers/mg-flyer-solutions-for-missouri-families.png"), alt: "Solutions for Missouri families" },
+      subtitle: "Grassroots support — not Washington insiders — carries this campaign.",
+      heroImage: { src: img("brand/headshot.png"), alt: "Matt Grant" },
       bodyHtml: `<p>We're in the final stretch before ${CAMPAIGN.electionLabel}, and grassroots support is what carries this campaign — not Washington insiders.</p>
         <p>A gift today funds the doors, calls, and mail that reach one more Missouri family.</p>`,
       signature: true,
@@ -198,7 +203,8 @@ export function announcement(): Email {
       preheader: "{{preheader}}",
       eyebrow: "{{eyebrow}}",
       title: "{{headline}}",
-      heroImage: { src: img("marketing/banner-standard-of-service.png"), alt: "Matt Grant for Congress" },
+      subtitle: "{{subhead}}",
+      heroImage: { src: img("brand/headshot.png"), alt: "Matt Grant" },
       bodyHtml: `<p>{{body}}</p>`,
       signature: true,
       button: { label: "{{cta_label}}", href: "{{cta_url}}", color: "red" },
