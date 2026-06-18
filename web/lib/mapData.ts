@@ -3,8 +3,9 @@
 // exports (St. Louis County GIS, MSDIS, Census, OSM). See web/docs and the
 // candidate/data-and-map-plan.md for swap-in instructions.
 
-export const MAP_CENTER: [number, number] = [-90.52, 38.62]; // west St. Louis County
-export const MAP_ZOOM = 10.4;
+// Framed to show the St. Louis County portion (north) + Jefferson County (south).
+export const MAP_CENTER: [number, number] = [-90.47, 38.45];
+export const MAP_ZOOM = 9.4;
 
 export type Category = "schools" | "partners" | "public" | "polling";
 

@@ -45,6 +45,13 @@ export function arcgisGeojsonUrl(base: string): string {
   return `${base}?${params.toString()}`;
 }
 
+// Jefferson County precinct boundaries (added to MO-02 in the 2025 map — wholly
+// in the district). 88 precincts; no turnout/congress fields, so boundary-only.
+export const JEFFERSON = {
+  url: "https://services1.arcgis.com/Ur3TPhgM56qvxaar/arcgis/rest/services/Voting_Precincts/FeatureServer/0/query",
+  label: "Jefferson County (boundaries)",
+};
+
 export type PoiFeature = {
   type: "Feature";
   properties: { name: string; category: string; note?: string; source?: string };

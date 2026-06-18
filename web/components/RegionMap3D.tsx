@@ -15,9 +15,11 @@ type Props = {
   turnout: boolean;
   pois: GeoJSON.FeatureCollection;
   precincts: GeoJSON.FeatureCollection;
+  jefferson: GeoJSON.FeatureCollection;
+  showJefferson: boolean;
 };
 
-export default function RegionMap3D({ visible, buildings, turnout, pois, precincts }: Props) {
+export default function RegionMap3D({ visible, buildings, turnout, pois, precincts, jefferson, showJefferson }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const ready = useRef(false);
@@ -25,6 +27,8 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
   poisRef.current = pois;
   const precinctsRef = useRef(precincts);
   precinctsRef.current = precincts;
+  const jeffersonRef = useRef(jefferson);
+  jeffersonRef.current = jefferson;
 
   // Init once.
   useEffect(() => {
@@ -81,6 +85,34 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
           "fill-extrusion-base": 0,
           "fill-extrusion-opacity": 0.6,
         },
+      });
+
+      // Jefferson County — added to MO-02 in the 2025 map. Boundary-only (no
+      // turnout feed), so it's a flat fill + outline, visually distinct from the
+      // St. Louis turnout columns.
+      m.addSource("jefferson", { type: "geojson", data: jeffersonRef.current });
+      m.addLayer({
+        id: "jefferson-fill",
+        source: "jefferson",
+        type: "fill",
+        layout: { visibility: showJefferson ? "visible" : "none" },
+        paint: { "fill-color": "#5b7d6f", "fill-opacity": 0.18 },
+      });
+      m.addLayer({
+        id: "jefferson-line",
+        source: "jefferson",
+        type: "line",
+        layout: { visibility: showJefferson ? "visible" : "none" },
+        paint: { "line-color": "#3f5a4f", "line-width": 1, "line-opacity": 0.6 },
+      });
+      m.on("click", "jefferson-fill", (e) => {
+        const f = e.features?.[0];
+        if (!f) return;
+        const pr = f.properties as { Precinct?: string };
+        new maplibregl.Popup({ closeButton: false, offset: 8 })
+          .setLngLat(e.lngLat)
+          .setHTML(`<strong>Jefferson Co.</strong><br/>${pr.Precinct ?? "Precinct"}<br/><span style="color:#5b7d6f">boundary only — no turnout feed</span>`)
+          .addTo(m);
       });
 
       // POIs (live from /api/geo when available, else sample).
@@ -180,6 +212,20 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
     if (!m || !ready.current) return;
     (m.getSource("precincts") as maplibregl.GeoJSONSource | undefined)?.setData(precincts);
   }, [precincts]);
+
+  // Jefferson data + visibility.
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !ready.current) return;
+    (m.getSource("jefferson") as maplibregl.GeoJSONSource | undefined)?.setData(jefferson);
+  }, [jefferson]);
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !ready.current) return;
+    for (const id of ["jefferson-fill", "jefferson-line"]) {
+      if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", showJefferson ? "visible" : "none");
+    }
+  }, [showJefferson]);
 
   return <div ref={container} className="h-full w-full" />;
 }

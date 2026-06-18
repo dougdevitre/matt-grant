@@ -39,13 +39,13 @@ export const MO02_COUNTIES: CountySource[] = [
   },
   {
     county: "Jefferson County",
-    role: "New in 2025 map (incl. Arnold)",
+    role: "New in 2025 map — wholly in MO-02 (incl. Arnold)",
     resolution: "precinct-boundary",
-    status: "available",
+    status: "live",
     endpoints: [
-      { label: "Voting Precincts (boundaries)", url: "https://services1.arcgis.com/Ur3TPhgM56qvxaar/arcgis/rest/services/Voting_Precincts/FeatureServer" },
+      { label: "Voting Precincts (88, live)", url: "https://services1.arcgis.com/Ur3TPhgM56qvxaar/arcgis/rest/services/Voting_Precincts/FeatureServer" },
     ],
-    note: "ArcGIS precinct polygons (no turnout fields). Turnout = SOS county-level.",
+    note: "Live on the map as a boundary layer (88 precincts). No turnout/congress fields — turnout is SOS county-level.",
   },
   {
     county: "Washington County",

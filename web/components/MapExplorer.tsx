@@ -31,6 +31,10 @@ export function MapExplorer() {
   const [pollingLive, setPollingLive] = useState<boolean | null>(null);
   const [precincts, setPrecincts] = useState<GeoJSON.FeatureCollection>(PRECINCTS);
   const [precinctsLive, setPrecinctsLive] = useState<boolean | null>(null);
+  const emptyFC: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
+  const [jefferson, setJefferson] = useState<GeoJSON.FeatureCollection>(emptyFC);
+  const [jeffCount, setJeffCount] = useState<number | null>(null);
+  const [showJefferson, setShowJefferson] = useState(true);
 
   // Pull live layers (real St. Louis County polling places + precinct turnout) on mount.
   useEffect(() => {
@@ -52,6 +56,15 @@ export function MapExplorer() {
         setPrecinctsLive(!!fc.meta?.live);
       })
       .catch(() => !cancelled && setPrecinctsLive(false));
+
+    fetch("/api/geo/jefferson")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((fc) => {
+        if (cancelled) return;
+        setJefferson({ type: "FeatureCollection", features: fc.features });
+        setJeffCount(fc.meta?.count ?? 0);
+      })
+      .catch(() => !cancelled && setJeffCount(0));
 
     return () => {
       cancelled = true;
@@ -121,6 +134,14 @@ export function MapExplorer() {
             <span className="font-semibold text-ink">3D buildings</span>
             <input type="checkbox" checked={buildings} onChange={() => setBuildings((v) => !v)} />
           </label>
+          <label className="mt-4 flex cursor-pointer items-center justify-between text-sm">
+            <span className="font-semibold text-ink">
+              Jefferson Co.
+              {jeffCount ? <span className="ml-2 font-mono text-xs text-slate">{jeffCount}</span> : null}
+            </span>
+            <input type="checkbox" checked={showJefferson} onChange={() => setShowJefferson((v) => !v)} />
+          </label>
+          <p className="mt-1 text-xs text-slate">Added to MO-02 in the 2025 map (boundaries only — no turnout feed).</p>
           <p className="mt-3 border-t border-line pt-3 text-xs text-slate">
             Drag to pan · right-drag to tilt/rotate · scroll to zoom.
           </p>
@@ -142,7 +163,15 @@ export function MapExplorer() {
 
       {/* Map */}
       <div className="h-[68vh] min-h-[420px] overflow-hidden rounded-lg border border-line shadow-card">
-        <RegionMap3D visible={visible} buildings={buildings} turnout={turnout} pois={pois} precincts={precincts} />
+        <RegionMap3D
+          visible={visible}
+          buildings={buildings}
+          turnout={turnout}
+          pois={pois}
+          precincts={precincts}
+          jefferson={jefferson}
+          showJefferson={showJefferson}
+        />
       </div>
     </div>
   );
