@@ -13,6 +13,7 @@ const ITEMS = [
   { href: "/dashboard/studio", label: "Graphics studio", icon: "❖" },
   { href: "/dashboard/volunteers", label: "Volunteers", icon: "✶" },
   { href: "/dashboard/tasks", label: "Task board", icon: "▥" },
+  { href: "/dashboard/research", label: "Opp. research", icon: "⚖" },
   { href: "/dashboard/plan", label: "Strategic plan", icon: "★" },
 ];
 

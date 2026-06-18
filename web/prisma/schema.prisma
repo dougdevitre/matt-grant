@@ -104,6 +104,69 @@ model Task {
   @@index([status])
 }
 
+// ---- Opposition research: opponent's public legislative record ----
+// All data is federal public record (Congress.gov API + House Clerk roll XML).
+// Idempotent: stable unique keys so re-ingestion upserts, never duplicates.
+
+model Legislator {
+  bioguideId String      @id
+  name       String
+  party      String?
+  state      String?
+  district   String?
+  profile    Json?
+  source     String      @default("congress.gov")
+  updatedAt  DateTime    @updatedAt
+  votes      LegVote[]
+  bills      LegBill[]
+}
+
+model LegVote {
+  id         String      @id @default(cuid())
+  legislator Legislator  @relation(fields: [bioguideId], references: [bioguideId], onDelete: Cascade)
+  bioguideId String
+  year       Int
+  rollNumber Int
+  position   String? // Yea / Nay / Present / Not Voting
+  question   String?
+  result     String?
+  legisNum   String?
+  voteDate   DateTime?
+  sourceUrl  String
+  source     String      @default("clerk.house.gov")
+
+  @@unique([bioguideId, year, rollNumber])
+  @@index([bioguideId, year])
+}
+
+model LegBill {
+  id             String     @id @default(cuid())
+  legislator     Legislator @relation(fields: [bioguideId], references: [bioguideId], onDelete: Cascade)
+  bioguideId     String
+  relation       String // sponsored | cosponsored
+  congress       Int
+  billType       String
+  number         String
+  title          String?
+  policyArea     String?
+  introducedDate DateTime?
+  sourceUrl      String
+  source         String     @default("congress.gov")
+
+  @@unique([bioguideId, relation, congress, billType, number])
+  @@index([bioguideId, relation])
+}
+
+model IngestRun {
+  id         String   @id @default(cuid())
+  target     String
+  startedAt  DateTime @default(now())
+  finishedAt DateTime?
+  ok         Boolean  @default(false)
+  counts     Json?
+  error      String?
+}
+
 // Phases of the strategic plan, surfaced on the dashboard timeline.
 model Milestone {
   id        String   @id @default(cuid())

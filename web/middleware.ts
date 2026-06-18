@@ -1,7 +1,9 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
+// Dashboard + research read APIs are staff-only. The ingest route is excluded —
+// it's secured separately by CRON_SECRET (cron has no Clerk session).
+const isProtectedRoute = createRouteMatcher(["/dashboard(.*)", "/api/research/member(.*)"]);
 
 const clerkEnabled =
   !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
