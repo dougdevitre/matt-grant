@@ -24,8 +24,24 @@ export const NAV = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About Matt / Issues" },
   { href: "/donate", label: "Donate" },
+  { href: "/media", label: "Media" },
   { href: "/press", label: "Press" },
   { href: "/contact", label: "Contact" },
+] as const;
+
+export const SITE_URL = "https://mattgrantforcongress.org";
+
+// Public CloudFront base for downloadable brand assets (objects under public/).
+export const ASSETS_CDN = "https://d5jzyan9wboi3.cloudfront.net";
+
+export const BRAND_DOWNLOADS = [
+  { file: "logo.png", label: "Logo (full color)" },
+  { file: "logo-blue.png", label: "Logo (navy)" },
+  { file: "logo-red.png", label: "Logo (red)" },
+  { file: "headshot.png", label: "Matt's headshot" },
+  { file: "infographic.png", label: "The Four Fights — infographic" },
+  { file: "banner-standard-of-service.png", label: "A New Standard of Service — banner" },
+  { file: "grant-campaign-engine.pdf", label: "Campaign overview deck (PDF)" },
 ] as const;
 
 // His stated platform — faithful to published positions.
