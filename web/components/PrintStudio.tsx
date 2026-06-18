@@ -43,6 +43,9 @@ export function PrintStudio() {
   // The exact-aspect image for the chosen size (fallback to the largest rendition).
   const imageUrl = design ? (product ? design.sizes[product.productSize] ?? largest(design) : largest(design)) : "";
   const cartDetails = product ? [{ productId, qty: String(qty) }] : [];
+  // Ordering is live only when configured AND the catalog returned printable
+  // sizes. An invalid affiliate / empty catalog falls back to the download flow.
+  const ordering = configured === true && printable.length > 0;
 
   async function findStores() {
     if (!navigator.geolocation || !product) return;
@@ -81,7 +84,7 @@ export function PrintStudio() {
   }
 
   const contactComplete = contact.firstName && contact.lastName && contact.phone && contact.email;
-  const canOrder = configured && design && product && store && contactComplete && agreed;
+  const canOrder = ordering && design && product && store && contactComplete && agreed;
 
   if (result?.vendorOrderId) {
     return (
@@ -102,12 +105,12 @@ export function PrintStudio() {
 
   return (
     <div className="mt-8 space-y-8">
-      {configured === false && (
+      {configured !== null && !ordering && (
         <div className="card border-dashed p-5">
           <p className="eyebrow text-slate">Online ordering — coming soon</p>
           <p className="mt-2 max-w-prose text-sm text-slate">
-            Direct-to-Walgreens ordering opens once the campaign&apos;s Walgreens credentials are live.
-            In the meantime, pick a design and download the print-ready file (8×10) to print anywhere.
+            Direct-to-Walgreens ordering is being set up. In the meantime, pick a design and download
+            the print-ready file (8×10) to print at any Walgreens, Staples, or local shop.
           </p>
         </div>
       )}
@@ -128,7 +131,7 @@ export function PrintStudio() {
             </button>
           ))}
         </div>
-        {design && !configured && (
+        {design && !ordering && (
           <a href={largest(design)} download target="_blank" rel="noopener noreferrer" className="btn-gold mt-4 inline-block">
             Download &ldquo;{design.label}&rdquo; (8×10)
           </a>
@@ -136,7 +139,7 @@ export function PrintStudio() {
       </div>
 
       {/* 2 — size */}
-      {configured && (
+      {ordering && (
         <div>
           <p className="font-display text-lg font-semibold">2. Size &amp; quantity</p>
           <div className="mt-3 flex flex-wrap items-end gap-4">
@@ -164,7 +167,7 @@ export function PrintStudio() {
       )}
 
       {/* 3 — your info */}
-      {configured && (
+      {ordering && (
         <div>
           <p className="font-display text-lg font-semibold">3. Your details</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -182,7 +185,7 @@ export function PrintStudio() {
       )}
 
       {/* 4 — store */}
-      {configured && (
+      {ordering && (
         <div>
           <p className="font-display text-lg font-semibold">4. Pick a store</p>
           <button onClick={findStores} disabled={!product || busy === "stores"} className="btn-ink mt-3 disabled:opacity-50">
@@ -208,7 +211,7 @@ export function PrintStudio() {
       )}
 
       {/* 5 — consent + submit */}
-      {configured && (
+      {ordering && (
         <div className="border-t border-line pt-6">
           <label className="flex items-start gap-2 text-sm text-ink">
             <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 accent-brick" />
