@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { SOCIAL_POSTS, PILLARS, type Pillar, type SocialPost } from "@/lib/socialPosts";
-import { ASSETS_CDN, SITE_URL, BRAND_DOWNLOADS, CAMPAIGN } from "@/lib/site";
+import { ASSETS_CDN, SITE_URL, BRAND_DOWNLOADS, PRINT_DOWNLOADS, CAMPAIGN } from "@/lib/site";
 
 const pillarColor: Record<Pillar, string> = {
   "Children First": "bg-brick/12 text-brick",
@@ -83,6 +83,27 @@ export function MediaLibrary() {
             >
               <span>{b.label}</span>
               <span className="font-mono text-xs text-field">↓</span>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* Print kit */}
+      <section className="card mb-8 p-6">
+        <p className="eyebrow text-slate">Print kit — print-ready PDFs</p>
+        <p className="mt-1 text-xs text-slate">RGB with 0.125&quot; bleed. Online printers (VistaPrint, UPrinting) accept these as-is.</p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {PRINT_DOWNLOADS.map((b) => (
+            <a
+              key={b.file}
+              href={`${ASSETS_CDN}/public/${b.file}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+              className="flex items-center justify-between rounded-sm border border-line px-3 py-2 text-sm text-ink hover:border-ink"
+            >
+              <span>{b.label}</span>
+              <span className="font-mono text-xs text-field">PDF ↓</span>
             </a>
           ))}
         </div>

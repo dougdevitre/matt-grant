@@ -44,6 +44,15 @@ export const BRAND_DOWNLOADS = [
   { file: "marketing/grant-campaign-engine.pdf", label: "Campaign overview deck (PDF)" },
 ] as const;
 
+// Print-ready PDFs (RGB + 0.125" bleed) — yard sign, palm card, mailer.
+export const PRINT_DOWNLOADS = [
+  { file: "print/mg-print-yardsign-24x18.pdf", label: "Yard sign — 24×18" },
+  { file: "print/mg-print-palmcard-front-4x6.pdf", label: "Palm card — front (4×6)" },
+  { file: "print/mg-print-palmcard-back-4x6.pdf", label: "Palm card — back (4×6)" },
+  { file: "print/mg-print-mailer-front-6x9.pdf", label: "Mailer — front (6×9)" },
+  { file: "print/mg-print-mailer-back-6x9.pdf", label: "Mailer — back (6×9)" },
+] as const;
+
 // His stated platform — faithful to published positions.
 export const PRIORITIES = [
   {
