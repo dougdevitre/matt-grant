@@ -80,23 +80,25 @@ export default function HomePage() {
         <ol className="mt-12 grid gap-px overflow-hidden rounded-lg border border-line bg-line md:grid-cols-2">
           {PRIORITIES.map((p, i) => (
             <li key={p.id} className="group bg-white transition-colors hover:bg-paper">
-              <Reveal delay={i * 80} className="h-full p-8">
-                <div className="flex items-baseline gap-4">
-                  <span className="font-mono text-sm text-gold">{p.n}</span>
-                  <h3 className="font-display text-2xl font-semibold leading-snug text-ink">
-                    {p.title}
-                  </h3>
-                </div>
-                <p className="mt-4 text-slate">{p.summary}</p>
-                <p className="mt-4 font-mono text-xs uppercase tracking-eyebrow text-field">{p.short}</p>
-              </Reveal>
+              <Link href={`/issues/${p.id}`} className="block h-full">
+                <Reveal delay={i * 80} className="h-full p-8">
+                  <div className="flex items-baseline gap-4">
+                    <span className="font-mono text-sm text-gold">{p.n}</span>
+                    <h3 className="font-display text-2xl font-semibold leading-snug text-ink group-hover:text-brick">
+                      {p.title}
+                    </h3>
+                  </div>
+                  <p className="mt-4 text-slate">{p.summary}</p>
+                  <p className="mt-4 font-mono text-xs uppercase tracking-eyebrow text-field">{p.short} →</p>
+                </Reveal>
+              </Link>
             </li>
           ))}
         </ol>
 
         <div className="mt-8">
-          <Link href="/about" className="btn-ghost">
-            Read the full positions →
+          <Link href="/issues" className="btn-ghost">
+            Explore all four issues →
           </Link>
         </div>
       </section>

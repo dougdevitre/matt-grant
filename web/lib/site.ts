@@ -22,7 +22,8 @@ export const CAMPAIGN = {
 
 export const NAV = [
   { href: "/", label: "Home" },
-  { href: "/about", label: "About Matt / Issues" },
+  { href: "/about", label: "About Matt" },
+  { href: "/issues", label: "Issues" },
   { href: "/donate", label: "Donate" },
   { href: "/media", label: "Media" },
   { href: "/press", label: "Press" },

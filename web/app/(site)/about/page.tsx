@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { CAMPAIGN, PRIORITIES, VALUES, ASSETS_CDN } from "@/lib/site";
+import { CAMPAIGN, VALUES, ASSETS_CDN } from "@/lib/site";
+import { ISSUES } from "@/lib/issues";
 
 export const metadata: Metadata = {
-  title: "About Matt / Issues",
+  title: "About Matt",
   description:
     "Matt Grant's story and where he stands: ending family-court corruption, term limits, a smaller government, and lower taxes for Missouri's 2nd District.",
 };
@@ -100,48 +101,29 @@ export default function AboutPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-white via-ink/25 to-ink" aria-hidden />
       </div>
 
-      {/* Issues — full */}
+      {/* Issues — teaser (full content lives at /issues) */}
       <section id="issues" className="bg-ink text-paper">
         <div className="container-page py-16 sm:py-24">
           <p className="eyebrow text-gold">The issues</p>
-          <h2 className="mt-3 max-w-3xl text-4xl font-semibold sm:text-5xl">
-            Where Matt stands.
-          </h2>
+          <h2 className="mt-3 max-w-3xl text-4xl font-semibold sm:text-5xl">Where Matt stands.</h2>
           <p className="mt-4 max-w-prose text-lg text-paper/75">
-            Four priorities, each one concrete and accountable.
+            Four fights worth winning — each with Matt's argument, his commitment, and a short video.
           </p>
 
-          <div className="relative mt-10 aspect-[16/9] w-full overflow-hidden rounded-lg bg-white ring-1 ring-paper/15">
-            <Image
-              src={`${ASSETS_CDN}/public/marketing/infographic.png`}
-              alt="The Four Fights — Matt Grant's platform at a glance"
-              fill
-              sizes="(max-width: 1024px) 100vw, 1100px"
-              className="object-contain"
-            />
-          </div>
-
-          <div className="mt-12 space-y-px overflow-hidden rounded-lg bg-paper/10">
-            {PRIORITIES.map((p) => (
-              <article key={p.id} className="bg-ink p-8">
+          <div className="mt-10 grid gap-px overflow-hidden rounded-lg bg-paper/10 sm:grid-cols-2">
+            {ISSUES.map((issue) => (
+              <Link key={issue.slug} href={`/issues/${issue.slug}`} className="group bg-ink p-8 transition-colors hover:bg-field/30">
                 <div className="flex items-baseline gap-4">
-                  <span className="font-mono text-sm text-gold">{p.n}</span>
-                  <h3 className="font-display text-2xl font-semibold sm:text-3xl">{p.title}</h3>
+                  <span className="font-mono text-sm text-gold">{issue.n}</span>
+                  <h3 className="font-display text-xl font-semibold sm:text-2xl group-hover:text-gold">{issue.title}</h3>
                 </div>
-                <p className="mt-4 max-w-prose text-paper/80">{p.summary}</p>
-              </article>
+                <p className="mt-3 text-paper/75">{issue.tagline}</p>
+                <span className="mt-4 inline-block font-mono text-xs uppercase tracking-eyebrow text-gold">Open issue →</span>
+              </Link>
             ))}
           </div>
 
-          <div className="card mt-10 border-gold/30 bg-field/30 p-8">
-            <p className="eyebrow text-gold">Signature legislation</p>
-            <h3 className="mt-2 font-display text-2xl font-semibold">The CHILD Protection Act of 2027</h3>
-            <p className="mt-3 max-w-prose text-paper/80">
-              <strong className="text-paper">CHILD</strong> — Corruption Hiding Inside Legal Dockets.
-              Matt's proposal calls for federal oversight that ties Title IV-D grant money to states
-              that keep their family courts clean and accountable to the children they serve.
-            </p>
-          </div>
+          <Link href="/issues" className="btn-gold mt-8 inline-block">Explore all four issues</Link>
         </div>
       </section>
 
