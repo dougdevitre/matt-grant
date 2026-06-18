@@ -37,6 +37,8 @@ DYNAMODB_TABLE="matt-grant"                    # DB is DynamoDB; creds come from
 AWS_REGION="us-east-1"
 S3_ASSETS_BUCKET="matt-grant-for-congress" # from the create-bucket step
 ASSETS_CDN_URL="https://dxxxxxxxx.cloudfront.net"  # CloudFront domain (after you create it)
+SES_FROM=""                                    # verified SES sender, e.g. "Matt Grant for Congress <info@mattgrantforcongress.org>"
+SES_CONFIG_SET=""                              # optional SES configuration set
 RESEARCH_BIOGUIDE_ID="W000812"                 # Ann Wagner, MO-02
 RESEARCH_VOTE_YEAR="2025"
 RESEARCH_FROM_ROLL="1"
@@ -65,6 +67,8 @@ put DYNAMODB_TABLE                    "$DYNAMODB_TABLE"                    Strin
 put AWS_REGION                        "$AWS_REGION"                        String
 put S3_ASSETS_BUCKET                  "$S3_ASSETS_BUCKET"                  String
 put ASSETS_CDN_URL                    "$ASSETS_CDN_URL"                    String
+put SES_FROM                          "$SES_FROM"                          String
+put SES_CONFIG_SET                    "$SES_CONFIG_SET"                    String
 put RESEARCH_BIOGUIDE_ID              "$RESEARCH_BIOGUIDE_ID"              String
 put RESEARCH_VOTE_YEAR                "$RESEARCH_VOTE_YEAR"                String
 put RESEARCH_FROM_ROLL                "$RESEARCH_FROM_ROLL"               String
