@@ -42,6 +42,26 @@ export function StudioForm() {
   const src = `/api/graphics?${query}`;
   const input = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink focus:border-field";
 
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState<string | null>(null);
+  async function saveToS3() {
+    setSaving(true);
+    setSaved(null);
+    try {
+      const blob = await (await fetch(src)).blob();
+      const fd = new FormData();
+      fd.append("file", new File([blob], `matt-grant-${format}.png`, { type: "image/png" }));
+      fd.append("visibility", "public");
+      const r = await fetch("/api/assets/upload", { method: "POST", body: fd });
+      const d = await r.json();
+      setSaved(r.ok ? d.url || "Saved to S3" : d.error || "Save failed");
+    } catch (e) {
+      setSaved(String(e));
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
       {/* Controls */}
@@ -101,6 +121,10 @@ export function StudioForm() {
         <a href={src} download={`matt-grant-${format}.png`} className="btn-primary w-full">
           Download PNG
         </a>
+        <button onClick={saveToS3} disabled={saving} className="btn-ghost w-full disabled:opacity-50">
+          {saving ? "Saving…" : "Save to S3 (CloudFront)"}
+        </button>
+        {saved && <p className="break-all font-mono text-xs text-field">{saved}</p>}
       </div>
 
       {/* Preview + brand kit */}

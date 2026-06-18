@@ -24,6 +24,8 @@ CRON_SECRET="$(openssl rand -hex 32)"          # or paste your own fixed value
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_live_xxxxxxxx"
 DYNAMODB_TABLE="matt-grant"                    # DB is DynamoDB; creds come from the IAM role
 AWS_REGION="us-east-1"
+S3_ASSETS_BUCKET="matt-grant-assets-CHANGE_ME" # from the create-bucket step
+ASSETS_CDN_URL="https://dxxxxxxxx.cloudfront.net"  # CloudFront domain (after you create it)
 RESEARCH_BIOGUIDE_ID="W000812"                 # Ann Wagner, MO-02
 RESEARCH_VOTE_YEAR="2025"
 RESEARCH_FROM_ROLL="1"
@@ -43,6 +45,8 @@ put CRON_SECRET                       "$CRON_SECRET"                       Secur
 put NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY "$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" String
 put DYNAMODB_TABLE                    "$DYNAMODB_TABLE"                    String
 put AWS_REGION                        "$AWS_REGION"                        String
+put S3_ASSETS_BUCKET                  "$S3_ASSETS_BUCKET"                  String
+put ASSETS_CDN_URL                    "$ASSETS_CDN_URL"                    String
 put RESEARCH_BIOGUIDE_ID              "$RESEARCH_BIOGUIDE_ID"              String
 put RESEARCH_VOTE_YEAR                "$RESEARCH_VOTE_YEAR"                String
 put RESEARCH_FROM_ROLL                "$RESEARCH_FROM_ROLL"               String

@@ -11,6 +11,7 @@ const ITEMS = [
   { href: "/dashboard/map", label: "3D field map", icon: "◎" },
   { href: "/dashboard/targets", label: "Precinct targets", icon: "◉" },
   { href: "/dashboard/studio", label: "Graphics studio", icon: "❖" },
+  { href: "/dashboard/assets", label: "Asset library", icon: "▦" },
   { href: "/dashboard/volunteers", label: "Volunteers", icon: "✶" },
   { href: "/dashboard/tasks", label: "Task board", icon: "▥" },
   { href: "/dashboard/research", label: "Opp. research", icon: "⚖" },
