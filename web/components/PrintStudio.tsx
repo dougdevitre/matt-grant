@@ -1,26 +1,23 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import manifest from "@/lib/assets.manifest.json";
+import renditions from "@/lib/printRenditions.json";
 import { CAMPAIGN } from "@/lib/site";
 
-type Asset = { key: string; url: string; label: string };
+type Design = { id: string; label: string; thumb: string; sizes: Record<string, string> };
 type Product = { productId: string; productSize: string; productDesc: string; productPrice: string };
 
-// Printable picks: flyers + the print-kit proofs + a few social squares.
-const ASSETS: Asset[] = [
-  ...(manifest.groups.marketing as Asset[]).filter((a) => a.key.includes("/flyers/")),
-  ...(manifest.groups.print as Asset[]).filter((a) => a.key.endsWith(".png")),
-  ...(manifest.groups.social as Asset[]).filter((a) => a.key.includes("/feed/")).slice(0, 12),
-];
+const DESIGNS = renditions.designs as Design[];
+const RSIZES = new Set(renditions.sizes as string[]); // sizes we render purpose-built art for
 
 const promiseLabel = (t?: string) =>
   t && t.startsWith("01-01-3000") ? "Within 48 hours" : t || "";
+const largest = (d: Design) => Object.values(d.sizes).at(-1) ?? d.thumb;
 
 export function PrintStudio() {
   const [configured, setConfigured] = useState<boolean | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
-  const [asset, setAsset] = useState<Asset | null>(null);
+  const [design, setDesign] = useState<Design | null>(null);
   const [productId, setProductId] = useState("");
   const [qty, setQty] = useState(1);
   const [contact, setContact] = useState({ firstName: "", lastName: "", phone: "", email: "" });
@@ -40,11 +37,15 @@ export function PrintStudio() {
       .catch(() => setConfigured(false));
   }, []);
 
-  const product = useMemo(() => products.find((p) => p.productId === productId), [products, productId]);
+  // Only offer products whose size we render purpose-built art for.
+  const printable = useMemo(() => products.filter((p) => RSIZES.has(p.productSize)), [products]);
+  const product = useMemo(() => printable.find((p) => p.productId === productId), [printable, productId]);
+  // The exact-aspect image for the chosen size (fallback to the largest rendition).
+  const imageUrl = design ? (product ? design.sizes[product.productSize] ?? largest(design) : largest(design)) : "";
   const cartDetails = product ? [{ productId, qty: String(qty) }] : [];
 
   async function findStores() {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation || !product) return;
     setBusy("stores");
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -61,7 +62,7 @@ export function PrintStudio() {
   }
 
   async function submit() {
-    if (!asset || !product || !store) return;
+    if (!design || !product || !store) return;
     setBusy("order");
     const res = await fetch("/api/print/order", {
       method: "POST",
@@ -71,7 +72,8 @@ export function PrintStudio() {
         storeNum: store.storeNum,
         promiseTime: store.promiseTime,
         agreedToTerms: agreed,
-        productDetails: [{ productId, imageDetails: [{ url: asset.url, qty: String(qty) }] }],
+        affNotes: `mg-${design.id}-${product.productSize}`,
+        productDetails: [{ productId, imageDetails: [{ url: imageUrl, qty: String(qty) }] }],
       }),
     }).then((r) => r.json());
     setResult(res?.vendorOrderId ? { vendorOrderId: res.vendorOrderId, status: res.status } : { err: res?.error || res?.errDesc || "Order failed." });
@@ -79,7 +81,7 @@ export function PrintStudio() {
   }
 
   const contactComplete = contact.firstName && contact.lastName && contact.phone && contact.email;
-  const canOrder = configured && asset && product && store && contactComplete && agreed;
+  const canOrder = configured && design && product && store && contactComplete && agreed;
 
   if (result?.vendorOrderId) {
     return (
@@ -91,7 +93,7 @@ export function PrintStudio() {
           {promiseLabel(store?.promiseTime)} at {store?.storeName || `store #${store?.storeNum}`}.
         </p>
         <p className="mt-1 text-sm text-slate">You&apos;ll get a Walgreens email when it&apos;s ready.</p>
-        <button onClick={() => { setResult(null); setAsset(null); setStore(null); }} className="btn-ghost mt-5 px-3 py-1.5 text-sm">
+        <button onClick={() => { setResult(null); setDesign(null); setStore(null); }} className="btn-ghost mt-5 px-3 py-1.5 text-sm">
           Print another
         </button>
       </div>
@@ -105,7 +107,7 @@ export function PrintStudio() {
           <p className="eyebrow text-slate">Online ordering — coming soon</p>
           <p className="mt-2 max-w-prose text-sm text-slate">
             Direct-to-Walgreens ordering opens once the campaign&apos;s Walgreens credentials are live.
-            In the meantime you can preview any design below and download it to print.
+            In the meantime, pick a design and download the print-ready file (8×10) to print anywhere.
           </p>
         </div>
       )}
@@ -114,21 +116,21 @@ export function PrintStudio() {
       <div>
         <p className="font-display text-lg font-semibold">1. Pick a design</p>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {ASSETS.map((a) => (
+          {DESIGNS.map((d) => (
             <button
-              key={a.key}
-              onClick={() => setAsset(a)}
-              className={`overflow-hidden rounded-sm border-2 text-left transition-colors ${asset?.key === a.key ? "border-brick" : "border-line hover:border-ink"}`}
+              key={d.id}
+              onClick={() => setDesign(d)}
+              className={`overflow-hidden rounded-sm border-2 text-left transition-colors ${design?.id === d.id ? "border-brick" : "border-line hover:border-ink"}`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={a.url} alt={a.label} className="aspect-square w-full bg-paper object-cover" loading="lazy" />
-              <span className="block truncate px-2 py-1 text-[0.65rem] text-slate">{a.label}</span>
+              <img src={d.thumb} alt={d.label} className="aspect-square w-full bg-paper object-cover" loading="lazy" />
+              <span className="block truncate px-2 py-1 text-[0.65rem] text-slate">{d.label}</span>
             </button>
           ))}
         </div>
-        {asset && !configured && (
-          <a href={asset.url} download target="_blank" rel="noopener noreferrer" className="btn-gold mt-4 inline-block">
-            Download &ldquo;{asset.label}&rdquo;
+        {design && !configured && (
+          <a href={largest(design)} download target="_blank" rel="noopener noreferrer" className="btn-gold mt-4 inline-block">
+            Download &ldquo;{design.label}&rdquo; (8×10)
           </a>
         )}
       </div>
@@ -142,9 +144,9 @@ export function PrintStudio() {
               <span className="text-xs font-semibold text-ink">Size</span>
               <select value={productId} onChange={(e) => setProductId(e.target.value)} className="mt-1 block rounded-sm border border-line bg-white px-3 py-2 text-sm">
                 <option value="">Choose a size…</option>
-                {products.map((p) => (
+                {printable.map((p) => (
                   <option key={p.productId} value={p.productId}>
-                    {p.productSize} — ${p.productPrice} · {p.productDesc}
+                    {p.productSize} — ${p.productPrice}
                   </option>
                 ))}
               </select>
@@ -153,6 +155,10 @@ export function PrintStudio() {
               <span className="text-xs font-semibold text-ink">Qty</span>
               <input type="number" min={1} max={20} value={qty} onChange={(e) => setQty(Math.max(1, Math.min(20, Number(e.target.value))))} className="mt-1 block w-20 rounded-sm border border-line bg-white px-3 py-2 text-sm" />
             </label>
+            {design && product && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={imageUrl} alt={`${design.label} ${product.productSize}`} className="h-24 w-auto rounded-sm border border-line" />
+            )}
           </div>
         </div>
       )}

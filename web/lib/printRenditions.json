@@ -1,0 +1,130 @@
+{
+  "cdn": "https://d5jzyan9wboi3.cloudfront.net",
+  "sizes": [
+    "4x6",
+    "5x7",
+    "8x10"
+  ],
+  "designs": [
+    {
+      "id": "D-50",
+      "label": "Matt Grant For Congress",
+      "thumb": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-50.png",
+      "sizes": {
+        "4x6": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-50/4x6.jpg",
+        "5x7": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-50/5x7.jpg",
+        "8x10": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-50/8x10.jpg"
+      }
+    },
+    {
+      "id": "D-48",
+      "label": "Families First",
+      "thumb": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-48.png",
+      "sizes": {
+        "4x6": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-48/4x6.jpg",
+        "5x7": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-48/5x7.jpg",
+        "8x10": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-48/8x10.jpg"
+      }
+    },
+    {
+      "id": "D-47",
+      "label": "Children First",
+      "thumb": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-47.png",
+      "sizes": {
+        "4x6": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-47/4x6.jpg",
+        "5x7": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-47/5x7.jpg",
+        "8x10": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-47/8x10.jpg"
+      }
+    },
+    {
+      "id": "D-46",
+      "label": "The Child Protection Act",
+      "thumb": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-46.png",
+      "sizes": {
+        "4x6": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-46/4x6.jpg",
+        "5x7": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-46/5x7.jpg",
+        "8x10": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-46/8x10.jpg"
+      }
+    },
+    {
+      "id": "D-45",
+      "label": "Term Limits",
+      "thumb": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-45.png",
+      "sizes": {
+        "4x6": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-45/4x6.jpg",
+        "5x7": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-45/5x7.jpg",
+        "8x10": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-45/8x10.jpg"
+      }
+    },
+    {
+      "id": "D-44",
+      "label": "Smaller Government",
+      "thumb": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-44.png",
+      "sizes": {
+        "4x6": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-44/4x6.jpg",
+        "5x7": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-44/5x7.jpg",
+        "8x10": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-44/8x10.jpg"
+      }
+    },
+    {
+      "id": "D-43",
+      "label": "Lower Taxes",
+      "thumb": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-43.png",
+      "sizes": {
+        "4x6": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-43/4x6.jpg",
+        "5x7": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-43/5x7.jpg",
+        "8x10": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-43/8x10.jpg"
+      }
+    },
+    {
+      "id": "D-42",
+      "label": "The Platform",
+      "thumb": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-42.png",
+      "sizes": {
+        "4x6": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-42/4x6.jpg",
+        "5x7": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-42/5x7.jpg",
+        "8x10": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-42/8x10.jpg"
+      }
+    },
+    {
+      "id": "D-40",
+      "label": "Every County",
+      "thumb": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-40.png",
+      "sizes": {
+        "4x6": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-40/4x6.jpg",
+        "5x7": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-40/5x7.jpg",
+        "8x10": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-40/8x10.jpg"
+      }
+    },
+    {
+      "id": "D-39",
+      "label": "Children First",
+      "thumb": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-39.png",
+      "sizes": {
+        "4x6": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-39/4x6.jpg",
+        "5x7": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-39/5x7.jpg",
+        "8x10": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-39/8x10.jpg"
+      }
+    },
+    {
+      "id": "D-38",
+      "label": "Proven Service",
+      "thumb": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-38.png",
+      "sizes": {
+        "4x6": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-38/4x6.jpg",
+        "5x7": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-38/5x7.jpg",
+        "8x10": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-38/8x10.jpg"
+      }
+    },
+    {
+      "id": "D-33",
+      "label": "Faith & Community",
+      "thumb": "https://d5jzyan9wboi3.cloudfront.net/public/social/feed/D-33.png",
+      "sizes": {
+        "4x6": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-33/4x6.jpg",
+        "5x7": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-33/5x7.jpg",
+        "8x10": "https://d5jzyan9wboi3.cloudfront.net/public/print/walgreens/D-33/8x10.jpg"
+      }
+    }
+  ]
+}

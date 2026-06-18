@@ -40,7 +40,13 @@ Next.js API routes  (BFF — holds the apiKey/affId server-side)
 Secrets in SSM `/matt-grant/*` (same pipeline as the rest): `WALGREENS_API_KEY`,
 `WALGREENS_AFF_ID`, `WALGREENS_PUBLISHER_ID` (optional revenue-share id). Never `NEXT_PUBLIC_`.
 
-## 2. "Different product sizes" — the rendition system
+## 2. "Different product sizes" — the rendition system  ✅ shipped (4×6 · 5×7 · 8×10)
+
+`web/scripts/generate-print-renditions.mjs` renders 12 signature designs to each
+photo-print aspect at 300 DPI (clearance-aware layout so the portrait + disclaimer never crop),
+uploads to `public/print/walgreens/<id>/<size>.jpg`, and writes `lib/printRenditions.json` — which
+the print studio reads to send the **exact-aspect** image for the chosen size. Add more sizes
+(posters) or designs by extending the SIZES / DESIGNS tables and re-running.
 
 Walgreens photo prints are fixed aspect ratios (4×6, 5×7, 8×10, plus posters like 11×14 / 16×20).
 Our source art is a mix of square (1080²) and landscape (1536×1024), so we **re-lay-out each asset per
