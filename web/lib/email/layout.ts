@@ -19,13 +19,17 @@ const C = {
 };
 
 export type EmailButton = { label: string; href: string; color?: "red" | "blue" | "navy" };
+export type EmailCard = { img: { src: string; alt: string }; heading: string; text: string; href: string; linkLabel?: string };
 export type EmailOpts = {
   preheader?: string; // hidden inbox-preview line
   eyebrow?: string;
   title: string;
   heroImage?: { src: string; alt: string }; // CDN URL
   bodyHtml: string; // inner HTML (paragraphs/lists already marked up)
+  signature?: boolean; // render Matt's photo + name sign-off
+  cards?: EmailCard[]; // image + text blocks (e.g., the four fights)
   button?: EmailButton;
+  secondaryButton?: EmailButton;
   // CAN-SPAM: a working unsubscribe link is required for broadcast email.
   unsubscribeUrl?: string;
 };
@@ -51,7 +55,25 @@ export function renderEmail(o: EmailOpts): string {
   const eyebrow = o.eyebrow
     ? `<p style="margin:0 0 6px;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase;color:${C.blue};">${o.eyebrow}</p>`
     : "";
-  const button = o.button ? emailButton(o.button) : "";
+  const buttons = `${o.button ? emailButton(o.button) : ""}${o.secondaryButton ? emailButton({ ...o.secondaryButton, color: o.secondaryButton.color ?? "navy" }) : ""}`;
+  const cards = (o.cards ?? [])
+    .map(
+      (c) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0;border:1px solid ${C.line};border-radius:6px;overflow:hidden;">
+        <tr><td><a href="${c.href}" target="_blank"><img src="${c.img.src}" alt="${c.img.alt}" width="544" style="display:block;width:100%;height:auto;border:0;" /></a></td></tr>
+        <tr><td style="padding:14px 16px;">
+          <p style="margin:0 0 6px;font-family:Arial,Helvetica,sans-serif;font-size:17px;font-weight:bold;color:${C.ink};">${c.heading}</p>
+          <p style="margin:0 0 8px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:${C.body};">${c.text}</p>
+          <a href="${c.href}" target="_blank" style="font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:${C.blue};text-decoration:none;">${c.linkLabel ?? "Learn more →"}</a>
+        </td></tr></table>`,
+    )
+    .join("");
+  const signature = o.signature
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 4px;"><tr>
+        <td style="padding-right:12px;" valign="middle"><img src="${CDN}/public/brand/avatar-circle.png" alt="Matt Grant" width="48" height="48" style="display:block;border-radius:50%;border:0;" /></td>
+        <td valign="middle"><p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:17px;color:${C.ink};">Matt Grant</p>
+        <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:${C.muted};">Candidate, U.S. House — ${CAMPAIGN.district}</p></td>
+      </tr></table>`
+    : "";
   const unsub = o.unsubscribeUrl
     ? ` &nbsp;·&nbsp; <a href="${o.unsubscribeUrl}" style="color:${C.muted};text-decoration:underline;">Unsubscribe</a>`
     : "";
@@ -79,7 +101,9 @@ ${preheader}
         ${eyebrow}
         <h1 style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:1.25;color:${C.ink};">${o.title}</h1>
         <div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.6;color:${C.body};">${o.bodyHtml}</div>
-        ${button}
+        ${signature}
+        ${cards}
+        ${buttons}
       </td></tr>
       <!-- footer -->
       <tr><td style="padding:24px 28px;border-top:1px solid ${C.line};background:${C.paper};">
