@@ -13,16 +13,15 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-line/80 bg-paper/85 backdrop-blur-md">
       <div className="container-page flex h-[68px] items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
-          <span className="relative block h-10 w-10 overflow-hidden rounded-full ring-2 ring-gold">
-            <Image src="/brand/avatar-circle.png" alt="Matt Grant" fill sizes="40px" className="object-cover" />
-          </span>
-          <span className="leading-tight">
-            <span className="block font-display text-lg font-semibold text-ink">Matt Grant</span>
-            <span className="block font-mono text-[0.62rem] uppercase tracking-eyebrow text-slate">
-              for Congress · {CAMPAIGN.districtShort}
-            </span>
-          </span>
+        <Link href="/" className="flex items-center" onClick={() => setOpen(false)} aria-label="Matt Grant for Congress — home">
+          <Image
+            src="/brand/logo.png"
+            alt={`Matt Grant for Congress — ${CAMPAIGN.district}`}
+            width={132}
+            height={132}
+            priority
+            className="h-12 w-auto"
+          />
         </Link>
 
         <nav className="hidden items-center gap-7 md:flex">
