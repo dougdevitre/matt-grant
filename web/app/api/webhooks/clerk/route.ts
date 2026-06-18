@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { emailAllowed } from "@/lib/auth";
 import { staffRole } from "@/lib/staff";
 import { asRole } from "@/lib/rbac";
@@ -16,7 +16,7 @@ import { asRole } from "@/lib/rbac";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   if (!process.env.CLERK_WEBHOOK_SIGNING_SECRET) {
     return NextResponse.json({ ok: false, skipped: "no signing secret" }, { status: 200 });
   }
@@ -25,7 +25,9 @@ export async function POST(req: Request) {
   let evt: { type: string; data: Record<string, unknown> };
   try {
     const { verifyWebhook } = await import("@clerk/nextjs/webhooks");
-    evt = (await verifyWebhook(req)) as typeof evt;
+    // App Router's Web `Request` satisfies verifyWebhook at runtime; its param
+    // type (RequestLike) is narrower, so cast to it.
+    evt = (await verifyWebhook(req as unknown as Parameters<typeof verifyWebhook>[0])) as unknown as typeof evt;
   } catch {
     return NextResponse.json({ ok: false, error: "invalid signature" }, { status: 400 });
   }
