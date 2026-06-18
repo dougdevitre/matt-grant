@@ -33,6 +33,13 @@ export const NAV = [
 
 export const SITE_URL = "https://mattgrantforcongress.org";
 
+// Legal & transparency pages — linked in the footer.
+export const LEGAL = [
+  { href: "/data-policy", label: "Data Policy" },
+  { href: "/transparency", label: "Transparency" },
+  { href: "/public-trust", label: "Restoring Public Trust" },
+] as const;
+
 // Media booking. Set NEXT_PUBLIC_MEDIA_BOOKING_URL to a Calendly/Cal.com/Zoom
 // link when one exists; until then this points at the in-app placeholder
 // scheduling page (/press/schedule), which falls back to a prefilled email.
