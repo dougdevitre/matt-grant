@@ -38,6 +38,13 @@ Two consequences for this app:
    Town & Country) — 564 precincts unchanged, 66 added (e.g. more Maryland Heights / Creve Coeur),
    48 dropped (e.g. Webster Groves / Shrewsbury / Maplewood). It did **not** shift to the southern
    suburbs; the district's southward move is the added rural counties below.
+> **County-level turnout (verified June 2026):** the SOS *Official Election Returns* PDF for the
+> Aug 6 2024 primary is **statewide office totals only** — it carries no county turnout/registration
+> (checked all 48 pages; the four rural counties are not in it). County turnout lives in the SOS
+> **Election Night Reporting** per-county views, which are not a clean machine-readable dataset, so
+> rural-county turnout is **not wired** — the counties show boundaries only, not shaded by turnout.
+> Source: <https://www.sos.mo.gov/CMSImages/ElectionResultsStatistics/2024PrimaryElection.pdf>.
+
 2. **Rural counties** — add one geo-proxy per county (pattern in `lib/geoSources.ts`). Jefferson has
    ArcGIS precinct polygons; Washington/Crawford/Gasconade have no ArcGIS feed → use Census VTD
    boundaries + SOS county-level turnout/registration. None publish precinct-level turnout, so
