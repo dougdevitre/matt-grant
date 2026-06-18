@@ -31,13 +31,13 @@ export function SiteFooter() {
           <ul className="mt-4 space-y-2 text-sm">
             {NAV.map((item) => (
               <li key={item.href}>
-                <Link href={item.href} className="text-paper/80 hover:text-gold">
+                <Link href={item.href} className="text-paper/80 hover:text-goldlight">
                   {item.label}
                 </Link>
               </li>
             ))}
             <li>
-              <Link href="/dashboard" className="text-paper/80 hover:text-gold">
+              <Link href="/dashboard" className="text-paper/80 hover:text-goldlight">
                 Staff sign-in
               </Link>
             </li>
@@ -48,12 +48,12 @@ export function SiteFooter() {
           <h3 className="eyebrow text-paper/60">Contact</h3>
           <ul className="mt-4 space-y-2 text-sm text-paper/80">
             <li>
-              <a href={`mailto:${CAMPAIGN.email}`} className="hover:text-gold">
+              <a href={`mailto:${CAMPAIGN.email}`} className="hover:text-goldlight">
                 {CAMPAIGN.email}
               </a>
             </li>
             <li>
-              <a href={CAMPAIGN.phoneHref} className="hover:text-gold">
+              <a href={CAMPAIGN.phoneHref} className="hover:text-goldlight">
                 {CAMPAIGN.phone}
               </a>
             </li>
@@ -66,7 +66,7 @@ export function SiteFooter() {
           <ul className="mt-4 space-y-2 text-sm">
             {LEGAL.map((item) => (
               <li key={item.href}>
-                <Link href={item.href} className="text-paper/80 hover:text-gold">
+                <Link href={item.href} className="text-paper/80 hover:text-goldlight">
                   {item.label}
                 </Link>
               </li>

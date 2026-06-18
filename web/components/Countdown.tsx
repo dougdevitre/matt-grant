@@ -49,7 +49,7 @@ export function Countdown({
           className={`flex flex-col items-center ${compact ? "min-w-[3rem]" : "min-w-[4.25rem]"}`}
         >
           <span
-            className={`font-mono tabular-nums leading-none text-gold ${
+            className={`font-mono tabular-nums leading-none text-goldlight ${
               compact ? "text-2xl" : "text-4xl sm:text-5xl"
             }`}
           >

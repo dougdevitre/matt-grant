@@ -13,6 +13,7 @@ const config: Config = {
         ink: "#0F2540", // primary authority navy
         field: "#16365C", // deep field blue
         gold: "#2563EB", // campaign accent BLUE (token name kept for compatibility — red/white/blue palette)
+        goldlight: "#6BA6FF", // lighter accent for use ON dark (ink/navy) backgrounds — `gold` only scores 2.98:1 there (fails AA); this is ~5.8:1. Do NOT use on white (it fails there).
         brick: "#B5343B", // red — urgency / primary CTA
         paper: "#FBFAF6", // warm white
         slate: "#5A6472", // muted body / captions

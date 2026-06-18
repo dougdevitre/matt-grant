@@ -18,10 +18,10 @@ export default function HomePage() {
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brick via-paper to-field" aria-hidden />
         <div className="container-page relative grid gap-14 py-20 sm:py-28 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           <div className="animate-rise-in">
-            <p className="eyebrow text-gold">{CAMPAIGN.committee} · {CAMPAIGN.district}</p>
+            <p className="eyebrow text-goldlight">{CAMPAIGN.committee} · {CAMPAIGN.district}</p>
             <h1 className="mt-5 font-display text-5xl font-semibold leading-[1.02] sm:text-6xl lg:text-7xl">
               Put Missouri&apos;s{" "}
-              <span className="text-gold">children</span> first.
+              <span className="text-goldlight">children</span> first.
             </h1>
             <p className="mt-6 max-w-xl text-lg text-paper/80">
               Matt Grant is a neighbor, a dad, and a problem-solver. Twenty-three years in the
@@ -132,12 +132,12 @@ export default function HomePage() {
                 priority
               />
             </div>
-            <span className="absolute -bottom-4 -right-3 rounded-sm bg-gold px-4 py-2 font-mono text-xs uppercase tracking-eyebrow text-ink">
+            <span className="absolute -bottom-4 -right-3 rounded-sm bg-gold px-4 py-2 font-mono text-xs uppercase tracking-eyebrow text-paper">
               Eagle Scout · Dad · Litigator
             </span>
           </div>
           <div>
-            <p className="eyebrow text-gold">Meet Matt</p>
+            <p className="eyebrow text-goldlight">Meet Matt</p>
             <h2 className="mt-3 text-4xl font-semibold sm:text-5xl">
               From three public schools to a 23-year legal career — and now, public service.
             </h2>
@@ -164,7 +164,7 @@ export default function HomePage() {
         </div>
         <div className="container-page py-20 sm:py-24">
           <div className="max-w-2xl">
-            <p className="eyebrow text-gold">Campaign HQ · members only</p>
+            <p className="eyebrow text-goldlight">Campaign HQ · members only</p>
             <h2 className="mt-3 text-4xl font-semibold sm:text-5xl">The command center for the team.</h2>
             <p className="mt-4 text-lg text-paper/80">
               Sign in to the War Room — the private side of the campaign where the team runs fundraising,
@@ -182,7 +182,7 @@ export default function HomePage() {
               ["⚖", "Opp research & strategy", "The record and the plan to win MO-02."],
             ].map(([icon, title, copy]) => (
               <li key={title} className="bg-ink p-6 transition-colors hover:bg-field/25">
-                <span className="font-mono text-2xl text-gold" aria-hidden>{icon}</span>
+                <span className="font-mono text-2xl text-goldlight" aria-hidden>{icon}</span>
                 <p className="mt-3 font-display text-lg font-semibold">{title}</p>
                 <p className="mt-1 text-sm text-paper/70">{copy}</p>
               </li>
@@ -208,7 +208,7 @@ export default function HomePage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/85 to-ink/55" aria-hidden />
         <div className="container-page relative py-24 text-center sm:py-32">
-          <p className="eyebrow text-gold">Join the effort</p>
+          <p className="eyebrow text-goldlight">Join the effort</p>
           <h2 className="mx-auto mt-3 max-w-3xl text-4xl font-semibold sm:text-5xl">
             This race is decided one neighbor at a time.
           </h2>

@@ -104,7 +104,7 @@ export default function AboutPage() {
       {/* Issues — teaser (full content lives at /issues) */}
       <section id="issues" className="bg-ink text-paper">
         <div className="container-page py-16 sm:py-24">
-          <p className="eyebrow text-gold">The issues</p>
+          <p className="eyebrow text-goldlight">The issues</p>
           <h2 className="mt-3 max-w-3xl text-4xl font-semibold sm:text-5xl">Where Matt stands.</h2>
           <p className="mt-4 max-w-prose text-lg text-paper/75">
             Four fights worth winning — each with Matt&apos;s argument, his commitment, and a short video.
@@ -114,11 +114,11 @@ export default function AboutPage() {
             {ISSUES.map((issue) => (
               <Link key={issue.slug} href={`/issues/${issue.slug}`} className="group bg-ink p-8 transition-colors hover:bg-field/30">
                 <div className="flex items-baseline gap-4">
-                  <span className="font-mono text-sm text-gold">{issue.n}</span>
-                  <h3 className="font-display text-xl font-semibold sm:text-2xl group-hover:text-gold">{issue.title}</h3>
+                  <span className="font-mono text-sm text-goldlight">{issue.n}</span>
+                  <h3 className="font-display text-xl font-semibold sm:text-2xl group-hover:text-goldlight">{issue.title}</h3>
                 </div>
                 <p className="mt-3 text-paper/75">{issue.tagline}</p>
-                <span className="mt-4 inline-block font-mono text-xs uppercase tracking-eyebrow text-gold">Open issue →</span>
+                <span className="mt-4 inline-block font-mono text-xs uppercase tracking-eyebrow text-goldlight">Open issue →</span>
               </Link>
             ))}
           </div>

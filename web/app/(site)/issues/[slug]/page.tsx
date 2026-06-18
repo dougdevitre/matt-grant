@@ -33,10 +33,10 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
       {/* Hero */}
       <section className="bg-ink text-paper">
         <div className="container-page py-14 sm:py-20">
-          <Link href="/issues" className="font-mono text-xs uppercase tracking-eyebrow text-gold hover:text-paper">
+          <Link href="/issues" className="font-mono text-xs uppercase tracking-eyebrow text-goldlight hover:text-paper">
             ← All issues
           </Link>
-          <p className="mt-6 font-mono text-sm text-gold">{issue.n} · {issue.eyebrow}</p>
+          <p className="mt-6 font-mono text-sm text-goldlight">{issue.n} · {issue.eyebrow}</p>
           <h1 className="mt-2 max-w-4xl text-4xl font-semibold sm:text-6xl">{issue.title}</h1>
           <p className="mt-4 max-w-prose text-lg text-paper/80">{issue.tagline}</p>
         </div>
@@ -75,7 +75,7 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
       {issue.signature && (
         <section className="bg-ink text-paper">
           <div className="container-page py-16 sm:py-20">
-            <p className="eyebrow text-gold">Signature legislation</p>
+            <p className="eyebrow text-goldlight">Signature legislation</p>
             <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">{issue.signature.name}</h2>
             <p className="mt-4 max-w-prose text-paper/80">{issue.signature.body}</p>
             <a
@@ -97,8 +97,8 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
                   {issue.signature.press.map((p) => (
                     <li key={p.href} className="py-4">
                       <a href={p.href} target="_blank" rel="noopener noreferrer" className="group block">
-                        <span className="font-mono text-xs uppercase tracking-eyebrow text-gold">{p.outlet}</span>
-                        <span className="mt-1 block font-display text-lg font-semibold text-paper group-hover:text-gold">
+                        <span className="font-mono text-xs uppercase tracking-eyebrow text-goldlight">{p.outlet}</span>
+                        <span className="mt-1 block font-display text-lg font-semibold text-paper group-hover:text-goldlight">
                           {p.title} <span className="text-paper/50">↗</span>
                         </span>
                       </a>
