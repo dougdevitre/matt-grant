@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { CAMPAIGN } from "@/lib/site";
 import { PressKit } from "@/components/PressKit";
 
@@ -111,12 +112,26 @@ const GROUPS: { label: string; items: Item[] }[] = [
 export default function PressPage() {
   return (
     <section className="container-page py-16 sm:py-24">
-      <p className="eyebrow text-brick">Newsroom</p>
-      <h1 className="mt-3 text-4xl font-semibold sm:text-6xl">Press &amp; media.</h1>
-      <p className="mt-5 max-w-prose text-lg text-slate">
-        Official statements and press releases from the campaign. For interviews and media
-        inquiries, contact us directly.
-      </p>
+      <div className="grid items-center gap-10 lg:grid-cols-[1.4fr_1fr]">
+        <div>
+          <p className="eyebrow text-brick">Newsroom</p>
+          <h1 className="mt-3 text-4xl font-semibold sm:text-6xl">Press &amp; media.</h1>
+          <p className="mt-5 max-w-prose text-lg text-slate">
+            Official statements and press releases from the campaign. For interviews and media
+            inquiries, contact us directly.
+          </p>
+        </div>
+        <div className="relative mx-auto aspect-[4/5] w-full max-w-xs overflow-hidden rounded-lg border border-line shadow-card lg:max-w-none">
+          <Image
+            src="/brand/portrait-800.png"
+            alt="Matt Grant"
+            fill
+            sizes="(max-width: 1024px) 70vw, 30vw"
+            className="object-cover"
+            priority
+          />
+        </div>
+      </div>
 
       <PressKit />
 

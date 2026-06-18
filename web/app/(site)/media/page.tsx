@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { MediaLibrary } from "@/components/MediaLibrary";
+import { ASSETS_CDN } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Media & Content",
@@ -17,6 +19,16 @@ export default function MediaPage() {
         messages mapped to the issues, voter communities, and the countdown to August 4. Copy a
         caption, share it to your channel, or grab the artwork. Post one a day and carry us home.
       </p>
+      <div className="relative mt-10 aspect-[16/9] w-full overflow-hidden rounded-lg border border-line shadow-card">
+        <Image
+          src={`${ASSETS_CDN}/public/marketing/banner-standard-of-service.png`}
+          alt="A New Standard of Service — Matt Grant for Congress"
+          fill
+          sizes="(max-width: 1024px) 100vw, 1100px"
+          className="object-cover"
+          priority
+        />
+      </div>
       <div className="mt-10">
         <MediaLibrary />
       </div>

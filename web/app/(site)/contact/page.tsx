@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { ContactForm } from "@/components/ContactForm";
-import { CAMPAIGN } from "@/lib/site";
+import { CAMPAIGN, ASSETS_CDN } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -45,13 +46,24 @@ export default function ContactPage() {
             </ul>
           </div>
 
-          <div className="card bg-ink p-8 text-paper">
-            <p className="eyebrow text-gold">The fastest way to help</p>
-            <h2 className="mt-2 font-display text-2xl font-semibold">Donate today.</h2>
-            <p className="mt-2 text-paper/75">Funds doors, calls, and mail before {CAMPAIGN.electionLabel}.</p>
-            <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-gold mt-5 w-full">
-              Donate on WinRed
-            </a>
+          <div className="card relative overflow-hidden bg-ink p-8 text-paper">
+            <Image
+              src={`${ASSETS_CDN}/public/web/st-louis-arch.png`}
+              alt=""
+              fill
+              sizes="(max-width: 1024px) 100vw, 33vw"
+              aria-hidden
+              className="object-cover opacity-40"
+            />
+            <div className="absolute inset-0 bg-ink/55" aria-hidden />
+            <div className="relative">
+              <p className="eyebrow text-gold">The fastest way to help</p>
+              <h2 className="mt-2 font-display text-2xl font-semibold">Donate today.</h2>
+              <p className="mt-2 text-paper/80">Funds doors, calls, and mail before {CAMPAIGN.electionLabel}.</p>
+              <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-gold mt-5 w-full">
+                Donate on WinRed
+              </a>
+            </div>
           </div>
         </aside>
       </div>

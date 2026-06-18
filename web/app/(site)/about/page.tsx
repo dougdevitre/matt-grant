@@ -87,6 +87,19 @@ export default function AboutPage() {
         </ul>
       </section>
 
+      {/* Decorative district divider — bridges the white section into the dark one */}
+      <div className="relative h-44 w-full overflow-hidden bg-ink sm:h-60">
+        <Image
+          src={`${ASSETS_CDN}/public/web/st-louis-arch.png`}
+          alt=""
+          fill
+          sizes="100vw"
+          aria-hidden
+          className="object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-white via-ink/25 to-ink" aria-hidden />
+      </div>
+
       {/* Issues — full */}
       <section id="issues" className="bg-ink text-paper">
         <div className="container-page py-16 sm:py-24">
