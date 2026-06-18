@@ -8,7 +8,9 @@ const statusStyle: Record<Status, string> = {
 };
 
 export function DistrictCoverage() {
-  const live = MO02_COUNTIES.filter((c) => c.status === "live").length;
+  const total = MO02_COUNTIES.length;
+  const boundaries = MO02_COUNTIES.filter((c) => c.status === "live").length;
+  const turnout = MO02_COUNTIES.filter((c) => c.resolution === "precinct-turnout").length;
   return (
     <section className="mt-10">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
@@ -16,7 +18,9 @@ export function DistrictCoverage() {
           <p className="eyebrow text-brick">Data coverage</p>
           <h2 className="mt-1 font-display text-2xl font-semibold text-ink">MO-02 counties (2025 enacted map)</h2>
         </div>
-        <p className="font-mono text-xs text-slate">{live} of {MO02_COUNTIES.length} fully live</p>
+        <p className="font-mono text-xs text-slate">
+          {boundaries}/{total} boundaries · {turnout}/{total} turnout
+        </p>
       </div>
 
       <div className="mb-5 rounded-sm border border-field/30 bg-field/5 px-4 py-3 text-sm text-slate">

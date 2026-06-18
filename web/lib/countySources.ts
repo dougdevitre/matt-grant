@@ -50,23 +50,32 @@ export const MO02_COUNTIES: CountySource[] = [
   {
     county: "Washington County",
     role: "New in 2025 map",
-    resolution: "county-level",
-    status: "needs-source",
-    note: "No county ArcGIS feed found. Use Census VTD boundaries + SOS county turnout/registration.",
+    resolution: "precinct-boundary",
+    status: "live",
+    endpoints: [
+      { label: "Census 2020 VTDs (TIGERweb)", url: "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Census2020/MapServer/58" },
+    ],
+    note: "Live on the map as Census VTD boundaries (no turnout feed). Turnout = SOS county-level.",
   },
   {
     county: "Crawford County",
     role: "New in 2025 map",
-    resolution: "county-level",
-    status: "needs-source",
-    note: "No county ArcGIS feed found. Use Census VTD boundaries + SOS county turnout/registration.",
+    resolution: "precinct-boundary",
+    status: "live",
+    endpoints: [
+      { label: "Census 2020 VTDs (TIGERweb)", url: "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Census2020/MapServer/58" },
+    ],
+    note: "Live on the map as Census VTD boundaries (no turnout feed). Turnout = SOS county-level.",
   },
   {
     county: "Gasconade County",
     role: "New in 2025 map",
-    resolution: "county-level",
-    status: "needs-source",
-    note: "No county ArcGIS feed found. Use Census VTD boundaries + SOS county turnout/registration.",
+    resolution: "precinct-boundary",
+    status: "live",
+    endpoints: [
+      { label: "Census 2020 VTDs (TIGERweb)", url: "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Census2020/MapServer/58" },
+    ],
+    note: "Live on the map as Census VTD boundaries (no turnout feed). Turnout = SOS county-level.",
   },
 ];
 

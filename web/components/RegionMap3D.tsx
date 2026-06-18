@@ -17,9 +17,11 @@ type Props = {
   precincts: GeoJSON.FeatureCollection;
   jefferson: GeoJSON.FeatureCollection;
   showJefferson: boolean;
+  extraCounties: GeoJSON.FeatureCollection;
+  showExtra: boolean;
 };
 
-export default function RegionMap3D({ visible, buildings, turnout, pois, precincts, jefferson, showJefferson }: Props) {
+export default function RegionMap3D({ visible, buildings, turnout, pois, precincts, jefferson, showJefferson, extraCounties, showExtra }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const ready = useRef(false);
@@ -29,6 +31,8 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
   precinctsRef.current = precincts;
   const jeffersonRef = useRef(jefferson);
   jeffersonRef.current = jefferson;
+  const extraRef = useRef(extraCounties);
+  extraRef.current = extraCounties;
 
   // Init once.
   useEffect(() => {
@@ -112,6 +116,32 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         new maplibregl.Popup({ closeButton: false, offset: 8 })
           .setLngLat(e.lngLat)
           .setHTML(`<strong>Jefferson Co.</strong><br/>${pr.Precinct ?? "Precinct"}<br/><span style="color:#5b7d6f">boundary only — no turnout feed</span>`)
+          .addTo(m);
+      });
+
+      // Washington / Crawford / Gasconade — Census 2020 VTDs (boundary-only).
+      m.addSource("extra", { type: "geojson", data: extraRef.current });
+      m.addLayer({
+        id: "extra-fill",
+        source: "extra",
+        type: "fill",
+        layout: { visibility: showExtra ? "visible" : "none" },
+        paint: { "fill-color": "#7c6f8e", "fill-opacity": 0.16 },
+      });
+      m.addLayer({
+        id: "extra-line",
+        source: "extra",
+        type: "line",
+        layout: { visibility: showExtra ? "visible" : "none" },
+        paint: { "line-color": "#5a4f6e", "line-width": 1, "line-opacity": 0.55 },
+      });
+      m.on("click", "extra-fill", (e) => {
+        const f = e.features?.[0];
+        if (!f) return;
+        const pr = f.properties as { county?: string; NAME?: string };
+        new maplibregl.Popup({ closeButton: false, offset: 8 })
+          .setLngLat(e.lngLat)
+          .setHTML(`<strong>${pr.county ?? ""} Co.</strong><br/>${pr.NAME ?? ""}<br/><span style="color:#7c6f8e">Census VTD — no turnout feed</span>`)
           .addTo(m);
       });
 
@@ -226,6 +256,20 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
       if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", showJefferson ? "visible" : "none");
     }
   }, [showJefferson]);
+
+  // Extra counties (VTD) data + visibility.
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !ready.current) return;
+    (m.getSource("extra") as maplibregl.GeoJSONSource | undefined)?.setData(extraCounties);
+  }, [extraCounties]);
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !ready.current) return;
+    for (const id of ["extra-fill", "extra-line"]) {
+      if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", showExtra ? "visible" : "none");
+    }
+  }, [showExtra]);
 
   return <div ref={container} className="h-full w-full" />;
 }

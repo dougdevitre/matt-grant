@@ -35,6 +35,9 @@ export function MapExplorer() {
   const [jefferson, setJefferson] = useState<GeoJSON.FeatureCollection>(emptyFC);
   const [jeffCount, setJeffCount] = useState<number | null>(null);
   const [showJefferson, setShowJefferson] = useState(true);
+  const [extra, setExtra] = useState<GeoJSON.FeatureCollection>(emptyFC);
+  const [extraCount, setExtraCount] = useState<number | null>(null);
+  const [showExtra, setShowExtra] = useState(true);
 
   // Pull live layers (real St. Louis County polling places + precinct turnout) on mount.
   useEffect(() => {
@@ -65,6 +68,15 @@ export function MapExplorer() {
         setJeffCount(fc.meta?.count ?? 0);
       })
       .catch(() => !cancelled && setJeffCount(0));
+
+    fetch("/api/geo/extra-counties")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((fc) => {
+        if (cancelled) return;
+        setExtra({ type: "FeatureCollection", features: fc.features });
+        setExtraCount(fc.meta?.count ?? 0);
+      })
+      .catch(() => !cancelled && setExtraCount(0));
 
     return () => {
       cancelled = true;
@@ -142,6 +154,14 @@ export function MapExplorer() {
             <input type="checkbox" checked={showJefferson} onChange={() => setShowJefferson((v) => !v)} />
           </label>
           <p className="mt-1 text-xs text-slate">Added to MO-02 in the 2025 map (boundaries only — no turnout feed).</p>
+          <label className="mt-4 flex cursor-pointer items-center justify-between text-sm">
+            <span className="font-semibold text-ink">
+              Rural cos. (VTD)
+              {extraCount ? <span className="ml-2 font-mono text-xs text-slate">{extraCount}</span> : null}
+            </span>
+            <input type="checkbox" checked={showExtra} onChange={() => setShowExtra((v) => !v)} />
+          </label>
+          <p className="mt-1 text-xs text-slate">Washington, Crawford, Gasconade — Census 2020 VTDs. Zoom out to see them.</p>
           <p className="mt-3 border-t border-line pt-3 text-xs text-slate">
             Drag to pan · right-drag to tilt/rotate · scroll to zoom.
           </p>
@@ -171,6 +191,8 @@ export function MapExplorer() {
           precincts={precincts}
           jefferson={jefferson}
           showJefferson={showJefferson}
+          extraCounties={extra}
+          showExtra={showExtra}
         />
       </div>
     </div>

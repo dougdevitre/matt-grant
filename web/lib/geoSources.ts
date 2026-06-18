@@ -52,6 +52,17 @@ export const JEFFERSON = {
   label: "Jefferson County (boundaries)",
 };
 
+// Washington / Crawford / Gasconade — added to MO-02 in the 2025 map but with no
+// county ArcGIS feed. Use Census 2020 Voting Districts (TIGERweb) for boundaries.
+export const CENSUS_VTD = {
+  url: "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Census2020/MapServer/58/query",
+  counties: {
+    "29221": "Washington",
+    "29055": "Crawford",
+    "29073": "Gasconade",
+  } as Record<string, string>,
+};
+
 export type PoiFeature = {
   type: "Feature";
   properties: { name: string; category: string; note?: string; source?: string };
