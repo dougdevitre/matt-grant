@@ -25,7 +25,8 @@ function PostCard({ p }: { p: SocialPost }) {
   const text = shareText(p);
   const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`${p.caption} ${p.hashtags.join(" ")}`)}&url=${encodeURIComponent(SITE_URL)}`;
   const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SITE_URL)}&quote=${encodeURIComponent(p.caption)}`;
-  const graphicUrl = `${ASSETS_CDN}/public/social/graphics/${p.id}.png`;
+  const graphicUrl = `${ASSETS_CDN}/public/social/feed/${p.id}.png`;
+  const storyUrl = `${ASSETS_CDN}/public/social/stories/${p.id}.png`;
 
   const copy = () => {
     navigator.clipboard?.writeText(text).then(() => {
@@ -51,7 +52,8 @@ function PostCard({ p }: { p: SocialPost }) {
         <button onClick={copy} className="btn-ghost px-2.5 py-1 text-xs">{copied ? "Copied ✓" : "Copy caption"}</button>
         <a href={xUrl} target="_blank" rel="noopener noreferrer" className="btn-ghost px-2.5 py-1 text-xs">Share to X</a>
         <a href={fbUrl} target="_blank" rel="noopener noreferrer" className="btn-ghost px-2.5 py-1 text-xs">Share to FB</a>
-        <a href={graphicUrl} target="_blank" rel="noopener noreferrer" download className="btn-ghost px-2.5 py-1 text-xs">Graphic ↓</a>
+        <a href={graphicUrl} target="_blank" rel="noopener noreferrer" download className="btn-ghost px-2.5 py-1 text-xs">Square ↓</a>
+        <a href={storyUrl} target="_blank" rel="noopener noreferrer" download className="btn-ghost px-2.5 py-1 text-xs">Story ↓</a>
       </div>
     </div>
   );

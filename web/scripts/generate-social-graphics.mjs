@@ -140,19 +140,53 @@ function buildSvg(quote, eyebrow) {
 </svg>`);
 }
 
+// Vertical 1080x1920 story version.
+function buildStorySvg(quote, eyebrow) {
+  const W2 = 1080, H2 = 1920;
+  const fontSize = quote.length > 46 ? 72 : quote.length > 28 ? 82 : 92;
+  const max = quote.length > 46 ? 22 : 18;
+  const lines = wrap(quote, max);
+  const lineH = fontSize * 1.16;
+  const blockH = lines.length * lineH;
+  const startY = 1120 + fontSize - blockH / 2;
+  const tspans = lines.map((l, i) => `<tspan x="540" dy="${i === 0 ? 0 : lineH}">${esc(l)}</tspan>`).join("");
+  return Buffer.from(`<svg width="${W2}" height="${H2}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="${C.navy2}"/><stop offset="55%" stop-color="${C.navy1}"/><stop offset="100%" stop-color="${C.navy0}"/>
+    </radialGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${C.blue}"/><stop offset="100%" stop-color="${C.red}"/></linearGradient>
+  </defs>
+  <rect width="${W2}" height="${H2}" fill="url(#bg)"/>
+  <g stroke="${C.blue}" stroke-opacity="0.14" stroke-width="2" fill="none">
+    <path d="M0 230 L300 230 L340 190 L820 190"/>
+    <circle cx="540" cy="620" r="300" stroke-opacity="0.10"/>
+  </g>
+  <rect x="80" y="150" width="48" height="3" fill="${C.red}"/>
+  <text x="146" y="162" font-family="Helvetica, Arial, sans-serif" font-size="28" letter-spacing="4" font-weight="700" fill="${C.blueSoft}">${esc(eyebrow)}</text>
+  <circle cx="540" cy="620" r="244" fill="none" stroke="url(#ring)" stroke-width="7"/>
+  <circle cx="540" cy="620" r="260" fill="none" stroke="${C.blue}" stroke-opacity="0.22" stroke-width="2"/>
+  <text x="540" y="${Math.round(startY)}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="${fontSize}" fill="${C.white}">${tspans}</text>
+  <rect x="480" y="${Math.round(startY + blockH + 16)}" width="120" height="6" fill="${C.red}"/>
+  <line x1="80" y1="1740" x2="1000" y2="1740" stroke="${C.blue}" stroke-opacity="0.25" stroke-width="2"/>
+  <text x="540" y="1800" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="${C.white}">MATT GRANT FOR CONGRESS · MO-02</text>
+  <text x="540" y="1846" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="34" font-weight="700" fill="${C.red}">AUGUST 4, 2026</text>
+  <text x="540" y="1884" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="${C.muted}">mattgrantforcongress.com · Paid for by the Matt Grant for Congress Committee.</text>
+</svg>`);
+}
+
 async function main() {
-  await mkdir(OUT, { recursive: true });
-  const D = 364; // photo diameter
-  const photo = await sharp(SRC).resize(D, D, { fit: "cover", position: "north" }).composite([{ input: circle(D), blend: "dest-in" }]).png().toBuffer();
+  const feedDir = path.join(OUT, "feed"), storyDir = path.join(OUT, "stories");
+  await mkdir(feedDir, { recursive: true });
+  await mkdir(storyDir, { recursive: true });
+  const D = 364, DS = 488; // square + story photo diameters
+  const photoSq = await sharp(SRC).resize(D, D, { fit: "cover", position: "north" }).composite([{ input: circle(D), blend: "dest-in" }]).png().toBuffer();
+  const photoSt = await sharp(SRC).resize(DS, DS, { fit: "cover", position: "north" }).composite([{ input: circle(DS), blend: "dest-in" }]).png().toBuffer();
   for (const [id, quote, eyebrow] of ITEMS) {
-    const base = sharp(buildSvg(quote, eyebrow));
-    await base
-      .composite([{ input: photo, top: 300 - D / 2, left: 540 - D / 2 }])
-      .png()
-      .toFile(path.join(OUT, `${id}.png`));
-    console.log(`  ✓ ${id}.png`);
+    await sharp(buildSvg(quote, eyebrow)).composite([{ input: photoSq, top: 300 - D / 2, left: 540 - D / 2 }]).png().toFile(path.join(feedDir, `${id}.png`));
+    await sharp(buildStorySvg(quote, eyebrow)).composite([{ input: photoSt, top: 620 - DS / 2, left: 540 - DS / 2 }]).png().toFile(path.join(storyDir, `${id}.png`));
   }
-  console.log(`\nGenerated ${ITEMS.length} graphics in ${OUT}`);
+  console.log(`\nGenerated ${ITEMS.length} feed + ${ITEMS.length} story graphics in ${OUT}`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

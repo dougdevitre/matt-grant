@@ -35,13 +35,13 @@ export const SITE_URL = "https://mattgrantforcongress.org";
 export const ASSETS_CDN = "https://d5jzyan9wboi3.cloudfront.net";
 
 export const BRAND_DOWNLOADS = [
-  { file: "logo.png", label: "Logo (full color)" },
-  { file: "logo-blue.png", label: "Logo (navy)" },
-  { file: "logo-red.png", label: "Logo (red)" },
-  { file: "headshot.png", label: "Matt's headshot" },
-  { file: "infographic.png", label: "The Four Fights — infographic" },
-  { file: "banner-standard-of-service.png", label: "A New Standard of Service — banner" },
-  { file: "grant-campaign-engine.pdf", label: "Campaign overview deck (PDF)" },
+  { file: "brand/logo.png", label: "Logo (full color)" },
+  { file: "brand/logo-blue.png", label: "Logo (navy)" },
+  { file: "brand/logo-red.png", label: "Logo (red)" },
+  { file: "brand/headshot.png", label: "Matt's headshot" },
+  { file: "marketing/infographic.png", label: "The Four Fights — infographic" },
+  { file: "marketing/banner-standard-of-service.png", label: "A New Standard of Service — banner" },
+  { file: "marketing/grant-campaign-engine.pdf", label: "Campaign overview deck (PDF)" },
 ] as const;
 
 // His stated platform — faithful to published positions.
