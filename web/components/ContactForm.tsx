@@ -36,7 +36,7 @@ export function ContactForm() {
       </div>
 
       <fieldset className="mt-5">
-        <legend className="mb-2 text-sm font-semibold text-ink">I'd like to…</legend>
+        <legend className="mb-2 text-sm font-semibold text-ink">I&apos;d like to…</legend>
         <div className="flex flex-wrap gap-2">
           {INTERESTS.map((i) => (
             <label key={i} className="cursor-pointer">

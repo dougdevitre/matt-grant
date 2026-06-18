@@ -87,8 +87,8 @@ export function AssetManager() {
           {items.map((a) => (
             <div key={a.key} className="card overflow-hidden p-0">
               <div className="grid h-36 place-items-center border-b border-line bg-paper">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 {isImage(a.key) ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={a.url} alt={a.key} className="max-h-36 max-w-full object-contain" />
                 ) : (
                   <span className="font-mono text-xs text-slate">{a.key.split(".").pop()?.toUpperCase()}</span>

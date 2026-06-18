@@ -20,12 +20,12 @@ export default function HomePage() {
           <div className="animate-rise-in">
             <p className="eyebrow text-gold">{CAMPAIGN.committee} · {CAMPAIGN.district}</p>
             <h1 className="mt-5 font-display text-5xl font-semibold leading-[1.02] sm:text-6xl lg:text-7xl">
-              Put Missouri's{" "}
+              Put Missouri&apos;s{" "}
               <span className="text-gold">children</span> first.
             </h1>
             <p className="mt-6 max-w-xl text-lg text-paper/80">
               Matt Grant is a neighbor, a dad, and a problem-solver. Twenty-three years in the
-              courtroom taught him how to bring people together and get results — and he's running
+              courtroom taught him how to bring people together and get results — and he&apos;s running
               for Congress to do exactly that.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -47,7 +47,7 @@ export default function HomePage() {
               <Countdown iso={CAMPAIGN.electionDate} />
             </div>
             <p className="mt-6 border-t border-paper/15 pt-4 text-sm text-paper/70">
-              "Matt does not just talk — he takes action." Every day on this clock is a day to
+              &ldquo;Matt does not just talk — he takes action.&rdquo; Every day on this clock is a day to
               reach one more neighbor.
             </p>
           </div>
@@ -144,11 +144,11 @@ export default function HomePage() {
             <p className="mt-5 text-lg text-paper/80">
               Matt learned the value of hard work, integrity, and community early — earning the rank
               of Eagle Scout in the Boy Scouts of America. As an Equity Partner at Husch Blackwell,
-              he built teams that delivered efficient results for Missouri's families and businesses.
-              In Congress, he'll work across the aisle to get things done.
+              he built teams that delivered efficient results for Missouri&apos;s families and businesses.
+              In Congress, he&apos;ll work across the aisle to get things done.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/about" className="btn-gold">Matt's full story</Link>
+              <Link href="/about" className="btn-gold">Matt&apos;s full story</Link>
               <Link href="/contact" className="btn-ghost border-paper/30 text-paper hover:border-paper">
                 Volunteer
               </Link>

@@ -66,7 +66,7 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
           <p className="mt-4 max-w-prose text-lg leading-relaxed text-ink">{issue.argument}</p>
         </div>
         <aside className="card h-fit bg-paper p-8">
-          <p className="eyebrow text-gold">Matt's commitment</p>
+          <p className="eyebrow text-gold">Matt&apos;s commitment</p>
           <p className="mt-3 font-display text-xl font-semibold text-ink">{issue.commitment}</p>
         </aside>
       </section>

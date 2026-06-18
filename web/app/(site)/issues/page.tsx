@@ -15,7 +15,7 @@ export default function IssuesPage() {
       <p className="eyebrow text-brick">The platform</p>
       <h1 className="mt-3 max-w-3xl text-4xl font-semibold sm:text-6xl">Four fights worth winning.</h1>
       <p className="mt-5 max-w-prose text-lg text-slate">
-        Not a wish list — a docket. Each one is concrete and accountable. Open any issue for Matt's
+        Not a wish list — a docket. Each one is concrete and accountable. Open any issue for Matt&apos;s
         argument, his commitment, and a short video.
       </p>
 

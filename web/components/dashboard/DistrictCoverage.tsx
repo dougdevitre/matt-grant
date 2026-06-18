@@ -27,12 +27,12 @@ export function DistrictCoverage() {
         <p className="font-semibold text-ink">Map note — verified June 2026 against county GIS fields.</p>
         <p className="mt-1">
           The 2025 mid-decade map (signed Sep 28 2025; upheld by the MO Supreme Court Mar 24 2026, 4-3) is
-          being used for the Aug 4 2026 primary — a ballot initiative could still suspend it. The county's
+          being used for the Aug 4 2026 primary — a ballot initiative could still suspend it. The county&apos;s
           official precinct layer carries both <span className="font-mono">congress22</span> (old) and{" "}
           <span className="font-mono">congress25</span> (new); the app now scopes on <span className="font-mono">congress25</span>.
           Within St. Louis County the new MO-02 stays <strong>predominantly western/central</strong> (630 precincts;
           564 unchanged, 66 added, 48 dropped vs the old map) — it did <em>not</em> move to the southern suburbs.
-          The district's southward shift is the added rural counties (Jefferson, Washington, Crawford, Gasconade);
+          The district&apos;s southward shift is the added rural counties (Jefferson, Washington, Crawford, Gasconade);
           <strong> St. Charles &amp; Warren moved out to MO-03; Franklin is not in MO-02.</strong>
         </p>
       </div>

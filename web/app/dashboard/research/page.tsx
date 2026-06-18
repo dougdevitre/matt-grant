@@ -78,7 +78,7 @@ export default async function ResearchPage({
             </>
           )}
         </p>
-        {dbError && <p className="mt-1 text-brick">Couldn't read the research store.</p>}
+        {dbError && <p className="mt-1 text-brick">Couldn&apos;t read the research store.</p>}
       </div>
 
       {/* Votes */}

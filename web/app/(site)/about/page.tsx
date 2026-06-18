@@ -44,8 +44,8 @@ export default function AboutPage() {
             <p className="mt-6 max-w-prose text-lg text-slate">
               Matt Grant has spent his life bringing people together to get results. From three public
               schools to a legal career and now public service, he learned the value of hard work,
-              integrity, and community — and he's running for Congress to make sure every child in
-              Missouri's 2nd District has a fair shot.
+              integrity, and community — and he&apos;s running for Congress to make sure every child in
+              Missouri&apos;s 2nd District has a fair shot.
             </p>
             <div className="mt-7 flex flex-wrap gap-2">
               {VALUES.map((v) => (
@@ -107,7 +107,7 @@ export default function AboutPage() {
           <p className="eyebrow text-gold">The issues</p>
           <h2 className="mt-3 max-w-3xl text-4xl font-semibold sm:text-5xl">Where Matt stands.</h2>
           <p className="mt-4 max-w-prose text-lg text-paper/75">
-            Four fights worth winning — each with Matt's argument, his commitment, and a short video.
+            Four fights worth winning — each with Matt&apos;s argument, his commitment, and a short video.
           </p>
 
           <div className="mt-10 grid gap-px overflow-hidden rounded-lg bg-paper/10 sm:grid-cols-2">

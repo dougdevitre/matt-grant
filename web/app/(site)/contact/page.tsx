@@ -13,9 +13,9 @@ export default function ContactPage() {
     <section className="container-page py-16 sm:py-24">
       <div className="max-w-3xl">
         <p className="eyebrow text-brick">Contact</p>
-        <h1 className="mt-3 text-4xl font-semibold sm:text-6xl">Let's get to work.</h1>
+        <h1 className="mt-3 text-4xl font-semibold sm:text-6xl">Let&apos;s get to work.</h1>
         <p className="mt-5 text-lg text-slate">
-          This race is won one neighbor at a time. Tell us how you'd like to help and we'll plug you
+          This race is won one neighbor at a time. Tell us how you&apos;d like to help and we&apos;ll plug you
           in — or reach the campaign directly.
         </p>
       </div>

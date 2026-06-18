@@ -43,7 +43,7 @@ export function Countdown({
 
   return (
     <div className={`flex ${compact ? "gap-2" : "gap-3 sm:gap-4"}`} role="timer" aria-label="Time until election day">
-      {cells.map(([label, value], i) => (
+      {cells.map(([label, value]) => (
         <div
           key={label}
           className={`flex flex-col items-center ${compact ? "min-w-[3rem]" : "min-w-[4.25rem]"}`}

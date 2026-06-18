@@ -140,7 +140,7 @@ export function StudioForm() {
 
         <div className="card p-6">
           <p className="eyebrow text-slate">Brand kit — ready-made downloads</p>
-          <p className="mt-1 text-xs text-slate">Generated from Matt's headshot. Re-run <span className="font-mono">npm run brand</span> after replacing the source photo.</p>
+          <p className="mt-1 text-xs text-slate">Generated from Matt&apos;s headshot. Re-run <span className="font-mono">npm run brand</span> after replacing the source photo.</p>
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {BRAND_KIT.map((b) => (
               <a
