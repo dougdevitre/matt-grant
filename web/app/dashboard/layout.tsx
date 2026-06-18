@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Countdown } from "@/components/Countdown";
@@ -28,9 +29,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
       {/* Sidebar */}
       <aside className="bg-ink text-paper md:sticky md:top-0 md:h-screen md:overflow-y-auto">
         <div className="flex items-center gap-3 border-b border-paper/10 px-5 py-5">
-          <span className="grid h-9 w-9 place-items-center rounded-sm bg-gold font-display text-lg font-semibold text-ink">
-            ★
-          </span>
+          <Image
+            src="/brand/icon-192.png"
+            alt="Matt Grant for Congress"
+            width={36}
+            height={36}
+            className="h-9 w-9 rounded-sm"
+            priority
+          />
           <div className="leading-tight">
             <p className="font-display text-base font-semibold">War Room</p>
             <p className="font-mono text-[0.6rem] uppercase tracking-eyebrow text-paper/60">
@@ -54,7 +60,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
             ← View public site
           </Link>
           <div className="flex items-center gap-4">
-            <span className="hidden font-mono text-xs text-slate sm:inline">
+            <span className="hidden items-center gap-2 font-mono text-xs text-slate sm:flex">
+              <Image src="/brand/icon-192.png" alt="" width={20} height={20} className="rounded-[3px]" />
               {CAMPAIGN.candidate} for Congress
             </span>
             {AuthControl}

@@ -2,22 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { DashIcon } from "./DashIcon";
 
 const ITEMS = [
-  { href: "/dashboard", label: "Overview", icon: "▤" },
-  { href: "/dashboard/donors", label: "Donors", icon: "◈" },
-  { href: "/dashboard/finance", label: "Finance", icon: "▦" },
-  { href: "/dashboard/compliance", label: "Compliance", icon: "▣" },
-  { href: "/dashboard/map", label: "3D field map", icon: "◎" },
-  { href: "/dashboard/targets", label: "Precinct targets", icon: "◉" },
-  { href: "/dashboard/studio", label: "Graphics studio", icon: "❖" },
-  { href: "/dashboard/assets", label: "Asset library", icon: "▦" },
-  { href: "/dashboard/photos", label: "Photo library", icon: "▨" },
-  { href: "/dashboard/volunteers", label: "Volunteers", icon: "✶" },
-  { href: "/dashboard/tasks", label: "Task board", icon: "▥" },
-  { href: "/dashboard/research", label: "Opp. research", icon: "⚖" },
-  { href: "/dashboard/plan", label: "Strategic plan", icon: "★" },
-  { href: "/dashboard/team", label: "Team & access", icon: "⚇" },
+  { href: "/dashboard", label: "Overview", icon: "overview" },
+  { href: "/dashboard/donors", label: "Donors", icon: "donors" },
+  { href: "/dashboard/finance", label: "Finance", icon: "finance" },
+  { href: "/dashboard/compliance", label: "Compliance", icon: "compliance" },
+  { href: "/dashboard/map", label: "3D field map", icon: "map" },
+  { href: "/dashboard/targets", label: "Precinct targets", icon: "targets" },
+  { href: "/dashboard/studio", label: "Graphics studio", icon: "studio" },
+  { href: "/dashboard/assets", label: "Asset library", icon: "assets" },
+  { href: "/dashboard/photos", label: "Photo library", icon: "photos" },
+  { href: "/dashboard/volunteers", label: "Volunteers", icon: "volunteers" },
+  { href: "/dashboard/tasks", label: "Task board", icon: "tasks" },
+  { href: "/dashboard/research", label: "Opp. research", icon: "research" },
+  { href: "/dashboard/plan", label: "Strategic plan", icon: "plan" },
+  { href: "/dashboard/team", label: "Team & access", icon: "team" },
 ];
 
 export function DashSidebar() {
@@ -34,7 +35,7 @@ export function DashSidebar() {
               active ? "bg-gold/15 text-gold" : "text-paper/70 hover:bg-paper/5 hover:text-paper"
             }`}
           >
-            <span className="font-mono text-base leading-none" aria-hidden>{item.icon}</span>
+            <DashIcon name={item.icon} className="h-[1.15rem] w-[1.15rem] shrink-0" />
             {item.label}
           </Link>
         );
