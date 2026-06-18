@@ -1,4 +1,4 @@
-import { PageHeader } from "@/components/dashboard/Notice";
+import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +41,16 @@ export default function CompliancePage() {
   return (
     <>
       <PageHeader kicker="Compliance" title="Filing calendar" />
+
+      <HowTo
+        steps={[
+          "Read each row left to right: filing date, the report and what it covers, and the countdown badge (“in N d”, “today”, or “filed/past”).",
+          "Remember Matt files with the FEC, not the Missouri Ethics Commission — he is a federal candidate.",
+          "Confirm every date at fec.gov before you file; these follow the standard schedule but are not legal advice.",
+          "Watch for 48-hour notices on contributions of $1,000+ in the final stretch before Aug 4.",
+          "For the full rules, open the linked skill files (compliance-calendar.md, disclosure-requirements.md).",
+        ]}
+      />
 
       <div className="mb-6 rounded-sm border border-gold/50 bg-gold/10 px-5 py-4 text-sm text-ink">
         <p className="font-semibold">Federal candidate — file with the FEC, not the MEC.</p>

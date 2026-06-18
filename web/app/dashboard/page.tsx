@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getOverview } from "@/lib/queries";
 import { dollars } from "@/lib/money";
-import { DbNotice, PageHeader } from "@/components/dashboard/Notice";
+import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 
 // Illustrative primary-cycle fundraising goal — replace with the real number.
 const GOAL_CENTS = 25000000; // $250,000
@@ -41,6 +41,16 @@ export default async function OverviewPage() {
   return (
     <>
       <PageHeader kicker="Campaign manager" title="Overview" />
+
+      <HowTo
+        steps={[
+          "Scan the four stat cards for a daily pulse: raised this cycle, cash on hand, total donors, and active volunteers.",
+          "Watch the fundraising thermometer against the primary goal — the $250,000 is an illustrative placeholder; set the real number in code.",
+          "Read the milestone timeline to see which phase you are in; click the count to open the full Plan.",
+          "Use the task rollup to see To-do / In-progress / Done, then click “Open the board” to triage.",
+          "Figures are live only once the database is connected — you will see a notice here when it is not.",
+        ]}
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Raised (primary)" value={dollars(o.raisedCents)} sub={`${pct}% of goal`} />

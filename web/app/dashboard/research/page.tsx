@@ -1,4 +1,4 @@
-import { PageHeader, DbNotice } from "@/components/dashboard/Notice";
+import { PageHeader, DbNotice, HowTo } from "@/components/dashboard/Notice";
 import { dbConfigured } from "@/lib/db";
 import { loadConfig, congressEnabled } from "@/lib/integrations/legislative/config";
 import { getMember, getVotes, getBills, lastIngest } from "@/lib/integrations/legislative/store";
@@ -58,6 +58,16 @@ export default async function ResearchPage({
           </span>
         )}
       </PageHeader>
+
+      <HowTo
+        steps={[
+          "Review the subject’s primary-source record: roll-call votes (House Clerk XML) and legislation (Congress.gov).",
+          "Filter votes by position (Yea / Nay / Present / Not Voting) and bills by relation (sponsored / cosponsored).",
+          "Open the “source ↗” link on any row — cite that source on every claim, never the dashboard itself.",
+          "Check the “last ingest” date in the header; refresh data by triggering the research ingest job.",
+          "Keep contrast factual — see candidate/contrast-positioning.md before using any of this publicly.",
+        ]}
+      />
 
       <div className="mb-6 rounded-sm border border-field/30 bg-field/5 px-4 py-3 text-sm text-slate">
         <p className="font-semibold text-ink">Primary-source record only.</p>

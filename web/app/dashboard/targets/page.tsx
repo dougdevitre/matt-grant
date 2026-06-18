@@ -1,4 +1,4 @@
-import { PageHeader } from "@/components/dashboard/Notice";
+import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { TargetTable } from "@/components/dashboard/TargetTable";
 import { fetchPrecinctRows } from "@/lib/precincts";
 
@@ -10,6 +10,16 @@ export default async function TargetsPage() {
   return (
     <>
       <PageHeader kicker="Field plan" title="Precinct targets" />
+
+      <HowTo
+        steps={[
+          "Precincts are auto-ranked from live county data — read the table top-down for your highest-value targets.",
+          "Switch strategy to match your goal: persuasion (chase where the votes already are) or mobilization (where turnout lags).",
+          "Read the tiers — A covers the top 40% of the chosen metric, B the next 30%, C the rest.",
+          "Use the “Play” column to see how each precinct compares to the district median.",
+          "Export a walk list to hand to canvass teams; turnout is Aug-2024 primary, so verify before acting.",
+        ]}
+      />
 
       <p className="mb-5 max-w-prose text-sm text-slate">
         Auto-ranked from live St. Louis County data. Precincts are scoped to the{" "}

@@ -1,5 +1,5 @@
 import { getTasks } from "@/lib/queries";
-import { DbNotice, PageHeader } from "@/components/dashboard/Notice";
+import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { addTask, setTaskStatus } from "@/app/dashboard/actions";
 
 const COLUMNS = [
@@ -25,6 +25,16 @@ export default async function TasksPage() {
       <PageHeader kicker="Operations" title="Task board" />
 
       {!connected && <DbNotice />}
+
+      <HowTo
+        steps={[
+          "Add a task in the top bar: type a title, pick a category (Field, Finance, Comms, Compliance, Ops) and a priority, then click Add task.",
+          "New tasks land in the To-do column; cards flow To do → In progress → Done.",
+          "Move a card forward with “Start →” / “Done ✓”, or back with the ← button.",
+          "HIGH-priority tasks show a red flag so the team can triage at a glance.",
+          "The Overview page rolls these counts up into the task board summary.",
+        ]}
+      />
 
       <form action={addTask} className="card mb-6 flex flex-wrap items-end gap-3 p-4">
         <input name="title" required placeholder="New task…" className={`${input} min-w-[16rem] flex-1`} />

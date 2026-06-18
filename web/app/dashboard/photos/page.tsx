@@ -1,4 +1,4 @@
-import { PageHeader } from "@/components/dashboard/Notice";
+import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { PhotoLibrary } from "@/components/dashboard/PhotoLibrary";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +12,14 @@ export default function PhotosPage() {
         <span className="font-mono">sync-photos.mjs</span>; when you find a keeper, copy its promote
         command below to publish web-optimized versions to the site.
       </p>
+      <HowTo
+        steps={[
+          "Browse the shoot photos below — staff-only, shown through short-lived signed links.",
+          "Add new originals by running the sync-photos.mjs script (not an in-page upload).",
+          "Found a keeper? Copy its “promote” command to publish a web-optimized version to the public site.",
+          "Use promoted photos in the Graphics studio and across the public pages.",
+        ]}
+      />
       <PhotoLibrary />
     </>
   );

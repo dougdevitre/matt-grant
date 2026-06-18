@@ -1,6 +1,6 @@
 import { getFinance } from "@/lib/queries";
 import { dollars } from "@/lib/money";
-import { DbNotice, PageHeader } from "@/components/dashboard/Notice";
+import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { addExpenditure } from "@/app/dashboard/actions";
 
 const input = "rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink focus:border-field";
@@ -34,6 +34,16 @@ export default async function FinancePage() {
       <PageHeader kicker="Finance" title="Money in &amp; out" />
 
       {!f.connected && <DbNotice />}
+
+      <HowTo
+        steps={[
+          "Read the three stat cards: raised, spent, and cash on hand (it turns red if it goes negative).",
+          "Log spending with the “Log an expenditure” form — payee, amount, and a category (Media, Field, Fundraising, Compliance, Operations, Travel).",
+          "Watch the “spend by category” bars to keep the budget balanced across the campaign.",
+          "Review the ledger on the right for every recorded disbursement.",
+          "Cash on hand here is illustrative — reconcile against bank statements and FEC Form 3 before any report.",
+        ]}
+      />
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Stat label="Raised" value={dollars(f.raisedCents)} accent="text-field" />

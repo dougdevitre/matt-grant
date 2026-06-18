@@ -1,5 +1,5 @@
 import { getVolunteers } from "@/lib/queries";
-import { DbNotice, PageHeader } from "@/components/dashboard/Notice";
+import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { updateVolunteerStatus } from "@/app/dashboard/actions";
 
 const STATUSES = ["NEW", "ACTIVE", "INACTIVE"] as const;
@@ -20,6 +20,15 @@ export default async function VolunteersPage() {
       </PageHeader>
 
       {!connected && <DbNotice />}
+
+      <HowTo
+        steps={[
+          "Leads arrive here automatically from the public /contact form — no manual entry needed.",
+          "Each card shows the volunteer’s name, city, stated interests, and contact info.",
+          "Set their status with the dropdown — NEW → ACTIVE once you have engaged them, INACTIVE if they drop off — then click Save.",
+          "Reach out to ACTIVE volunteers first when you staff canvasses, phone banks, and Election Day shifts.",
+        ]}
+      />
 
       {rows.length === 0 ? (
         <div className="card p-10 text-center text-slate">

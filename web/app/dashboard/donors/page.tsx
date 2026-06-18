@@ -1,6 +1,6 @@
 import { getDonors } from "@/lib/queries";
 import { dollars, FEC_INDIVIDUAL_PER_ELECTION_CENTS } from "@/lib/money";
-import { DbNotice, PageHeader } from "@/components/dashboard/Notice";
+import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { addDonor } from "@/app/dashboard/actions";
 
 const input = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink focus:border-field";
@@ -20,6 +20,16 @@ export default async function DonorsPage() {
       </PageHeader>
 
       {!connected && <DbNotice />}
+
+      <HowTo
+        steps={[
+          "Log a contribution in the left form: name, amount, and — for individuals over $200/cycle — employer and occupation, which the FEC requires.",
+          "Pick the method (WinRed, check, cash, in-kind) and click Add donor.",
+          "Scan the table: a red “⚠ FEC info missing” or “check FEC” flag means go back and fill in employer/occupation.",
+          "An “over limit” badge means the donor passed the per-election individual limit — verify before depositing.",
+          "Educational tooling, not legal advice; reconcile against your committee records.",
+        ]}
+      />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
         {/* Add donor */}

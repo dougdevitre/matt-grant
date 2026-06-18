@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PageHeader } from "@/components/dashboard/Notice";
+import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { MapExplorer } from "@/components/MapExplorer";
 import { DistrictCoverage } from "@/components/dashboard/DistrictCoverage";
 
@@ -19,6 +19,15 @@ export default function MapPage() {
         MO-02 (predominantly the western/central suburbs); the district also reaches Jefferson,
         Washington, Crawford, and Gasconade — not in this feed. Schools/public places/partners are sample.
       </p>
+      <HowTo
+        steps={[
+          "Drag to pan, scroll to zoom, and tilt to read the 3D precinct columns — taller columns are higher Aug-2024 primary turnout.",
+          "Click a precinct or polling place to see its underlying numbers.",
+          "Use the district-coverage panel below to see which data layers are loaded.",
+          "Remember this feed is the St. Louis County portion of MO-02 only; the rural counties are not yet included.",
+          "Ready to act on it? Click “Turn this into a target list →” to rank precincts on the Targets page.",
+        ]}
+      />
       <MapExplorer />
       <DistrictCoverage />
     </>
