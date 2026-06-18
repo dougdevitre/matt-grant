@@ -74,9 +74,31 @@ which state districts actually fall inside MO-02 against the enacted map before 
 
 ## Tier 3 — House
 
-mo-gov ships a full House roster (`mo-house-roster.md`, 163 reps + chairs). For the House
-**Children, Families, and Health**, **Judiciary**, and **Civil and Administrative Law** committees,
-pull current membership via the official lookup and filter to MO-02 metro/rural districts.
+**Confirmed anchor target (verify at house.mo.gov):**
+
+| Role | Representative | Dist. | Why |
+|---|---|---|---|
+| Chair, House **Judiciary** | Cameron Bunting Parker (R) | 150 | Family court, evidence, procedure — the House counterpart to Senate Judiciary |
+
+**Relevant House committees** — the venues where Matt's issue lives. mo-gov maps these; it explicitly
+notes the chairs for the starred ones are **not confirmed in its data — verify membership and chairs
+at house.mo.gov before outreach.**
+
+| Committee | Why it matters | Status |
+|---|---|---|
+| **Judiciary** | Family law, custody, court procedure | Chair confirmed (Parker, 150) |
+| **Children, Families, and Health** | Child welfare, family services | ★ pull membership/chair |
+| **Civil and Administrative Law** | Civil procedure | ★ pull membership/chair |
+| **Criminal Law** | DV / protective orders | ★ pull membership/chair |
+
+**St. Louis metro representatives:** mo-gov's roster lists the metro reps but routes district matching
+through the official lookup. Filter House members to the districts that fall inside MO-02 (western/
+central St. Louis County + rural counties) using house.mo.gov + the enacted MO-02 map, then prioritize
+any who sit on the four committees above. **Don't claim MO-02 overlap without checking the map.**
+
+The ask and the outreach packet are the same as the Senate tiers; once House targets are verified,
+add them to the roster in `generate-tier-letters.mjs` / `generate-mailing.mjs` to produce their
+letters and labels.
 
 ## The ask (per target)
 
