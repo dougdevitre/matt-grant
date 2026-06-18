@@ -52,16 +52,29 @@ export function AskMatt() {
   const [pledged, setPledged] = useState(false);
   const [friends, setFriends] = useState(["", "", ""]);
   const [copied, setCopied] = useState<string | null>(null);
+  const [seen, setSeen] = useState(true); // default true to avoid an SSR pulse flash
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setPledged(localStorage.getItem("mg_pledged") === "1");
+    setSeen(localStorage.getItem("mg_askmatt_seen") === "1");
   }, []);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+  useEffect(() => {
+    if (open) panelRef.current?.focus();
+  }, [open]);
+
+  function toggle() {
+    setOpen((v) => !v);
+    if (!seen) {
+      setSeen(true);
+      localStorage.setItem("mg_askmatt_seen", "1");
+    }
+  }
 
   function pledge() {
     setPledged(true);
@@ -79,22 +92,32 @@ export function AskMatt() {
     <>
       {/* Floating launcher */}
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={toggle}
         aria-expanded={open}
         aria-label="Ask Matt — make your plan to vote"
         className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full border border-paper/20 bg-ink py-2 pl-2 pr-4 text-paper shadow-card transition-transform hover:scale-[1.03] motion-reduce:transition-none"
       >
+        {!seen && !open && (
+          <span className="absolute -right-0.5 -top-0.5 flex h-3 w-3" aria-hidden>
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brick opacity-75 motion-reduce:hidden" />
+            <span className="relative inline-flex h-3 w-3 rounded-full bg-brick" />
+          </span>
+        )}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={AVATAR} alt="" width={32} height={32} className="h-8 w-8 rounded-full" />
         <span className="text-sm font-semibold">{open ? "Close" : "Ask Matt"}</span>
       </button>
 
       {open && (
+        <>
+          {/* click-outside catcher (transparent) */}
+          <button aria-hidden tabIndex={-1} onClick={() => setOpen(false)} className="fixed inset-0 z-40 cursor-default" />
         <div
           ref={panelRef}
           role="dialog"
           aria-label="Ask Matt"
-          className="fixed bottom-20 right-5 z-50 flex max-h-[80vh] w-[min(92vw,360px)] flex-col overflow-hidden rounded-lg border border-line bg-paper shadow-card"
+          tabIndex={-1}
+          className="fixed bottom-20 right-5 z-50 flex max-h-[80vh] w-[min(92vw,360px)] flex-col overflow-hidden rounded-lg border border-line bg-paper shadow-card outline-none motion-safe:animate-rise-in"
         >
           {/* header */}
           <div className="relative shrink-0 bg-ink px-5 py-4 text-paper">
@@ -167,6 +190,7 @@ export function AskMatt() {
 
           <p className="shrink-0 border-t border-line px-5 py-3 text-[0.65rem] text-slate">{CAMPAIGN.paidForBy}</p>
         </div>
+        </>
       )}
     </>
   );

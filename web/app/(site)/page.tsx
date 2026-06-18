@@ -181,7 +181,7 @@ export default function HomePage() {
               ["❖", "Graphics & asset studio", "Generate on-brand assets on demand."],
               ["⚖", "Opp research & strategy", "The record and the plan to win MO-02."],
             ].map(([icon, title, copy]) => (
-              <li key={title} className="bg-ink p-6">
+              <li key={title} className="bg-ink p-6 transition-colors hover:bg-field/25">
                 <span className="font-mono text-2xl text-gold" aria-hidden>{icon}</span>
                 <p className="mt-3 font-display text-lg font-semibold">{title}</p>
                 <p className="mt-1 text-sm text-paper/70">{copy}</p>

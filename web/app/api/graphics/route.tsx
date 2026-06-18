@@ -93,7 +93,7 @@ export async function GET(req: Request) {
             standalone public communications, so the "Paid for by" line must appear
             on the image itself (not just the site footer). Wide formats keep it to a
             single line (no domain) so it never clips against the short bottom margin. */}
-        <div style={{ display: "flex", position: "absolute", bottom: Math.round(h * 0.05), left: Math.round(w * 0.07), maxWidth: wide ? "60%" : "86%", color: theme.muted, fontSize: Math.round(headSize * 0.3), lineHeight: 1.2 }}>
+        <div style={{ display: "flex", position: "absolute", bottom: Math.round(h * 0.05), left: Math.round(w * 0.07), maxWidth: wide ? "86%" : "86%", color: theme.muted, fontSize: Math.round(headSize * (wide ? 0.2 : 0.3)), lineHeight: 1.2 }}>
           {wide ? CAMPAIGN.paidForBy : `${CAMPAIGN.paidForBy} · mattgrantforcongress.org`}
         </div>
       </div>
