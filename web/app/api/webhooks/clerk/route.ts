@@ -1,0 +1,66 @@
+import { NextResponse } from "next/server";
+import { emailAllowed } from "@/lib/auth";
+import { staffRole } from "@/lib/staff";
+import { asRole } from "@/lib/rbac";
+
+// Clerk webhook: on user.created, stamp the new user's RBAC role into Clerk
+// publicMetadata so it travels with the session everywhere.
+//
+// Role source of truth at first sign-in:
+//   1. env DASHBOARD_ALLOWLIST  → "admin"  (the two bootstrap admins)
+//   2. an active invited staff row (DynamoDB) → that row's role  (pending invite)
+//   3. otherwise → no role written (no dashboard access)
+//
+// Requires CLERK_WEBHOOK_SIGNING_SECRET (Clerk dashboard → Webhooks → Signing
+// Secret). Inert without it so keyless builds/deploys still pass.
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export async function POST(req: Request) {
+  if (!process.env.CLERK_WEBHOOK_SIGNING_SECRET) {
+    return NextResponse.json({ ok: false, skipped: "no signing secret" }, { status: 200 });
+  }
+
+  // Verify the Svix signature (reads CLERK_WEBHOOK_SIGNING_SECRET from env).
+  let evt: { type: string; data: Record<string, unknown> };
+  try {
+    const { verifyWebhook } = await import("@clerk/nextjs/webhooks");
+    evt = (await verifyWebhook(req)) as typeof evt;
+  } catch {
+    return NextResponse.json({ ok: false, error: "invalid signature" }, { status: 400 });
+  }
+
+  if (evt.type !== "user.created") {
+    return NextResponse.json({ ok: true, ignored: evt.type });
+  }
+
+  const data = evt.data as {
+    id?: string;
+    email_addresses?: { id: string; email_address: string }[];
+    primary_email_address_id?: string;
+  };
+  const userId = data.id;
+  const primary =
+    data.email_addresses?.find((e) => e.id === data.primary_email_address_id) ??
+    data.email_addresses?.[0];
+  const email = primary?.email_address ?? null;
+
+  if (!userId || !email) {
+    return NextResponse.json({ ok: true, note: "no user id / email" });
+  }
+
+  const role = emailAllowed(email) && process.env.DASHBOARD_ALLOWLIST ? "admin" : await staffRole(email);
+  if (!asRole(role)) {
+    return NextResponse.json({ ok: true, note: "no role for this user" });
+  }
+
+  try {
+    const { clerkClient } = await import("@clerk/nextjs/server");
+    const client = await clerkClient();
+    await client.users.updateUserMetadata(userId, { publicMetadata: { role } });
+  } catch {
+    return NextResponse.json({ ok: false, error: "failed to set role" }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true, email, role });
+}

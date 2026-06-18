@@ -35,7 +35,7 @@ export default function IssuesPage() {
           <Link
             key={issue.slug}
             href={`/issues/${issue.slug}`}
-            className="group card flex flex-col overflow-hidden p-0 transition-colors hover:border-ink"
+            className="group card flex flex-col overflow-hidden p-0 transition duration-200 hover:-translate-y-1 hover:border-ink hover:shadow-lg motion-reduce:hover:translate-y-0"
           >
             <div className="relative aspect-square w-full overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}

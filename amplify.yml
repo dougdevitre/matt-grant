@@ -24,6 +24,17 @@ applications:
                 [ -n "$v" ] && echo "$k=$v" >> .env.production
               done
               echo "Materialized $(wc -l < .env.production 2>/dev/null || echo 0) runtime vars into .env.production"
+            # RBAC params live in SSM Parameter Store (/matt-grant/*). Pull them
+            # into the SSR runtime. Additive + non-fatal: keyless builds and the
+            # env-var flow above are unaffected. Requires the Amplify build role
+            # to allow ssm:GetParameter on /matt-grant/* (+ kms:Decrypt for the
+            # SecureString secret).
+            - |
+              for k in DASHBOARD_ALLOWLIST CLERK_WEBHOOK_SIGNING_SECRET; do
+                v=$(aws ssm get-parameter --name "/matt-grant/$k" --with-decryption \
+                      --query 'Parameter.Value' --output text 2>/dev/null || true)
+                [ -n "$v" ] && [ "$v" != "None" ] && echo "$k=$v" >> .env.production
+              done
         build:
           commands:
             - npm run build
