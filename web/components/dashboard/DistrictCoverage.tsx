@@ -19,14 +19,17 @@ export function DistrictCoverage() {
         <p className="font-mono text-xs text-slate">{live} of {MO02_COUNTIES.length} fully live</p>
       </div>
 
-      <div className="mb-5 rounded-sm border border-brick/30 bg-brick/5 px-4 py-3 text-sm text-slate">
-        <p className="font-semibold text-ink">Map note — verified June 2026.</p>
+      <div className="mb-5 rounded-sm border border-field/30 bg-field/5 px-4 py-3 text-sm text-slate">
+        <p className="font-semibold text-ink">Map note — verified June 2026 against county GIS fields.</p>
         <p className="mt-1">
-          The 2025 mid-decade map (signed Sep 28 2025; upheld by the MO Supreme Court Mar 24 2026) is being
-          used for the Aug 4 2026 primary — a ballot initiative could still suspend it. The new MO-02 = southern
-          St. Louis County suburbs + Jefferson, Washington, Crawford, Gasconade. <strong>St. Charles &amp; Warren
-          moved out to MO-03; Franklin is not in the new MO-02.</strong> Our live St. Louis County turnout is
-          tagged to the OLD (western-county) lines and needs re-derivation against the new boundary.
+          The 2025 mid-decade map (signed Sep 28 2025; upheld by the MO Supreme Court Mar 24 2026, 4-3) is
+          being used for the Aug 4 2026 primary — a ballot initiative could still suspend it. The county's
+          official precinct layer carries both <span className="font-mono">congress22</span> (old) and{" "}
+          <span className="font-mono">congress25</span> (new); the app now scopes on <span className="font-mono">congress25</span>.
+          Within St. Louis County the new MO-02 stays <strong>predominantly western/central</strong> (630 precincts;
+          564 unchanged, 66 added, 48 dropped vs the old map) — it did <em>not</em> move to the southern suburbs.
+          The district's southward shift is the added rural counties (Jefferson, Washington, Crawford, Gasconade);
+          <strong> St. Charles &amp; Warren moved out to MO-03; Franklin is not in MO-02.</strong>
         </p>
       </div>
 

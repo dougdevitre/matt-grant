@@ -13,14 +13,25 @@ export const ARCGIS = {
     "https://services6.arcgis.com/wkbq75VVf2MvUvs7/arcgis/rest/services/November2024_Dashboard_Precincts_view/FeatureServer/0/query",
 };
 
-// Precinct layer that drives the map's turnout columns. We use the Aug 6 2024
-// PRIMARY — the same low-turnout, high-intensity electorate Matt faces on the
-// Aug 4 2026 primary ballot. Real turnout = TOTAL_CHECKINS / RV_COUNT.
-// Note: this layer's congressional field is named `congressional_district_20`.
+// TURNOUT source: Aug 6 2024 PRIMARY — the low-turnout electorate Matt faces on
+// Aug 4 2026. Real turnout = TOTAL_CHECKINS / RV_COUNT, joined by precinct code.
+// (This layer's only congressional field is `congressional_district_20` = the OLD
+// 2022 map, so we scope MEMBERSHIP via NEWMAP_PRECINCTS below, not this field.)
 export const PRECINCT_SOURCE = {
   url: "https://services6.arcgis.com/wkbq75VVf2MvUvs7/arcgis/rest/services/August_2024_Precincts_view/FeatureServer/0/query",
-  where: "congressional_district_20='US Representative District 2'",
+  oldMapWhere: "congressional_district_20='US Representative District 2'",
   label: "St. Louis County — Aug 6 2024 primary",
+};
+
+// MEMBERSHIP source for the NEW 2025 ENACTED map. The county's April 2026
+// precinct layer carries TWO congressional fields:
+//   congressio  (alias "congress22") = old 2022 map
+//   congress_1  (alias "congress25") = new 2025 map  ← authoritative for 2026
+// We take the new-map MO-02 precinct codes from here and join turnout by code.
+export const NEWMAP_PRECINCTS = {
+  url: "https://services6.arcgis.com/wkbq75VVf2MvUvs7/arcgis/rest/services/April_7_2026_Precincts_Dashboard_view/FeatureServer/0/query",
+  where: "congress_1='US Representative District 2'",
+  label: "MO-02 (2025 enacted map)",
 };
 
 export function arcgisGeojsonUrl(base: string): string {

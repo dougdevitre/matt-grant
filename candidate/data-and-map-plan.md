@@ -29,10 +29,15 @@ for the Aug 4 2026 primary. A citizen ballot initiative could still suspend it.
 
 Two consequences for this app:
 
-1. **St. Louis County footprint** — our turnout columns are tagged to the OLD map (western county). The
-   new MO-02 is the **southern** St. Louis suburbs, so re-derive the St. Louis slice against a 2026
-   precinct layer (e.g. `8_5_2025_Precincts` / `November_4__2025_Dashboard_Precincts_view`) once those
-   carry the new congressional assignment.
+1. **St. Louis County footprint (done, verified).** The county's official precinct layer
+   (`April_7_2026_Precincts_Dashboard_view`) carries two congressional fields — `congressio`
+   (alias **congress22**, old) and `congress_1` (alias **congress25**, new). The app now scopes
+   membership on **congress25** and joins **Aug 2024 primary turnout** by precinct code (506 of 630
+   precincts matched; 80%). Cross-referenced to municipalities, the new MO-02 St. Louis slice stays
+   **predominantly western/central** (Chesterfield, Wildwood, Ballwin, Maryland Heights, Kirkwood,
+   Town & Country) — 564 precincts unchanged, 66 added (e.g. more Maryland Heights / Creve Coeur),
+   48 dropped (e.g. Webster Groves / Shrewsbury / Maplewood). It did **not** shift to the southern
+   suburbs; the district's southward move is the added rural counties below.
 2. **Rural counties** — add one geo-proxy per county (pattern in `lib/geoSources.ts`). Jefferson has
    ArcGIS precinct polygons; Washington/Crawford/Gasconade have no ArcGIS feed → use Census VTD
    boundaries + SOS county-level turnout/registration. None publish precinct-level turnout, so

@@ -12,11 +12,12 @@ export default async function TargetsPage() {
       <PageHeader kicker="Field plan" title="Precinct targets" />
 
       <p className="mb-5 max-w-prose text-sm text-slate">
-        Auto-ranked from live St. Louis County data — real <strong>Aug-2024 primary turnout</strong>{" "}
-        and registered voters per MO-02 precinct. <strong>Covers the St. Louis County portion of
-        MO-02</strong>; precincts in other counties need their own county GIS feed (see the data plan).
-        Switch strategy to chase where the votes already are (persuasion) or where turnout lags
-        (mobilization), then export a walk list.
+        Auto-ranked from live St. Louis County data. Precincts are scoped to the{" "}
+        <strong>2025 enacted MO-02 map</strong> (county field <span className="font-mono">congress25</span>);
+        turnout is the real <strong>Aug-2024 primary</strong> (check-ins ÷ registered), joined by precinct.
+        <strong> Covers the St. Louis County portion of MO-02 only</strong> — the added rural counties need
+        their own feeds (see the data plan). Switch strategy to chase where the votes already are
+        (persuasion) or where turnout lags (mobilization), then export a walk list.
       </p>
 
       {!live || rows.length === 0 ? (

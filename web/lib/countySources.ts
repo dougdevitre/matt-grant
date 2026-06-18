@@ -1,15 +1,16 @@
 // MO-02 county coverage registry — 2025 ENACTED map (in effect for the 2026 primary).
 //
-// Verified June 2026: Missouri's Trump-backed mid-decade map was signed 2025-09-28
-// and upheld by the Missouri Supreme Court 2026-03-24 (4-3); local election
-// officials are using it for the Aug 4 2026 primary. A citizen ballot initiative
-// could still suspend it. Under this map the NEW MO-02 = southern St. Louis County
-// suburbs + Gasconade, Crawford, Jefferson, Washington. St. Charles & Warren moved
-// OUT to MO-03. (Franklin is NOT in the new MO-02 — earlier inclusion was an error.)
+// Verified June 2026 against the county GIS fields: Missouri's Trump-backed
+// mid-decade map was signed 2025-09-28 and upheld by the MO Supreme Court
+// 2026-03-24 (4-3); officials are using it for the Aug 4 2026 primary (a ballot
+// initiative could still suspend it). The county precinct layer carries both
+// congress22 (old) and congress25 (new); we scope on congress25.
 //
-// Caveat baked in below: our live St. Louis County precinct turnout is from the
-// 2024 election, tagged to the OLD (2022) map's MO-02 = WESTERN St. Louis County.
-// The new MO-02 is the SOUTHERN suburbs, so that footprint needs re-derivation.
+// Within St. Louis County the new MO-02 stays predominantly WESTERN/CENTRAL
+// (630 precincts; 564 unchanged, 66 added, 48 dropped vs the 2022 map) — it did
+// NOT move to the southern suburbs. The district's southward shift is the ADDED
+// rural counties: Jefferson, Washington, Crawford, Gasconade. St. Charles & Warren
+// moved OUT to MO-03. (Franklin is NOT in MO-02 — an earlier inclusion was wrong.)
 
 export type Resolution = "precinct-turnout" | "precinct+polling" | "precinct-boundary" | "county-level";
 export type Status = "live" | "live-old-map" | "available" | "needs-source";
@@ -26,14 +27,15 @@ export type CountySource = {
 export const MO02_COUNTIES: CountySource[] = [
   {
     county: "St. Louis County (part)",
-    role: "Anchor — largest share of MO-02 votes",
+    role: "Anchor — largest share of MO-02 votes (western/central suburbs)",
     resolution: "precinct-turnout",
-    status: "live-old-map",
+    status: "live",
     endpoints: [
-      { label: "Precinct turnout (Aug 2024)", url: "https://services6.arcgis.com/wkbq75VVf2MvUvs7/arcgis/rest/services/August_2024_Precincts_view/FeatureServer" },
+      { label: "New-map membership (congress25, Apr 2026)", url: "https://services6.arcgis.com/wkbq75VVf2MvUvs7/arcgis/rest/services/April_7_2026_Precincts_Dashboard_view/FeatureServer" },
+      { label: "Turnout (Aug 2024 primary)", url: "https://services6.arcgis.com/wkbq75VVf2MvUvs7/arcgis/rest/services/August_2024_Precincts_view/FeatureServer" },
       { label: "Polling places (Apr 2026)", url: "https://services6.arcgis.com/wkbq75VVf2MvUvs7/arcgis/rest/services/4_7_2026_Polling_Places/FeatureServer" },
     ],
-    note: "Live, but tagged to the OLD map (western county). New MO-02 = southern suburbs — re-derive against a 2026 precinct layer.",
+    note: "Scoped to the 2025 map (congress25); turnout = Aug 2024 primary joined by precinct (506/630 precincts matched).",
   },
   {
     county: "Jefferson County",
