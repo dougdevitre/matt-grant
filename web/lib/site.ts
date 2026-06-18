@@ -32,10 +32,10 @@ export const NAV = [
 export const SITE_URL = "https://mattgrantforcongress.org";
 
 // Media booking. Set NEXT_PUBLIC_MEDIA_BOOKING_URL to a Calendly/Cal.com/Zoom
-// scheduling link when one exists; until then the press kit falls back to a
-// prefilled email to the campaign.
+// link when one exists; until then this points at the in-app placeholder
+// scheduling page (/press/schedule), which falls back to a prefilled email.
 export const MEDIA = {
-  bookingUrl: process.env.NEXT_PUBLIC_MEDIA_BOOKING_URL ?? "",
+  bookingUrl: process.env.NEXT_PUBLIC_MEDIA_BOOKING_URL || "/press/schedule",
   email: "mattgrantforcongress@gmail.com",
 } as const;
 

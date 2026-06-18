@@ -20,6 +20,10 @@ CLERK_SECRET_KEY="sk_live_xxxxxxxx"
 CONGRESS_GOV_API_KEY="xxxxxxxx"               # https://api.congress.gov/sign-up/
 CRON_SECRET="$(openssl rand -hex 32)"          # or paste your own fixed value
 
+# --- press / media ---
+ANTHROPIC_API_KEY="sk-ant-xxxxxxxx"             # AI interview-topic generator; blank = curated fallback
+NEXT_PUBLIC_MEDIA_BOOKING_URL=""                # PLACEHOLDER: Calendly/Cal.com/Zoom link; blank = /press/schedule
+
 # --- public / non-secret config (String) ---
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_live_xxxxxxxx"
 DYNAMODB_TABLE="matt-grant"                    # DB is DynamoDB; creds come from the IAM role
@@ -42,6 +46,8 @@ echo "Loading parameters into SSM under $PREFIX ($REGION) ..."
 put CLERK_SECRET_KEY                  "$CLERK_SECRET_KEY"                  SecureString
 put CONGRESS_GOV_API_KEY              "$CONGRESS_GOV_API_KEY"              SecureString
 put CRON_SECRET                       "$CRON_SECRET"                       SecureString
+put ANTHROPIC_API_KEY                 "$ANTHROPIC_API_KEY"                 SecureString
+put NEXT_PUBLIC_MEDIA_BOOKING_URL     "$NEXT_PUBLIC_MEDIA_BOOKING_URL"     String
 put NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY "$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" String
 put DYNAMODB_TABLE                    "$DYNAMODB_TABLE"                    String
 put AWS_REGION                        "$AWS_REGION"                        String
