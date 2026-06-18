@@ -88,6 +88,13 @@ Use the adapted outreach letter in [letters/family-court-endorsement-letter.md](
 Track each target through mo-gov's 9-stage pipeline (Identified → Researched → Contacted → … →
 Committed) — its `outreach-pipeline.json` schema imports cleanly into Airtable.
 
+### Mailing kit (turnkey)
+- **Personalized letters:** [letters/tier1-senator-cover-letters.md](letters/tier1-senator-cover-letters.md) (12 ready to print)
+- **Enclosure:** [letters/child-protection-act-brief.md](letters/child-protection-act-brief.md) + branded PDF (`public/marketing/child-protection-act-brief.pdf`)
+- **Mail merge:** [letters/tier1-mailing.csv](letters/tier1-mailing.csv)
+- **Avery 5160 labels:** `public/print/tier1-mailing-labels.pdf` (print on Avery 5160 sheets)
+- Regenerate after roster edits: `node web/scripts/generate-tier-letters.mjs && node web/scripts/generate-mailing.mjs`
+
 ## Sources
 - `mo-gov` (github.com/dougdevitre/mo-gov): `senate-committees.md`, `mo-legislators.md`,
   `mo-committees.md` — seed data, "last verified April 2026."
