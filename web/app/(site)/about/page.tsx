@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { CAMPAIGN, PRIORITIES, VALUES } from "@/lib/site";
+import { CAMPAIGN, PRIORITIES, VALUES, ASSETS_CDN } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "About Matt / Issues",
@@ -97,6 +97,16 @@ export default function AboutPage() {
           <p className="mt-4 max-w-prose text-lg text-paper/75">
             Four priorities, each one concrete and accountable.
           </p>
+
+          <div className="relative mt-10 aspect-[16/9] w-full overflow-hidden rounded-lg bg-white ring-1 ring-paper/15">
+            <Image
+              src={`${ASSETS_CDN}/public/marketing/infographic.png`}
+              alt="The Four Fights — Matt Grant's platform at a glance"
+              fill
+              sizes="(max-width: 1024px) 100vw, 1100px"
+              className="object-contain"
+            />
+          </div>
 
           <div className="mt-12 space-y-px overflow-hidden rounded-lg bg-paper/10">
             {PRIORITIES.map((p) => (

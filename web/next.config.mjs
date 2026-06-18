@@ -12,6 +12,10 @@ const nextConfig = {
     // Lint is run separately; don't fail production builds on lint.
     ignoreDuringBuilds: true,
   },
+  images: {
+    // Allow next/image to optimize the public brand assets served from CloudFront.
+    remotePatterns: [{ protocol: "https", hostname: "d5jzyan9wboi3.cloudfront.net" }],
+  },
 };
 
 export default nextConfig;

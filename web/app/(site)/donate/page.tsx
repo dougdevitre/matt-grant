@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { CAMPAIGN } from "@/lib/site";
+import Image from "next/image";
+import { CAMPAIGN, ASSETS_CDN } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Donate",
@@ -17,13 +18,25 @@ function donateLink(amount?: number) {
 export default function DonatePage() {
   return (
     <section className="container-page py-16 sm:py-24">
-      <div className="mx-auto max-w-3xl text-center">
-        <p className="eyebrow text-brick">Chip in</p>
-        <h1 className="mt-3 text-4xl font-semibold sm:text-6xl">Fuel the final stretch.</h1>
-        <p className="mt-5 text-lg text-slate">
-          Every contribution pays for doors knocked, calls made, and neighbors reached before{" "}
-          {CAMPAIGN.electionLabel}. Donations are processed securely through WinRed.
-        </p>
+      <div className="grid items-center gap-10 lg:grid-cols-[1fr_0.9fr]">
+        <div>
+          <p className="eyebrow text-brick">Chip in</p>
+          <h1 className="mt-3 text-4xl font-semibold sm:text-6xl">Fuel the final stretch.</h1>
+          <p className="mt-5 max-w-prose text-lg text-slate">
+            Every contribution pays for doors knocked, calls made, and neighbors reached before{" "}
+            {CAMPAIGN.electionLabel}. Donations are processed securely through WinRed.
+          </p>
+        </div>
+        <div className="relative aspect-[3/2] w-full overflow-hidden rounded-lg border border-line shadow-card">
+          <Image
+            src={`${ASSETS_CDN}/public/marketing/flyers/mg-flyer-solutions-for-missouri-families.png`}
+            alt="Solutions for Missouri families"
+            fill
+            sizes="(max-width: 1024px) 100vw, 45vw"
+            className="object-cover"
+            priority
+          />
+        </div>
       </div>
 
       <div className="card mx-auto mt-12 max-w-2xl p-8 sm:p-10">

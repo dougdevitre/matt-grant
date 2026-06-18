@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Countdown } from "@/components/Countdown";
 import { Reveal } from "@/components/Reveal";
 import { HeroVideo } from "@/components/HeroVideo";
-import { CAMPAIGN, PRIORITIES, VALUES } from "@/lib/site";
+import { CAMPAIGN, PRIORITIES, VALUES, ASSETS_CDN } from "@/lib/site";
 
 export default function HomePage() {
   return (
@@ -101,6 +101,21 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* FOUR FIGHTS infographic */}
+      <section className="border-y border-line bg-paper">
+        <div className="container-page py-14 sm:py-16">
+          <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg border border-line bg-white shadow-card">
+            <Image
+              src={`${ASSETS_CDN}/public/marketing/infographic.png`}
+              alt="The Four Fights — Matt Grant's platform at a glance"
+              fill
+              sizes="(max-width: 1024px) 100vw, 1100px"
+              className="object-contain"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* MEET MATT band */}
       <section className="bg-ink text-paper">
         <div className="container-page grid gap-12 py-20 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
@@ -140,20 +155,31 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CLOSING CTA */}
-      <section className="container-page py-20 text-center sm:py-28">
-        <p className="eyebrow text-brick">Join the effort</p>
-        <h2 className="mx-auto mt-3 max-w-3xl text-4xl font-semibold sm:text-5xl">
-          This race is decided one neighbor at a time.
-        </h2>
-        <p className="mx-auto mt-4 max-w-xl text-lg text-slate">
-          Chip in, knock a door, or make a call. Every bit of help moves the clock in our favor.
-        </p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
-            Donate now
-          </a>
-          <Link href="/contact" className="btn-ink">Get involved</Link>
+      {/* CLOSING CTA — full-bleed district band */}
+      <section className="relative overflow-hidden bg-ink text-paper">
+        <Image
+          src={`${ASSETS_CDN}/public/web/st-louis-arch.png`}
+          alt=""
+          fill
+          sizes="100vw"
+          aria-hidden
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/85 to-ink/55" aria-hidden />
+        <div className="container-page relative py-24 text-center sm:py-32">
+          <p className="eyebrow text-gold">Join the effort</p>
+          <h2 className="mx-auto mt-3 max-w-3xl text-4xl font-semibold sm:text-5xl">
+            This race is decided one neighbor at a time.
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-lg text-paper/80">
+            Chip in, knock a door, or make a call. Every bit of help moves the clock in our favor.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
+              Donate now
+            </a>
+            <Link href="/contact" className="btn-gold">Get involved</Link>
+          </div>
         </div>
       </section>
     </>
