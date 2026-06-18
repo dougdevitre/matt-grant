@@ -95,12 +95,20 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
       // turnout feed), so it's a flat fill + outline, visually distinct from the
       // St. Louis turnout columns.
       m.addSource("jefferson", { type: "geojson", data: jeffersonRef.current });
+      // Shade by county turnout when present (lib/countyTurnout.ts), else flat.
+      const countyTurnoutColor: maplibregl.ExpressionSpecification = [
+        "case",
+        ["has", "turnoutPct"],
+        ["interpolate", ["linear"], ["get", "turnoutPct"], 10, "#d8d5cc", 20, "#E0A53B", 30, "#cf7a39", 40, "#B5343B"],
+        "#5b7d6f",
+      ];
+      const countyTurnoutOpacity: maplibregl.ExpressionSpecification = ["case", ["has", "turnoutPct"], 0.42, 0.18];
       m.addLayer({
         id: "jefferson-fill",
         source: "jefferson",
         type: "fill",
         layout: { visibility: showJefferson ? "visible" : "none" },
-        paint: { "fill-color": "#5b7d6f", "fill-opacity": 0.18 },
+        paint: { "fill-color": countyTurnoutColor, "fill-opacity": countyTurnoutOpacity },
       });
       m.addLayer({
         id: "jefferson-line",
@@ -112,10 +120,13 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
       m.on("click", "jefferson-fill", (e) => {
         const f = e.features?.[0];
         if (!f) return;
-        const pr = f.properties as { Precinct?: string };
+        const pr = f.properties as { Precinct?: string; turnoutPct?: number };
+        const note = pr.turnoutPct != null
+          ? `County turnout (Aug '24): <strong>${pr.turnoutPct}%</strong>`
+          : `<span style="color:#5b7d6f">boundary only — no turnout feed</span>`;
         new maplibregl.Popup({ closeButton: false, offset: 8 })
           .setLngLat(e.lngLat)
-          .setHTML(`<strong>Jefferson Co.</strong><br/>${pr.Precinct ?? "Precinct"}<br/><span style="color:#5b7d6f">boundary only — no turnout feed</span>`)
+          .setHTML(`<strong>Jefferson Co.</strong><br/>${pr.Precinct ?? "Precinct"}<br/>${note}`)
           .addTo(m);
       });
 
@@ -126,7 +137,10 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         source: "extra",
         type: "fill",
         layout: { visibility: showExtra ? "visible" : "none" },
-        paint: { "fill-color": "#7c6f8e", "fill-opacity": 0.16 },
+        paint: {
+          "fill-color": ["case", ["has", "turnoutPct"], ["interpolate", ["linear"], ["get", "turnoutPct"], 10, "#d8d5cc", 20, "#E0A53B", 30, "#cf7a39", 40, "#B5343B"], "#7c6f8e"],
+          "fill-opacity": ["case", ["has", "turnoutPct"], 0.42, 0.16],
+        },
       });
       m.addLayer({
         id: "extra-line",
@@ -138,10 +152,13 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
       m.on("click", "extra-fill", (e) => {
         const f = e.features?.[0];
         if (!f) return;
-        const pr = f.properties as { county?: string; NAME?: string };
+        const pr = f.properties as { county?: string; NAME?: string; turnoutPct?: number };
+        const note = pr.turnoutPct != null
+          ? `County turnout (Aug '24): <strong>${pr.turnoutPct}%</strong>`
+          : `<span style="color:#7c6f8e">Census VTD — no turnout feed</span>`;
         new maplibregl.Popup({ closeButton: false, offset: 8 })
           .setLngLat(e.lngLat)
-          .setHTML(`<strong>${pr.county ?? ""} Co.</strong><br/>${pr.NAME ?? ""}<br/><span style="color:#7c6f8e">Census VTD — no turnout feed</span>`)
+          .setHTML(`<strong>${pr.county ?? ""} Co.</strong><br/>${pr.NAME ?? ""}<br/>${note}`)
           .addTo(m);
       });
 

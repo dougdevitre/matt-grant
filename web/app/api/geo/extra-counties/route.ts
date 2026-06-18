@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { CENSUS_VTD } from "@/lib/geoSources";
+import { turnoutFor } from "@/lib/countyTurnout";
 
 // Census 2020 Voting Districts for the three MO-02 counties with no county GIS
 // feed (Washington, Crawford, Gasconade). Boundary-only — no turnout. All three
@@ -26,7 +27,8 @@ export async function GET() {
     const features = fc.features.map((f) => {
       const geoid = String((f.properties as { GEOID?: string })?.GEOID ?? "");
       const county = CENSUS_VTD.counties[geoid.slice(0, 5)] ?? "";
-      return { ...f, properties: { ...f.properties, county } };
+      const t = turnoutFor(county);
+      return { ...f, properties: { ...f.properties, county, ...(t != null ? { turnoutPct: t } : {}) } };
     });
     return NextResponse.json(
       { type: "FeatureCollection", features, meta: { live: true, count: features.length, counties: Object.values(CENSUS_VTD.counties) } },

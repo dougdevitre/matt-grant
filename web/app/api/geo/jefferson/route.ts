@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { JEFFERSON } from "@/lib/geoSources";
+import { turnoutFor } from "@/lib/countyTurnout";
 
 // Jefferson County precinct polygons (boundary-only; no turnout feed). The whole
 // county is in the 2025-map MO-02, so no district clip is needed.
@@ -24,8 +25,13 @@ export async function GET() {
     if (!res.ok) throw new Error(String(res.status));
     const fc = (await res.json()) as GeoJSON.FeatureCollection;
     if (!fc?.features?.length) throw new Error("empty");
+    const t = turnoutFor("Jefferson");
+    const features = fc.features.map((f) => ({
+      ...f,
+      properties: { ...f.properties, county: "Jefferson", ...(t != null ? { turnoutPct: t } : {}) },
+    }));
     return NextResponse.json(
-      { type: "FeatureCollection", features: fc.features, meta: { live: true, count: fc.features.length, county: "Jefferson" } },
+      { type: "FeatureCollection", features, meta: { live: true, count: features.length, county: "Jefferson", turnout: t } },
       { headers: { "cache-control": "public, s-maxage=86400, stale-while-revalidate=43200" } },
     );
   } catch {
