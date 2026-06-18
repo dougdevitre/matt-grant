@@ -10,7 +10,7 @@ const POSITIONS = ["", "Yea", "Nay", "Present", "Not Voting"];
 const posColor: Record<string, string> = {
   Yea: "text-field",
   Nay: "text-brick",
-  Present: "text-[#8a6010]",
+  Present: "text-[#1d4ed8]",
   "Not Voting": "text-slate",
 };
 

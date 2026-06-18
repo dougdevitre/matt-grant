@@ -3,7 +3,7 @@ import { MO02_COUNTIES, RESOLUTION_LABEL, STATUS_LABEL, type Status } from "@/li
 const statusStyle: Record<Status, string> = {
   live: "bg-field/15 text-field",
   "live-old-map": "bg-brick/12 text-brick",
-  available: "bg-gold/20 text-[#8a6010]",
+  available: "bg-gold/20 text-[#1d4ed8]",
   "needs-source": "bg-line text-slate",
 };
 

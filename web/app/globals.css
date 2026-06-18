@@ -25,8 +25,8 @@
   }
 
   ::selection {
-    background: #E0A53B;
-    color: #0F2540;
+    background: #B5343B;
+    color: #ffffff;
   }
 
   :focus-visible {
@@ -53,7 +53,7 @@
   }
 
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-sm px-5 py-3 font-sans text-sm font-bold uppercase tracking-wide transition-colors duration-150;
+    @apply inline-flex items-center justify-center gap-2 rounded-sm px-5 py-3 font-sans text-sm font-bold uppercase tracking-wide transition-[background-color,transform,border-color] duration-150 active:translate-y-px motion-reduce:active:translate-y-0;
   }
   .btn-primary {
     @apply btn bg-brick text-paper hover:bg-[#9c2a30];

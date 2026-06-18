@@ -40,6 +40,11 @@ export const LEGAL = [
   { href: "/public-trust", label: "Restoring Public Trust" },
 ] as const;
 
+// Official Missouri voter lookup (registration status, polling place, sample
+// ballot). Always link voters to this authoritative source rather than restating
+// registration deadlines or ID rules, which change and are the county/SOS's to state.
+export const VOTER_LOOKUP = "https://www.sos.mo.gov/elections/govotemissouri/lookup";
+
 // Media booking. Set NEXT_PUBLIC_MEDIA_BOOKING_URL to a Calendly/Cal.com/Zoom
 // link when one exists; until then this points at the in-app placeholder
 // scheduling page (/press/schedule), which falls back to a prefilled email.

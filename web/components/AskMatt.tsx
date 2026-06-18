@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CAMPAIGN, SITE_URL, ASSETS_CDN } from "@/lib/site";
+import { CAMPAIGN, SITE_URL, ASSETS_CDN, VOTER_LOOKUP } from "@/lib/site";
 
 // "Ask Matt" — a GOTV companion on every public page. Embodies Matt's
 // "don't just talk, take action" philosophy: schedule your vote, bring three
 // voters, and multiply. No fabricated facts — just the verified date + official
 // MO voter lookup + share tools.
 
-const POLLING_LOOKUP = "https://www.sos.mo.gov/elections/govotemissouri/lookup";
+const POLLING_LOOKUP = VOTER_LOOKUP;
 const AVATAR = `${ASSETS_CDN}/public/brand/avatar-circle.png`;
 
 const ICS = [

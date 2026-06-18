@@ -91,7 +91,18 @@ export function AgendaBuilder() {
                   <li key={i} className="flex items-start gap-3">
                     <span className="mt-0.5 inline-block h-4 w-4 shrink-0 rounded-[3px] border-2 border-slate" aria-hidden />
                     <span className="text-sm text-ink">
-                      {it.text}
+                      {it.href ? (
+                        <a
+                          href={it.href}
+                          target={it.href.startsWith("http") ? "_blank" : undefined}
+                          rel={it.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                          className="underline decoration-line underline-offset-2 hover:text-brick"
+                        >
+                          {it.text}
+                        </a>
+                      ) : (
+                        it.text
+                      )}
                       <span className="ml-2 rounded-sm bg-paper px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate">{it.tag}</span>
                     </span>
                   </li>

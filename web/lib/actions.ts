@@ -3,6 +3,7 @@
 // branded action items by the supporter's area and the issue they back, all
 // oriented toward awareness and turnout for the August 4 primary.
 import { ISSUES, getIssue } from "@/lib/issues";
+import { VOTER_LOOKUP } from "@/lib/site";
 
 export type Cadence = "daily" | "weekly";
 export type ActionItem = { text: string; tag: string; href?: string };
@@ -27,9 +28,9 @@ function fill(t: string, ctx: { area: string; issue: string; tag: string; n: num
 
 // Themed building blocks; each day pulls a couple. Faithful to the platform —
 // no fabricated facts, just organizing actions toward the vote.
-const READY: string[] = [
-  "Confirm you're registered and know your polling place for August 4.",
-  "Add the primary — August 4, 2026 — to your calendar with a reminder.",
+const READY: ActionItem[] = [
+  { text: "Confirm you're registered and know your polling place for August 4.", tag: "Be ready", href: VOTER_LOOKUP },
+  { text: "Add the primary — August 4, 2026 — to your calendar with a reminder.", tag: "Be ready" },
 ];
 const LEARN = (slug: string): ActionItem[] => [
   { text: "Read Matt's argument on {issue} so you can speak to it.", tag: "Learn", href: `/issues/${slug}` },
@@ -79,7 +80,7 @@ export function buildAgenda(areaInput: string, issueSlug: string, cadence: Caden
         {
           label: "Today", theme: `Move the needle on ${issue.eyebrow.toLowerCase()}`,
           items: [
-            F(pick(READY, k), "Be ready"),
+            FI(pick(READY, k)),
             FI(pick(LEARN(issue.slug), k)),
             FI(pick(SHARE, k)),
             F(pick(TALK, k), "Talk"),
@@ -92,7 +93,7 @@ export function buildAgenda(areaInput: string, issueSlug: string, cadence: Caden
 
   // weekly: a 7-day arc toward the vote
   const days: AgendaDay[] = [
-    { label: "Day 1", theme: "Get ready", items: [F(READY[0], "Be ready"), F(READY[1], "Be ready")] },
+    { label: "Day 1", theme: "Get ready", items: [FI(READY[0]), FI(READY[1])] },
     { label: "Day 2", theme: `Learn ${issue.eyebrow}`, items: LEARN(issue.slug).map(FI) },
     { label: "Day 3", theme: "Share the message", items: [FI(SHARE[0]), FI(SHARE[1])] },
     { label: "Day 4", theme: "Start conversations", items: [F(TALK[0], "Talk"), F(TALK[2], "Talk")] },

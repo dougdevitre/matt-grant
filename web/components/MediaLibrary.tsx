@@ -13,11 +13,11 @@ const pillarColor: Record<Pillar, string> = {
   "Children First": "bg-brick/12 text-brick",
   "Term Limits": "bg-field/15 text-field",
   "Smaller Government": "bg-ink/10 text-ink",
-  "Lower Taxes": "bg-gold/20 text-[#8a6010]",
+  "Lower Taxes": "bg-gold/20 text-[#1d4ed8]",
   "Bio & Values": "bg-field/12 text-field",
   Contrast: "bg-brick/12 text-brick",
   GOTV: "bg-brick/15 text-brick",
-  Coalition: "bg-gold/20 text-[#8a6010]",
+  Coalition: "bg-gold/20 text-[#1d4ed8]",
   "Faith & Community": "bg-field/12 text-field",
 };
 
