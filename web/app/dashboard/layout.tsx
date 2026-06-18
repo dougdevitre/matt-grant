@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Countdown } from "@/components/Countdown";
 import { DashSidebar } from "@/components/dashboard/DashSidebar";
-import { clerkEnabled } from "@/lib/auth";
+import { clerkEnabled, staffGate } from "@/lib/auth";
 import { CAMPAIGN } from "@/lib/site";
 
 // Dashboard pages read live data; never statically prerender them.
@@ -15,6 +16,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
     </span>
   );
   if (clerkEnabled) {
+    // Backstop: only allowlisted staff emails get in, even if Clerk sign-ups are open.
+    const { ok } = await staffGate();
+    if (!ok) redirect("/?staff=denied");
     const { UserButton } = await import("@clerk/nextjs");
     AuthControl = <UserButton afterSignOutUrl="/" />;
   }

@@ -32,6 +32,7 @@ WALGREENS_ENV="sandbox"                         # "sandbox" | "production"
 
 # --- public / non-secret config (String) ---
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_live_xxxxxxxx"
+DASHBOARD_ALLOWLIST="you@example.com"          # comma-separated staff emails allowed into the dashboard
 DYNAMODB_TABLE="matt-grant"                    # DB is DynamoDB; creds come from the IAM role
 AWS_REGION="us-east-1"
 S3_ASSETS_BUCKET="matt-grant-for-congress" # from the create-bucket step
@@ -59,6 +60,7 @@ put WALGREENS_AFF_ID                  "$WALGREENS_AFF_ID"                  Secur
 put WALGREENS_PUBLISHER_ID            "$WALGREENS_PUBLISHER_ID"            String
 put WALGREENS_ENV                     "$WALGREENS_ENV"                     String
 put NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY "$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" String
+put DASHBOARD_ALLOWLIST               "$DASHBOARD_ALLOWLIST"               String
 put DYNAMODB_TABLE                    "$DYNAMODB_TABLE"                    String
 put AWS_REGION                        "$AWS_REGION"                        String
 put S3_ASSETS_BUCKET                  "$S3_ASSETS_BUCKET"                  String

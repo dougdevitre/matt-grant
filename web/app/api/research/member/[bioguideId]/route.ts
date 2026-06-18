@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { getMember } from "@/lib/integrations/legislative/store";
+import { staffGate } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ bioguideId: string }> }) {
+  if (!(await staffGate()).ok) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { bioguideId } = await params;
   try {
     const member = await getMember(bioguideId);

@@ -15,7 +15,17 @@ const clerkEnabled =
 // Escape hatch: set ALLOW_OPEN_DASHBOARD=true to intentionally show an open demo.
 export default clerkEnabled
   ? clerkMiddleware(async (auth, req) => {
-      if (isProtectedRoute(req)) await auth.protect();
+      if (!isProtectedRoute(req)) return;
+      const { userId } = await auth();
+      if (userId) return; // signed in — proceed (allowlist enforced in the dashboard layout + API routes)
+      // Signed out: redirect pages to sign-in; answer APIs with 401. (Explicit
+      // redirect avoids the Clerk dev-instance protect-rewrite returning a 404.)
+      if (req.nextUrl.pathname.startsWith("/api/")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      const signIn = new URL("/sign-in", req.url);
+      signIn.searchParams.set("redirect_url", req.nextUrl.pathname + req.nextUrl.search);
+      return NextResponse.redirect(signIn);
     })
   : (req: NextRequest) => {
       const isProd = process.env.NODE_ENV === "production";

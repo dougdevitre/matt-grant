@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { uploadObject, keyFor, publicUrl, s3Configured, type Visibility } from "@/lib/s3";
+import { staffGate } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  if (!(await staffGate()).ok) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!s3Configured) return NextResponse.json({ error: "S3 not configured (set S3_ASSETS_BUCKET)" }, { status: 503 });
   const form = await req.formData();
   const file = form.get("file");
