@@ -33,6 +33,30 @@ export async function presignedGet(key: string, expiresIn = 900): Promise<string
 
 export type AssetItem = { key: string; size: number; lastModified: string; visibility: Visibility; url: string };
 
+export type PhotoItem = { key: string; name: string; url: string; size: number; lastModified: string };
+export const PHOTO_CATEGORIES = ["candidate", "family", "events", "district", "broll"] as const;
+
+// Private photo library, grouped by category, each with a short-lived signed URL.
+export async function listPhotos(): Promise<{ category: string; items: PhotoItem[] }[]> {
+  const groups: { category: string; items: PhotoItem[] }[] = [];
+  for (const category of PHOTO_CATEGORIES) {
+    const res = await s3.send(new ListObjectsV2Command({ Bucket: BUCKET, Prefix: `private/photos/${category}/`, MaxKeys: 500 }));
+    const items: PhotoItem[] = [];
+    for (const o of res.Contents ?? []) {
+      if (!o.Key || !/\.(jpe?g|png|webp|heic|tiff?)$/i.test(o.Key)) continue;
+      items.push({
+        key: o.Key,
+        name: o.Key.split("/").pop() ?? o.Key,
+        url: await presignedGet(o.Key),
+        size: o.Size ?? 0,
+        lastModified: o.LastModified?.toISOString() ?? "",
+      });
+    }
+    groups.push({ category, items });
+  }
+  return groups;
+}
+
 export async function listAssets(): Promise<AssetItem[]> {
   const out: AssetItem[] = [];
   for (const visibility of ["public", "private"] as Visibility[]) {
