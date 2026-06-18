@@ -1,0 +1,22 @@
+# AWS Amplify Hosting build spec (Next.js SSR). Monorepo: app lives in web/.
+# Amplify auto-detects Next.js and runs it as a managed SSR compute (Lambda).
+version: 1
+applications:
+  - appRoot: web
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci
+        build:
+          commands:
+            - npx prisma generate
+            - npm run build
+      artifacts:
+        baseDirectory: .next
+        files:
+          - "**/*"
+      cache:
+        paths:
+          - node_modules/**/*
+          - .next/cache/**/*
