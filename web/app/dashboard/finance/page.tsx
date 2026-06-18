@@ -1,7 +1,9 @@
+import { redirect } from "next/navigation";
 import { getFinance } from "@/lib/queries";
 import { dollars } from "@/lib/money";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { addExpenditure } from "@/app/dashboard/actions";
+import { staffGate } from "@/lib/auth";
 
 const input = "rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink focus:border-field";
 const CATS = ["Media", "Field", "Fundraising", "Compliance", "Operations", "Travel"];
@@ -25,6 +27,7 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
 }
 
 export default async function FinancePage() {
+  if ((await staffGate()).role !== "admin") redirect("/dashboard?denied=finance");
   const f = await getFinance();
   const cash = f.raisedCents - f.spentCents;
   const max = Math.max(1, ...f.byCategory.map((c) => c.cents));

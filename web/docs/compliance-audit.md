@@ -4,6 +4,19 @@
 
 > Educational information, not legal advice. Confirm each finding with a campaign-finance attorney before filing or publishing.
 
+## Remediation log
+
+| Date | Finding(s) | What changed |
+|---|---|---|
+| 2026-06-18 | X-1, X-2, X-3, P-4 | Published `/data-policy`, `/transparency`, `/public-trust` pages (shared `components/PolicyPage.tsx`); added a "Legal & transparency" footer column (`lib/site.ts` `LEGAL`, `SiteFooter.tsx`); added routes to `sitemap.ts`. |
+| 2026-06-18 | P-1, P-2 | Donate page now carries the contributor-eligibility / prohibited-source statement and discloses that >$200 contributions are reported to and published by the FEC, linked to the Data Policy. |
+| 2026-06-18 | P-3 | Contact form now shows a data-use notice (purpose, never-sold), update + STOP consent language, and a Data Policy link. |
+| 2026-06-18 | E-1 (partial) | Hardened `lib/email/send.ts`: per-recipient token substitution + a guard that **refuses to send** if any `{{merge_token}}` remains unfilled (prevents a dead unsubscribe link). **Still open:** no broadcast/list send path or opt-out suppression store exists yet — when one is built, it must pass real `unsubscribe`/`preferences` URLs via `tokens` and record + honor opt-outs. No live broken-unsubscribe today because no mass-send path is wired. |
+| 2026-06-18 | D-2 | Verified the 2025–26 FEC individual limit ($3,500/election) against fec.gov and added a verified-on stamp + re-verify note in `lib/money.ts`. |
+| 2026-06-18 | P-8 | Added the "Paid for by" disclaimer to the dashboard Studio graphics generator (`app/api/graphics/route.tsx`) — those images are downloaded and posted as standalone public communications. (The script-based `generate-social-graphics.mjs` already carried it.) **Recommend a visual QA** of the wide formats (x_header, web_banner) to confirm the line fits. |
+
+*Remaining open items: E-1 suppression store (above), P-5 voter-info sourcing, P-6 print data flow, P-7 accessibility pass, P-8 disclaimer on embedded/OG surfaces, D-1 data-retention posture, D-2 FEC limit verified-on stamp, X-5 verified-on discipline.*
+
 ## How to read this
 
 Severity reflects legal + reputational risk for a **federal** campaign:

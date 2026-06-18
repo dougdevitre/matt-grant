@@ -1,12 +1,15 @@
+import { redirect } from "next/navigation";
 import { PageHeader, HowTo } from "@/components/dashboard/Notice";
 import { InviteForm } from "@/components/dashboard/InviteForm";
-import { STAFF_ALLOWLIST } from "@/lib/auth";
+import { STAFF_ALLOWLIST, staffGate } from "@/lib/auth";
 import { listStaff } from "@/lib/staff";
 import { revokeStaff } from "./actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function TeamPage() {
+  const { role } = await staffGate();
+  if (role !== "admin") redirect("/dashboard?denied=team");
   const invited = (await listStaff()).filter((s) => s.status === "active");
 
   return (
@@ -45,6 +48,7 @@ export default async function TeamPage() {
                   <span className="text-ink">{s.name ? `${s.name} · ` : ""}{s.email}</span>
                   {s.invitedBy && <span className="block text-[0.65rem] text-slate">invited by {s.invitedBy}</span>}
                 </span>
+                <span className={`shrink-0 rounded-sm px-2 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow ${s.role === "admin" ? "bg-brick/10 text-brick" : "bg-field/10 text-field"}`}>{s.role}</span>
                 <form action={revokeStaff}>
                   <input type="hidden" name="email" value={s.email} />
                   <button type="submit" className="rounded-sm border border-line px-2.5 py-1 text-xs text-brick hover:border-brick">Remove</button>

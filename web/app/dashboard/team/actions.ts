@@ -9,20 +9,22 @@ import { SITE_URL } from "@/lib/site";
 
 export type InviteResult = { ok: boolean; message: string };
 
-async function guard(): Promise<string | null> {
+// Only admins may manage team access.
+async function guardAdmin(): Promise<string | null> {
   const g = await staffGate();
-  if (!g.ok) throw new Error("Forbidden");
+  if (!g.ok || g.role !== "admin") throw new Error("Forbidden");
   return g.email;
 }
 
 export async function inviteStaff(_prev: InviteResult | null, formData: FormData): Promise<InviteResult> {
-  const inviter = await guard();
+  const inviter = await guardAdmin();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const name = String(formData.get("name") ?? "").trim();
+  const role = String(formData.get("role") ?? "organizer") === "admin" ? "admin" : "organizer";
   if (!email || !email.includes("@")) return { ok: false, message: "Enter a valid email address." };
 
   try {
-    await addStaff(email, name || undefined, inviter || undefined);
+    await addStaff(email, name || undefined, role, inviter || undefined);
   } catch {
     return { ok: false, message: "Couldn't save the invite. Check the database connection." };
   }
@@ -52,7 +54,7 @@ export async function inviteStaff(_prev: InviteResult | null, formData: FormData
 }
 
 export async function revokeStaff(formData: FormData): Promise<void> {
-  await guard();
+  await guardAdmin();
   const email = String(formData.get("email") ?? "");
   if (email) {
     await removeStaff(email);

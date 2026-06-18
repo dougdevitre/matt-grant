@@ -18,7 +18,8 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
   );
 }
 
-export default async function OverviewPage() {
+export default async function OverviewPage({ searchParams }: { searchParams: Promise<{ denied?: string }> }) {
+  const { denied } = await searchParams;
   const o = await getOverview();
 
   if (!o.connected) {
@@ -44,6 +45,12 @@ export default async function OverviewPage() {
   return (
     <>
       <PageHeader kicker="Campaign manager" title="Overview" />
+
+      {denied && (
+        <div className="mb-6 rounded-sm border border-brick/40 bg-brick/10 px-4 py-3 text-sm text-brick">
+          That section ({denied}) is admin-only. Ask an admin for access if you need it.
+        </div>
+      )}
 
       <OnboardingChecklist hasData={o.donorCount > 0 || o.volunteerTotal > 0} teamInvited={teamInvited} />
 

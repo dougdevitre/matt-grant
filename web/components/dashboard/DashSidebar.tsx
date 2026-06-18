@@ -6,9 +6,9 @@ import { DashIcon } from "./DashIcon";
 
 const ITEMS = [
   { href: "/dashboard", label: "Overview", icon: "overview" },
-  { href: "/dashboard/donors", label: "Donors", icon: "donors" },
-  { href: "/dashboard/finance", label: "Finance", icon: "finance" },
-  { href: "/dashboard/compliance", label: "Compliance", icon: "compliance" },
+  { href: "/dashboard/donors", label: "Donors", icon: "donors", admin: true },
+  { href: "/dashboard/finance", label: "Finance", icon: "finance", admin: true },
+  { href: "/dashboard/compliance", label: "Compliance", icon: "compliance", admin: true },
   { href: "/dashboard/map", label: "3D field map", icon: "map" },
   { href: "/dashboard/targets", label: "Precinct targets", icon: "targets" },
   { href: "/dashboard/studio", label: "Graphics studio", icon: "studio" },
@@ -18,14 +18,14 @@ const ITEMS = [
   { href: "/dashboard/tasks", label: "Task board", icon: "tasks" },
   { href: "/dashboard/research", label: "Opp. research", icon: "research" },
   { href: "/dashboard/plan", label: "Strategic plan", icon: "plan" },
-  { href: "/dashboard/team", label: "Team & access", icon: "team" },
+  { href: "/dashboard/team", label: "Team & access", icon: "team", admin: true },
 ];
 
-export function DashSidebar() {
+export function DashSidebar({ isAdmin = true }: { isAdmin?: boolean }) {
   const pathname = usePathname();
   return (
     <nav className="flex gap-1 overflow-x-auto p-3 md:flex-col md:gap-0.5 md:overflow-visible md:p-4">
-      {ITEMS.map((item) => {
+      {ITEMS.filter((item) => isAdmin || !item.admin).map((item) => {
         const active = item.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.href);
         return (
           <Link

@@ -23,14 +23,20 @@ export function emailAllowed(email?: string | null): boolean {
 // Server-only. Resolves the signed-in user's primary email and the allowlist
 // verdict. In demo mode (no Clerk) it's a no-op pass. Callers should already be
 // behind middleware auth.protect(), so currentUser() is present when Clerk is on.
-export async function staffGate(): Promise<{ ok: boolean; email: string | null }> {
-  if (!clerkEnabled) return { ok: true, email: null };
+import type { StaffRole } from "@/lib/staff";
+
+export type Gate = { ok: boolean; email: string | null; role: StaffRole | null };
+
+// Env-allowlisted users and (in dev, no Clerk) are full admins; DB-invited
+// members carry their assigned role.
+export async function staffGate(): Promise<Gate> {
+  if (!clerkEnabled) return { ok: true, email: null, role: "admin" };
   const { currentUser } = await import("@clerk/nextjs/server");
   const user = await currentUser();
   const email =
     user?.primaryEmailAddress?.emailAddress ?? user?.emailAddresses?.[0]?.emailAddress ?? null;
-  // Allowed if in the env allowlist OR invited via the DynamoDB staff list.
-  if (emailAllowed(email)) return { ok: true, email };
-  const { isStaffEmail } = await import("@/lib/staff");
-  return { ok: await isStaffEmail(email), email };
+  if (emailAllowed(email)) return { ok: true, email, role: "admin" };
+  const { staffRole } = await import("@/lib/staff");
+  const role = await staffRole(email);
+  return { ok: !!role, email, role };
 }

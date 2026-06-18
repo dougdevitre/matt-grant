@@ -1,11 +1,14 @@
+import { redirect } from "next/navigation";
 import { getDonors } from "@/lib/queries";
 import { dollars, FEC_INDIVIDUAL_PER_ELECTION_CENTS } from "@/lib/money";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { addDonor } from "@/app/dashboard/actions";
+import { staffGate } from "@/lib/auth";
 
 const input = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink focus:border-field";
 
 export default async function DonorsPage() {
+  if ((await staffGate()).role !== "admin") redirect("/dashboard?denied=donors");
   const { connected, rows } = await getDonors();
   const total = rows.reduce((s, r) => s + r.totalCents, 0);
 

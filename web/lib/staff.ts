@@ -4,33 +4,37 @@
 import { PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, dbConfigured } from "@/lib/db";
 
-export type StaffMember = { email: string; name?: string; invitedBy?: string; status: "active" | "removed"; createdAt: string };
+export type StaffRole = "admin" | "organizer";
+export type StaffMember = { email: string; name?: string; role: StaffRole; invitedBy?: string; status: "active" | "removed"; createdAt: string };
 const norm = (e: string) => e.trim().toLowerCase();
 
 export async function listStaff(): Promise<StaffMember[]> {
   if (!dbConfigured) return [];
   const r = await ddb.send(new QueryCommand({ TableName: TABLE, KeyConditionExpression: "PK = :p", ExpressionAttributeValues: { ":p": PK.staff } }));
-  return (r.Items ?? []).map((i) => ({ email: String(i.SK), name: i.name, invitedBy: i.invitedBy, status: i.status ?? "active", createdAt: i.createdAt })) as StaffMember[];
+  return (r.Items ?? []).map((i) => ({ email: String(i.SK), name: i.name, role: (i.role as StaffRole) ?? "organizer", invitedBy: i.invitedBy, status: i.status ?? "active", createdAt: i.createdAt })) as StaffMember[];
 }
 
-export async function isStaffEmail(email?: string | null): Promise<boolean> {
-  if (!dbConfigured || !email) return false;
+// Returns the active member's role, or null if not an invited staffer.
+export async function staffRole(email?: string | null): Promise<StaffRole | null> {
+  if (!dbConfigured || !email) return null;
   try {
     const r = await ddb.send(new QueryCommand({
       TableName: TABLE,
       KeyConditionExpression: "PK = :p AND SK = :e",
       ExpressionAttributeValues: { ":p": PK.staff, ":e": norm(email) },
     }));
-    return !!r.Items?.length && r.Items[0].status !== "removed";
+    const row = r.Items?.[0];
+    if (!row || row.status === "removed") return null;
+    return (row.role as StaffRole) ?? "organizer";
   } catch {
-    return false;
+    return null;
   }
 }
 
-export async function addStaff(email: string, name: string | undefined, invitedBy: string | undefined): Promise<void> {
+export async function addStaff(email: string, name: string | undefined, role: StaffRole, invitedBy: string | undefined): Promise<void> {
   await ddb.send(new PutCommand({
     TableName: TABLE,
-    Item: { PK: PK.staff, SK: norm(email), name: name || undefined, invitedBy: invitedBy || undefined, status: "active", createdAt: new Date().toISOString() },
+    Item: { PK: PK.staff, SK: norm(email), name: name || undefined, role, invitedBy: invitedBy || undefined, status: "active", createdAt: new Date().toISOString() },
   }));
 }
 

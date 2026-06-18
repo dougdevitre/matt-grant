@@ -11,11 +11,18 @@ export function InviteForm() {
     <form action={action} className="card p-6">
       <p className="eyebrow text-brick">Invite a teammate</p>
       <p className="mt-1 text-sm text-slate">They'll be able to sign in immediately — no redeploy. We'll email them a link.</p>
-      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1.4fr_auto]">
+      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1.4fr_auto_auto]">
         <input name="name" placeholder="Name (optional)" className={field} />
         <input name="email" type="email" required placeholder="teammate@email.com" className={field} />
+        <select name="role" defaultValue="organizer" className={field} title="Access level">
+          <option value="organizer">Organizer</option>
+          <option value="admin">Admin</option>
+        </select>
         <button type="submit" disabled={pending} className="btn-primary disabled:opacity-60">{pending ? "Inviting…" : "Send invite"}</button>
       </div>
+      <p className="mt-2 text-xs text-slate">
+        <strong>Organizers</strong> get field, volunteers, tasks, and graphics. <strong>Admins</strong> also see donors, finance, and compliance.
+      </p>
       {state && (
         <p className={`mt-3 rounded-sm border px-3 py-2 text-sm ${state.ok ? "border-field/40 bg-field/10 text-field" : "border-brick/40 bg-brick/10 text-brick"}`}>
           {state.message}

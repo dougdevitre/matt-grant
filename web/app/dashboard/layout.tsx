@@ -16,13 +16,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
       Demo mode
     </span>
   );
+  // Backstop: only allowlisted/invited staff get in; role drives what they see.
+  const { ok, role } = await staffGate();
   if (clerkEnabled) {
-    // Backstop: only allowlisted staff emails get in, even if Clerk sign-ups are open.
-    const { ok } = await staffGate();
     if (!ok) redirect("/?staff=denied");
     const { UserButton } = await import("@clerk/nextjs");
     AuthControl = <UserButton afterSignOutUrl="/" />;
   }
+  const isAdmin = role === "admin";
 
   return (
     <div className="min-h-screen bg-paper md:grid md:grid-cols-[260px_1fr]">
@@ -44,7 +45,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             </p>
           </div>
         </div>
-        <DashSidebar />
+        <DashSidebar isAdmin={isAdmin} />
         <div className="hidden border-t border-paper/10 px-5 py-5 md:block">
           <p className="eyebrow text-paper/50">Days to election</p>
           <div className="mt-3">

@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { CAMPAIGN } from "@/lib/site";
 
 // Server-side campaign-graphic generator. Composites Matt's photo + custom copy
 // into branded social/print formats. Reads the processed avatar from /public.
@@ -88,8 +89,12 @@ export async function GET(req: Request) {
             {textBlock}
           </>
         )}
-        <div style={{ display: "flex", position: "absolute", bottom: Math.round(h * 0.05), left: Math.round(w * 0.07), color: theme.muted, fontSize: Math.round(headSize * 0.3) }}>
-          mattgrantforcongress.org · Aug 4, 2026
+        {/* Required FEC disclaimer — these graphics are downloaded and posted as
+            standalone public communications, so the "Paid for by" line must appear
+            on the image itself (not just the site footer). Wide formats keep it to a
+            single line (no domain) so it never clips against the short bottom margin. */}
+        <div style={{ display: "flex", position: "absolute", bottom: Math.round(h * 0.05), left: Math.round(w * 0.07), maxWidth: wide ? "60%" : "86%", color: theme.muted, fontSize: Math.round(headSize * 0.3), lineHeight: 1.2 }}>
+          {wide ? CAMPAIGN.paidForBy : `${CAMPAIGN.paidForBy} · mattgrantforcongress.org`}
         </div>
       </div>
     ),
