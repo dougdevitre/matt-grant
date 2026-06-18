@@ -24,6 +24,12 @@ CRON_SECRET="$(openssl rand -hex 32)"          # or paste your own fixed value
 ANTHROPIC_API_KEY="sk-ant-xxxxxxxx"             # AI interview-topic generator; blank = curated fallback
 NEXT_PUBLIC_MEDIA_BOOKING_URL=""                # PLACEHOLDER: Calendly/Cal.com/Zoom link; blank = /press/schedule
 
+# --- Walgreens Native Photo Prints (sandbox until approved) ---
+WALGREENS_API_KEY="sandbox-xxxxxxxx"            # https://developer.walgreens.com
+WALGREENS_AFF_ID="xxxxxxxxxx"
+WALGREENS_PUBLISHER_ID=""                       # optional revenue-share id; blank for the campaign
+WALGREENS_ENV="sandbox"                         # "sandbox" | "production"
+
 # --- public / non-secret config (String) ---
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_live_xxxxxxxx"
 DYNAMODB_TABLE="matt-grant"                    # DB is DynamoDB; creds come from the IAM role
@@ -48,6 +54,10 @@ put CONGRESS_GOV_API_KEY              "$CONGRESS_GOV_API_KEY"              Secur
 put CRON_SECRET                       "$CRON_SECRET"                       SecureString
 put ANTHROPIC_API_KEY                 "$ANTHROPIC_API_KEY"                 SecureString
 put NEXT_PUBLIC_MEDIA_BOOKING_URL     "$NEXT_PUBLIC_MEDIA_BOOKING_URL"     String
+put WALGREENS_API_KEY                 "$WALGREENS_API_KEY"                 SecureString
+put WALGREENS_AFF_ID                  "$WALGREENS_AFF_ID"                  SecureString
+put WALGREENS_PUBLISHER_ID            "$WALGREENS_PUBLISHER_ID"            String
+put WALGREENS_ENV                     "$WALGREENS_ENV"                     String
 put NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY "$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" String
 put DYNAMODB_TABLE                    "$DYNAMODB_TABLE"                    String
 put AWS_REGION                        "$AWS_REGION"                        String

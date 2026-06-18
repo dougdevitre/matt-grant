@@ -114,6 +114,18 @@ export function MediaLibrary() {
         </div>
       </section>
 
+      {/* Print at Walgreens */}
+      <a
+        href="/print"
+        className="card mb-8 flex flex-col items-start justify-between gap-3 p-6 transition-colors hover:border-ink sm:flex-row sm:items-center"
+      >
+        <div>
+          <p className="eyebrow text-brick">New — print at your Walgreens</p>
+          <p className="mt-1 text-sm text-slate">Pick a design and a size, pick it up the same day at a store near you.</p>
+        </div>
+        <span className="btn-ink whitespace-nowrap">Open the print studio →</span>
+      </a>
+
       {/* Video */}
       <section className="card mb-8 p-6">
         <p className="eyebrow text-slate">Video</p>
