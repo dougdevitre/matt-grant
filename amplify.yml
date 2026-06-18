@@ -8,6 +8,21 @@ applications:
         preBuild:
           commands:
             - npm ci
+            # Amplify injects app env vars into the BUILD env but not the SSR
+            # runtime. Materialize the server-side vars into .env.production so
+            # the Next.js server (and middleware) can read them at runtime.
+            - |
+              for k in WALGREENS_API_KEY WALGREENS_AFF_ID WALGREENS_PUBLISHER_ID WALGREENS_ENV \
+                       DYNAMODB_TABLE AWS_REGION S3_ASSETS_BUCKET ASSETS_CDN_URL \
+                       CONGRESS_GOV_API_KEY CRON_SECRET ANTHROPIC_API_KEY ANTHROPIC_MODEL \
+                       RESEARCH_BIOGUIDE_ID RESEARCH_VOTE_YEAR RESEARCH_FROM_ROLL RESEARCH_TO_ROLL \
+                       NEXT_PUBLIC_MEDIA_BOOKING_URL NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY \
+                       NEXT_PUBLIC_CLERK_SIGN_IN_URL NEXT_PUBLIC_CLERK_SIGN_UP_URL \
+                       CLERK_SECRET_KEY ALLOW_OPEN_DASHBOARD; do
+                v=$(printenv "$k" 2>/dev/null || true)
+                [ -n "$v" ] && echo "$k=$v" >> .env.production
+              done
+              echo "Materialized $(wc -l < .env.production 2>/dev/null || echo 0) runtime vars into .env.production"
         build:
           commands:
             - npm run build
