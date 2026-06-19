@@ -13,16 +13,31 @@ function asArray<T>(v: T | T[] | undefined): T[] {
 
 // Fetch one roll-call and extract this member's position, or null if the roll
 // doesn't exist (404 gaps are normal) or the member isn't recorded on it.
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// GET the roll XML, retrying transient failures (network error / 5xx). A genuine
+// 404 means the roll doesn't exist and returns immediately. Without the retry, a
+// blip on one of hundreds of concurrent fetches silently undercounts the record.
+async function fetchRollXml(url: string, retries = 2): Promise<Response | null> {
+  for (let attempt = 0; ; attempt++) {
+    let res: Response;
+    try {
+      res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    } catch {
+      if (attempt < retries) { await sleep(400 * (attempt + 1)); continue; }
+      return null; // network failure after retries — best-effort gap
+    }
+    if (res.status === 404) return res; // genuine gap, don't retry
+    if (!res.ok && attempt < retries) { await sleep(400 * (attempt + 1)); continue; }
+    return res;
+  }
+}
+
 async function fetchRoll(bioguideId: string, year: number, roll: number): Promise<LegVoteRec | null> {
   const rs = String(roll).padStart(3, "0");
   const url = `https://clerk.house.gov/evs/${year}/roll${rs}.xml`;
-  let res: Response;
-  try {
-    res = await fetch(url);
-  } catch {
-    return null;
-  }
-  if (!res.ok) return null; // 404 = roll doesn't exist (gaps are normal)
+  const res = await fetchRollXml(url);
+  if (!res || !res.ok) return null; // roll doesn't exist or transient failure exhausted retries
   const xml = await res.text();
   let doc: Record<string, unknown>;
   try {
