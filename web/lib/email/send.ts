@@ -24,6 +24,7 @@ export type SendArgs = {
   replyTo?: string;
   tokens?: Record<string, string>;
   headers?: { name: string; value: string }[]; // e.g. List-Unsubscribe
+  tags?: { name: string; value: string }[]; // SES EmailTags → echoed on open/click events
 };
 
 const MERGE_TOKEN = /\{\{\s*[\w.]+\s*\}\}/g;
@@ -58,6 +59,9 @@ export async function sendEmail(a: SendArgs): Promise<{ sent: boolean; id?: stri
         Destination: { ToAddresses: to },
         ReplyToAddresses: [a.replyTo ?? CAMPAIGN.email],
         ...(CONFIG_SET ? { ConfigurationSetName: CONFIG_SET } : {}),
+        ...(a.tags?.length
+          ? { EmailTags: a.tags.map((t) => ({ Name: t.name, Value: t.value.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 256) || "na" })) }
+          : {}),
         Content: {
           Simple: {
             ...(a.headers?.length ? { Headers: a.headers.map((h) => ({ Name: h.name, Value: h.value })) } : {}),

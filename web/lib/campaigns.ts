@@ -9,6 +9,7 @@ import { sendBroadcastEmail } from "@/lib/campaignSend";
 // large list never blocks one request past the function timeout. Recipients who
 // are globally suppressed OR opted out of the campaign's topic are skipped.
 const CAMPAIGN_PK = "CAMPAIGN";
+const STATS_PK = "CAMPAIGN_STATS"; // per-campaign open/click counters, keyed by campaign id
 const BATCH = 25;
 
 export type CampaignStatus = "scheduled" | "queued" | "sending" | "sent" | "failed";
@@ -43,6 +44,8 @@ export type CampaignSummary = {
   total: number;
   sentCount: number;
   suppressedCount: number;
+  opens: number;
+  clicks: number;
   createdBy: string;
 };
 
@@ -97,10 +100,25 @@ async function allCampaigns(): Promise<CampaignItem[]> {
   return (r.Items ?? []) as CampaignItem[];
 }
 
+async function getStats(): Promise<Record<string, { opens: number; clicks: number }>> {
+  try {
+    const r = await ddb.send(
+      new QueryCommand({ TableName: TABLE, KeyConditionExpression: "PK = :p", ExpressionAttributeValues: { ":p": STATS_PK } }),
+    );
+    const out: Record<string, { opens: number; clicks: number }> = {};
+    for (const i of r.Items ?? []) out[String(i.SK)] = { opens: Number(i.opens ?? 0), clicks: Number(i.clicks ?? 0) };
+    return out;
+  } catch {
+    return {};
+  }
+}
+
 export async function listCampaigns(limit = 15): Promise<CampaignSummary[]> {
   if (!dbConfigured) return [];
   try {
-    return (await allCampaigns()).slice(0, limit).map((c) => ({
+    const items = (await allCampaigns()).slice(0, limit);
+    const stats = await getStats();
+    return items.map((c) => ({
       id: c.id,
       createdAt: c.createdAt,
       subjectPreview: c.subjectPreview ?? "(campaign)",
@@ -112,10 +130,29 @@ export async function listCampaigns(limit = 15): Promise<CampaignSummary[]> {
       total: c.recipients?.length ?? 0,
       sentCount: c.sentCount ?? 0,
       suppressedCount: c.suppressedCount ?? 0,
+      opens: stats[c.id]?.opens ?? 0,
+      clicks: stats[c.id]?.clicks ?? 0,
       createdBy: c.createdBy,
     }));
   } catch {
     return [];
+  }
+}
+
+// Increment a campaign's open/click counter (called from the SES event webhook).
+export async function recordEngagement(campaignId: string, kind: "open" | "click"): Promise<void> {
+  if (!dbConfigured || !campaignId) return;
+  try {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: STATS_PK, SK: campaignId },
+        UpdateExpression: kind === "open" ? "ADD opens :one" : "ADD clicks :one",
+        ExpressionAttributeValues: { ":one": 1 },
+      }),
+    );
+  } catch {
+    /* analytics is best-effort */
   }
 }
 
@@ -162,7 +199,7 @@ export async function drainOnce(
       suppressed++;
       continue;
     }
-    const r = await sendBroadcastEmail({ to: addr, email, base });
+    const r = await sendBroadcastEmail({ to: addr, email, base, campaignId: active.id });
     if (r.sent) sent++;
   }
   const cursor = active.cursor + slice.length;
