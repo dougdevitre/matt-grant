@@ -60,6 +60,8 @@ export type TaskRow = {
   category: string;
   status: string;
   priority: string;
+  volunteerId: string | null;
+  volunteerName: string | null;
 };
 
 export type ExpenditureRow = {
@@ -166,6 +168,8 @@ export async function getTasks(): Promise<{ connected: boolean; rows: TaskRow[] 
         category: String(t.category ?? "Field"),
         status: String(t.status ?? "TODO"),
         priority: String(t.priority ?? "MEDIUM"),
+        volunteerId: (t.volunteerId as string) ?? null,
+        volunteerName: (t.volunteerName as string) ?? null,
         createdAt: String(t.createdAt ?? ""),
       }))
       .sort(
