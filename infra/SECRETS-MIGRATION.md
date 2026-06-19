@@ -9,6 +9,41 @@ The code foundation is shipped: **`web/lib/ssm.ts` → `getSecret(name)`**, an
 the `process.env` value and never calls SSM — so each step below is independently
 deployable and reversible, with **no gap** where a secret is unavailable.
 
+## Inventory (verified against the account 2026-06-19)
+
+Cross-referenced: every `process.env.*` the app reads vs `/matt-grant/*` in SSM vs
+the Amplify app's environment variables.
+
+### A. Secrets already in SSM — wire these to `getSecret` (step 2)
+
+`ANTHROPIC_API_KEY`, `CENSUS_API_KEY`, `CLERK_SECRET_KEY`,
+`CLERK_WEBHOOK_SIGNING_SECRET`, `CONGRESS_GOV_API_KEY`, `CRON_SECRET`,
+`FEC_API_KEY`, `OPENSTATES_API_KEY`, `WALGREENS_API_KEY`, `WALGREENS_AFF_ID`.
+
+### B. Secrets the app reads but that are NOT in SSM — CREATE before un-baking (step 3)
+
+Otherwise `getSecret` returns `undefined` once the env var stops being baked.
+- **`WINRED_WEBHOOK_SECRET`** — set *nowhere* today (not SSM, not Amplify env), so
+  the WinRed webhook is fail-closed (401) and won't record donations once WinRed
+  posts to it. Generate a value, store at `/matt-grant/WINRED_WEBHOOK_SECRET`, and
+  set the **same** value in WinRed's webhook config.
+- **`UNSUB_SECRET`** — set nowhere; currently falls back to `CRON_SECRET`
+  (`subscribers.ts`). Create `/matt-grant/UNSUB_SECRET` with its own value so
+  rotating `CRON_SECRET` can't invalidate outstanding unsubscribe links.
+- **`WALGREENS_PUBLISHER_ID`** — optional (affiliate attribution on print orders);
+  create only if you use it.
+
+### C. Non-secret config — LEAVE as Amplify env / SSM String (do NOT move to getSecret)
+
+`DASHBOARD_ALLOWLIST` (SSM String), `NEXT_PUBLIC_*`, `S3_ASSETS_BUCKET`, `SES_FROM`,
+`WALGREENS_ENV`, `ASSETS_CDN_URL`, `SES_CONFIG_SET`, `SES_SNS_TOPIC_ARN`,
+`ANTHROPIC_MODEL`, `RESEARCH_*`, `CENSUS_ACS_YEAR`, `CENSUS_MO02_COUNTIES`,
+`ALLOW_OPEN_DASHBOARD`, `DYNAMODB_TABLE`, `AWS_REGION`. These aren't sensitive;
+keep them in env so step 3 only removes *secret* names from the bake loop.
+
+> Note: `SES_SNS_TOPIC_ARN` is in Amplify env but not SSM — fine, it's config. The
+> assessment recommends making it required in prod so the SES webhook pins its topic.
+
 ## Order of operations (do not reorder — step 4 is last)
 
 1. **Grant the runtime role SSM read.** Give the Amplify **SSR compute** role (not
