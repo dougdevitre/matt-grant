@@ -14,6 +14,15 @@ export function ContactForm() {
 
   return (
     <form action={action} className="card p-8">
+      {/* Honeypot: hidden from people (and screen readers), but bots tend to fill
+          every field. A non-empty "company" is treated as spam server-side. */}
+      <div aria-hidden className="absolute left-[-9999px] top-[-9999px] h-0 w-0 overflow-hidden" aria-label="Leave this field empty">
+        <label>
+          Company
+          <input type="text" name="company" tabIndex={-1} autoComplete="off" />
+        </label>
+      </div>
+
       <p className="eyebrow text-brick">Get involved</p>
       <h2 className="mt-2 font-display text-2xl font-semibold">Join the team.</h2>
 
