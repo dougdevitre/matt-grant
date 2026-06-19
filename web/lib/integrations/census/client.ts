@@ -16,9 +16,16 @@ const VARS = {
   medianHouseholdIncome: "B19013_001E",
   medianAge: "B01002_001E",
   medianHomeValue: "B25077_001E",
-  bachelorsPlus: "B15003_022E", // bachelor's degree count (subset of 25+)
   pop25Plus: "B15003_001E",
+  // "Bachelor's or higher" = bachelor's + master's + professional + doctorate.
+  // Using B15003_022E alone undercounts everyone with a graduate degree.
+  eduBachelors: "B15003_022E",
+  eduMasters: "B15003_023E",
+  eduProfessional: "B15003_024E",
+  eduDoctorate: "B15003_025E",
 } as const;
+
+const EDU_VARS = [VARS.eduBachelors, VARS.eduMasters, VARS.eduProfessional, VARS.eduDoctorate];
 
 export type CountyAcs = {
   name: string;
@@ -48,12 +55,21 @@ export async function fetchMo02Acs(): Promise<CountyAcs[]> {
 
   const res = await fetch(u, { headers: { accept: "application/json" } });
   if (!res.ok) throw new Error(`census ${res.status}`);
-  const rows = (await res.json()) as string[][];
-  const [header, ...data] = rows;
-  const idx = (k: string) => header.indexOf(k);
+  const rows = (await res.json()) as unknown;
+  // Census returns a 2-D array; a bad variable/geo can yield HTML or {} instead.
+  if (!Array.isArray(rows) || !Array.isArray(rows[0])) {
+    throw new Error("census: unexpected response shape");
+  }
+  const [header, ...data] = rows as string[][];
+  const idx = (k: string) => {
+    const i = header.indexOf(k);
+    if (i === -1) throw new Error(`census: missing column ${k}`);
+    return i;
+  };
 
-  return data.map((r) => {
-    const bach = n(r[idx(VARS.bachelorsPlus)]);
+  return (data as string[][]).map((r) => {
+    const eduParts = EDU_VARS.map((v) => n(r[idx(v)]));
+    const bachPlus = eduParts.some((x) => x != null) ? eduParts.reduce<number>((s, x) => s + (x ?? 0), 0) : null;
     const pop25 = n(r[idx(VARS.pop25Plus)]);
     const countyFips = r[idx("county")];
     return {
@@ -63,7 +79,7 @@ export async function fetchMo02Acs(): Promise<CountyAcs[]> {
       medianHouseholdIncome: n(r[idx(VARS.medianHouseholdIncome)]),
       medianAge: n(r[idx(VARS.medianAge)]),
       medianHomeValue: n(r[idx(VARS.medianHomeValue)]),
-      bachelorsPlusPct: bach != null && pop25 ? Math.round((bach / pop25) * 1000) / 10 : null,
+      bachelorsPlusPct: bachPlus != null && pop25 ? Math.round((bachPlus / pop25) * 1000) / 10 : null,
       sourceUrl: `https://data.census.gov/profile?g=050XX00US29${countyFips}`,
     };
   });
