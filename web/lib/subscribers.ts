@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, UpdateCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, dbConfigured } from "@/lib/db";
 
 // Subscriber list with per-topic preferences + one-click unsubscribe
@@ -101,6 +101,29 @@ export async function getPreferences(email: string): Promise<Preferences> {
     return { status: String(r.Item?.status ?? "subscribed"), optOut };
   } catch {
     return { status: "subscribed", optOut: [] };
+  }
+}
+
+// All explicit subscriber records (those who unsubscribed, set topic prefs, or
+// bounced/complained). People with no record are implicitly subscribed and don't
+// appear here — this view is the suppression/preferences ledger.
+export type SubscriberRow = { email: string; status: string; optOut: TopicKey[]; updatedAt?: string };
+export async function listSubscribers(limit = 500): Promise<SubscriberRow[]> {
+  if (!dbConfigured) return [];
+  try {
+    const r = await ddb.send(
+      new QueryCommand({ TableName: TABLE, KeyConditionExpression: "PK = :p", ExpressionAttributeValues: { ":p": SUB_PK }, Limit: limit }),
+    );
+    return (r.Items ?? [])
+      .map((i) => ({
+        email: String(i.SK),
+        status: String(i.status ?? "subscribed"),
+        optOut: Array.isArray(i.optOut) ? (i.optOut as string[]).filter(isTopic) : [],
+        updatedAt: i.updatedAt ? String(i.updatedAt) : undefined,
+      }))
+      .sort((a, b) => (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""));
+  } catch {
+    return [];
   }
 }
 
