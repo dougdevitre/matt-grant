@@ -4,7 +4,8 @@ import { fetchPrecinctRows } from "@/lib/precincts";
 
 export const dynamic = "force-dynamic";
 
-export default async function TargetsPage() {
+export default async function TargetsPage({ searchParams }: { searchParams: Promise<{ precinct?: string }> }) {
+  const { precinct } = await searchParams;
   const { live, rows } = await fetchPrecinctRows();
 
   return (
@@ -36,7 +37,7 @@ export default async function TargetsPage() {
           the 3D map — try again shortly.
         </div>
       ) : (
-        <TargetTable rows={rows} />
+        <TargetTable rows={rows} highlight={precinct} />
       )}
 
       <p className="mt-6 text-xs text-slate">

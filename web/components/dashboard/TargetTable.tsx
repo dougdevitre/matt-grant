@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { scoreRows, type PrecinctRow, type ScoredRow, type Strategy } from "@/lib/precincts";
 
 const tierColor: Record<ScoredRow["tier"], string> = {
@@ -22,12 +22,27 @@ function toCsv(rows: ScoredRow[], strategy: Strategy): string {
   return [`# MO-02 precinct targets · strategy=${strategy} · Aug 2024 primary turnout`, head.join(","), ...lines].join("\n");
 }
 
-export function TargetTable({ rows }: { rows: PrecinctRow[] }) {
+export function TargetTable({ rows, highlight }: { rows: PrecinctRow[]; highlight?: string }) {
   const [strategy, setStrategy] = useState<Strategy>("votes");
   const [muni, setMuni] = useState("");
   const [limit, setLimit] = useState(50);
+  const hlRow = useRef<HTMLTableRowElement>(null);
 
   const { scored, medianTurnout, totals } = useMemo(() => scoreRows(rows, strategy), [rows, strategy]);
+
+  // Deep-linked from the 3D map (?precinct=…): clear any muni filter, make sure
+  // the row is within the shown limit, then scroll + flash it.
+  const hl = highlight?.trim().toLowerCase();
+  const hlIdx = useMemo(() => (hl ? scored.findIndex((r) => r.name.toLowerCase() === hl) : -1), [hl, scored]);
+  useEffect(() => {
+    if (hlIdx >= 0) {
+      setMuni("");
+      setLimit((l) => Math.max(l, hlIdx + 1));
+    }
+  }, [hlIdx]);
+  useEffect(() => {
+    if (hlIdx >= 0) hlRow.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [hlIdx, limit]);
 
   const munis = useMemo(
     () => Array.from(new Set(rows.map((r) => r.municipality).filter(Boolean))).sort(),
@@ -69,6 +84,7 @@ export function TargetTable({ rows }: { rows: PrecinctRow[] }) {
         <select
           value={muni}
           onChange={(e) => setMuni(e.target.value)}
+          aria-label="Filter by municipality"
           className="rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink"
         >
           <option value="">All municipalities</option>
@@ -79,6 +95,7 @@ export function TargetTable({ rows }: { rows: PrecinctRow[] }) {
         <select
           value={limit}
           onChange={(e) => setLimit(Number(e.target.value))}
+          aria-label="Number of targets to show"
           className="rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink"
         >
           {[25, 50, 100, 9999].map((n) => (
@@ -126,8 +143,14 @@ export function TargetTable({ rows }: { rows: PrecinctRow[] }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
-              {shown.map((r) => (
-                <tr key={r.name} className="hover:bg-paper">
+              {shown.map((r) => {
+                const isHl = hl != null && r.name.toLowerCase() === hl;
+                return (
+                <tr
+                  key={r.name}
+                  ref={isHl ? hlRow : undefined}
+                  className={isHl ? "bg-brick/10 ring-2 ring-inset ring-brick" : "hover:bg-paper"}
+                >
                   <td className="px-4 py-2.5 font-mono text-slate">{r.rank}</td>
                   <td className="px-4 py-2.5 font-semibold text-ink">{r.name}</td>
                   <td className="px-4 py-2.5 text-slate">{r.municipality || "—"}</td>
@@ -141,7 +164,8 @@ export function TargetTable({ rows }: { rows: PrecinctRow[] }) {
                   </td>
                   <td className={`px-4 py-2.5 font-mono text-[0.7rem] uppercase tracking-eyebrow ${playColor[r.play]}`}>{r.play}</td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
