@@ -53,16 +53,29 @@ export default async function EmailsPage() {
         <p className="eyebrow text-slate">Recent sends</p>
         {sent.length > 0 ? (
           <ul className="mt-3 divide-y divide-line rounded-sm border border-line">
-            {sent.map((c, i) => (
-              <li key={`${c.at}-${i}`} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm">
+            {sent.map((c) => (
+              <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm">
                 <span className="min-w-0">
                   <span className="text-ink">{c.subject}</span>{" "}
                   <span className="text-slate">
-                    → {audienceLabel[c.audience] ?? c.audience} · {c.recipients} sent
-                    {c.suppressed ? ` · ${c.suppressed} skipped` : ""} · by {c.sentBy}
+                    → {audienceLabel[c.audience] ?? c.audience} · {c.sentCount}/{c.total} sent
+                    {c.suppressedCount ? ` · ${c.suppressedCount} skipped` : ""} · by {c.createdBy}
                   </span>
                 </span>
-                <span className="shrink-0 font-mono text-[0.65rem] text-slate">{when(c.at)}</span>
+                <span className="flex shrink-0 items-center gap-2">
+                  <span
+                    className={`rounded-sm px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow ${
+                      c.status === "sent"
+                        ? "bg-field/10 text-field"
+                        : c.status === "failed"
+                          ? "bg-brick/10 text-brick"
+                          : "bg-gold/15 text-[#9a6f1a]"
+                    }`}
+                  >
+                    {c.status === "queued" || c.status === "sending" ? "sending" : c.status}
+                  </span>
+                  <span className="font-mono text-[0.65rem] text-slate">{when(c.createdAt)}</span>
+                </span>
               </li>
             ))}
           </ul>
