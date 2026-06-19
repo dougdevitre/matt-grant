@@ -11,11 +11,12 @@ import { sendBroadcastEmail } from "@/lib/campaignSend";
 const CAMPAIGN_PK = "CAMPAIGN";
 const BATCH = 25;
 
-export type CampaignStatus = "queued" | "sending" | "sent" | "failed";
+export type CampaignStatus = "scheduled" | "queued" | "sending" | "sent" | "failed";
 type CampaignItem = {
   SK: string;
   id: string;
   createdAt: string;
+  scheduledAt?: string;
   templateKey: string;
   topic: TopicKey;
   vars: Record<string, string>;
@@ -38,6 +39,7 @@ export type CampaignSummary = {
   topic: TopicKey;
   audience: string;
   status: CampaignStatus;
+  scheduledAt?: string;
   total: number;
   sentCount: number;
   suppressedCount: number;
@@ -52,9 +54,11 @@ export async function createCampaign(input: {
   recipients: string[];
   subjectPreview: string;
   createdBy: string;
+  scheduledAt?: string;
 }): Promise<string> {
   const id = newId();
   const createdAt = new Date().toISOString();
+  const scheduled = !!input.scheduledAt && input.scheduledAt > createdAt;
   await ddb.send(
     new PutCommand({
       TableName: TABLE,
@@ -63,12 +67,13 @@ export async function createCampaign(input: {
         SK: `${createdAt}#${id}`,
         id,
         createdAt,
+        ...(input.scheduledAt ? { scheduledAt: input.scheduledAt } : {}),
         templateKey: input.templateKey,
         topic: input.topic,
         vars: input.vars,
         audience: input.audience,
         subjectPreview: input.subjectPreview,
-        status: "queued",
+        status: scheduled ? "scheduled" : "queued",
         recipients: input.recipients,
         cursor: 0,
         sentCount: 0,
@@ -103,6 +108,7 @@ export async function listCampaigns(limit = 15): Promise<CampaignSummary[]> {
       topic: c.topic,
       audience: c.audience,
       status: c.status,
+      scheduledAt: c.scheduledAt,
       total: c.recipients?.length ?? 0,
       sentCount: c.sentCount ?? 0,
       suppressedCount: c.suppressedCount ?? 0,
@@ -120,9 +126,15 @@ export async function drainOnce(
   batchSize = BATCH,
 ): Promise<{ id: string; sent: number; done: boolean; cursor: number; total: number } | null> {
   if (!dbConfigured) return null;
+  const nowIso = new Date().toISOString();
   const active = (await allCampaigns())
-    .filter((c) => c.status === "queued" || c.status === "sending")
-    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0];
+    .filter(
+      (c) =>
+        c.status === "queued" ||
+        c.status === "sending" ||
+        (c.status === "scheduled" && (c.scheduledAt ?? "") <= nowIso),
+    )
+    .sort((a, b) => (a.scheduledAt ?? a.createdAt).localeCompare(b.scheduledAt ?? b.createdAt))[0];
   if (!active) return null;
 
   const now = new Date().toISOString();

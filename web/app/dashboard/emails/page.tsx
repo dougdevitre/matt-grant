@@ -73,9 +73,11 @@ export default async function EmailsPage() {
                           : "bg-gold/15 text-[#9a6f1a]"
                     }`}
                   >
-                    {c.status === "queued" || c.status === "sending" ? "sending" : c.status}
+                    {c.status === "scheduled" ? "scheduled" : c.status === "queued" || c.status === "sending" ? "sending" : c.status}
                   </span>
-                  <span className="font-mono text-[0.65rem] text-slate">{when(c.createdAt)}</span>
+                  <span className="font-mono text-[0.65rem] text-slate">
+                    {c.status === "scheduled" && c.scheduledAt ? `→ ${when(c.scheduledAt)}` : when(c.createdAt)}
+                  </span>
                 </span>
               </li>
             ))}

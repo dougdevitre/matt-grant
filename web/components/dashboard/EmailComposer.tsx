@@ -23,6 +23,7 @@ export function EmailComposer({
   const [key, setKey] = useState(broadcasts[0]?.key ?? "");
   const [vars, setVars] = useState<Record<string, string>>({});
   const [audience, setAudience] = useState<Audience>("all");
+  const [scheduledAt, setScheduledAt] = useState("");
   const [res, setRes] = useState<SendState | null>(null);
   const [pending, start] = useTransition();
 
@@ -34,6 +35,7 @@ export function EmailComposer({
     const f = new FormData();
     f.set("templateKey", key);
     f.set("audience", audience);
+    f.set("scheduledAt", scheduledAt);
     tpl?.fields.forEach((field) => f.set(field.name, vars[field.name] ?? ""));
     return f;
   };
@@ -90,6 +92,18 @@ export function EmailComposer({
           </select>
           <span className="font-mono text-xs text-slate">~{audienceCount} recipient{audienceCount === 1 ? "" : "s"} (before opt-outs)</span>
         </div>
+
+        <div>
+          <label className="text-xs font-semibold text-slate">Schedule for later (optional)</label>
+          <input
+            type="datetime-local"
+            value={scheduledAt}
+            onChange={(e) => setScheduledAt(e.target.value)}
+            className={`${field} mt-1 w-auto`}
+            aria-label="Schedule send time"
+          />
+          {scheduledAt && <p className="mt-1 text-xs text-slate">Sends automatically at the time above (the background worker picks it up).</p>}
+        </div>
       </div>
 
       <div className="mt-5 flex flex-wrap gap-3">
@@ -100,10 +114,15 @@ export function EmailComposer({
           <button
             type="button"
             disabled={pending || disabled}
-            onClick={() => { if (confirm(`Send "${tpl?.label}" to ~${audienceCount} recipients? This cannot be undone.`)) run(sendCampaign); }}
+            onClick={() => {
+              const msg = scheduledAt
+                ? `Schedule "${tpl?.label}" for ${scheduledAt.replace("T", " ")} to ~${audienceCount} recipients?`
+                : `Send "${tpl?.label}" to ~${audienceCount} recipients? This cannot be undone.`;
+              if (confirm(msg)) run(sendCampaign);
+            }}
             className="btn-primary disabled:opacity-50"
           >
-            {pending ? "Sending…" : "Send to list"}
+            {pending ? "Working…" : scheduledAt ? "Schedule send" : "Send to list"}
           </button>
         )}
       </div>

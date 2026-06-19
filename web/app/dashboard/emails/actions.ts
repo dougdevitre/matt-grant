@@ -76,6 +76,14 @@ export async function sendCampaign(formData: FormData): Promise<SendState> {
   if (recipients.length === 0) return { ok: false, message: "No recipients for that audience." };
 
   const subjectPreview = broadcast.build(vars).subject;
+  const rawWhen = String(formData.get("scheduledAt") ?? "").trim();
+  let scheduledAt: string | undefined;
+  if (rawWhen) {
+    const d = new Date(rawWhen);
+    if (!isNaN(d.getTime())) scheduledAt = d.toISOString();
+  }
+  const future = !!scheduledAt && scheduledAt > new Date().toISOString();
+
   await createCampaign({
     templateKey: broadcast.key,
     topic: broadcast.topic,
@@ -84,7 +92,15 @@ export async function sendCampaign(formData: FormData): Promise<SendState> {
     recipients,
     subjectPreview,
     createdBy: g.email ?? "system",
+    scheduledAt: future ? scheduledAt : undefined,
   });
+
+  // Scheduled: the cron drain picks it up at its time. Immediate: send the first
+  // batch inline now; the cron drains the rest.
+  if (future) {
+    revalidatePath("/dashboard/emails");
+    return { ok: true, message: `Scheduled for ${rawWhen.replace("T", " ")} — ${recipients.length} recipients. It sends automatically.` };
+  }
   let progressed: Awaited<ReturnType<typeof drainOnce>> = null;
   try {
     progressed = await drainOnce(await baseUrl());
