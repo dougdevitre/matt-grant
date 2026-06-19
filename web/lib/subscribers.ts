@@ -40,12 +40,15 @@ export function verifyUnsubToken(token: string): string | null {
   return norm(email);
 }
 
-export async function suppress(email: string, reason = "unsubscribe"): Promise<void> {
+export type SuppressStatus = "unsubscribed" | "bounced" | "complained";
+const SUPPRESSED = new Set<string>(["unsubscribed", "bounced", "complained"]);
+
+export async function suppress(email: string, status: SuppressStatus = "unsubscribed"): Promise<void> {
   if (!dbConfigured) return;
   await ddb.send(
     new PutCommand({
       TableName: TABLE,
-      Item: { PK: SUB_PK, SK: norm(email), status: "unsubscribed", reason, updatedAt: new Date().toISOString() },
+      Item: { PK: SUB_PK, SK: norm(email), status, updatedAt: new Date().toISOString() },
     }),
   );
 }
@@ -54,7 +57,7 @@ export async function isSuppressed(email: string): Promise<boolean> {
   if (!dbConfigured || !email) return false;
   try {
     const r = await ddb.send(new GetCommand({ TableName: TABLE, Key: { PK: SUB_PK, SK: norm(email) } }));
-    return r.Item?.status === "unsubscribed" || r.Item?.status === "bounced";
+    return SUPPRESSED.has(String(r.Item?.status));
   } catch {
     return false;
   }

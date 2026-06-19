@@ -20,7 +20,7 @@ export default async function UnsubscribePage({
   let done = false;
   if (email) {
     try {
-      await suppress(email, "unsubscribe");
+      await suppress(email);
       done = true;
     } catch {
       done = false;
