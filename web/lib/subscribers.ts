@@ -24,6 +24,11 @@ export function unsubscribeUrl(baseUrl: string, email: string): string {
   return `${baseUrl.replace(/\/$/, "")}/unsubscribe?token=${unsubToken(email)}`;
 }
 
+// RFC 8058 one-click target for the List-Unsubscribe header (handles POST).
+export function unsubscribeApiUrl(baseUrl: string, email: string): string {
+  return `${baseUrl.replace(/\/$/, "")}/api/unsubscribe?token=${unsubToken(email)}`;
+}
+
 export function verifyUnsubToken(token: string): string | null {
   const [b64, sig] = (token || "").split(".");
   if (!b64 || !sig) return null;

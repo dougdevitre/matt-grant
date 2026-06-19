@@ -1,6 +1,7 @@
 import { sendEmail } from "@/lib/email/send";
 import { renderEmail, renderText } from "@/lib/email/layout";
-import { unsubscribeUrl } from "@/lib/subscribers";
+import { unsubscribeUrl, unsubscribeApiUrl } from "@/lib/subscribers";
+import { CAMPAIGN } from "@/lib/site";
 
 // Render + send one broadcast email (shared by the test send and the batch
 // drainer). The branded shell already carries the committee address + "Paid
@@ -17,11 +18,18 @@ export function bodyToHtml(body: string): string {
 
 export async function sendCampaignEmail(o: { to: string; subject: string; body: string; base: string; test?: boolean }) {
   const u = unsubscribeUrl(o.base, o.to);
+  const oneClick = unsubscribeApiUrl(o.base, o.to);
   return sendEmail({
     to: o.to,
     subject: o.test ? `[TEST] ${o.subject}` : o.subject,
     html: renderEmail({ eyebrow: "Campaign update", title: o.subject, bodyHtml: bodyToHtml(o.body), unsubscribeUrl: u }),
     text: renderText({ title: o.subject, lines: [o.body], unsubscribeUrl: u }),
     tokens: { unsubscribe_url: u, preferences_url: u },
+    // RFC 8058: gives Gmail/Apple/Yahoo the native one-click unsubscribe button,
+    // which is required for bulk-sender inbox placement.
+    headers: [
+      { name: "List-Unsubscribe", value: `<${oneClick}>, <mailto:${CAMPAIGN.email}?subject=unsubscribe>` },
+      { name: "List-Unsubscribe-Post", value: "List-Unsubscribe=One-Click" },
+    ],
   });
 }

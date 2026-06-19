@@ -23,6 +23,7 @@ export type SendArgs = {
   text?: string;
   replyTo?: string;
   tokens?: Record<string, string>;
+  headers?: { name: string; value: string }[]; // e.g. List-Unsubscribe
 };
 
 const MERGE_TOKEN = /\{\{\s*[\w.]+\s*\}\}/g;
@@ -59,6 +60,7 @@ export async function sendEmail(a: SendArgs): Promise<{ sent: boolean; id?: stri
         ...(CONFIG_SET ? { ConfigurationSetName: CONFIG_SET } : {}),
         Content: {
           Simple: {
+            ...(a.headers?.length ? { Headers: a.headers.map((h) => ({ Name: h.name, Value: h.value })) } : {}),
             Subject: { Data: a.subject, Charset: "UTF-8" },
             Body: {
               Html: { Data: html, Charset: "UTF-8" },
