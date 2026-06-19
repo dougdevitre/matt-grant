@@ -8,6 +8,7 @@ import { OpenStatesClient, openStatesEnabled } from "../openstates/client";
 import { CongressClient } from "../legislative/congressClient";
 import { fetchMemberVotes } from "../legislative/clerkVotes";
 import { persist as persistLegislative } from "../legislative/store";
+import { mapLimit } from "../http";
 import type { NormalizedDataset } from "../legislative/types";
 
 export type FieldIngestResult = {
@@ -72,8 +73,9 @@ export async function runFieldIngest(): Promise<FieldIngestResult> {
 
   // Candidates run concurrently — sequential was slow enough (FEC summary +
   // donor aggregates + federal pull per candidate) to hit the gateway timeout.
-  await Promise.all(
-    field.map(async (c) => {
+  // Cap concurrency so the per-candidate fan-out (each does several FEC calls)
+  // doesn't burst past upstream rate limits. H4.
+  await mapLimit(field, 4, async (c) => {
       const entry: FieldIngestResult["perCandidate"][string] = {};
       try {
         if (fec && c.fecCandidateId) {
@@ -109,8 +111,7 @@ export async function runFieldIngest(): Promise<FieldIngestResult> {
         entry.error = String(err);
       }
       result.perCandidate[c.slug] = entry;
-    }),
-  );
+  });
 
   // Derive ok from the actual outcome — don't hardcode true, or monitoring shows
   // green on a total failure (every candidate errored). M8.

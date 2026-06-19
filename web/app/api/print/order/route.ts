@@ -2,15 +2,13 @@ import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import { PutCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { walgreens, walgreensEnabled, wgPost } from "@/lib/walgreens";
-import { ddb, TABLE, dbConfigured } from "@/lib/db";
+import { ddb, TABLE, PK, dbConfigured } from "@/lib/db";
 
 export const runtime = "nodejs";
 
-// Dedupe partition for submitted print orders. A stable hash of the order makes a
-// retried identical submission idempotent so a flaky network can't place (and
-// charge for) the same order twice. TODO: register under lib/db PK with Lane 1.
-const PRINT_ORDER_PK = "PRINTORDER";
-
+// A stable hash of the order makes a retried identical submission idempotent so a
+// flaky network can't place (and charge for) the same order twice. Dedupe rows
+// live under PK.printOrders.
 function orderKey(o: Record<string, unknown>): string {
   const stable = JSON.stringify([o.firstName, o.lastName, o.phone, o.storeNum, o.promiseTime, o.productDetails]);
   return createHash("sha256").update(stable).digest("hex").slice(0, 32);
@@ -43,7 +41,7 @@ export async function POST(req: Request) {
     try {
       await ddb.send(new PutCommand({
         TableName: TABLE,
-        Item: { PK: PRINT_ORDER_PK, SK: key, createdAt: new Date().toISOString() },
+        Item: { PK: PK.printOrders, SK: key, createdAt: new Date().toISOString() },
         ConditionExpression: "attribute_not_exists(PK)",
       }));
     } catch (e) {
@@ -68,7 +66,7 @@ export async function POST(req: Request) {
     // Release the claim so the user can legitimately retry after a real failure,
     // and DON'T reflect the upstream payload (it can echo PII / internal detail).
     if (dbConfigured) {
-      await ddb.send(new DeleteCommand({ TableName: TABLE, Key: { PK: PRINT_ORDER_PK, SK: key } })).catch(() => {});
+      await ddb.send(new DeleteCommand({ TableName: TABLE, Key: { PK: PK.printOrders, SK: key } })).catch(() => {});
     }
     console.error("[print/order] walgreens", r.status, r.json);
     return NextResponse.json(
