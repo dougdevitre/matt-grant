@@ -15,9 +15,9 @@ the rest. Secrets live in **SSM `/matt-grant/*`** and are mirrored to the **Ampl
 | **Clerk webhook** (user.created → role mirror) | webhook | ✅ **live** | done — endpoint verifies the signing secret at runtime (unsigned probe → 400 `invalid signature`; signed `user.created` → role mirror) |
 | **AWS SES** (receipts, invites, broadcast) | connector | ⏳ **pending verify** | click the AWS "verify email" link sent to `mattgrantforcongress@gmail.com` (or verify the domain for deliverability) |
 | **Walgreens** Native Photo Prints | data API | ⏳ **pending affId** | the real **Affiliate ID** from Walgreens (request email already drafted) → paste to me |
-| **Congress.gov** opp-research ingest | data API + cron | 🟡 **cron live, key pending** | `CRON_SECRET` + the **EventBridge daily schedule** (11:00 UTC → `/api/research/ingest`) are wired and no-op cleanly. Just paste a free key from api.congress.gov/sign-up → I load `CONGRESS_GOV_API_KEY` and ingest starts flowing |
+| **Congress.gov** opp-research ingest | data API + cron | ✅ **live** | done — key loaded; first ingest stored **1,743 bills + 60 votes** in ~5s; EventBridge daily schedule (11:00 UTC) runs the same path |
 | **Anthropic** (AI press-topic generator) | connector | 🔌 **not connected** | paste an Anthropic API key → I load `ANTHROPIC_API_KEY` (falls back to curated until then) |
-| **WinRed** donation webhook (→ thank-you email) | webhook | ☐ **not built** | I build `/api/webhooks/winred` when you want it (needs WinRed's webhook + a shared secret) |
+| **WinRed** donation webhook (→ thank-you email) | webhook | 🟡 **built, secret pending** | `/api/webhooks/winred` is live (records donation → branded receipt), inert until configured. In WinRed: add a webhook to `…/api/webhooks/winred` with a shared secret → paste it to me as `WINRED_WEBHOOK_SECRET`. Confirm field mapping against a real WinRed sample |
 
 ## What I can wire the moment you hand me each value
 
