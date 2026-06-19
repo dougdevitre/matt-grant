@@ -189,38 +189,76 @@ export async function drainOnce(
     return { id: active.id, sent: active.sentCount ?? 0, done: true, cursor: active.cursor ?? 0, total: active.recipients?.length ?? 0 };
   }
 
-  const email = broadcast.build(active.vars ?? {});
   const recipients = active.recipients ?? [];
-  const slice = recipients.slice(active.cursor, active.cursor + batchSize);
-  let sent = active.sentCount ?? 0;
-  let suppressed = active.suppressedCount ?? 0;
+  const start = active.cursor ?? 0;
+
+  // Already fully drained → finalize idempotently.
+  if (start >= recipients.length) {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: CAMPAIGN_PK, SK: active.SK },
+        UpdateExpression: "SET #s = :sent, finishedAt = :u, updatedAt = :u",
+        ExpressionAttributeNames: { "#s": "status" },
+        ExpressionAttributeValues: { ":sent": "sent", ":u": now },
+      }),
+    );
+    return { id: active.id, sent: active.sentCount ?? 0, done: true, cursor: start, total: recipients.length };
+  }
+
+  const end = Math.min(start + batchSize, recipients.length);
+
+  // CLAIM [start,end) atomically: advance the cursor only if no other drainer
+  // moved it. Without this, the inline send + the every-minute cron worker could
+  // both read the same cursor and send the same recipients twice.
+  try {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: CAMPAIGN_PK, SK: active.SK },
+        UpdateExpression: "SET #cur = :end, #s = :sending, updatedAt = :u",
+        ConditionExpression: "#cur = :start AND #s IN (:queued, :sendingC, :scheduled)",
+        ExpressionAttributeNames: { "#cur": "cursor", "#s": "status" },
+        ExpressionAttributeValues: {
+          ":end": end,
+          ":start": start,
+          ":sending": "sending",
+          ":sendingC": "sending",
+          ":queued": "queued",
+          ":scheduled": "scheduled",
+          ":u": now,
+        },
+      }),
+    );
+  } catch (e) {
+    if ((e as { name?: string })?.name === "ConditionalCheckFailedException") return null; // another drainer has it
+    throw e;
+  }
+
+  // We exclusively own [start,end). Send it (claim-before-send = at-most-once,
+  // never duplicates).
+  const email = broadcast.build(active.vars ?? {});
+  const slice = recipients.slice(start, end);
+  let sentDelta = 0;
+  let suppressedDelta = 0;
   for (const addr of slice) {
     if (await isSuppressed(addr, active.topic)) {
-      suppressed++;
+      suppressedDelta++;
       continue;
     }
     const r = await sendBroadcastEmail({ to: addr, email, base, campaignId: active.id });
-    if (r.sent) sent++;
+    if (r.sent) sentDelta++;
   }
-  const cursor = active.cursor + slice.length;
-  const done = cursor >= recipients.length;
 
+  const done = end >= recipients.length;
   await ddb.send(
     new UpdateCommand({
       TableName: TABLE,
       Key: { PK: CAMPAIGN_PK, SK: active.SK },
-      UpdateExpression:
-        "SET #s = :s, #cur = :c, sentCount = :sent, suppressedCount = :sup, updatedAt = :u" + (done ? ", finishedAt = :f" : ""),
-      ExpressionAttributeNames: { "#s": "status", "#cur": "cursor" },
-      ExpressionAttributeValues: {
-        ":s": done ? "sent" : "sending",
-        ":c": cursor,
-        ":sent": sent,
-        ":sup": suppressed,
-        ":u": now,
-        ...(done ? { ":f": now } : {}),
-      },
+      UpdateExpression: "ADD sentCount :sd, suppressedCount :pd" + (done ? " SET #s = :sent, finishedAt = :u, updatedAt = :u" : " SET updatedAt = :u"),
+      ...(done ? { ExpressionAttributeNames: { "#s": "status" } } : {}),
+      ExpressionAttributeValues: { ":sd": sentDelta, ":pd": suppressedDelta, ":u": now, ...(done ? { ":sent": "sent" } : {}) },
     }),
   );
-  return { id: active.id, sent, done, cursor, total: recipients.length };
+  return { id: active.id, sent: (active.sentCount ?? 0) + sentDelta, done, cursor: end, total: recipients.length };
 }
