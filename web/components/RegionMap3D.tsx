@@ -200,6 +200,8 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
           )
           .addTo(m);
       });
+      m.on("mouseenter", "precinct-extrude", () => (m.getCanvas().style.cursor = "pointer"));
+      m.on("mouseleave", "precinct-extrude", () => (m.getCanvas().style.cursor = ""));
       m.on("click", "precinct-extrude", (e) => {
         const f = e.features?.[0];
         if (!f) return;
@@ -209,6 +211,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
           pr.municipality ? pr.municipality : "",
           pr.turnout != null ? `Primary turnout (Aug '24): <strong>${pr.turnout}%</strong>` : "Turnout: n/a",
           pr.registered ? `Registered: ${pr.registered.toLocaleString()}` : "",
+          `<a href="/dashboard/targets?precinct=${encodeURIComponent(pr.name ?? "")}" style="display:inline-block;margin-top:6px;color:#B5343B;font-weight:700;text-decoration:none">Target this precinct →</a>`,
         ].filter(Boolean);
         new maplibregl.Popup({ closeButton: false, offset: 12 })
           .setLngLat(e.lngLat)

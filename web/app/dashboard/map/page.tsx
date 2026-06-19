@@ -11,13 +11,10 @@ export default function MapPage() {
       <PageHeader kicker="Region" title="3D field map">
         <Link href="/dashboard/targets" className="btn-ghost">Turn this into a target list →</Link>
       </PageHeader>
-      <p className="mb-6 max-w-prose text-sm text-slate">
-        A blended view of MO-02 with <strong>live St. Louis County data</strong>, scoped to the{" "}
-        <strong>2025 enacted map</strong> (county field <span className="font-mono">congress25</span>):
-        polling places clipped to the district and 3D precinct columns extruded by actual{" "}
-        <strong>Aug-2024 primary turnout</strong>. Shows the <strong>St. Louis County portion</strong> of
-        MO-02 (predominantly the western/central suburbs); the district also reaches Jefferson,
-        Washington, Crawford, and Gasconade — not in this feed. Schools/public places/partners are sample.
+      <p className="mb-5 max-w-prose text-sm text-slate">
+        MO-02 in 3D: precinct columns extruded by real <strong>Aug-2024 primary turnout</strong> with
+        live St. Louis County polling places. <strong>Click any column to target that precinct.</strong>{" "}
+        Coverage, layers, and data provenance are in the panels below.
       </p>
       <HowTo
         steps={[
