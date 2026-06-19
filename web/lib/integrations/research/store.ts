@@ -1,15 +1,10 @@
-import { PutCommand, GetCommand, QueryCommand, BatchWriteCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK } from "@/lib/db";
+import { batchWritePut } from "../batchWrite";
 import type { Candidate } from "./candidates";
 import type { FecSummary, DonorProfile } from "../fec/types";
 import type { StateLegRecord } from "../openstates/client";
 import type { TenureTimeline } from "./timeline";
-
-function chunk<T>(arr: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-  return out;
-}
 
 // ---- Candidate roster ----
 export async function persistCandidates(field: Candidate[]): Promise<void> {
@@ -20,9 +15,7 @@ export async function persistCandidates(field: Candidate[]): Promise<void> {
     ...c,
     updatedAt: new Date().toISOString(),
   }));
-  for (const batch of chunk(items, 25)) {
-    await ddb.send(new BatchWriteCommand({ RequestItems: { [TABLE]: batch.map((Item) => ({ PutRequest: { Item } })) } }));
-  }
+  await batchWritePut(items);
 }
 
 export async function getStoredCandidates(): Promise<Candidate[]> {

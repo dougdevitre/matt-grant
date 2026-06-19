@@ -1,5 +1,6 @@
-import { PutCommand, GetCommand, QueryCommand, BatchWriteCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK } from "@/lib/db";
+import { batchWritePut } from "../batchWrite";
 import type { NormalizedDataset } from "./types";
 
 function parseDate(s?: string | null): string | null {
@@ -9,12 +10,6 @@ function parseDate(s?: string | null): string | null {
 }
 
 const pad = (n: number) => String(n).padStart(4, "0");
-
-function chunk<T>(arr: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-  return out;
-}
 
 // Idempotent persistence — items keyed by stable PK/SK so re-runs upsert.
 export async function persist(dataset: NormalizedDataset): Promise<void> {
@@ -46,11 +41,7 @@ export async function persist(dataset: NormalizedDataset): Promise<void> {
     })),
   ];
 
-  for (const batch of chunk(items, 25)) {
-    await ddb.send(
-      new BatchWriteCommand({ RequestItems: { [TABLE]: batch.map((Item) => ({ PutRequest: { Item } })) } }),
-    );
-  }
+  await batchWritePut(items);
 }
 
 // ---- Read helpers (explicit types so the UI type-checks) ----
