@@ -1,6 +1,6 @@
-import { getTasks } from "@/lib/queries";
+import { getTasks, getVolunteers } from "@/lib/queries";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
-import { addTask, setTaskStatus } from "@/app/dashboard/actions";
+import { addTask, setTaskStatus, setTaskVolunteer } from "@/app/dashboard/actions";
 
 const COLUMNS = [
   { key: "TODO", label: "To do", next: "DOING", nextLabel: "Start →" },
@@ -17,8 +17,12 @@ const catColor: Record<string, string> = {
 };
 
 export default async function TasksPage() {
-  const { connected, rows } = await getTasks();
+  const [{ connected, rows }, vols] = await Promise.all([getTasks(), getVolunteers()]);
+  const volunteers = vols.rows;
   const input = "rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink focus:border-field";
+  const volOptions = volunteers.map((v) => (
+    <option key={v.id} value={`${v.id}|${v.name}`}>{v.name}</option>
+  ));
 
   return (
     <>
@@ -48,6 +52,10 @@ export default async function TasksPage() {
             <option key={p} value={p}>{p}</option>
           ))}
         </select>
+        <select name="volunteer" aria-label="Assign to volunteer" className={input} defaultValue="">
+          <option value="">Unassigned</option>
+          {volOptions}
+        </select>
         <button type="submit" disabled={!connected} className="btn-ink disabled:opacity-50">Add task</button>
       </form>
 
@@ -74,6 +82,7 @@ export default async function TasksPage() {
                     <p className={`mt-2 text-sm font-semibold ${t.status === "DONE" ? "text-slate line-through" : "text-ink"}`}>
                       {t.title}
                     </p>
+                    {t.volunteerName && <p className="mt-1 text-xs text-field">👤 {t.volunteerName}</p>}
                     <div className="mt-3 flex gap-2">
                       {"prev" in col && col.prev && (
                         <form action={setTaskStatus}>
@@ -90,6 +99,19 @@ export default async function TasksPage() {
                         </form>
                       )}
                     </div>
+                    <form action={setTaskVolunteer} className="mt-2 flex gap-2">
+                      <input type="hidden" name="id" value={t.id} />
+                      <select
+                        name="volunteer"
+                        aria-label="Assign task to volunteer"
+                        defaultValue={t.volunteerId ? `${t.volunteerId}|${t.volunteerName ?? ""}` : ""}
+                        className="min-w-0 flex-1 rounded-sm border border-line bg-white px-2 py-1 text-xs text-ink"
+                      >
+                        <option value="">Unassigned</option>
+                        {volOptions}
+                      </select>
+                      <button className="btn-ghost px-2 py-1 text-xs">Assign</button>
+                    </form>
                   </div>
                 ))}
                 {tasks.length === 0 && <p className="px-2 py-6 text-center text-xs text-slate">Empty</p>}
