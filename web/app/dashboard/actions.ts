@@ -143,6 +143,16 @@ export async function addTask(formData: FormData) {
   requireDb();
   const title = str(formData, "title");
   if (!title) return;
+  // Optional volunteer assignment: the select submits "id|name"; store both so
+  // the task can show who's doing it without a join. Blank = unassigned.
+  const volunteer = str(formData, "volunteer");
+  let volunteerId: string | undefined;
+  let volunteerName: string | undefined;
+  if (volunteer) {
+    const i = volunteer.indexOf("|");
+    volunteerId = (i >= 0 ? volunteer.slice(0, i) : volunteer) || undefined;
+    volunteerName = (i >= 0 ? volunteer.slice(i + 1) : "") || undefined;
+  }
   await ddb.send(
     new PutCommand({
       TableName: TABLE,
@@ -153,8 +163,36 @@ export async function addTask(formData: FormData) {
         category: str(formData, "category") ?? "Field",
         priority: str(formData, "priority") ?? "MEDIUM",
         status: "TODO",
+        volunteerId,
+        volunteerName,
         createdAt: new Date().toISOString(),
       },
+    }),
+  );
+  revalidatePath("/dashboard/tasks");
+  revalidatePath("/dashboard");
+}
+
+// Assign (or clear) the volunteer on an existing task. value = "id|name" or "".
+export async function setTaskVolunteer(formData: FormData) {
+  await authorize("manageTasks");
+  requireDb();
+  const id = str(formData, "id");
+  if (!id) return;
+  const volunteer = str(formData, "volunteer");
+  let volunteerId: string | null = null;
+  let volunteerName: string | null = null;
+  if (volunteer) {
+    const i = volunteer.indexOf("|");
+    volunteerId = (i >= 0 ? volunteer.slice(0, i) : volunteer) || null;
+    volunteerName = (i >= 0 ? volunteer.slice(i + 1) : "") || null;
+  }
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: PK.tasks, SK: id },
+      UpdateExpression: "SET volunteerId = :vid, volunteerName = :vn",
+      ExpressionAttributeValues: { ":vid": volunteerId, ":vn": volunteerName },
     }),
   );
   revalidatePath("/dashboard/tasks");
