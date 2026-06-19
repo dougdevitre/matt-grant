@@ -45,6 +45,7 @@ export type VolunteerRow = {
   phone: string | null;
   city: string | null;
   interests: string | null;
+  interestTags: string[];
   notes: string | null;
   status: string;
   createdAt: string;
@@ -137,6 +138,7 @@ export async function getVolunteers(): Promise<{ connected: boolean; rows: Volun
         phone: (v.phone as string) ?? null,
         city: (v.city as string) ?? null,
         interests: (v.interests as string) ?? null,
+        interestTags: Array.isArray(v.interestTags) ? (v.interestTags as string[]) : [],
         notes: (v.notes as string) ?? null,
         status: String(v.status ?? "NEW"),
         createdAt: String(v.createdAt ?? ""),
