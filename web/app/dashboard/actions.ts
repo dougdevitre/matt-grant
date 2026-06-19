@@ -5,6 +5,7 @@ import { PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, newId, dbConfigured } from "@/lib/db";
 import { staffGate } from "@/lib/auth";
 import { can, type Capability } from "@/lib/rbac";
+import { recordContribution } from "@/lib/donors";
 
 function requireDb() {
   if (!dbConfigured) throw new Error("Database not connected. Set DYNAMODB_TABLE.");
@@ -24,45 +25,18 @@ export async function addDonor(formData: FormData) {
   requireDb();
   const name = str(formData, "name");
   if (!name) return;
-  const email = str(formData, "email");
   const amount = Number(formData.get("amount") ?? 0);
-  const amountCents = Math.round((isFinite(amount) ? amount : 0) * 100);
-  const now = new Date().toISOString();
-  const newContribs =
-    amountCents > 0
-      ? [{ amountCents, method: str(formData, "method") ?? "WinRed", election: "PRIMARY", receivedAt: now }]
-      : [];
-
-  // Dedupe by email so a returning donor's contributions accumulate on ONE row
-  // instead of spawning duplicates (and the total stays correct). Profile fields
-  // only overwrite when provided, so a later gift that omits employer/occupation
-  // never wipes FEC info already on file. No email → can't dedupe, random key.
-  const dedupeKey = email ? `e:${email.toLowerCase()}` : newId();
-  const city = str(formData, "city");
-  const employer = str(formData, "employer");
-  const occupation = str(formData, "occupation");
-
-  const sets = [
-    "#n = :n",
-    "createdAt = if_not_exists(createdAt, :now)",
-    "contributions = list_append(if_not_exists(contributions, :empty), :new)",
-  ];
-  const names: Record<string, string> = { "#n": "name" };
-  const values: Record<string, unknown> = { ":n": name, ":now": now, ":empty": [], ":new": newContribs };
-  if (email) { sets.push("email = :em"); values[":em"] = email.toLowerCase(); }
-  if (city) { sets.push("city = :ci"); values[":ci"] = city; }
-  if (employer) { sets.push("employer = :emp"); values[":emp"] = employer; }
-  if (occupation) { sets.push("occupation = :occ"); values[":occ"] = occupation; }
-
-  await ddb.send(
-    new UpdateCommand({
-      TableName: TABLE,
-      Key: { PK: PK.donors, SK: dedupeKey },
-      UpdateExpression: "SET " + sets.join(", "),
-      ExpressionAttributeNames: names,
-      ExpressionAttributeValues: values,
-    }),
-  );
+  // Shared recorder: email-keyed upsert into contributions[], FEC fields
+  // preserved when omitted. Same path the WinRed webhook uses.
+  await recordContribution({
+    name,
+    email: str(formData, "email"),
+    city: str(formData, "city"),
+    employer: str(formData, "employer"),
+    occupation: str(formData, "occupation"),
+    amountCents: Math.round((isFinite(amount) ? amount : 0) * 100),
+    method: str(formData, "method") ?? "WinRed",
+  });
   revalidatePath("/dashboard/donors");
   revalidatePath("/dashboard");
 }
