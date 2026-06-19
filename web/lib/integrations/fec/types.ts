@@ -18,3 +18,20 @@ export type FecSummary = {
   sourceUrl: string; // fec.gov candidate page
   retrievedAt: string;
 };
+
+// Donor profile derived from OpenFEC Schedule A aggregates — the OpenSecrets
+// replacement (OpenSecrets discontinued its API 2025-04-15). All from public
+// itemized-receipt data; describes the money, never the donor personally.
+export type DonorBucket = { label: string; amount: number };
+
+export type DonorProfile = {
+  fecCandidateId: string;
+  committeeId: string | null;
+  cycle: number;
+  topEmployers: DonorBucket[]; // by contributor employer
+  topOccupations: DonorBucket[]; // by contributor occupation
+  bySize: DonorBucket[]; // small-dollar vs large-dollar mix
+  byState: DonorBucket[]; // in-district/in-state vs out-of-state money
+  sourceUrl: string;
+  retrievedAt: string;
+};

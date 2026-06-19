@@ -18,6 +18,7 @@ applications:
                        CONGRESS_GOV_API_KEY CRON_SECRET ANTHROPIC_API_KEY ANTHROPIC_MODEL \
                        RESEARCH_BIOGUIDE_ID RESEARCH_VOTE_YEAR RESEARCH_FROM_ROLL RESEARCH_TO_ROLL \
                        FEC_API_KEY RESEARCH_FEC_CYCLE RESEARCH_INCUMBENT_FEC_ID \
+                       OPENSTATES_API_KEY CENSUS_API_KEY \
                        RESEARCH_FIELD_JSON RESEARCH_STATEMENTS_JSON \
                        NEXT_PUBLIC_MEDIA_BOOKING_URL NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY \
                        NEXT_PUBLIC_CLERK_SIGN_IN_URL NEXT_PUBLIC_CLERK_SIGN_UP_URL \
@@ -34,8 +35,9 @@ applications:
             # SecureString secret).
             - |
               for k in DASHBOARD_ALLOWLIST CLERK_WEBHOOK_SIGNING_SECRET \
-                       ANTHROPIC_API_KEY ANTHROPIC_MODEL CONGRESS_GOV_API_KEY CRON_SECRET FEC_API_KEY; do
-                v=$(aws ssm get-parameter --name "/matt-grant/$k" --with-decryption \
+                       ANTHROPIC_API_KEY ANTHROPIC_MODEL CONGRESS_GOV_API_KEY CRON_SECRET FEC_API_KEY \
+                       OPENSTATES_API_KEY CENSUS_API_KEY; do
+                v=$(aws ssm get-parameter --name "/matt-grant/$k" --with-decryption --region "${AWS_REGION:-us-east-1}" \
                       --query 'Parameter.Value' --output text 2>/dev/null || true)
                 if [ -n "$v" ] && [ "$v" != "None" ]; then echo "$k=$v" >> .env.production; fi
               done
