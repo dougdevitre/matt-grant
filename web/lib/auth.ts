@@ -29,7 +29,7 @@ export function emailAllowed(email?: string | null): boolean {
 // verdict. In demo mode (no Clerk) it's a no-op pass. Callers should already be
 // behind middleware auth.protect(), so currentUser() is present when Clerk is on.
 import type { StaffRole } from "@/lib/staff";
-import { asRole } from "@/lib/rbac";
+import { asRole, can, type Capability } from "@/lib/rbac";
 
 export type Gate = { ok: boolean; email: string | null; role: StaffRole | null };
 
@@ -51,4 +51,41 @@ export async function staffGate(): Promise<Gate> {
   const { staffRole } = await import("@/lib/staff");
   const role = await staffRole(email);
   return { ok: !!role, email, role };
+}
+
+// ── Capability guards (the contract feature lanes use to gate surfaces) ──────────
+// These exist so a page/route NEVER hardcodes a role and NEVER relies on the
+// sidebar hiding a link for its security. The RBAC matrix (lib/rbac.ts) stays the
+// single source of truth; callers ask for a capability, not a role.
+
+/**
+ * Server-component / page guard. Resolves the signed-in staffer and redirects if
+ * they may not perform `capability`:
+ *   • not staff at all        → /sign-in
+ *   • staff but lacks the cap  → /dashboard?denied=<capability>
+ * Returns the resolved Gate on success. Use at the top of a dashboard page:
+ *
+ *   export default async function Page() {
+ *     await requireCap("viewResearch");
+ *     ...
+ *   }
+ */
+export async function requireCap(capability: Capability): Promise<Gate> {
+  const { redirect } = await import("next/navigation");
+  const gate = await staffGate();
+  if (!gate.ok) redirect("/sign-in");
+  if (!can(gate.role, capability)) redirect(`/dashboard?denied=${capability}`);
+  return gate;
+}
+
+/**
+ * API-route guard. Non-throwing: returns the verdict + gate so the handler can
+ * answer with the standard envelope (apiError/forbidden from lib/contracts/api).
+ *
+ *   const { allowed } = await checkCap("viewDonorDetail");
+ *   if (!allowed) return forbidden();
+ */
+export async function checkCap(capability: Capability): Promise<{ allowed: boolean; gate: Gate }> {
+  const gate = await staffGate();
+  return { allowed: gate.ok && can(gate.role, capability), gate };
 }
