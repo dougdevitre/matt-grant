@@ -6,6 +6,7 @@ import { can } from "@/lib/rbac";
 import { getDonors, getVolunteers } from "@/lib/queries";
 import { sesEnabled } from "@/lib/email/send";
 import { listCampaigns } from "@/lib/campaigns";
+import { BROADCAST_META } from "@/lib/email/broadcasts";
 
 export const dynamic = "force-dynamic";
 
@@ -29,10 +30,10 @@ export default async function EmailsPage() {
       <PageHeader kicker="Comms" title="Email campaigns" />
       <HowTo
         steps={[
-          "Write a subject and message, choose an audience (volunteers, donors, or everyone), and send.",
-          "Every email auto-includes the committee address, the “Paid for by” disclaimer, and a one-click unsubscribe — CAN-SPAM + FEC requirements are built in.",
-          "Always “Send test to me” first to check how it looks before sending to the list.",
-          "Unsubscribed and bounced addresses are filtered out automatically.",
+          "Pick a branded template, fill any fields, choose an audience (volunteers, donors, or everyone), and send.",
+          "Each template maps to a topic (news, issues, GOTV, fundraising, events). Recipients opted out of that topic — or unsubscribed/bounced — are skipped automatically.",
+          "Every email auto-includes the committee address, the “Paid for by” disclaimer, and one-click unsubscribe — CAN-SPAM + FEC built in.",
+          "Always “Send test to me” first to see how it looks before sending to the list.",
           "Drafting + tests are open to captains; sending to the list is admins only.",
         ]}
       />
@@ -47,7 +48,7 @@ export default async function EmailsPage() {
         </div>
       )}
 
-      <EmailComposer counts={counts} canSend={canSend} disabled={!sesEnabled} />
+      <EmailComposer broadcasts={BROADCAST_META} counts={counts} canSend={canSend} disabled={!sesEnabled} />
 
       <div className="mt-8">
         <p className="eyebrow text-slate">Recent sends</p>
@@ -56,7 +57,7 @@ export default async function EmailsPage() {
             {sent.map((c) => (
               <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm">
                 <span className="min-w-0">
-                  <span className="text-ink">{c.subject}</span>{" "}
+                  <span className="text-ink">{c.subjectPreview}</span>{" "}
                   <span className="text-slate">
                     → {audienceLabel[c.audience] ?? c.audience} · {c.sentCount}/{c.total} sent
                     {c.suppressedCount ? ` · ${c.suppressedCount} skipped` : ""} · by {c.createdBy}

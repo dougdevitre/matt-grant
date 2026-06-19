@@ -1,11 +1,13 @@
 import { PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, newId, dbConfigured } from "@/lib/db";
-import { isSuppressed } from "@/lib/subscribers";
-import { sendCampaignEmail } from "@/lib/campaignSend";
+import { isSuppressed, type TopicKey } from "@/lib/subscribers";
+import { getBroadcast } from "@/lib/email/broadcasts";
+import { sendBroadcastEmail } from "@/lib/campaignSend";
 
-// Broadcast campaigns are queued, then sent in bounded batches by drainOnce()
-// (called inline for the first batch + by the /api/cron/email-drain worker) so a
-// large list never blocks a single request past the function timeout.
+// Template-driven, topic-aware broadcast campaigns. Queued, then sent in bounded
+// batches by drainOnce() (first batch inline + /api/cron/email-drain worker) so a
+// large list never blocks one request past the function timeout. Recipients who
+// are globally suppressed OR opted out of the campaign's topic are skipped.
 const CAMPAIGN_PK = "CAMPAIGN";
 const BATCH = 25;
 
@@ -14,9 +16,11 @@ type CampaignItem = {
   SK: string;
   id: string;
   createdAt: string;
-  subject: string;
-  body: string;
+  templateKey: string;
+  topic: TopicKey;
+  vars: Record<string, string>;
   audience: string;
+  subjectPreview: string;
   status: CampaignStatus;
   recipients: string[];
   cursor: number;
@@ -29,21 +33,24 @@ type CampaignItem = {
 export type CampaignSummary = {
   id: string;
   createdAt: string;
-  subject: string;
+  subjectPreview: string;
+  templateKey: string;
+  topic: TopicKey;
   audience: string;
   status: CampaignStatus;
   total: number;
   sentCount: number;
   suppressedCount: number;
   createdBy: string;
-  finishedAt?: string;
 };
 
 export async function createCampaign(input: {
-  subject: string;
-  body: string;
+  templateKey: string;
+  topic: TopicKey;
+  vars: Record<string, string>;
   audience: string;
   recipients: string[];
+  subjectPreview: string;
   createdBy: string;
 }): Promise<string> {
   const id = newId();
@@ -56,9 +63,11 @@ export async function createCampaign(input: {
         SK: `${createdAt}#${id}`,
         id,
         createdAt,
-        subject: input.subject,
-        body: input.body,
+        templateKey: input.templateKey,
+        topic: input.topic,
+        vars: input.vars,
         audience: input.audience,
+        subjectPreview: input.subjectPreview,
         status: "queued",
         recipients: input.recipients,
         cursor: 0,
@@ -77,7 +86,7 @@ async function allCampaigns(): Promise<CampaignItem[]> {
       TableName: TABLE,
       KeyConditionExpression: "PK = :p",
       ExpressionAttributeValues: { ":p": CAMPAIGN_PK },
-      ScanIndexForward: false, // newest first
+      ScanIndexForward: false,
     }),
   );
   return (r.Items ?? []) as CampaignItem[];
@@ -89,23 +98,23 @@ export async function listCampaigns(limit = 15): Promise<CampaignSummary[]> {
     return (await allCampaigns()).slice(0, limit).map((c) => ({
       id: c.id,
       createdAt: c.createdAt,
-      subject: c.subject,
+      subjectPreview: c.subjectPreview ?? "(campaign)",
+      templateKey: c.templateKey,
+      topic: c.topic,
       audience: c.audience,
       status: c.status,
       total: c.recipients?.length ?? 0,
       sentCount: c.sentCount ?? 0,
       suppressedCount: c.suppressedCount ?? 0,
       createdBy: c.createdBy,
-      finishedAt: c.finishedAt,
     }));
   } catch {
     return [];
   }
 }
 
-// Send the next bounded batch of the oldest active campaign. Returns null when
-// there's nothing to do. Each call is O(BATCH) sends, so it stays well under any
-// serverless timeout regardless of list size.
+// Send the next bounded batch of the oldest active campaign. Renders the template
+// once, then sends to recipients not suppressed for this campaign's topic.
 export async function drainOnce(
   base: string,
   batchSize = BATCH,
@@ -116,29 +125,43 @@ export async function drainOnce(
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0];
   if (!active) return null;
 
+  const now = new Date().toISOString();
+  const broadcast = getBroadcast(active.templateKey);
+  if (!broadcast) {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: CAMPAIGN_PK, SK: active.SK },
+        UpdateExpression: "SET #s = :s, updatedAt = :u",
+        ExpressionAttributeNames: { "#s": "status" },
+        ExpressionAttributeValues: { ":s": "failed", ":u": now },
+      }),
+    );
+    return { id: active.id, sent: active.sentCount ?? 0, done: true, cursor: active.cursor ?? 0, total: active.recipients?.length ?? 0 };
+  }
+
+  const email = broadcast.build(active.vars ?? {});
   const recipients = active.recipients ?? [];
   const slice = recipients.slice(active.cursor, active.cursor + batchSize);
   let sent = active.sentCount ?? 0;
   let suppressed = active.suppressedCount ?? 0;
-  for (const e of slice) {
-    if (await isSuppressed(e)) {
+  for (const addr of slice) {
+    if (await isSuppressed(addr, active.topic)) {
       suppressed++;
       continue;
     }
-    const r = await sendCampaignEmail({ to: e, subject: active.subject, body: active.body, base });
+    const r = await sendBroadcastEmail({ to: addr, email, base });
     if (r.sent) sent++;
   }
   const cursor = active.cursor + slice.length;
   const done = cursor >= recipients.length;
-  const now = new Date().toISOString();
 
   await ddb.send(
     new UpdateCommand({
       TableName: TABLE,
       Key: { PK: CAMPAIGN_PK, SK: active.SK },
       UpdateExpression:
-        "SET #s = :s, #cur = :c, sentCount = :sent, suppressedCount = :sup, updatedAt = :u" +
-        (done ? ", finishedAt = :f" : ""),
+        "SET #s = :s, #cur = :c, sentCount = :sent, suppressedCount = :sup, updatedAt = :u" + (done ? ", finishedAt = :f" : ""),
       ExpressionAttributeNames: { "#s": "status", "#cur": "cursor" },
       ExpressionAttributeValues: {
         ":s": done ? "sent" : "sending",
