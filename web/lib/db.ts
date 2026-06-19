@@ -16,7 +16,10 @@ export const ddb =
     marshallOptions: { removeUndefinedValues: true },
   });
 
-if (process.env.NODE_ENV !== "production") globalForDdb.ddb = ddb;
+// Reuse the client across warm Lambda invocations (and dev hot-reloads). The AWS
+// SDK client is safe to share; building a fresh one per cold module-eval in
+// production wasted connection setup for no benefit. Cache in ALL environments.
+globalForDdb.ddb = ddb;
 
 // Collection partition keys — each entity type lives in one partition so a
 // Query by PK lists them all (fine at campaign scale).

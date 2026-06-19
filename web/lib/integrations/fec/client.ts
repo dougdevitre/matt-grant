@@ -1,6 +1,7 @@
 // Minimal OpenFEC client (api.open.fec.gov/v1). Public campaign-finance data.
 // Free key at https://api.data.gov/signup/ — DEMO_KEY works at low rate limits.
 import type { FecSummary, DonorProfile, DonorBucket, CycleFinance } from "./types";
+import { fetchJsonWithRetry } from "../http";
 
 const BASE = "https://api.open.fec.gov/v1";
 
@@ -23,9 +24,7 @@ export class FecClient {
     const u = new URL(BASE + path);
     u.searchParams.set("api_key", this.key);
     for (const [k, v] of Object.entries(params)) u.searchParams.set(k, v);
-    const res = await fetch(u, { headers: { accept: "application/json" } });
-    if (!res.ok) throw new Error(`openfec ${res.status} ${path}`);
-    return (await res.json()) as Json;
+    return await fetchJsonWithRetry<Json>(u, { headers: { accept: "application/json" }, label: `openfec ${path}` });
   }
 
   // Candidate identity + the most recent two-year cycle totals.
