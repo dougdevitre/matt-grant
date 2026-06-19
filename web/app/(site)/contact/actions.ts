@@ -43,7 +43,8 @@ export async function submitContact(_prev: ContactResult | null, formData: FormD
   const email = String(formData.get("email") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const city = String(formData.get("city") ?? "").trim();
-  const interests = formData.getAll("interests").map(String).join(", ");
+  const interestTags = formData.getAll("interests").map(String).filter(Boolean);
+  const interests = interestTags.join(", ");
   const message = String(formData.get("message") ?? "").trim();
 
   // Honeypot: a hidden field real users never see or fill. If it has a value,
@@ -82,7 +83,7 @@ export async function submitContact(_prev: ContactResult | null, formData: FormD
         // Latest submission wins for contact details; status + createdAt are set
         // once and never reset — an ACTIVE volunteer who re-submits stays ACTIVE.
         UpdateExpression:
-          "SET #n = :n, email = :em, phone = :ph, city = :ci, interests = :in, notes = :no, " +
+          "SET #n = :n, email = :em, phone = :ph, city = :ci, interests = :in, interestTags = :tags, notes = :no, " +
           "#src = :src, updatedAt = :u, #st = if_not_exists(#st, :new), createdAt = if_not_exists(createdAt, :u)",
         ExpressionAttributeNames: { "#n": "name", "#st": "status", "#src": "source" },
         ExpressionAttributeValues: {
@@ -90,6 +91,7 @@ export async function submitContact(_prev: ContactResult | null, formData: FormD
           ":em": email || null,
           ":ph": phone || null,
           ":ci": city || null,
+          ":tags": interestTags,
           ":in": interests || null,
           ":no": message || null,
           ":src": source,
