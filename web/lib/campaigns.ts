@@ -12,6 +12,17 @@ const CAMPAIGN_PK = "CAMPAIGN";
 const STATS_PK = "CAMPAIGN_STATS"; // per-campaign open/click counters, keyed by campaign id
 const BATCH = 25;
 
+/**
+ * Builds the post-send counter update for a drained batch. DynamoDB requires
+ * clause order SET → REMOVE → ADD → DELETE; an expression that starts with ADD
+ * then SET raises a ValidationException. Extracted + exported so that ordering
+ * invariant is unit-tested (campaigns.test.ts) — the bug it guards against left
+ * counts unincremented and campaigns stuck "sending" after mail had gone out.
+ */
+export function finalizeUpdateExpression(done: boolean): string {
+  return "SET updatedAt = :u" + (done ? ", #s = :sent, finishedAt = :u" : "") + " ADD sentCount :sd, suppressedCount :pd";
+}
+
 export type CampaignStatus = "scheduled" | "queued" | "sending" | "sent" | "failed";
 type CampaignItem = {
   SK: string;
@@ -259,7 +270,7 @@ export async function drainOnce(
     new UpdateCommand({
       TableName: TABLE,
       Key: { PK: CAMPAIGN_PK, SK: active.SK },
-      UpdateExpression: "ADD sentCount :sd, suppressedCount :pd" + (done ? " SET #s = :sent, finishedAt = :u, updatedAt = :u" : " SET updatedAt = :u"),
+      UpdateExpression: finalizeUpdateExpression(done),
       ...(done ? { ExpressionAttributeNames: { "#s": "status" } } : {}),
       ExpressionAttributeValues: { ":sd": sentDelta, ":pd": suppressedDelta, ":u": now, ...(done ? { ":sent": "sent" } : {}) },
     }),
