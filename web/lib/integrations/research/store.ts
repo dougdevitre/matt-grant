@@ -3,6 +3,7 @@ import { ddb, TABLE, PK } from "@/lib/db";
 import type { Candidate } from "./candidates";
 import type { FecSummary, DonorProfile } from "../fec/types";
 import type { StateLegRecord } from "../openstates/client";
+import type { TenureTimeline } from "./timeline";
 
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];
@@ -74,4 +75,16 @@ export async function persistStateLeg(slug: string, record: StateLegRecord): Pro
 export async function getStateLeg(slug: string): Promise<StateLegRecord | null> {
   const out = await ddb.send(new GetCommand({ TableName: TABLE, Key: { PK: PK.stateLeg(slug), SK: "record" } }));
   return (out.Item as unknown as StateLegRecord) ?? null;
+}
+
+// ---- Tenure timeline ----
+export async function persistTimeline(slug: string, timeline: TenureTimeline): Promise<void> {
+  await ddb.send(
+    new PutCommand({ TableName: TABLE, Item: { PK: PK.timeline(slug), SK: "tenure", type: "timeline", ...timeline } }),
+  );
+}
+
+export async function getTimeline(slug: string): Promise<TenureTimeline | null> {
+  const out = await ddb.send(new GetCommand({ TableName: TABLE, Key: { PK: PK.timeline(slug), SK: "tenure" } }));
+  return (out.Item as unknown as TenureTimeline) ?? null;
 }

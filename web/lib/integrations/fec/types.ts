@@ -35,3 +35,14 @@ export type DonorProfile = {
   sourceUrl: string;
   retrievedAt: string;
 };
+
+// Per-cycle fundraising + outside money — feeds the tenure timeline.
+export type CycleFinance = {
+  cycle: number;
+  receipts: number | null;
+  disbursements: number | null;
+  cashOnHand: number | null;
+  ieSupport: number | null; // independent expenditures FOR (Schedule E)
+  ieOppose: number | null; // independent expenditures AGAINST
+  sourceUrl: string;
+};
