@@ -1,4 +1,5 @@
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
+import { requireCap } from "@/lib/auth";
 import { CAMPAIGN, PRIORITIES } from "@/lib/site";
 
 // Structured view of candidate/strategic-plan.md. All figures are ILLUSTRATIVE
@@ -60,7 +61,8 @@ const VOTE_MATH = [
   ["Daily voter contacts to hit it", "derived from win number ÷ days"],
 ];
 
-export default function PlanPage() {
+export default async function PlanPage() {
+  await requireCap("viewPlan"); // organizers are denied; don't rely on the sidebar hiding the link (H1)
   return (
     <>
       <PageHeader kicker="Strategy" title={`Plan to win ${CAMPAIGN.districtShort}`} />
