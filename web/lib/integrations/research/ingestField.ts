@@ -1,8 +1,9 @@
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK } from "@/lib/db";
 import { loadField, type Candidate } from "./candidates";
-import { persistCandidates, persistFec } from "./store";
+import { persistCandidates, persistFec, persistDonorProfile, persistStateLeg } from "./store";
 import { FecClient, fecEnabled } from "../fec/client";
+import { OpenStatesClient, openStatesEnabled } from "../openstates/client";
 import { CongressClient } from "../legislative/congressClient";
 import { fetchMemberVotes } from "../legislative/clerkVotes";
 import { persist as persistLegislative } from "../legislative/store";
@@ -12,7 +13,11 @@ export type FieldIngestResult = {
   candidates: number;
   fec: number;
   federal: number;
-  perCandidate: Record<string, { fec?: boolean; federal?: { votes: number; bills: number }; error?: string }>;
+  stateLeg: number;
+  perCandidate: Record<
+    string,
+    { fec?: boolean; federal?: { votes: number; bills: number }; stateLeg?: number; error?: string }
+  >;
 };
 
 const cycle = Number(process.env.RESEARCH_FEC_CYCLE ?? "2026");
@@ -52,21 +57,31 @@ export async function runFieldIngest(): Promise<FieldIngestResult> {
   await ddb.send(new PutCommand({ TableName: TABLE, Item: { PK: PK.ingestRuns("FIELD"), SK: startedAt, ok: false, startedAt } }));
 
   await persistCandidates(field);
-  const result: FieldIngestResult = { candidates: field.length, fec: 0, federal: 0, perCandidate: {} };
+  const result: FieldIngestResult = { candidates: field.length, fec: 0, federal: 0, stateLeg: 0, perCandidate: {} };
   const fec = fecEnabled ? new FecClient() : null;
+  const openStates = openStatesEnabled ? new OpenStatesClient() : null;
 
   for (const c of field) {
     const entry: FieldIngestResult["perCandidate"][string] = {};
     try {
       if (fec && c.fecCandidateId) {
-        const summary = await fec.getSummary(c.fecCandidateId, cycle);
-        await persistFec(c.slug, summary);
+        const [summary, donors] = await Promise.all([
+          fec.getSummary(c.fecCandidateId, cycle),
+          fec.getDonorProfile(c.fecCandidateId, cycle),
+        ]);
+        await Promise.all([persistFec(c.slug, summary), persistDonorProfile(c.slug, donors)]);
         entry.fec = true;
         result.fec += 1;
       }
       if (c.bioguideId && process.env.CONGRESS_GOV_API_KEY) {
         entry.federal = await ingestFederal(c);
         result.federal += 1;
+      }
+      if (openStates && c.stateLegId) {
+        const record = await openStates.getRecord(c.stateLegId);
+        await persistStateLeg(c.slug, record);
+        entry.stateLeg = record.sponsored.length;
+        result.stateLeg += 1;
       }
     } catch (err) {
       entry.error = String(err);

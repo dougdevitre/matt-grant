@@ -1,6 +1,6 @@
 // Minimal OpenFEC client (api.open.fec.gov/v1). Public campaign-finance data.
 // Free key at https://api.data.gov/signup/ — DEMO_KEY works at low rate limits.
-import type { FecSummary } from "./types";
+import type { FecSummary, DonorProfile, DonorBucket } from "./types";
 
 const BASE = "https://api.open.fec.gov/v1";
 
@@ -57,5 +57,44 @@ export class FecClient {
       sourceUrl: `https://www.fec.gov/data/candidate/${fecCandidateId}/`,
       retrievedAt: new Date().toISOString(),
     };
+  }
+
+  private async committeeId(fecCandidateId: string): Promise<string | null> {
+    const d = await this.get(`/candidate/${fecCandidateId}/`);
+    const cand = ((d.results as Json[] | undefined)?.[0] ?? {}) as Json;
+    return ((cand.principal_committees as Json[] | undefined)?.[0]?.committee_id as string) ?? null;
+  }
+
+  private async aggregate(
+    path: string,
+    committeeId: string,
+    cycle: number,
+    labelKey: string,
+  ): Promise<DonorBucket[]> {
+    const d = await this.get(path, { committee_id: committeeId, cycle: String(cycle), per_page: "10", sort: "-total" });
+    const rows = (d.results as Json[] | undefined) ?? [];
+    return rows
+      .map((r) => ({ label: String(r[labelKey] ?? "—"), amount: num(r.total) ?? 0 }))
+      .filter((b) => b.amount > 0);
+  }
+
+  // Donor profile from Schedule A aggregates (OpenSecrets replacement).
+  async getDonorProfile(fecCandidateId: string, cycle: number): Promise<DonorProfile> {
+    const committeeId = await this.committeeId(fecCandidateId);
+    const base = { fecCandidateId, committeeId, cycle, sourceUrl: `https://www.fec.gov/data/candidate/${fecCandidateId}/`, retrievedAt: new Date().toISOString() };
+    if (!committeeId) {
+      return { ...base, topEmployers: [], topOccupations: [], bySize: [], byState: [] };
+    }
+    const [topEmployers, topOccupations, bySizeRaw, byState] = await Promise.all([
+      this.aggregate("/schedules/schedule_a/by_employer/", committeeId, cycle, "employer"),
+      this.aggregate("/schedules/schedule_a/by_occupation/", committeeId, cycle, "occupation"),
+      this.get("/schedules/schedule_a/by_size/", { committee_id: committeeId, cycle: String(cycle) }),
+      this.aggregate("/schedules/schedule_a/by_state/", committeeId, cycle, "state"),
+    ]);
+    const SIZE_LABEL: Record<string, string> = { "0": "≤ $200", "200": "$200–499", "500": "$500–999", "1000": "$1,000–1,999", "2000": "$2,000+" };
+    const bySize = ((bySizeRaw.results as Json[] | undefined) ?? [])
+      .map((r) => ({ label: SIZE_LABEL[String(r.size)] ?? `$${r.size}+`, amount: num(r.total) ?? 0 }))
+      .filter((b) => b.amount > 0);
+    return { ...base, topEmployers, topOccupations, bySize, byState };
   }
 }
