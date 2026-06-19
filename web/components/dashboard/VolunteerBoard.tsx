@@ -2,18 +2,25 @@
 
 import { useMemo, useState } from "react";
 import type { VolunteerRow } from "@/lib/queries";
-import { updateVolunteerStatus } from "@/app/dashboard/actions";
+import { updateVolunteer, markVolunteerContacted } from "@/app/dashboard/actions";
 
-const STATUSES = ["NEW", "ACTIVE", "INACTIVE"] as const;
+const STATUSES = ["NEW", "CONTACTED", "ACTIVE", "INACTIVE"] as const;
 // The fixed set offered on the public contact form — used for the interest filter.
 const INTERESTS = ["Knock doors", "Make calls", "Host an event", "Yard sign", "Donate", "Other"] as const;
 
 const badge: Record<string, string> = {
   NEW: "bg-gold/15 text-[#9a6f1a]",
-  ACTIVE: "bg-field/15 text-field",
+  CONTACTED: "bg-field/10 text-field",
+  ACTIVE: "bg-field/20 text-field",
   INACTIVE: "bg-line text-slate",
 };
 const select = "rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink";
+
+// Deterministic (string arg) — safe under react-hooks/purity, unlike Date.now().
+function contactedLabel(iso: string | null): string | null {
+  if (!iso) return null;
+  return `Last contacted ${new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+}
 
 export function VolunteerBoard({ rows }: { rows: VolunteerRow[] }) {
   const [status, setStatus] = useState("ALL");
@@ -25,11 +32,11 @@ export function VolunteerBoard({ rows }: { rows: VolunteerRow[] }) {
     return rows.filter((v) => {
       if (status !== "ALL" && v.status !== status) return false;
       if (interest !== "ALL") {
-        const tags = v.interestTags?.length ? v.interestTags : (v.interests ? v.interests.split(",").map((s) => s.trim()) : []);
+        const tags = v.interestTags?.length ? v.interestTags : v.interests ? v.interests.split(",").map((s) => s.trim()) : [];
         if (!tags.some((t) => t.toLowerCase() === interest.toLowerCase())) return false;
       }
       if (needle) {
-        const hay = [v.name, v.city, v.email, v.phone, v.interests, v.notes].filter(Boolean).join(" ").toLowerCase();
+        const hay = [v.name, v.city, v.email, v.phone, v.interests, v.notes, v.assignedTo].filter(Boolean).join(" ").toLowerCase();
         if (!hay.includes(needle)) return false;
       }
       return true;
@@ -37,7 +44,7 @@ export function VolunteerBoard({ rows }: { rows: VolunteerRow[] }) {
   }, [rows, status, interest, q]);
 
   const counts = useMemo(() => {
-    const c: Record<string, number> = { NEW: 0, ACTIVE: 0, INACTIVE: 0 };
+    const c: Record<string, number> = {};
     for (const v of rows) c[v.status] = (c[v.status] ?? 0) + 1;
     return c;
   }, [rows]);
@@ -49,7 +56,7 @@ export function VolunteerBoard({ rows }: { rows: VolunteerRow[] }) {
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search name, city, email, notes…"
+          placeholder="Search name, city, email, owner, notes…"
           aria-label="Search volunteers"
           className={`${select} min-w-[14rem] flex-1`}
         />
@@ -74,37 +81,66 @@ export function VolunteerBoard({ rows }: { rows: VolunteerRow[] }) {
         <div className="card p-10 text-center text-slate">No volunteers match these filters.</div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((v) => (
-            <div key={v.id} className="card p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-display text-lg font-semibold text-ink">{v.name}</p>
-                  {v.city && <p className="text-sm text-slate">{v.city}</p>}
+          {filtered.map((v) => {
+            const contacted = contactedLabel(v.lastContactedAt);
+            return (
+              <div key={v.id} className="card p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-display text-lg font-semibold text-ink">{v.name}</p>
+                    {v.city && <p className="text-sm text-slate">{v.city}</p>}
+                  </div>
+                  <span className={`rounded-sm px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow ${badge[v.status] ?? "bg-line text-slate"}`}>
+                    {v.status}
+                  </span>
                 </div>
-                <span className={`rounded-sm px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow ${badge[v.status]}`}>
-                  {v.status}
-                </span>
-              </div>
-              {v.interests && <p className="mt-3 text-sm text-slate">{v.interests}</p>}
-              {v.notes && (
-                <p className="mt-2 rounded-sm border-l-2 border-line bg-paper px-3 py-2 text-sm italic text-slate">
-                  &ldquo;{v.notes}&rdquo;
-                </p>
-              )}
-              {v.email && <p className="mt-2 font-mono text-xs text-field">{v.email}</p>}
-              {v.phone && <p className="font-mono text-xs text-field">{v.phone}</p>}
+                {v.interests && <p className="mt-3 text-sm text-slate">{v.interests}</p>}
+                {v.notes && (
+                  <p className="mt-2 rounded-sm border-l-2 border-line bg-paper px-3 py-2 text-sm italic text-slate">
+                    &ldquo;{v.notes}&rdquo;
+                  </p>
+                )}
+                {v.email && <p className="mt-2 font-mono text-xs text-field">{v.email}</p>}
+                {v.phone && <p className="font-mono text-xs text-field">{v.phone}</p>}
 
-              <form action={updateVolunteerStatus} className="mt-4 flex items-center gap-2">
-                <input type="hidden" name="id" value={v.id} />
-                <select name="status" aria-label="Set volunteer status" defaultValue={v.status} className="flex-1 rounded-sm border border-line bg-white px-2 py-1.5 text-xs text-ink">
-                  {STATUSES.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-                <button type="submit" className="btn-ghost px-3 py-1.5 text-xs">Save</button>
-              </form>
-            </div>
-          ))}
+                {(v.assignedTo || contacted) && (
+                  <p className="mt-2 flex flex-wrap gap-x-3 text-xs text-slate">
+                    {v.assignedTo && <span>Owner: <span className="text-ink">{v.assignedTo}</span></span>}
+                    {contacted && <span>{contacted}</span>}
+                  </p>
+                )}
+
+                {/* Status + owner */}
+                <form action={updateVolunteer} className="mt-4 space-y-2">
+                  <input type="hidden" name="id" value={v.id} />
+                  <div className="flex items-center gap-2">
+                    <select name="status" aria-label="Set volunteer status" defaultValue={v.status} className="flex-1 rounded-sm border border-line bg-white px-2 py-1.5 text-xs text-ink">
+                      {STATUSES.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                    <button type="submit" className="btn-ghost px-3 py-1.5 text-xs">Save</button>
+                  </div>
+                  <input
+                    name="assignedTo"
+                    defaultValue={v.assignedTo ?? ""}
+                    placeholder="Assign owner (name/initials)"
+                    aria-label="Assign owner"
+                    className="w-full rounded-sm border border-line bg-white px-2 py-1.5 text-xs text-ink"
+                  />
+                </form>
+
+                {/* Quick log-contact */}
+                <form action={markVolunteerContacted} className="mt-2">
+                  <input type="hidden" name="id" value={v.id} />
+                  <input type="hidden" name="current" value={v.status} />
+                  <button type="submit" className="text-xs font-semibold text-field hover:underline">
+                    ✓ Mark contacted today
+                  </button>
+                </form>
+              </div>
+            );
+          })}
         </div>
       )}
     </>
