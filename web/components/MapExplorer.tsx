@@ -119,6 +119,11 @@ export function MapExplorer() {
                         live
                       </span>
                     )}
+                    {c !== "polling" && (
+                      <span className="ml-2 rounded-sm bg-line px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-slate">
+                        sample
+                      </span>
+                    )}
                   </span>
                 </label>
               </li>
@@ -142,6 +147,16 @@ export function MapExplorer() {
               ? "Real MO-02 primary turnout (Aug 2024) — the Aug 4 electorate. Height + heat = turnout %."
               : "Height + heat = precinct turnout (loading live data…)."}
           </p>
+          {turnout && (
+            <div className="mt-3">
+              <div className="h-2 w-full rounded-full" style={{ background: "linear-gradient(to right, #d8d5cc, #E0A53B 31%, #cf7a39 62%, #B5343B)" }} aria-hidden />
+              <div className="mt-1 flex justify-between font-mono text-[0.6rem] text-slate">
+                <span>~8% low</span>
+                <span>~40% high</span>
+              </div>
+              <p className="mt-1 text-[0.6rem] text-slate">Taller &amp; redder = higher turnout. Click a column for its numbers.</p>
+            </div>
+          )}
           <label className="mt-4 flex cursor-pointer items-center justify-between text-sm">
             <span className="font-semibold text-ink">3D buildings</span>
             <input type="checkbox" checked={buildings} onChange={() => setBuildings((v) => !v)} />
