@@ -1,5 +1,6 @@
 // Minimal Congress.gov API client (api.congress.gov/v3). Public data; key via env.
 import type { LegBillRec, LegMember } from "./types";
+import { fetchJsonWithRetry } from "../http";
 
 const BASE = "https://api.congress.gov/v3";
 
@@ -13,9 +14,7 @@ export class CongressClient {
     u.searchParams.set("api_key", this.apiKey);
     u.searchParams.set("format", "json");
     for (const [k, v] of Object.entries(params)) u.searchParams.set(k, v);
-    const res = await fetch(u, { headers: { accept: "application/json" } });
-    if (!res.ok) throw new Error(`congress.gov ${res.status} ${path}`);
-    return (await res.json()) as Json;
+    return await fetchJsonWithRetry<Json>(u, { headers: { accept: "application/json" }, label: `congress.gov ${path}` });
   }
 
   async getMember(bioguideId: string): Promise<LegMember> {
