@@ -38,12 +38,12 @@ export default async function TasksPage() {
 
       <form action={addTask} className="card mb-6 flex flex-wrap items-end gap-3 p-4">
         <input name="title" required placeholder="New task…" className={`${input} min-w-[16rem] flex-1`} />
-        <select name="category" className={input} defaultValue="Field">
+        <select name="category" aria-label="Task category" className={input} defaultValue="Field">
           {["Field", "Finance", "Comms", "Compliance", "Ops"].map((c) => (
             <option key={c}>{c}</option>
           ))}
         </select>
-        <select name="priority" className={input} defaultValue="MEDIUM">
+        <select name="priority" aria-label="Task priority" className={input} defaultValue="MEDIUM">
           {["HIGH", "MEDIUM", "LOW"].map((p) => (
             <option key={p} value={p}>{p}</option>
           ))}

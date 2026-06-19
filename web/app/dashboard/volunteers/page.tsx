@@ -55,6 +55,7 @@ export default async function VolunteersPage() {
                 <input type="hidden" name="id" value={v.id} />
                 <select
                   name="status"
+                  aria-label="Volunteer status"
                   defaultValue={v.status}
                   className="flex-1 rounded-sm border border-line bg-white px-2 py-1.5 text-xs text-ink"
                 >
