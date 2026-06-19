@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { EmailComposer } from "@/components/dashboard/EmailComposer";
 import { staffGate } from "@/lib/auth";
@@ -27,7 +28,13 @@ export default async function EmailsPage() {
 
   return (
     <>
-      <PageHeader kicker="Comms" title="Email campaigns" />
+      <PageHeader kicker="Comms" title="Email campaigns">
+        {canSend && (
+          <Link href="/dashboard/subscribers" className="btn-ghost">
+            Subscribers &amp; suppression →
+          </Link>
+        )}
+      </PageHeader>
       <HowTo
         steps={[
           "Pick a branded template, fill any fields, choose an audience (volunteers, donors, or everyone), and send.",
