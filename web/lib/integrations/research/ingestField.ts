@@ -61,33 +61,37 @@ export async function runFieldIngest(): Promise<FieldIngestResult> {
   const fec = fecEnabled ? new FecClient() : null;
   const openStates = openStatesEnabled ? new OpenStatesClient() : null;
 
-  for (const c of field) {
-    const entry: FieldIngestResult["perCandidate"][string] = {};
-    try {
-      if (fec && c.fecCandidateId) {
-        const [summary, donors] = await Promise.all([
-          fec.getSummary(c.fecCandidateId, cycle),
-          fec.getDonorProfile(c.fecCandidateId, cycle),
-        ]);
-        await Promise.all([persistFec(c.slug, summary), persistDonorProfile(c.slug, donors)]);
-        entry.fec = true;
-        result.fec += 1;
+  // Candidates run concurrently — sequential was slow enough (FEC summary +
+  // donor aggregates + federal pull per candidate) to hit the gateway timeout.
+  await Promise.all(
+    field.map(async (c) => {
+      const entry: FieldIngestResult["perCandidate"][string] = {};
+      try {
+        if (fec && c.fecCandidateId) {
+          const [summary, donors] = await Promise.all([
+            fec.getSummary(c.fecCandidateId, cycle),
+            fec.getDonorProfile(c.fecCandidateId, cycle),
+          ]);
+          await Promise.all([persistFec(c.slug, summary), persistDonorProfile(c.slug, donors)]);
+          entry.fec = true;
+          result.fec += 1;
+        }
+        if (c.bioguideId && process.env.CONGRESS_GOV_API_KEY) {
+          entry.federal = await ingestFederal(c);
+          result.federal += 1;
+        }
+        if (openStates && c.stateLegId) {
+          const record = await openStates.getRecord(c.stateLegId);
+          await persistStateLeg(c.slug, record);
+          entry.stateLeg = record.sponsored.length;
+          result.stateLeg += 1;
+        }
+      } catch (err) {
+        entry.error = String(err);
       }
-      if (c.bioguideId && process.env.CONGRESS_GOV_API_KEY) {
-        entry.federal = await ingestFederal(c);
-        result.federal += 1;
-      }
-      if (openStates && c.stateLegId) {
-        const record = await openStates.getRecord(c.stateLegId);
-        await persistStateLeg(c.slug, record);
-        entry.stateLeg = record.sponsored.length;
-        result.stateLeg += 1;
-      }
-    } catch (err) {
-      entry.error = String(err);
-    }
-    result.perCandidate[c.slug] = entry;
-  }
+      result.perCandidate[c.slug] = entry;
+    }),
+  );
 
   await ddb.send(
     new PutCommand({
