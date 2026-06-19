@@ -45,8 +45,11 @@ export type VolunteerRow = {
   phone: string | null;
   city: string | null;
   interests: string | null;
+  interestTags: string[];
   notes: string | null;
   status: string;
+  assignedTo: string | null;
+  lastContactedAt: string | null;
   createdAt: string;
 };
 
@@ -137,8 +140,11 @@ export async function getVolunteers(): Promise<{ connected: boolean; rows: Volun
         phone: (v.phone as string) ?? null,
         city: (v.city as string) ?? null,
         interests: (v.interests as string) ?? null,
+        interestTags: Array.isArray(v.interestTags) ? (v.interestTags as string[]) : [],
         notes: (v.notes as string) ?? null,
         status: String(v.status ?? "NEW"),
+        assignedTo: (v.assignedTo as string) ?? null,
+        lastContactedAt: (v.lastContactedAt as string) ?? null,
         createdAt: String(v.createdAt ?? ""),
       }))
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
