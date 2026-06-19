@@ -33,6 +33,7 @@ export async function GET(req: Request) {
     const timeline = await buildTimeline(c);
     return NextResponse.json(timeline, { headers: { "cache-control": "public, max-age=3600" } });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 502 });
+    console.error("[research/timeline]", err);
+    return NextResponse.json({ error: "Timeline build failed" }, { status: 502 });
   }
 }

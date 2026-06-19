@@ -35,7 +35,8 @@ async function handle(req: Request) {
       enriched ? { ok: true, counts } : { ok: true, skipped: "no CONGRESS_GOV_API_KEY / FEC_API_KEY — roster only", counts },
     );
   } catch (err) {
-    return NextResponse.json({ ok: false, error: String(err) }, { status: 502 });
+    console.error("[research/ingest]", err);
+    return NextResponse.json({ ok: false, error: "Ingest failed" }, { status: 502 });
   }
 }
 
