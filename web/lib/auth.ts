@@ -15,8 +15,13 @@ export const STAFF_ALLOWLIST = (process.env.DASHBOARD_ALLOWLIST ?? "")
   .map((s) => s.trim().toLowerCase())
   .filter(Boolean);
 
+// Opt-in escape hatch for dev/preview: with no allowlist configured, treat any
+// signed-in user as an admin. OFF by default so production fails CLOSED — an
+// empty/unloaded DASHBOARD_ALLOWLIST must never silently grant everyone admin.
+const ALLOW_OPEN_DASHBOARD = process.env.ALLOW_OPEN_DASHBOARD === "true";
+
 export function emailAllowed(email?: string | null): boolean {
-  if (!STAFF_ALLOWLIST.length) return true; // not configured → allow (auth still required)
+  if (!STAFF_ALLOWLIST.length) return ALLOW_OPEN_DASHBOARD; // unset → only open if explicitly allowed
   return !!email && STAFF_ALLOWLIST.includes(email.toLowerCase());
 }
 

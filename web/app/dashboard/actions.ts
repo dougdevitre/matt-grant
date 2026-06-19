@@ -3,14 +3,24 @@
 import { revalidatePath } from "next/cache";
 import { PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, newId, dbConfigured } from "@/lib/db";
+import { staffGate } from "@/lib/auth";
+import { can, type Capability } from "@/lib/rbac";
 
 function requireDb() {
   if (!dbConfigured) throw new Error("Database not connected. Set DYNAMODB_TABLE.");
 }
 
+// Server-side authorization. Hiding a form in the UI doesn't stop a crafted
+// POST, so every mutating action must re-check the caller's capability here.
+async function authorize(cap: Capability) {
+  const { role } = await staffGate();
+  if (!can(role, cap)) throw new Error("Forbidden");
+}
+
 const str = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim() || undefined;
 
 export async function addDonor(formData: FormData) {
+  await authorize("viewDonorDetail");
   requireDb();
   const name = str(formData, "name");
   if (!name) return;
@@ -41,6 +51,7 @@ export async function addDonor(formData: FormData) {
 }
 
 export async function addExpenditure(formData: FormData) {
+  await authorize("editFinance");
   requireDb();
   const payee = str(formData, "payee");
   const amount = Number(formData.get("amount") ?? 0);
@@ -65,6 +76,7 @@ export async function addExpenditure(formData: FormData) {
 }
 
 export async function updateVolunteerStatus(formData: FormData) {
+  await authorize("manageVolunteers");
   requireDb();
   const id = str(formData, "id");
   const status = str(formData, "status");
@@ -83,6 +95,7 @@ export async function updateVolunteerStatus(formData: FormData) {
 }
 
 export async function addTask(formData: FormData) {
+  await authorize("manageTasks");
   requireDb();
   const title = str(formData, "title");
   if (!title) return;
@@ -105,6 +118,7 @@ export async function addTask(formData: FormData) {
 }
 
 export async function setTaskStatus(formData: FormData) {
+  await authorize("manageTasks");
   requireDb();
   const id = str(formData, "id");
   const status = str(formData, "status");
