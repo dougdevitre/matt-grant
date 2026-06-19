@@ -1,6 +1,7 @@
 import { renderOgCard } from "@/lib/og";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic"; // render on demand; never block the build on the font fetch
 export const alt = "Matt Grant for Congress — Missouri's 2nd District";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";

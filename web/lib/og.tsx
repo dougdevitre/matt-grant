@@ -11,12 +11,24 @@ const BRICK = "#B5343B";
 const BLUE = "#6BA6FF";
 const MUTED = "#9FB0C3";
 
-async function googleFont(family: string, weight: number, text: string): Promise<ArrayBuffer> {
-  const url = `https://fonts.googleapis.com/css2?family=${family.replace(/ /g, "+")}:wght@${weight}&text=${encodeURIComponent(text)}`;
-  const css = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } }).then((r) => r.text());
-  const src = css.match(/src: url\((https:[^)]+)\) format/);
-  if (!src) throw new Error(`font fetch failed for ${family}`);
-  return fetch(src[1]).then((r) => r.arrayBuffer());
+// Non-fatal: a flaky Google Fonts fetch (occasionally an HTML error page) must
+// never fail the build/render. Returns null on any problem → render falls back
+// to next/og's default font.
+async function googleFont(family: string, weight: number, text: string): Promise<ArrayBuffer | null> {
+  try {
+    const url = `https://fonts.googleapis.com/css2?family=${family.replace(/ /g, "+")}:wght@${weight}&text=${encodeURIComponent(text)}`;
+    const cssRes = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+    if (!cssRes.ok) return null;
+    const src = (await cssRes.text()).match(/src: url\((https:[^)]+)\) format/);
+    if (!src) return null;
+    const res = await fetch(src[1]);
+    if (!res.ok) return null;
+    const buf = await res.arrayBuffer();
+    if (new Uint8Array(buf)[0] === 0x3c) return null; // '<' = HTML error page, not a font
+    return buf;
+  } catch {
+    return null;
+  }
 }
 
 export type OgCard = { eyebrow: string; line1: string; line2: string; name: string; footer: string };
@@ -30,6 +42,10 @@ export async function renderOgCard(card: OgCard): Promise<ImageResponse> {
     readFile(join(process.cwd(), "public/brand/avatar-circle.png")),
   ]);
   const avatarSrc = `data:image/png;base64,${avatar.toString("base64")}`;
+  const fonts = [
+    fraunces && { name: "Fraunces", data: fraunces, weight: 700 as const, style: "normal" as const },
+    publicSans && { name: "Public Sans", data: publicSans, weight: 600 as const, style: "normal" as const },
+  ].filter(Boolean) as { name: string; data: ArrayBuffer; weight: 700 | 600; style: "normal" }[];
 
   return new ImageResponse(
     (
@@ -59,10 +75,7 @@ export async function renderOgCard(card: OgCard): Promise<ImageResponse> {
     {
       width: 1200,
       height: 630,
-      fonts: [
-        { name: "Fraunces", data: fraunces, weight: 700, style: "normal" },
-        { name: "Public Sans", data: publicSans, weight: 600, style: "normal" },
-      ],
+      ...(fonts.length ? { fonts } : {}),
     },
   );
 }
