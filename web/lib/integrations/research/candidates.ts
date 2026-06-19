@@ -61,12 +61,13 @@ function parseFieldJson(raw: string): Candidate[] {
   }
 }
 
-// The full field. Curated entries (RESEARCH_FIELD_JSON) win over the seed when
-// they share a slug, so the campaign can flesh out the incumbent too.
+// The full field. The seed is only a bootstrap: once a curated roster is
+// provided (RESEARCH_FIELD_JSON), it fully replaces the seed so no stray
+// placeholder "incumbent" row lingers next to the real candidates.
 export function loadField(): Candidate[] {
   const curated = process.env.RESEARCH_FIELD_JSON ? parseFieldJson(process.env.RESEARCH_FIELD_JSON) : [];
+  if (curated.length === 0) return [INCUMBENT_SEED];
   const bySlug = new Map<string, Candidate>();
-  bySlug.set(INCUMBENT_SEED.slug, INCUMBENT_SEED);
   for (const c of curated) bySlug.set(c.slug, c);
   return [...bySlug.values()];
 }
