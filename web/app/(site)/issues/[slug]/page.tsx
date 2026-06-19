@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ISSUES, issueSlugs, getIssue } from "@/lib/issues";
-import { CAMPAIGN } from "@/lib/site";
+import { CAMPAIGN, SITE_URL } from "@/lib/site";
+import { IssueCommit } from "@/components/IssueCommit";
 
 export function generateStaticParams() {
   return issueSlugs.map((slug) => ({ slug }));
@@ -111,6 +112,15 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
         </section>
       )}
 
+      {/* Commit to this issue */}
+      <section className="border-t border-line bg-paper">
+        <div className="container-page py-16 sm:py-20">
+          <div className="mx-auto max-w-2xl">
+            <IssueCommit slug={issue.slug} issueLabel={issue.eyebrow} />
+          </div>
+        </div>
+      </section>
+
       {/* Share + CTA */}
       <section className="container-page py-16 sm:py-20">
         <div className="grid gap-10 lg:grid-cols-[1fr_1.2fr] lg:items-center">
@@ -126,7 +136,23 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
               this fight to {CAMPAIGN.electionLabel}.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Link href="/media" className="btn-ink">Graphics &amp; captions</Link>
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(issue.tagline)}&url=${encodeURIComponent(`${SITE_URL}/issues/${issue.slug}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-ink"
+              >
+                Share on X
+              </a>
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${SITE_URL}/issues/${issue.slug}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-ghost"
+              >
+                Share on Facebook
+              </a>
+              <Link href="/media" className="btn-ghost">Graphics &amp; captions</Link>
               <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">Donate</a>
             </div>
           </div>
