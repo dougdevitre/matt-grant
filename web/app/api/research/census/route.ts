@@ -14,6 +14,7 @@ export async function GET() {
       { headers: { "cache-control": "public, max-age=3600" } },
     );
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 502 });
+    console.error("[research/census]", err);
+    return NextResponse.json({ error: "Census lookup failed" }, { status: 502 });
   }
 }
