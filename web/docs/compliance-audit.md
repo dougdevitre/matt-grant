@@ -21,6 +21,24 @@
 
 *Remaining open (need content/product input, not audit work): **E-1 suppression store** (only when a broadcast/mass-send path is built); **video caption `.vtt` files** (WCAG 1.2.2 — content authoring); **X-5** verified-on discipline (ongoing convention). All severity-ranked findings P-1…P-8, D-1, D-2 are resolved or verified-pass.*
 
+## Addendum — second-pass findings ("what did we miss?", 2026-06-18)
+
+A reflective second pass surfaced gaps the first sweep didn't cover.
+
+**Fixed this session:**
+- 🟠 **A-1 — HTML injection into the campaign notification email.** `contact/actions.ts` interpolated raw form input into the HTML email staff receive (injectable markup/phishing links). Now escaped at the boundary (`esc()`), including the first name passed into the branded receipt templates. **Fixed** (`854e0e4`).
+- 🟠 **A-2 — No spam protection on the public contact form.** No honeypot/captcha/rate-limit; every submit writes DynamoDB + sends 2 SES emails. Added an accessible off-screen honeypot (`name="company"`, `tabIndex=-1`, `aria-hidden`); non-empty → silently accepted, not saved/emailed. **Fixed** (`854e0e4`).
+
+**🔴 A-3 — Compliance work is merged but NOT live on the public domain.** As of 2026-06-18, `https://mattgrantforcongress.org/` serves a *different/older* build — different tagline ("Family Court Reform, Lower Taxes, Smaller Government" vs the repo's), **no** Data Policy/Transparency/Public-Trust footer links, and `/data-policy` returns **404**. Per `docs/DEPLOY-AWS.md`, pointing the custom domain at the Amplify app is a manual step. **Action (Doug/AWS):** confirm the Amplify build for `main` deployed, and that `mattgrantforcongress.org` is mapped to *this* app — otherwise none of the remediation is publicly live.
+
+**Open — need external review / decisions (not solo-fixable):**
+- 🟠 **A-4 — Image/photo/music licensing** unverified. Campaigns get sued over unlicensed media; needs a provenance/rights check by the team.
+- 🟠 **A-5 — "I'm Matt Grant and I approve this message."** Required spoken statement if any site video is also run as a paid TV/radio/digital ad — not audited for ad usage.
+- 🟠 **A-6 — TCPA consent quality.** The bundled "by submitting you agree to texts" checkbox may not meet prior-express-*written*-consent (not-a-condition) for autodialed marketing texts — lawyer's eye if texting supporters.
+- 🟡 **A-7 — Cookies/analytics.** None currently loaded (good); Data Policy slightly over-claims "basic analytics." If GA/Meta Pixel is added later, there's no cookie-consent mechanism and the policy must be updated.
+- 🟡 **A-8 — WinRed recurring defaults.** On-site link sets `recurring=false&money_bomb=false` (good); confirm the WinRed-hosted page has no pre-checked recurring box (active FTC/state-AG enforcement area).
+- 🟡 **A-9 — Accessibility is automated-only.** axe-core finds ~30–50% of WCAG; manual keyboard nav, screen-reader, 200/400% zoom reflow, and AskMatt dialog focus-trap/Escape were **not** tested. Dashboard a11y coverage was partial (main + finance; RBAC now blocks donors/finance in demo mode).
+
 ## How to read this
 
 Severity reflects legal + reputational risk for a **federal** campaign:
