@@ -12,7 +12,7 @@ the rest. Secrets live in **SSM `/matt-grant/*`** and are mirrored to the **Ampl
 | S3 + CloudFront (assets, photos, signed URLs) | data | ✅ **live** | done |
 | Clerk auth (sign-in, allowlist, roles) | connector | ✅ **live (dev)** | prod instance needs a domain → `clerk-production-plan.md` |
 | St. Louis County GIS (polling, precinct turnout, county VTDs) | data API | ✅ **live** | done — public ArcGIS, no key |
-| **Clerk webhook** (user.created → role mirror) | webhook | 🔌 **not connected** | Clerk dashboard → add endpoint `…/api/webhooks/clerk` (event `user.created`) → paste the **signing secret** to me |
+| **Clerk webhook** (user.created → role mirror) | webhook | ✅ **live** | done — endpoint verifies the signing secret at runtime (unsigned probe → 400 `invalid signature`; signed `user.created` → role mirror) |
 | **AWS SES** (receipts, invites, broadcast) | connector | ⏳ **pending verify** | click the AWS "verify email" link sent to `mattgrantforcongress@gmail.com` (or verify the domain for deliverability) |
 | **Walgreens** Native Photo Prints | data API | ⏳ **pending affId** | the real **Affiliate ID** from Walgreens (request email already drafted) → paste to me |
 | **Congress.gov** opp-research ingest | data API + cron | 🔌 **not connected** | free key at api.congress.gov/sign-up → paste to me; I add `CRON_SECRET` + an EventBridge schedule to `/api/research/ingest` |
