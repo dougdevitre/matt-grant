@@ -27,9 +27,14 @@ const fromRoll = Number(process.env.RESEARCH_FROM_ROLL ?? "1");
 const toRoll = Number(process.env.RESEARCH_TO_ROLL ?? "60");
 
 // Federal record for a sitting/former member (Congress.gov + House Clerk).
-async function ingestFederal(c: Candidate): Promise<{ votes: number; bills: number }> {
+// Returns the fetched bills so the timeline can reuse them (no second paginate).
+type FederalResult = {
+  counts: { votes: number; bills: number };
+  bills: { relation: string; congress: number }[];
+};
+async function ingestFederal(c: Candidate): Promise<FederalResult> {
   const apiKey = process.env.CONGRESS_GOV_API_KEY;
-  if (!apiKey || !c.bioguideId) return { votes: 0, bills: 0 };
+  if (!apiKey || !c.bioguideId) return { counts: { votes: 0, bills: 0 }, bills: [] };
   const client = new CongressClient(apiKey);
   const [member, sponsored, cosponsored, votes] = await Promise.all([
     client.getMember(c.bioguideId),
@@ -47,7 +52,10 @@ async function ingestFederal(c: Candidate): Promise<{ votes: number; bills: numb
     counts: { sponsored: sponsored.length, cosponsored: cosponsored.length, votes: votes.length },
   };
   await persistLegislative(dataset);
-  return { votes: votes.length, bills: sponsored.length + cosponsored.length };
+  return {
+    counts: { votes: votes.length, bills: sponsored.length + cosponsored.length },
+    bills: [...sponsored, ...cosponsored].map((b) => ({ relation: b.relation, congress: b.congress })),
+  };
 }
 
 // Ingests the entire field: roster → FEC (all who have an FEC id) → federal
@@ -77,8 +85,11 @@ export async function runFieldIngest(): Promise<FieldIngestResult> {
           entry.fec = true;
           result.fec += 1;
         }
+        let federalBills: { relation: string; congress: number }[] | undefined;
         if (c.bioguideId && process.env.CONGRESS_GOV_API_KEY) {
-          entry.federal = await ingestFederal(c);
+          const fed = await ingestFederal(c);
+          entry.federal = fed.counts;
+          federalBills = fed.bills;
           result.federal += 1;
         }
         if (openStates && c.stateLegId) {
@@ -88,8 +99,9 @@ export async function runFieldIngest(): Promise<FieldIngestResult> {
           result.stateLeg += 1;
         }
         // Tenure timeline — for any candidate with a federal record or FEC id.
+        // Reuse the bills the federal step already fetched (no re-paginate).
         if (c.bioguideId || c.fecCandidateId) {
-          const timeline = await buildTimeline(c);
+          const timeline = await buildTimeline(c, federalBills ? { bills: federalBills } : undefined);
           await persistTimeline(c.slug, timeline);
           entry.timeline = timeline.totalTerms;
         }
