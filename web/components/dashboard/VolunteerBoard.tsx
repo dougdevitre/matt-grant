@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import type { VolunteerRow } from "@/lib/queries";
 import { updateVolunteer, markVolunteerContacted } from "@/app/dashboard/actions";
 
@@ -22,7 +23,7 @@ function contactedLabel(iso: string | null): string | null {
   return `Last contacted ${new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
 }
 
-export function VolunteerBoard({ rows }: { rows: VolunteerRow[] }) {
+export function VolunteerBoard({ rows, taskCounts }: { rows: VolunteerRow[]; taskCounts?: Record<string, number> }) {
   const [status, setStatus] = useState("ALL");
   const [interest, setInterest] = useState("ALL");
   const [q, setQ] = useState("");
@@ -83,12 +84,21 @@ export function VolunteerBoard({ rows }: { rows: VolunteerRow[] }) {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((v) => {
             const contacted = contactedLabel(v.lastContactedAt);
+            const tcount = taskCounts?.[v.id] ?? 0;
             return (
               <div key={v.id} className="card p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-display text-lg font-semibold text-ink">{v.name}</p>
+                    <Link
+                      href={`/dashboard/volunteers/${encodeURIComponent(v.id)}`}
+                      className="font-display text-lg font-semibold text-ink hover:text-brick"
+                    >
+                      {v.name}
+                    </Link>
                     {v.city && <p className="text-sm text-slate">{v.city}</p>}
+                    {tcount > 0 && (
+                      <p className="mt-0.5 font-mono text-[0.65rem] text-field">{tcount} task{tcount === 1 ? "" : "s"} assigned</p>
+                    )}
                   </div>
                   <span className={`rounded-sm px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow ${badge[v.status] ?? "bg-line text-slate"}`}>
                     {v.status}
