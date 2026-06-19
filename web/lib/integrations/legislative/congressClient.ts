@@ -66,6 +66,22 @@ export class CongressClient {
     };
   }
 
+  // Terms served (one per Congress) — the tenure backbone for the timeline.
+  async getTerms(bioguideId: string): Promise<{ congress: number; chamber: string; startYear: number; endYear: number | null }[]> {
+    const d = await this.get(`/member/${bioguideId}`);
+    const m = (d.member ?? {}) as Json;
+    const terms = (m.terms as Json[] | undefined) ?? [];
+    return terms
+      .map((t) => ({
+        congress: Number(t.congress ?? 0),
+        chamber: String(t.chamber ?? ""),
+        startYear: Number(t.startYear ?? 0),
+        endYear: t.endYear != null ? Number(t.endYear) : null,
+      }))
+      .filter((t) => t.congress > 0)
+      .sort((a, b) => a.congress - b.congress);
+  }
+
   async getSponsored(bioguideId: string): Promise<LegBillRec[]> {
     const items = await this.paginate(`/member/${bioguideId}/sponsored-legislation`, "sponsoredLegislation");
     return items.map((i) => this.normBill(i, "sponsored")).filter((b) => b.number);

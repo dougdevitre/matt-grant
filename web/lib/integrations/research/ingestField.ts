@@ -1,7 +1,8 @@
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK } from "@/lib/db";
 import { loadField, type Candidate } from "./candidates";
-import { persistCandidates, persistFec, persistDonorProfile, persistStateLeg } from "./store";
+import { persistCandidates, persistFec, persistDonorProfile, persistStateLeg, persistTimeline } from "./store";
+import { buildTimeline } from "./timeline";
 import { FecClient, fecEnabled } from "../fec/client";
 import { OpenStatesClient, openStatesEnabled } from "../openstates/client";
 import { CongressClient } from "../legislative/congressClient";
@@ -16,7 +17,7 @@ export type FieldIngestResult = {
   stateLeg: number;
   perCandidate: Record<
     string,
-    { fec?: boolean; federal?: { votes: number; bills: number }; stateLeg?: number; error?: string }
+    { fec?: boolean; federal?: { votes: number; bills: number }; stateLeg?: number; timeline?: number; error?: string }
   >;
 };
 
@@ -85,6 +86,12 @@ export async function runFieldIngest(): Promise<FieldIngestResult> {
           await persistStateLeg(c.slug, record);
           entry.stateLeg = record.sponsored.length;
           result.stateLeg += 1;
+        }
+        // Tenure timeline — for any candidate with a federal record or FEC id.
+        if (c.bioguideId || c.fecCandidateId) {
+          const timeline = await buildTimeline(c);
+          await persistTimeline(c.slug, timeline);
+          entry.timeline = timeline.totalTerms;
         }
       } catch (err) {
         entry.error = String(err);

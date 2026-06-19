@@ -1,6 +1,6 @@
 // Minimal OpenFEC client (api.open.fec.gov/v1). Public campaign-finance data.
 // Free key at https://api.data.gov/signup/ — DEMO_KEY works at low rate limits.
-import type { FecSummary, DonorProfile, DonorBucket } from "./types";
+import type { FecSummary, DonorProfile, DonorBucket, CycleFinance } from "./types";
 
 const BASE = "https://api.open.fec.gov/v1";
 
@@ -69,6 +69,56 @@ export class FecClient {
 
   private async committeeId(fecCandidateId: string): Promise<string | null> {
     return (await this.principalCommittee(fecCandidateId))?.id ?? null;
+  }
+
+  // Per-cycle fundraising arc + independent expenditures for/against — the
+  // money spine of the tenure timeline. One totals call + one IE call per cycle.
+  async getCycleFinance(fecCandidateId: string): Promise<CycleFinance[]> {
+    const totResp = await this.get(`/candidate/${fecCandidateId}/totals/`, { per_page: "30", sort: "cycle" });
+    // Dedupe by cycle (the API can echo rows with a null cycle field).
+    const byCycle = new Map<number, Json>();
+    for (const r of (totResp.results as Json[] | undefined) ?? []) {
+      const c = num(r.cycle);
+      if (c && !byCycle.has(c)) byCycle.set(c, r);
+    }
+    const cycles = [...byCycle.keys()].sort((a, b) => a - b);
+
+    const ie = await Promise.all(
+      cycles.map(async (cycle) => {
+        try {
+          const d = await this.get("/schedules/schedule_e/by_candidate/", {
+            candidate_id: fecCandidateId,
+            cycle: String(cycle),
+            election_full: "true",
+          });
+          let support = 0,
+            oppose = 0;
+          for (const r of (d.results as Json[] | undefined) ?? []) {
+            const t = num(r.total) ?? 0;
+            if (r.support_oppose_indicator === "S") support += t;
+            else if (r.support_oppose_indicator === "O") oppose += t;
+          }
+          return { cycle, support, oppose };
+        } catch {
+          return { cycle, support: null as number | null, oppose: null as number | null };
+        }
+      }),
+    );
+    const ieByCycle = new Map(ie.map((x) => [x.cycle, x]));
+
+    return cycles.map((cycle) => {
+      const t = byCycle.get(cycle)!;
+      const e = ieByCycle.get(cycle);
+      return {
+        cycle,
+        receipts: num(t.receipts),
+        disbursements: num(t.disbursements),
+        cashOnHand: num(t.last_cash_on_hand_end_period ?? t.cash_on_hand_end_period),
+        ieSupport: e?.support ?? null,
+        ieOppose: e?.oppose ?? null,
+        sourceUrl: `https://www.fec.gov/data/candidate/${fecCandidateId}/?cycle=${cycle}`,
+      };
+    });
   }
 
   private async aggregate(
