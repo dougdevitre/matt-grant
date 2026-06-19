@@ -19,7 +19,7 @@ applications:
                        RESEARCH_BIOGUIDE_ID RESEARCH_VOTE_YEAR RESEARCH_FROM_ROLL RESEARCH_TO_ROLL \
                        NEXT_PUBLIC_MEDIA_BOOKING_URL NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY \
                        NEXT_PUBLIC_CLERK_SIGN_IN_URL NEXT_PUBLIC_CLERK_SIGN_UP_URL \
-                       CLERK_SECRET_KEY ALLOW_OPEN_DASHBOARD DASHBOARD_ALLOWLIST; do
+                       CLERK_SECRET_KEY CLERK_WEBHOOK_SIGNING_SECRET ALLOW_OPEN_DASHBOARD DASHBOARD_ALLOWLIST; do
                 v=$(printenv "$k" 2>/dev/null || true)
                 [ -n "$v" ] && echo "$k=$v" >> .env.production
               done
