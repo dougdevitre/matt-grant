@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createHash, timingSafeEqual } from "node:crypto";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
-import { ddb, TABLE, PK, newId, dbConfigured } from "@/lib/db";
+import { dbConfigured } from "@/lib/db";
+import { recordContribution } from "@/lib/donors";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { donationThankYou } from "@/lib/email/templates";
 
@@ -100,29 +100,24 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await ddb.send(
-      new PutCommand({
-        TableName: TABLE,
-        Item: {
-          PK: PK.donors,
-          SK: newId(),
-          source: "winred",
-          externalId: rec.externalId,
-          name: rec.name,
-          email: rec.email,
-          amount: rec.amount,
-          recurring: rec.recurring,
-          city: rec.city,
-          state: rec.state,
-          zip: rec.zip,
-          employer: rec.employer,
-          occupation: rec.occupation,
-          status: "RECEIVED",
-          donatedAt: rec.donatedAt,
-          createdAt: new Date().toISOString(),
-        },
-      }),
-    );
+    // Funnel through the shared recorder so the gift lands in contributions[]
+    // (counted by the dashboard) and dedupes by email; externalId makes webhook
+    // retries idempotent.
+    await recordContribution({
+      email: rec.email,
+      name: rec.name,
+      city: rec.city,
+      state: rec.state,
+      zip: rec.zip,
+      employer: rec.employer,
+      occupation: rec.occupation,
+      amountCents: Math.round((rec.amount ?? 0) * 100),
+      method: "WinRed",
+      source: "winred",
+      externalId: rec.externalId,
+      recurring: rec.recurring,
+      receivedAt: rec.donatedAt ?? undefined,
+    });
   } catch {
     return NextResponse.json({ error: "failed to record donation" }, { status: 502 });
   }
