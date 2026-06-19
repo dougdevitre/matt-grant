@@ -17,6 +17,11 @@ async function handle(req: Request) {
   if (!authorized(req)) {
     return NextResponse.json({ error: "unauthorized (set CRON_SECRET and send it as a bearer token)" }, { status: 401 });
   }
+  // Until the Congress.gov key lands, the daily schedule should no-op cleanly
+  // rather than 502 every morning. Real failures (below) still surface.
+  if (!process.env.CONGRESS_GOV_API_KEY) {
+    return NextResponse.json({ ok: true, skipped: "CONGRESS_GOV_API_KEY not set" });
+  }
   try {
     const counts = await runIngest();
     return NextResponse.json({ ok: true, counts });
