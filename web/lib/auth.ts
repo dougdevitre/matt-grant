@@ -24,11 +24,16 @@ export function emailAllowed(email?: string | null): boolean {
 // verdict. In demo mode (no Clerk) it's a no-op pass. Callers should already be
 // behind middleware auth.protect(), so currentUser() is present when Clerk is on.
 import type { StaffRole } from "@/lib/staff";
+import { asRole } from "@/lib/rbac";
 
 export type Gate = { ok: boolean; email: string | null; role: StaffRole | null };
 
-// Env-allowlisted users and (in dev, no Clerk) are full admins; DB-invited
-// members carry their assigned role.
+// Role resolution order:
+//   1. demo mode (no Clerk) → admin (open dashboard)
+//   2. env allowlist → admin (the bootstrap super-admins; also fail-open when
+//      DASHBOARD_ALLOWLIST is unset so the app never locks everyone out)
+//   3. Clerk publicMetadata.role → the runtime source of truth
+//   4. DynamoDB staff row → fallback for invites not yet stamped into Clerk
 export async function staffGate(): Promise<Gate> {
   if (!clerkEnabled) return { ok: true, email: null, role: "admin" };
   const { currentUser } = await import("@clerk/nextjs/server");
@@ -36,6 +41,8 @@ export async function staffGate(): Promise<Gate> {
   const email =
     user?.primaryEmailAddress?.emailAddress ?? user?.emailAddresses?.[0]?.emailAddress ?? null;
   if (emailAllowed(email)) return { ok: true, email, role: "admin" };
+  const metaRole = asRole((user?.publicMetadata as { role?: unknown } | undefined)?.role);
+  if (metaRole) return { ok: true, email, role: metaRole };
   const { staffRole } = await import("@/lib/staff");
   const role = await staffRole(email);
   return { ok: !!role, email, role };

@@ -4,6 +4,7 @@ import { dollars } from "@/lib/money";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { addExpenditure } from "@/app/dashboard/actions";
 import { staffGate } from "@/lib/auth";
+import { can } from "@/lib/rbac";
 
 const input = "rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink focus:border-field";
 const CATS = ["Media", "Field", "Fundraising", "Compliance", "Operations", "Travel"];
@@ -27,7 +28,9 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
 }
 
 export default async function FinancePage() {
-  if ((await staffGate()).role !== "admin") redirect("/dashboard?denied=finance");
+  const { role } = await staffGate();
+  if (!can(role, "viewFinanceTotals")) redirect("/dashboard?denied=finance");
+  const canEdit = can(role, "editFinance"); // captains read-only
   const f = await getFinance();
   const cash = f.raisedCents - f.spentCents;
   const max = Math.max(1, ...f.byCategory.map((c) => c.cents));
@@ -78,13 +81,14 @@ export default async function FinancePage() {
             )}
           </div>
 
+          {canEdit && (
           <form action={addExpenditure} className="card p-6">
             <p className="eyebrow text-slate">Log an expenditure</p>
             <div className="mt-4 space-y-3">
               <input name="payee" required placeholder="Payee" className={`${input} w-full`} />
               <div className="grid grid-cols-2 gap-3">
                 <input name="amount" type="number" step="0.01" min="0" placeholder="Amount $" className={input} />
-                <select name="category" defaultValue="Operations" className={input}>
+                <select name="category" aria-label="Expenditure category" defaultValue="Operations" className={input}>
                   {CATS.map((c) => <option key={c}>{c}</option>)}
                 </select>
               </div>
@@ -94,6 +98,7 @@ export default async function FinancePage() {
               Add expenditure
             </button>
           </form>
+          )}
         </div>
 
         {/* Ledger */}

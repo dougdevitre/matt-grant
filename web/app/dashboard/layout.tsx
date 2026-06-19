@@ -1,9 +1,12 @@
+import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Countdown } from "@/components/Countdown";
 import { DashSidebar } from "@/components/dashboard/DashSidebar";
+import { DeniedBanner } from "@/components/dashboard/DeniedBanner";
 import { clerkEnabled, staffGate } from "@/lib/auth";
+import { ROLE_LABELS } from "@/lib/rbac";
 import { CAMPAIGN } from "@/lib/site";
 
 // Dashboard pages read live data; never statically prerender them.
@@ -23,7 +26,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     const { UserButton } = await import("@clerk/nextjs");
     AuthControl = <UserButton afterSignOutUrl="/" />;
   }
-  const isAdmin = role === "admin";
+  const activeRole = role ?? "admin";
 
   return (
     <div className="min-h-screen bg-paper md:grid md:grid-cols-[260px_1fr]">
@@ -45,7 +48,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             </p>
           </div>
         </div>
-        <DashSidebar isAdmin={isAdmin} />
+        <DashSidebar role={activeRole} />
         <div className="hidden border-t border-paper/10 px-5 py-5 md:block">
           <p className="eyebrow text-paper/50">Days to election</p>
           <div className="mt-3">
@@ -65,10 +68,18 @@ export default async function DashboardLayout({ children }: { children: React.Re
               <Image src="/brand/icon-192.png" alt="" width={20} height={20} className="rounded-[3px]" />
               {CAMPAIGN.candidate} for Congress
             </span>
+            <span className="rounded-sm bg-ink/5 px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate">
+              {ROLE_LABELS[activeRole]}
+            </span>
             {AuthControl}
           </div>
         </header>
-        <div className="flex-1 px-5 py-8 sm:px-8">{children}</div>
+        <div className="flex-1 px-5 py-8 sm:px-8">
+          <Suspense fallback={null}>
+            <DeniedBanner />
+          </Suspense>
+          {children}
+        </div>
       </div>
     </div>
   );

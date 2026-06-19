@@ -3,29 +3,30 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { DashIcon } from "./DashIcon";
+import { can, type Capability, type Role } from "@/lib/rbac";
 
-const ITEMS = [
-  { href: "/dashboard", label: "Overview", icon: "overview" },
-  { href: "/dashboard/donors", label: "Donors", icon: "donors", admin: true },
-  { href: "/dashboard/finance", label: "Finance", icon: "finance", admin: true },
-  { href: "/dashboard/compliance", label: "Compliance", icon: "compliance", admin: true },
-  { href: "/dashboard/map", label: "3D field map", icon: "map" },
-  { href: "/dashboard/targets", label: "Precinct targets", icon: "targets" },
-  { href: "/dashboard/studio", label: "Graphics studio", icon: "studio" },
-  { href: "/dashboard/assets", label: "Asset library", icon: "assets" },
-  { href: "/dashboard/photos", label: "Photo library", icon: "photos" },
-  { href: "/dashboard/volunteers", label: "Volunteers", icon: "volunteers" },
-  { href: "/dashboard/tasks", label: "Task board", icon: "tasks" },
-  { href: "/dashboard/research", label: "Opp. research", icon: "research" },
-  { href: "/dashboard/plan", label: "Strategic plan", icon: "plan" },
-  { href: "/dashboard/team", label: "Team & access", icon: "team", admin: true },
+const ITEMS: { href: string; label: string; icon: string; cap: Capability }[] = [
+  { href: "/dashboard", label: "Overview", icon: "overview", cap: "viewOverview" },
+  { href: "/dashboard/donors", label: "Donors", icon: "donors", cap: "viewFinanceTotals" },
+  { href: "/dashboard/finance", label: "Finance", icon: "finance", cap: "viewFinanceTotals" },
+  { href: "/dashboard/compliance", label: "Compliance", icon: "compliance", cap: "viewCompliance" },
+  { href: "/dashboard/map", label: "3D field map", icon: "map", cap: "viewMap" },
+  { href: "/dashboard/targets", label: "Precinct targets", icon: "targets", cap: "viewTargets" },
+  { href: "/dashboard/studio", label: "Graphics studio", icon: "studio", cap: "useStudio" },
+  { href: "/dashboard/assets", label: "Asset library", icon: "assets", cap: "manageAssets" },
+  { href: "/dashboard/photos", label: "Photo library", icon: "photos", cap: "viewPhotos" },
+  { href: "/dashboard/volunteers", label: "Volunteers", icon: "volunteers", cap: "manageVolunteers" },
+  { href: "/dashboard/tasks", label: "Task board", icon: "tasks", cap: "manageTasks" },
+  { href: "/dashboard/research", label: "Opp. research", icon: "research", cap: "viewResearch" },
+  { href: "/dashboard/plan", label: "Strategic plan", icon: "plan", cap: "viewPlan" },
+  { href: "/dashboard/team", label: "Team & access", icon: "team", cap: "manageTeam" },
 ];
 
-export function DashSidebar({ isAdmin = true }: { isAdmin?: boolean }) {
+export function DashSidebar({ role = "admin" }: { role?: Role }) {
   const pathname = usePathname();
   return (
     <nav className="flex gap-1 overflow-x-auto p-3 md:flex-col md:gap-0.5 md:overflow-visible md:p-4">
-      {ITEMS.filter((item) => isAdmin || !item.admin).map((item) => {
+      {ITEMS.filter((item) => can(role, item.cap)).map((item) => {
         const active = item.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.href);
         return (
           <Link

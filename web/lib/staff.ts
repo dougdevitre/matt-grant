@@ -3,8 +3,12 @@
 // enter if their email is in the env list OR an active row here.
 import { PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, dbConfigured } from "@/lib/db";
+import type { Role } from "@/lib/rbac";
 
-export type StaffRole = "admin" | "organizer";
+// Unified with the RBAC matrix (admin | captain | organizer). The DynamoDB row
+// is the pending-invite store + fallback; Clerk publicMetadata.role is the
+// runtime source of truth (set by the user.created webhook / team page).
+export type StaffRole = Role;
 export type StaffMember = { email: string; name?: string; role: StaffRole; invitedBy?: string; status: "active" | "removed"; createdAt: string };
 const norm = (e: string) => e.trim().toLowerCase();
 
@@ -45,5 +49,16 @@ export async function removeStaff(email: string): Promise<void> {
     UpdateExpression: "SET #s = :r",
     ExpressionAttributeNames: { "#s": "status" },
     ExpressionAttributeValues: { ":r": "removed" },
+  }));
+}
+
+// Change an existing member's role (preserves the rest of the row).
+export async function setStaffRole(email: string, role: StaffRole): Promise<void> {
+  await ddb.send(new UpdateCommand({
+    TableName: TABLE,
+    Key: { PK: PK.staff, SK: norm(email) },
+    UpdateExpression: "SET #r = :role",
+    ExpressionAttributeNames: { "#r": "role" },
+    ExpressionAttributeValues: { ":role": role },
   }));
 }

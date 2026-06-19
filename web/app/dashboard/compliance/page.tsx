@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { staffGate } from "@/lib/auth";
+import { can } from "@/lib/rbac";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +35,7 @@ const kindColor: Record<Deadline["kind"], string> = {
 };
 
 export default async function CompliancePage() {
-  if ((await staffGate()).role !== "admin") redirect("/dashboard?denied=compliance");
+  if (!can((await staffGate()).role, "viewCompliance")) redirect("/dashboard?denied=compliance");
   // Server component: current time resolves at request render, which is correct here.
   // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
