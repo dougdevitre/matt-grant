@@ -48,13 +48,13 @@ export const metadata: Metadata = {
     title: `${CAMPAIGN.candidate} for Congress — ${CAMPAIGN.district}`,
     description: "Putting Missouri's children first. Election day: August 4, 2026.",
     type: "website",
-    images: [{ url: "/brand/og-card.png", width: 1200, height: 630, alt: "Matt Grant for Congress" }],
+    // Image comes from the dynamic app/opengraph-image.tsx (red/white/blue card).
   },
   twitter: {
     card: "summary_large_image",
     title: `${CAMPAIGN.candidate} for Congress — ${CAMPAIGN.districtShort}`,
     description: "Putting Missouri's children first. Election day: August 4, 2026.",
-    images: ["/brand/og-card.png"],
+    // Image comes from app/twitter-image.tsx.
   },
 };
 
