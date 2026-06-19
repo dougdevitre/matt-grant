@@ -17,6 +17,7 @@ const ITEMS: { href: string; label: string; icon: string; cap: Capability }[] = 
   { href: "/dashboard/photos", label: "Photo library", icon: "photos", cap: "viewPhotos" },
   { href: "/dashboard/volunteers", label: "Volunteers", icon: "volunteers", cap: "manageVolunteers" },
   { href: "/dashboard/tasks", label: "Task board", icon: "tasks", cap: "manageTasks" },
+  { href: "/dashboard/emails", label: "Email campaigns", icon: "campaign", cap: "draftEmailCampaign" },
   { href: "/dashboard/research", label: "Opp. research", icon: "research", cap: "viewResearch" },
   { href: "/dashboard/plan", label: "Strategic plan", icon: "plan", cap: "viewPlan" },
   { href: "/dashboard/team", label: "Team & access", icon: "team", cap: "manageTeam" },
