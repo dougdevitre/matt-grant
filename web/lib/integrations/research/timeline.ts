@@ -5,8 +5,14 @@
 
 import { CongressClient } from "../legislative/congressClient";
 import { FecClient, fecEnabled } from "../fec/client";
+import { getBills } from "../legislative/store";
+import { dbConfigured } from "@/lib/db";
 import type { Candidate } from "./candidates";
 import type { CycleFinance } from "../fec/types";
+
+// Bill counts per Congress, split by relation. Callers can pass bills already
+// in hand (ingest) to avoid any re-fetch; otherwise we read the stored bills.
+type BillRelCounts = { sponsored: Map<number, number>; cosponsored: Map<number, number> };
 
 export type TenureTerm = {
   congress: number;
@@ -34,7 +40,13 @@ export type TenureTimeline = {
 
 const congressUrl = (id: string) => `https://www.congress.gov/member/${id}`;
 
-export async function buildTimeline(candidate: Candidate): Promise<TenureTimeline> {
+// opts.bills lets the ingest pass the bills it already fetched, so the timeline
+// never re-paginates Congress.gov (Wagner has 1,744 cosponsored — that double
+// fetch was blowing the request budget). Without it we read the stored bills.
+export async function buildTimeline(
+  candidate: Candidate,
+  opts?: { bills?: { relation: string; congress: number }[] },
+): Promise<TenureTimeline> {
   const base: TenureTimeline = {
     candidateSlug: candidate.slug,
     name: candidate.name,
@@ -56,21 +68,21 @@ export async function buildTimeline(candidate: Candidate): Promise<TenureTimelin
   }
   const financeByCycle = new Map(finance.map((f) => [f.cycle, f]));
 
-  // Congressional tenure (members only).
+  // Congressional tenure (members only). Terms = 1 cheap call; bill COUNTS come
+  // from bills already in hand (ingest) or the store — never a fresh paginate.
   if (candidate.bioguideId && process.env.CONGRESS_GOV_API_KEY) {
     const client = new CongressClient(process.env.CONGRESS_GOV_API_KEY);
-    const [terms, sponsored, cosponsored] = await Promise.all([
-      client.getTerms(candidate.bioguideId),
-      client.getSponsored(candidate.bioguideId),
-      client.getCosponsored(candidate.bioguideId),
-    ]);
-    const countByCongress = (bills: { congress: number }[]) => {
-      const m = new Map<number, number>();
-      for (const b of bills) m.set(b.congress, (m.get(b.congress) ?? 0) + 1);
-      return m;
-    };
-    const spon = countByCongress(sponsored);
-    const cospon = countByCongress(cosponsored);
+    const terms = await client.getTerms(candidate.bioguideId);
+
+    const bills =
+      opts?.bills ?? (dbConfigured ? await getBills(candidate.bioguideId).catch(() => []) : []);
+    const counts: BillRelCounts = { sponsored: new Map(), cosponsored: new Map() };
+    for (const b of bills) {
+      const m = b.relation === "cosponsored" ? counts.cosponsored : counts.sponsored;
+      m.set(b.congress, (m.get(b.congress) ?? 0) + 1);
+    }
+    const spon = counts.sponsored;
+    const cospon = counts.cosponsored;
     const billsUrl = `https://www.congress.gov/member/${candidate.bioguideId}/legislation`;
 
     base.terms = terms.map((t, i) => {
