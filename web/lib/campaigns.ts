@@ -44,6 +44,7 @@ export type CampaignSummary = {
   total: number;
   sentCount: number;
   suppressedCount: number;
+  delivered: number;
   opens: number;
   clicks: number;
   createdBy: string;
@@ -100,13 +101,14 @@ async function allCampaigns(): Promise<CampaignItem[]> {
   return (r.Items ?? []) as CampaignItem[];
 }
 
-async function getStats(): Promise<Record<string, { opens: number; clicks: number }>> {
+async function getStats(): Promise<Record<string, { delivered: number; opens: number; clicks: number }>> {
   try {
     const r = await ddb.send(
       new QueryCommand({ TableName: TABLE, KeyConditionExpression: "PK = :p", ExpressionAttributeValues: { ":p": STATS_PK } }),
     );
-    const out: Record<string, { opens: number; clicks: number }> = {};
-    for (const i of r.Items ?? []) out[String(i.SK)] = { opens: Number(i.opens ?? 0), clicks: Number(i.clicks ?? 0) };
+    const out: Record<string, { delivered: number; opens: number; clicks: number }> = {};
+    for (const i of r.Items ?? [])
+      out[String(i.SK)] = { delivered: Number(i.delivered ?? 0), opens: Number(i.opens ?? 0), clicks: Number(i.clicks ?? 0) };
     return out;
   } catch {
     return {};
@@ -130,6 +132,7 @@ export async function listCampaigns(limit = 15): Promise<CampaignSummary[]> {
       total: c.recipients?.length ?? 0,
       sentCount: c.sentCount ?? 0,
       suppressedCount: c.suppressedCount ?? 0,
+      delivered: stats[c.id]?.delivered ?? 0,
       opens: stats[c.id]?.opens ?? 0,
       clicks: stats[c.id]?.clicks ?? 0,
       createdBy: c.createdBy,
@@ -139,15 +142,16 @@ export async function listCampaigns(limit = 15): Promise<CampaignSummary[]> {
   }
 }
 
-// Increment a campaign's open/click counter (called from the SES event webhook).
-export async function recordEngagement(campaignId: string, kind: "open" | "click"): Promise<void> {
+// Increment a campaign's delivered/open/click counter (from the SES event webhook).
+export async function recordEngagement(campaignId: string, kind: "delivered" | "open" | "click"): Promise<void> {
   if (!dbConfigured || !campaignId) return;
+  const attr = kind === "delivered" ? "delivered" : kind === "open" ? "opens" : "clicks";
   try {
     await ddb.send(
       new UpdateCommand({
         TableName: TABLE,
         Key: { PK: STATS_PK, SK: campaignId },
-        UpdateExpression: kind === "open" ? "ADD opens :one" : "ADD clicks :one",
+        UpdateExpression: `ADD ${attr} :one`,
         ExpressionAttributeValues: { ":one": 1 },
       }),
     );

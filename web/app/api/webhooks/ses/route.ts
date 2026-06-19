@@ -59,10 +59,10 @@ export async function POST(req: NextRequest) {
     }
     const kind = event.eventType ?? event.notificationType;
 
-    // Open/click analytics (config-set events carry mail.tags.campaign_id).
-    if (kind === "Open" || kind === "Click") {
+    // Delivery/open/click analytics (config-set events carry mail.tags.campaign_id).
+    if (kind === "Delivery" || kind === "Open" || kind === "Click") {
       const cid = event.mail?.tags?.campaign_id?.[0];
-      if (cid) await recordEngagement(cid, kind === "Open" ? "open" : "click");
+      if (cid) await recordEngagement(cid, kind === "Delivery" ? "delivered" : kind === "Open" ? "open" : "click");
       return NextResponse.json({ ok: true, recorded: kind });
     }
 
