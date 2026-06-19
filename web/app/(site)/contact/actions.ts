@@ -1,6 +1,6 @@
 "use server";
 
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, newId, dbConfigured } from "@/lib/db";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { volunteerWelcome, contactReceipt } from "@/lib/email/templates";
@@ -64,21 +64,37 @@ export async function submitContact(_prev: ContactResult | null, formData: FormD
     };
   }
 
+  const source = String(formData.get("source") ?? "").trim() || "contact-form";
+  // Dedupe by a stable key so re-submitting the same email/phone updates the
+  // existing lead instead of spawning a duplicate card. Random id only when
+  // neither is given.
+  const dedupeKey = email
+    ? `e:${email.toLowerCase()}`
+    : phone
+      ? `p:${phone.replace(/\D/g, "")}`
+      : newId();
+  const now = new Date().toISOString();
   try {
     await ddb.send(
-      new PutCommand({
+      new UpdateCommand({
         TableName: TABLE,
-        Item: {
-          PK: PK.volunteers,
-          SK: newId(),
-          name,
-          email: email || undefined,
-          phone: phone || undefined,
-          city: city || undefined,
-          interests: interests || undefined,
-          notes: message || undefined,
-          status: "NEW",
-          createdAt: new Date().toISOString(),
+        Key: { PK: PK.volunteers, SK: dedupeKey },
+        // Latest submission wins for contact details; status + createdAt are set
+        // once and never reset — an ACTIVE volunteer who re-submits stays ACTIVE.
+        UpdateExpression:
+          "SET #n = :n, email = :em, phone = :ph, city = :ci, interests = :in, notes = :no, " +
+          "#src = :src, updatedAt = :u, #st = if_not_exists(#st, :new), createdAt = if_not_exists(createdAt, :u)",
+        ExpressionAttributeNames: { "#n": "name", "#st": "status", "#src": "source" },
+        ExpressionAttributeValues: {
+          ":n": name,
+          ":em": email || null,
+          ":ph": phone || null,
+          ":ci": city || null,
+          ":in": interests || null,
+          ":no": message || null,
+          ":src": source,
+          ":u": now,
+          ":new": "NEW",
         },
       }),
     );

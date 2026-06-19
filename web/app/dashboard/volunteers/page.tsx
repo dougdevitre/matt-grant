@@ -48,6 +48,11 @@ export default async function VolunteersPage() {
                 </span>
               </div>
               {v.interests && <p className="mt-3 text-sm text-slate">{v.interests}</p>}
+              {v.notes && (
+                <p className="mt-2 rounded-sm border-l-2 border-line bg-paper px-3 py-2 text-sm italic text-slate">
+                  &ldquo;{v.notes}&rdquo;
+                </p>
+              )}
               {v.email && <p className="mt-2 font-mono text-xs text-field">{v.email}</p>}
               {v.phone && <p className="font-mono text-xs text-field">{v.phone}</p>}
 
