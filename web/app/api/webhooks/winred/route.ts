@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { dbConfigured } from "@/lib/db";
 import { recordContribution } from "@/lib/donors";
+import { normalizeWinred } from "@/lib/winred";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { donationThankYou } from "@/lib/email/templates";
 
@@ -34,44 +35,6 @@ function authorized(req: NextRequest): boolean {
 }
 
 type Json = Record<string, unknown>;
-const str = (v: unknown): string | undefined => (typeof v === "string" && v.trim() ? v.trim() : undefined);
-
-// Pull the first present value across candidate dot-paths.
-function pick(obj: Json, ...paths: string[]): unknown {
-  for (const p of paths) {
-    const v = p.split(".").reduce<unknown>((o, k) => (o && typeof o === "object" ? (o as Json)[k] : undefined), obj);
-    if (v != null) return v;
-  }
-  return undefined;
-}
-
-function normalize(payload: Json) {
-  // Some webhook configs wrap the donation as { data: {...} }.
-  const d = (payload.data && typeof payload.data === "object" ? (payload.data as Json) : payload) as Json;
-
-  const cents = Number(pick(d, "amount", "amount_cents", "donation.amount", "total_amount"));
-  const amountDollars = Number.isFinite(cents) && cents > 0 ? Math.round(cents) / 100 : undefined;
-
-  const first = str(pick(d, "donor.first_name", "first_name", "billing.first_name"));
-  const last = str(pick(d, "donor.last_name", "last_name", "billing.last_name"));
-  const email = str(pick(d, "donor.email", "email", "billing.email"));
-
-  return {
-    externalId: str(pick(d, "id", "donation.id", "transaction_id")),
-    amount: amountDollars,
-    firstName: first,
-    lastName: last,
-    name: [first, last].filter(Boolean).join(" ") || undefined,
-    email,
-    city: str(pick(d, "donor.city", "billing.city", "city")),
-    state: str(pick(d, "donor.state", "billing.state", "state")),
-    zip: str(pick(d, "donor.zip", "billing.zip", "zip")),
-    employer: str(pick(d, "donor.employer", "employer")),
-    occupation: str(pick(d, "donor.occupation", "occupation")),
-    recurring: Boolean(pick(d, "recurring", "is_recurring")),
-    donatedAt: str(pick(d, "created_at", "donation.created_at", "timestamp")),
-  };
-}
 
 export async function POST(req: NextRequest) {
   if (!authorized(req)) {
@@ -88,7 +51,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid JSON body" }, { status: 400 });
   }
 
-  const rec = normalize(payload);
+  const rec = normalizeWinred(payload);
   if (!rec.amount && !rec.email) {
     // Nothing recognizable — accept (200) so WinRed doesn't hammer retries, but
     // flag it so a real schema mismatch is visible in logs.
