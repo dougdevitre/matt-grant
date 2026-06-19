@@ -16,20 +16,21 @@ const badge: Record<string, string> = {
 const fmt = (iso: string | null) =>
   iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
 
+// Module-scope so it isn't recreated each render (react-hooks/static-components).
+const Row = ({ label, value }: { label: string; value: string | null }) =>
+  value ? (
+    <div className="flex gap-3 py-2">
+      <span className="w-32 shrink-0 font-mono text-xs uppercase tracking-eyebrow text-slate">{label}</span>
+      <span className="text-sm text-ink">{value}</span>
+    </div>
+  ) : null;
+
 export default async function VolunteerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const v = await getVolunteer(id);
   if (!v) notFound();
   const { rows: allTasks } = await getTasks();
   const tasks = allTasks.filter((t) => t.volunteerId === v.id);
-
-  const Row = ({ label, value }: { label: string; value: string | null }) =>
-    value ? (
-      <div className="flex gap-3 py-2">
-        <span className="w-32 shrink-0 font-mono text-xs uppercase tracking-eyebrow text-slate">{label}</span>
-        <span className="text-sm text-ink">{value}</span>
-      </div>
-    ) : null;
 
   return (
     <>
