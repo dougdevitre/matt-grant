@@ -10,7 +10,7 @@ export function InviteForm() {
   return (
     <form action={action} className="card p-6">
       <p className="eyebrow text-brick">Invite a teammate</p>
-      <p className="mt-1 text-sm text-slate">They'll be able to sign in immediately — no redeploy. We'll email them a link.</p>
+      <p className="mt-1 text-sm text-slate">They get a Clerk invitation email and their role is set when they accept — works even with sign-up locked to invitation-only.</p>
       <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1.4fr_auto_auto]">
         <input name="name" placeholder="Name (optional)" className={field} />
         <input name="email" type="email" required placeholder="teammate@email.com" className={field} />

@@ -3,8 +3,15 @@ import { PageHeader, HowTo } from "@/components/dashboard/Notice";
 import { InviteForm } from "@/components/dashboard/InviteForm";
 import { STAFF_ALLOWLIST, staffGate } from "@/lib/auth";
 import { listStaff } from "@/lib/staff";
+import { listAccessChanges } from "@/lib/audit";
 import { can, ROLES, ROLE_LABELS } from "@/lib/rbac";
 import { revokeStaff, setMemberRole } from "./actions";
+
+const actionLabel: Record<string, string> = {
+  invite: "invited",
+  role_change: "changed role",
+  revoke: "removed",
+};
 
 export const dynamic = "force-dynamic";
 
@@ -18,17 +25,20 @@ export default async function TeamPage() {
   const { role } = await staffGate();
   if (!can(role, "manageTeam")) redirect("/dashboard?denied=team");
   const invited = (await listStaff()).filter((s) => s.status === "active");
+  const changes = await listAccessChanges(25);
+  const when = (iso: string) =>
+    new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
   return (
     <>
       <PageHeader kicker="Members" title="Team & access" />
       <HowTo
         steps={[
-          "Anyone here can sign in to the War Room — everyone else is blocked, even with a Clerk account.",
           "Invite a teammate by email and pick a role: Organizer (field), Captain (field + read-only finance/donor totals), or Admin (everything).",
-          "Change someone's access anytime with the role dropdown, then Update — it writes to their Clerk profile.",
+          "They get a Clerk invitation email and their role is applied when they accept — so this works even with sign-up locked to invitation-only.",
+          "Change someone's access anytime with the role dropdown, then Update — it writes through to their Clerk profile.",
           "The two admins in the server allowlist can't be changed or removed here — edit DASHBOARD_ALLOWLIST for those.",
-          "Remove an invited member to revoke access immediately.",
+          "Remove an invited member to revoke access immediately. Every change is logged below.",
         ]}
       />
 
@@ -77,6 +87,30 @@ export default async function TeamPage() {
           </ul>
         ) : (
           <p className="mt-3 text-sm text-slate">No invited teammates yet — add one above.</p>
+        )}
+      </div>
+
+      <div className="mt-8">
+        <p className="eyebrow text-slate">Recent access changes</p>
+        {changes.length > 0 ? (
+          <ul className="mt-3 divide-y divide-line rounded-sm border border-line">
+            {changes.map((c, i) => (
+              <li key={`${c.at}-${i}`} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm">
+                <span className="min-w-0">
+                  <span className="text-ink">{c.actor}</span>{" "}
+                  <span className="text-slate">{actionLabel[c.action] ?? c.action}</span>{" "}
+                  <span className="text-ink">{c.target}</span>
+                  {c.action === "role_change" && (
+                    <span className="text-slate"> ({c.prevRole ?? "—"} → {c.role})</span>
+                  )}
+                  {c.action === "invite" && c.role && <span className="text-slate"> as {c.role}</span>}
+                </span>
+                <span className="shrink-0 font-mono text-[0.65rem] text-slate">{when(c.at)}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 text-sm text-slate">No access changes recorded yet.</p>
         )}
       </div>
     </>

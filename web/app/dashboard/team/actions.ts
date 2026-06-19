@@ -1,10 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { addStaff, removeStaff, setStaffRole } from "@/lib/staff";
+import { addStaff, removeStaff, setStaffRole, staffRole } from "@/lib/staff";
 import { staffGate } from "@/lib/auth";
 import { can, asRole } from "@/lib/rbac";
-import { setClerkRoleByEmail } from "@/lib/clerkRoles";
+import { setClerkRoleByEmail, inviteToClerk } from "@/lib/clerkRoles";
+import { recordAccessChange } from "@/lib/audit";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { renderEmail, renderText } from "@/lib/email/layout";
 import { SITE_URL } from "@/lib/site";
@@ -25,14 +26,17 @@ export async function inviteStaff(_prev: InviteResult | null, formData: FormData
   const role = asRole(formData.get("role")) ?? "organizer";
   if (!email || !email.includes("@")) return { ok: false, message: "Enter a valid email address." };
 
+  let clerk = { invited: false, existing: false };
   try {
     await addStaff(email, name || undefined, role, inviter || undefined);
-    await setClerkRoleByEmail(email, role); // immediate if they already have an account
+    clerk = await inviteToClerk(email, role); // Clerk invitation — works under restricted sign-up
   } catch {
     return { ok: false, message: "Couldn't save the invite. Check the database connection." };
   }
 
-  if (sesEnabled) {
+  // Clerk emails brand-new invitees its own invitation link. Only send our SES
+  // note when Clerk didn't (no Clerk keys, or the person already has an account).
+  if (!clerk.invited && sesEnabled) {
     try {
       const html = renderEmail({
         eyebrow: "Campaign HQ",
@@ -52,27 +56,40 @@ export async function inviteStaff(_prev: InviteResult | null, formData: FormData
     }
   }
 
+  await recordAccessChange({ at: new Date().toISOString(), actor: inviter || "system", target: email, action: "invite", role });
   revalidatePath("/dashboard/team");
-  return { ok: true, message: sesEnabled ? `Invited ${email} — an email is on the way.` : `Added ${email}. (Email sending isn't configured yet.)` };
+  const message = clerk.invited
+    ? `Invited ${email} — Clerk emailed them an invitation to join.`
+    : clerk.existing
+      ? `Updated ${email}'s access — they can sign in now.`
+      : sesEnabled
+        ? `Invited ${email} — an email is on the way.`
+        : `Added ${email}. (Connect Clerk to email invitations.)`;
+  return { ok: true, message };
 }
 
 export async function revokeStaff(formData: FormData): Promise<void> {
-  await guardAdmin();
-  const email = String(formData.get("email") ?? "");
+  const actor = await guardAdmin();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
   if (email) {
     await removeStaff(email);
+    await recordAccessChange({ at: new Date().toISOString(), actor: actor || "system", target: email, action: "revoke" });
     revalidatePath("/dashboard/team");
   }
 }
 
 // Change an invited member's role (DynamoDB + Clerk metadata write-through).
 export async function setMemberRole(formData: FormData): Promise<void> {
-  await guardAdmin();
+  const actor = await guardAdmin();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const role = asRole(formData.get("role"));
   if (email && role) {
+    const prevRole = (await staffRole(email)) ?? undefined;
     await setStaffRole(email, role);
     await setClerkRoleByEmail(email, role);
+    if (prevRole !== role) {
+      await recordAccessChange({ at: new Date().toISOString(), actor: actor || "system", target: email, action: "role_change", role, prevRole });
+    }
     revalidatePath("/dashboard/team");
   }
 }
