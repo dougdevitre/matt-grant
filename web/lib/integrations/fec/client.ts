@@ -30,14 +30,12 @@ export class FecClient {
 
   // Candidate identity + the most recent two-year cycle totals.
   async getSummary(fecCandidateId: string, cycle: number): Promise<FecSummary> {
-    const candResp = await this.get(`/candidate/${fecCandidateId}/`);
+    const [candResp, totResp, committee] = await Promise.all([
+      this.get(`/candidate/${fecCandidateId}/`),
+      this.get(`/candidate/${fecCandidateId}/totals/`, { cycle: String(cycle), per_page: "1", sort: "-cycle" }),
+      this.principalCommittee(fecCandidateId),
+    ]);
     const cand = ((candResp.results as Json[] | undefined)?.[0] ?? {}) as Json;
-
-    const totResp = await this.get(`/candidate/${fecCandidateId}/totals/`, {
-      cycle: String(cycle),
-      per_page: "1",
-      sort: "-cycle",
-    });
     const t = ((totResp.results as Json[] | undefined)?.[0] ?? {}) as Json;
 
     return {
@@ -53,16 +51,24 @@ export class FecClient {
         individualContributions: num(t.individual_contributions ?? t.individual_itemized_contributions),
         pacContributions: num(t.other_political_committee_contributions),
       },
-      principalCommittee: (cand.principal_committees as Json[] | undefined)?.[0]?.name as string | undefined ?? null,
+      principalCommittee: committee?.name ?? null,
       sourceUrl: `https://www.fec.gov/data/candidate/${fecCandidateId}/`,
       retrievedAt: new Date().toISOString(),
     };
   }
 
+  // The /candidate/{id}/ endpoint omits principal_committees; the committee
+  // list lives at /candidate/{id}/committees/ (designation "P" = principal).
+  private async principalCommittee(fecCandidateId: string): Promise<{ id: string; name: string | null } | null> {
+    const d = await this.get(`/candidate/${fecCandidateId}/committees/`, { per_page: "30" });
+    const rows = (d.results as Json[] | undefined) ?? [];
+    const principal = rows.find((c) => c.designation === "P") ?? rows[0];
+    if (!principal?.committee_id) return null;
+    return { id: String(principal.committee_id), name: (principal.name as string) ?? null };
+  }
+
   private async committeeId(fecCandidateId: string): Promise<string | null> {
-    const d = await this.get(`/candidate/${fecCandidateId}/`);
-    const cand = ((d.results as Json[] | undefined)?.[0] ?? {}) as Json;
-    return ((cand.principal_committees as Json[] | undefined)?.[0]?.committee_id as string) ?? null;
+    return (await this.principalCommittee(fecCandidateId))?.id ?? null;
   }
 
   private async aggregate(
