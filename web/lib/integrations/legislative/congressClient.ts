@@ -1,9 +1,19 @@
 // Minimal Congress.gov API client (api.congress.gov/v3). Public data; key via env.
 import type { LegBillRec, LegMember } from "./types";
+import { fetchJsonWithRetry } from "../http";
 
 const BASE = "https://api.congress.gov/v3";
 
 type Json = Record<string, unknown>;
+
+// 117 → "117th", 101 → "101st", 103 → "103rd". congress.gov bill URLs use the
+// ordinal congress in the path; the old `${n}th-congress` produced dead links for
+// 1st/2nd/3rd/21st/… congresses.
+function ordinalCongress(n: number): string {
+  const v = n % 100;
+  const suffix = v >= 11 && v <= 13 ? "th" : (["th", "st", "nd", "rd"][n % 10] ?? "th");
+  return `${n}${suffix}`;
+}
 
 export class CongressClient {
   constructor(private apiKey: string) {}
@@ -13,9 +23,7 @@ export class CongressClient {
     u.searchParams.set("api_key", this.apiKey);
     u.searchParams.set("format", "json");
     for (const [k, v] of Object.entries(params)) u.searchParams.set(k, v);
-    const res = await fetch(u, { headers: { accept: "application/json" } });
-    if (!res.ok) throw new Error(`congress.gov ${res.status} ${path}`);
-    return (await res.json()) as Json;
+    return await fetchJsonWithRetry<Json>(u, { headers: { accept: "application/json" }, label: `congress.gov ${path}` });
   }
 
   async getMember(bioguideId: string): Promise<LegMember> {
@@ -43,6 +51,7 @@ export class CongressClient {
       out.push(...items);
       if (items.length < limit) break;
       offset += limit;
+      if (i === 39) console.warn(`congress.gov paginate: hit ${40 * limit}-record cap on ${path}; results may be truncated (M7)`);
     }
     return out;
   }
@@ -62,7 +71,9 @@ export class CongressClient {
       title: (b.title as string | undefined) ?? null,
       policyArea: policyArea ?? null,
       introducedDate: (b.introducedDate as string | undefined) ?? null,
-      sourceUrl: `https://www.congress.gov/bill/${congress}th-congress/${billType.toLowerCase()}/${number}`,
+      sourceUrl: congress > 0
+        ? `https://www.congress.gov/bill/${ordinalCongress(congress)}-congress/${billType.toLowerCase()}/${number}`
+        : `https://www.congress.gov/search?q=${encodeURIComponent(`${billType} ${number}`)}`,
     };
   }
 

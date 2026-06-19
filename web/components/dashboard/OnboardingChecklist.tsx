@@ -16,7 +16,7 @@ export function OnboardingChecklist({ hasData, teamInvited }: { hasData: boolean
   if (completed === steps.length) {
     return (
       <div className="mb-6 rounded-sm border border-field/40 bg-field/10 px-4 py-3 text-sm text-field">
-        ✓ Setup complete — you're fully wired up.
+        ✓ Setup complete — you&rsquo;re fully wired up.
       </div>
     );
   }

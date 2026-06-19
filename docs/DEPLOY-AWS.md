@@ -54,25 +54,22 @@ you specifically want long-running containers.
 | **Secrets** | env vars / secrets-sync | **SSM** is already your source of truth. Set Amplify env vars from it (or have the app read SSM at runtime). The `secrets-sync` GitHub Action targets Vercel — drop it if you go all-AWS. |
 | **Image optimization** | built-in | Amplify supports `next/image`; for OpenNext it's handled by the image Lambda. |
 
-### EventBridge cron for the weekly ingest
+### Operational setup (cron, PITR, retention, alerting)
+
+Amplify does **not** provision the cron jobs, DynamoDB backups, log retention, or alarms. These are
+codified in **`infra/setup-aws.sh`** (see `infra/README.md`) — one idempotent, reviewable script that
+wires both scheduled jobs (`/api/research/ingest` weekly + `/api/cron/email-drain` every minute) via
+EventBridge Scheduler, enables DynamoDB PITR, caps CloudWatch log retention, and sets a Lambda-errors
+alarm. Run it after the first deploy:
 
 ```bash
-# one-time: schedule a weekly POST to the ingest endpoint
-aws scheduler create-schedule --name matt-grant-research-ingest \
-  --schedule-expression "cron(0 8 ? * MON *)" \
-  --flex-time-window '{"Mode":"OFF"}' \
-  --target '{
-    "Arn":"arn:aws:scheduler:::http-invoke",
-    "RoleArn":"<scheduler-role-arn>",
-    "HttpParameters":{"HeaderParameters":{"authorization":"Bearer <CRON_SECRET>"}},
-    "Input":"",
-    "RetryPolicy":{"MaximumRetryAttempts":2}
-  }' \
-  --target-endpoint "https://<your-domain>/api/research/ingest"
+CRON_SECRET=... BASE_URL=https://mattgrantforcongress.org \
+ALERT_EMAIL=you@example.com bash infra/setup-aws.sh
 ```
 
-(If EventBridge HTTP-invoke isn't enabled in your account, use a 10-line Lambda that `fetch`es the
-endpoint with the bearer header, scheduled by EventBridge.)
+`vercel.json` has been removed — it was ignored on Amplify and falsely implied the cron ran. The
+remaining HIGH items (secrets out of the build artifact, IAM scoping, secret rotation) are tracked in
+`infra/README.md`.
 
 ---
 

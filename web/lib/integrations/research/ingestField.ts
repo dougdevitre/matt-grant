@@ -112,10 +112,15 @@ export async function runFieldIngest(): Promise<FieldIngestResult> {
     }),
   );
 
+  // Derive ok from the actual outcome — don't hardcode true, or monitoring shows
+  // green on a total failure (every candidate errored). M8.
+  const cands = Object.values(result.perCandidate) as Array<{ error?: string }>;
+  const failed = cands.filter((c) => c.error).length;
+  const ok = cands.length === 0 || failed < cands.length;
   await ddb.send(
     new PutCommand({
       TableName: TABLE,
-      Item: { PK: PK.ingestRuns("FIELD"), SK: startedAt, ok: true, startedAt, finishedAt: new Date().toISOString(), counts: result },
+      Item: { PK: PK.ingestRuns("FIELD"), SK: startedAt, ok, errors: failed, startedAt, finishedAt: new Date().toISOString(), counts: result },
     }),
   );
   return result;

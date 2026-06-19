@@ -35,7 +35,7 @@ export function AgendaBuilder() {
             </span>
           </label>
           <label className="block">
-            <span className="text-xs font-semibold text-ink">The fight you'll champion</span>
+            <span className="text-xs font-semibold text-ink">The fight you&rsquo;ll champion</span>
             <select
               value={issueSlug}
               onChange={(e) => setIssueSlug(e.target.value)}

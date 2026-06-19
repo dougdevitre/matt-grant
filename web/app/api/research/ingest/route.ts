@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { runFieldIngest } from "@/lib/integrations/research/ingestField";
 import { fecEnabled } from "@/lib/integrations/fec/client";
 
@@ -14,7 +15,11 @@ export const maxDuration = 300;
 function authorized(req: Request): boolean {
   const secret = process.env.CRON_SECRET;
   if (!secret) return false; // refuse to run unauthenticated
-  return req.headers.get("authorization") === `Bearer ${secret}`;
+  // Constant-time compare so the secret can't be recovered byte-by-byte via
+  // response timing (mirrors /api/cron/email-drain). H2.
+  const got = Buffer.from(req.headers.get("authorization") ?? "");
+  const want = Buffer.from(`Bearer ${secret}`);
+  return got.length === want.length && timingSafeEqual(got, want);
 }
 
 async function handle(req: Request) {
@@ -30,7 +35,8 @@ async function handle(req: Request) {
       enriched ? { ok: true, counts } : { ok: true, skipped: "no CONGRESS_GOV_API_KEY / FEC_API_KEY — roster only", counts },
     );
   } catch (err) {
-    return NextResponse.json({ ok: false, error: String(err) }, { status: 502 });
+    console.error("[research/ingest]", err);
+    return NextResponse.json({ ok: false, error: "Ingest failed" }, { status: 502 });
   }
 }
 
