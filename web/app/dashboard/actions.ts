@@ -94,6 +94,50 @@ export async function updateVolunteerStatus(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
+// Set status + owner together (the card's Save button). assignedTo is nullable
+// so clearing the field unassigns the lead.
+export async function updateVolunteer(formData: FormData) {
+  await authorize("manageVolunteers");
+  requireDb();
+  const id = str(formData, "id");
+  const status = str(formData, "status");
+  if (!id || !status) return;
+  const assignedTo = str(formData, "assignedTo") ?? null;
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: PK.volunteers, SK: id },
+      UpdateExpression: "SET #s = :s, assignedTo = :a",
+      ExpressionAttributeNames: { "#s": "status" },
+      ExpressionAttributeValues: { ":s": status, ":a": assignedTo },
+    }),
+  );
+  revalidatePath("/dashboard/volunteers");
+  revalidatePath("/dashboard");
+}
+
+// Stamp the last-contacted time, and advance a brand-new lead to CONTACTED
+// (never downgrade an ACTIVE/INACTIVE one). `current` is the card's status.
+export async function markVolunteerContacted(formData: FormData) {
+  await authorize("manageVolunteers");
+  requireDb();
+  const id = str(formData, "id");
+  if (!id) return;
+  const bump = str(formData, "current") === "NEW";
+  const now = new Date().toISOString();
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: PK.volunteers, SK: id },
+      UpdateExpression: bump ? "SET lastContactedAt = :t, #s = :c" : "SET lastContactedAt = :t",
+      ...(bump ? { ExpressionAttributeNames: { "#s": "status" } } : {}),
+      ExpressionAttributeValues: bump ? { ":t": now, ":c": "CONTACTED" } : { ":t": now },
+    }),
+  );
+  revalidatePath("/dashboard/volunteers");
+  revalidatePath("/dashboard");
+}
+
 export async function addTask(formData: FormData) {
   await authorize("manageTasks");
   requireDb();
