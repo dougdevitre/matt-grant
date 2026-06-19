@@ -30,7 +30,8 @@ applications:
             # to allow ssm:GetParameter on /matt-grant/* (+ kms:Decrypt for the
             # SecureString secret).
             - |
-              for k in DASHBOARD_ALLOWLIST CLERK_WEBHOOK_SIGNING_SECRET; do
+              for k in DASHBOARD_ALLOWLIST CLERK_WEBHOOK_SIGNING_SECRET \
+                       ANTHROPIC_API_KEY ANTHROPIC_MODEL CONGRESS_GOV_API_KEY CRON_SECRET; do
                 v=$(aws ssm get-parameter --name "/matt-grant/$k" --with-decryption \
                       --query 'Parameter.Value' --output text 2>/dev/null || true)
                 if [ -n "$v" ] && [ "$v" != "None" ]; then echo "$k=$v" >> .env.production; fi
