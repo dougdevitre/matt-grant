@@ -1,9 +1,12 @@
-import { getVolunteers } from "@/lib/queries";
+import { getVolunteers, getTasks } from "@/lib/queries";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { VolunteerBoard } from "@/components/dashboard/VolunteerBoard";
 
 export default async function VolunteersPage() {
-  const { connected, rows } = await getVolunteers();
+  const [{ connected, rows }, tasks] = await Promise.all([getVolunteers(), getTasks()]);
+  // How many tasks each volunteer is assigned (for the card badge + detail link).
+  const taskCounts: Record<string, number> = {};
+  for (const t of tasks.rows) if (t.volunteerId) taskCounts[t.volunteerId] = (taskCounts[t.volunteerId] ?? 0) + 1;
 
   return (
     <>
@@ -27,7 +30,7 @@ export default async function VolunteersPage() {
           No volunteers yet. Leads from the public <span className="font-mono">/contact</span> form land here.
         </div>
       ) : (
-        <VolunteerBoard rows={rows} />
+        <VolunteerBoard rows={rows} taskCounts={taskCounts} />
       )}
     </>
   );

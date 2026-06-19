@@ -1,4 +1,4 @@
-import { QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { QueryCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, dbConfigured } from "@/lib/db";
 
 // All dashboard reads. Each entity type is one DynamoDB partition, so a Query by
@@ -153,6 +153,31 @@ export async function getVolunteers(): Promise<{ connected: boolean; rows: Volun
     return { connected: true, rows };
   } catch {
     return { connected: false, rows: [] };
+  }
+}
+
+export async function getVolunteer(id: string): Promise<VolunteerRow | null> {
+  if (!dbConfigured || !id) return null;
+  try {
+    const r = await ddb.send(new GetCommand({ TableName: TABLE, Key: { PK: PK.volunteers, SK: id } }));
+    const v = r.Item;
+    if (!v) return null;
+    return {
+      id: String(v.SK),
+      name: String(v.name),
+      email: (v.email as string) ?? null,
+      phone: (v.phone as string) ?? null,
+      city: (v.city as string) ?? null,
+      interests: (v.interests as string) ?? null,
+      interestTags: Array.isArray(v.interestTags) ? (v.interestTags as string[]) : [],
+      notes: (v.notes as string) ?? null,
+      status: String(v.status ?? "NEW"),
+      assignedTo: (v.assignedTo as string) ?? null,
+      lastContactedAt: (v.lastContactedAt as string) ?? null,
+      createdAt: String(v.createdAt ?? ""),
+    };
+  } catch {
+    return null;
   }
 }
 
