@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { verifySnsMessage } from "@/lib/sns";
 import { suppress } from "@/lib/subscribers";
+import { recordEngagement } from "@/lib/campaigns";
 
 // SES → SNS deliverability webhook (email-campaign-plan §2). Permanent bounces
 // and complaints auto-suppress the address so we stop mailing it — protecting
@@ -49,6 +50,7 @@ export async function POST(req: NextRequest) {
       notificationType?: string;
       bounce?: { bounceType?: string; bouncedRecipients?: { emailAddress?: string }[] };
       complaint?: { complainedRecipients?: { emailAddress?: string }[] };
+      mail?: { tags?: Record<string, string[]> };
     };
     try {
       event = JSON.parse(msg.Message);
@@ -56,6 +58,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, note: "unparsable message" });
     }
     const kind = event.eventType ?? event.notificationType;
+
+    // Open/click analytics (config-set events carry mail.tags.campaign_id).
+    if (kind === "Open" || kind === "Click") {
+      const cid = event.mail?.tags?.campaign_id?.[0];
+      if (cid) await recordEngagement(cid, kind === "Open" ? "open" : "click");
+      return NextResponse.json({ ok: true, recorded: kind });
+    }
+
     const emails: string[] = [];
     if (kind === "Bounce" && event.bounce?.bounceType === "Permanent") {
       for (const r of event.bounce.bouncedRecipients ?? []) if (r.emailAddress) emails.push(r.emailAddress);

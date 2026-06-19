@@ -6,7 +6,7 @@ import type { Email } from "@/lib/email/templates";
 // Send one pre-rendered broadcast email. Staff variables are already filled into
 // the Email by the broadcast template; here we add the per-recipient
 // unsubscribe/preferences URLs + the RFC 8058 List-Unsubscribe headers.
-export async function sendBroadcastEmail(o: { to: string; email: Email; base: string }) {
+export async function sendBroadcastEmail(o: { to: string; email: Email; base: string; campaignId?: string }) {
   const u = unsubscribeUrl(o.base, o.to);
   const oneClick = unsubscribeApiUrl(o.base, o.to);
   return sendEmail({
@@ -19,5 +19,7 @@ export async function sendBroadcastEmail(o: { to: string; email: Email; base: st
       { name: "List-Unsubscribe", value: `<${oneClick}>, <mailto:${CAMPAIGN.email}?subject=unsubscribe>` },
       { name: "List-Unsubscribe-Post", value: "List-Unsubscribe=One-Click" },
     ],
+    // Tag with the campaign so SES open/click events attribute back (analytics).
+    tags: o.campaignId ? [{ name: "campaign_id", value: o.campaignId }] : undefined,
   });
 }

@@ -60,6 +60,7 @@ export default async function EmailsPage() {
                   <span className="text-ink">{c.subjectPreview}</span>{" "}
                   <span className="text-slate">
                     → {audienceLabel[c.audience] ?? c.audience} · {c.sentCount}/{c.total} sent
+                    {c.sentCount > 0 ? ` · ${c.opens} opens · ${c.clicks} clicks` : ""}
                     {c.suppressedCount ? ` · ${c.suppressedCount} skipped` : ""} · by {c.createdBy}
                   </span>
                 </span>
