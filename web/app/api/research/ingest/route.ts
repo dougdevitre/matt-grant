@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
-import { runIngest } from "@/lib/integrations/legislative/ingest";
+import { runFieldIngest } from "@/lib/integrations/research/ingestField";
+import { fecEnabled } from "@/lib/integrations/fec/client";
 
 // Ingestion entrypoint. Triggered by Vercel Cron (GET) or a manual POST.
 // Secured by CRON_SECRET — Vercel cron sends `Authorization: Bearer <CRON_SECRET>`.
+// Ingests the whole MO-02 primary field: roster + FEC money (all candidates) +
+// federal record (Congress.gov + Clerk, sitting/former members only). Curated
+// issue statements are config-driven and don't need ingestion.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -17,14 +21,14 @@ async function handle(req: Request) {
   if (!authorized(req)) {
     return NextResponse.json({ error: "unauthorized (set CRON_SECRET and send it as a bearer token)" }, { status: 401 });
   }
-  // Until the Congress.gov key lands, the daily schedule should no-op cleanly
-  // rather than 502 every morning. Real failures (below) still surface.
-  if (!process.env.CONGRESS_GOV_API_KEY) {
-    return NextResponse.json({ ok: true, skipped: "CONGRESS_GOV_API_KEY not set" });
-  }
+  // With no external keys the roster still persists, but enrichment no-ops
+  // cleanly so the daily cron doesn't 502 every morning.
+  const enriched = !!process.env.CONGRESS_GOV_API_KEY || fecEnabled;
   try {
-    const counts = await runIngest();
-    return NextResponse.json({ ok: true, counts });
+    const counts = await runFieldIngest();
+    return NextResponse.json(
+      enriched ? { ok: true, counts } : { ok: true, skipped: "no CONGRESS_GOV_API_KEY / FEC_API_KEY — roster only", counts },
+    );
   } catch (err) {
     return NextResponse.json({ ok: false, error: String(err) }, { status: 502 });
   }
