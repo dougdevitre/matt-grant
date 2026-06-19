@@ -1,57 +1,45 @@
-import { PageHeader, DbNotice, HowTo } from "@/components/dashboard/Notice";
+import Link from "next/link";
+import { PageHeader, HowTo } from "@/components/dashboard/Notice";
 import { dbConfigured } from "@/lib/db";
-import { loadConfig, congressEnabled } from "@/lib/integrations/legislative/config";
-import { getMember, getVotes, getBills, lastIngest } from "@/lib/integrations/legislative/store";
+import { loadField, partyLabel } from "@/lib/integrations/research/candidates";
+import { loadStatements } from "@/lib/integrations/statements/data";
+import { analyzeField } from "@/lib/analysis/alignment";
+import { ISSUE_AXES } from "@/lib/integrations/research/issues";
+import { getAllFec } from "@/lib/integrations/research/store";
+import { lastFieldIngest } from "@/lib/integrations/research/ingestField";
+import type { FecSummary } from "@/lib/integrations/fec/types";
 
 export const dynamic = "force-dynamic";
 
-const POSITIONS = ["", "Yea", "Nay", "Present", "Not Voting"];
+const usd = (n: number | null | undefined) =>
+  n == null ? "—" : `$${Math.round(n).toLocaleString("en-US")}`;
 
-const posColor: Record<string, string> = {
-  Yea: "text-field",
-  Nay: "text-brick",
-  Present: "text-[#1d4ed8]",
-  "Not Voting": "text-slate",
-};
+const VERDICT = {
+  agree: { mark: "✓", cls: "bg-field text-paper" },
+  differ: { mark: "✕", cls: "bg-brick text-paper" },
+  unknown: { mark: "·", cls: "bg-line text-slate" },
+} as const;
 
-export default async function ResearchPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ position?: string; relation?: string }>;
-}) {
-  const sp = await searchParams;
-  const { bioguideId } = loadConfig();
-  const position = sp.position ?? "";
-  const relation = sp.relation ?? "sponsored";
+export default async function ResearchPage() {
+  const field = loadField().filter((c) => c.active !== false);
+  const statements = loadStatements();
+  const analysis = analyzeField(field, statements, new Date().toISOString());
 
-  if (!dbConfigured) {
-    return (
-      <>
-        <PageHeader kicker="Opposition research" title="Legislative record" />
-        <DbNotice />
-      </>
-    );
+  let fec: Record<string, FecSummary> = {};
+  let run: Awaited<ReturnType<typeof lastFieldIngest>> = null;
+  if (dbConfigured) {
+    try {
+      [fec, run] = await Promise.all([getAllFec(), lastFieldIngest()]);
+    } catch {
+      /* degrade to no money/run data */
+    }
   }
 
-  let member = null,
-    votes: Awaited<ReturnType<typeof getVotes>> = [],
-    bills: Awaited<ReturnType<typeof getBills>> = [],
-    run = null,
-    dbError = false;
-  try {
-    [member, votes, bills, run] = await Promise.all([
-      getMember(bioguideId),
-      getVotes(bioguideId, { position: position || undefined }),
-      getBills(bioguideId, { relation }),
-      lastIngest(bioguideId),
-    ]);
-  } catch {
-    dbError = true;
-  }
+  const bySlug = new Map(analysis.candidates.map((a) => [a.slug, a]));
 
   return (
     <>
-      <PageHeader kicker="Opposition research" title="Legislative record">
+      <PageHeader kicker="Field & alignment research" title="The MO-02 primary field">
         {run && (
           <span className="font-mono text-xs text-slate">
             last ingest: {run.ok ? "✓" : "✕"} {new Date(run.startedAt).toLocaleDateString()}
@@ -61,131 +49,111 @@ export default async function ResearchPage({
 
       <HowTo
         steps={[
-          "Review the subject’s primary-source record: roll-call votes (House Clerk XML) and legislation (Congress.gov).",
-          "Filter votes by position (Yea / Nay / Present / Not Voting) and bills by relation (sponsored / cosponsored).",
-          "Open the “source ↗” link on any row — cite that source on every claim, never the dashboard itself.",
-          "Check the “last ingest” date in the header; refresh data by triggering the research ingest job.",
-          "Keep contrast factual — see candidate/contrast-positioning.md before using any of this publicly.",
+          "Find common ground, not just contrast: the matrix shows where each candidate's SOURCED position agrees (✓) or differs (✕) from Matt's four pillars.",
+          "“·” means no sourced position on record — it is unknown, never assumed. Curate cited statements via RESEARCH_STATEMENTS_JSON to fill it in.",
+          "Use the coalition ranking to prioritize whose supporters are most persuadable and which exiting competitor is most endorsable.",
+          "Open a candidate for their FEC money, federal record (members only), and a generated coalition script + share card.",
+          "Every claim about a candidate needs its source link — cite the source, never this dashboard. See candidate/contrast-positioning.md before any public use.",
         ]}
       />
 
-      <div className="mb-6 rounded-sm border border-field/30 bg-field/5 px-4 py-3 text-sm text-slate">
-        <p className="font-semibold text-ink">Primary-source record only.</p>
-        <p className="mt-1">
-          {member ? (
-            <>
-              {member.name} ({member.party ?? "—"}, {member.state ?? "—"}
-              {member.district ? `-${member.district}` : ""}) · bioguide{" "}
-              <span className="font-mono">{bioguideId}</span>. Votes from House Clerk roll-call XML; bills from
-              Congress.gov. Every row links to its source.
-            </>
-          ) : (
-            <>
-              No record stored yet for <span className="font-mono">{bioguideId}</span>.{" "}
-              {congressEnabled
-                ? "Trigger ingestion (POST /api/research/ingest with the CRON_SECRET bearer)."
-                : "Set CONGRESS_GOV_API_KEY + CRON_SECRET, then trigger /api/research/ingest."}
-            </>
-          )}
-        </p>
-        {dbError && <p className="mt-1 text-brick">Couldn&apos;t read the research store.</p>}
-      </div>
-
-      {/* Votes */}
+      {/* Coalition priority ranking */}
       <section className="mb-10">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-display text-2xl font-semibold text-ink">Roll-call votes</h2>
-          <div className="flex gap-1">
-            {POSITIONS.map((p) => (
-              <a
-                key={p || "all"}
-                href={`?position=${encodeURIComponent(p)}`}
-                className={`rounded-sm border px-2.5 py-1 text-xs ${
-                  position === p ? "border-ink bg-ink text-paper" : "border-line text-slate hover:border-ink"
-                }`}
-              >
-                {p || "All"}
-              </a>
-            ))}
-          </div>
+        <h2 className="mb-3 font-display text-2xl font-semibold text-ink">Coalition priority</h2>
+        <p className="mb-4 max-w-2xl text-sm text-slate">
+          Ranked by sourced common ground with Matt (most bridges first, weighted by how much is on record).
+          Open primary — persuadable Democrats and unaffiliated voters can pull a Republican ballot.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {analysis.coalitionRanking.map((r, i) => (
+            <Link key={r.slug} href={`/dashboard/research/${r.slug}`} className="card p-4 hover:border-ink">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-xs text-field">#{i + 1}</span>
+                <span className="font-mono text-xs text-slate">
+                  {r.score === null ? "—" : `${Math.round(r.score * 100)}% align`}
+                </span>
+              </div>
+              <p className="mt-2 font-semibold text-ink">{r.name}</p>
+              <p className="mt-1 text-xs text-slate">
+                {r.bridges} shared {r.bridges === 1 ? "priority" : "priorities"} · {r.confidence} sourced{" "}
+                {r.confidence === 1 ? "statement" : "statements"}
+              </p>
+            </Link>
+          ))}
         </div>
-        {votes.length === 0 ? (
-          <p className="card p-6 text-sm text-slate">No votes stored{position ? ` with position "${position}"` : ""}.</p>
-        ) : (
-          <div className="card overflow-hidden p-0">
-            <table className="w-full text-sm">
-              <tbody className="divide-y divide-line">
-                {votes.slice(0, 100).map((v) => (
-                  <tr key={v.id} className="hover:bg-paper">
-                    <td className="px-4 py-2.5 font-mono text-xs text-slate">
-                      {v.year} #{v.rollNumber}
-                    </td>
-                    <td className={`px-4 py-2.5 font-mono text-xs font-bold ${posColor[v.position ?? ""] ?? "text-slate"}`}>
-                      {v.position ?? "—"}
-                    </td>
-                    <td className="px-4 py-2.5 text-ink">
-                      <span className="font-semibold">{v.legisNum ?? ""}</span> {v.question}
-                      {v.result ? <span className="text-slate"> · {v.result}</span> : null}
-                    </td>
-                    <td className="px-4 py-2.5 text-right">
-                      <a href={v.sourceUrl} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-field hover:underline">
-                        source ↗
-                      </a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </section>
 
-      {/* Bills */}
-      <section>
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-display text-2xl font-semibold text-ink">Legislation</h2>
-          <div className="flex gap-1">
-            {["sponsored", "cosponsored"].map((r) => (
-              <a
-                key={r}
-                href={`?relation=${r}`}
-                className={`rounded-sm border px-2.5 py-1 text-xs capitalize ${
-                  relation === r ? "border-ink bg-ink text-paper" : "border-line text-slate hover:border-ink"
-                }`}
-              >
-                {r}
-              </a>
-            ))}
-          </div>
+      {/* Alignment matrix */}
+      <section className="mb-10">
+        <h2 className="mb-3 font-display text-2xl font-semibold text-ink">Alignment matrix</h2>
+        <div className="card overflow-x-auto p-0">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-line text-left">
+                <th className="px-4 py-3 font-semibold text-ink">Candidate</th>
+                {ISSUE_AXES.map((a) => (
+                  <th key={a.id} className="px-3 py-3 text-center text-xs font-semibold text-slate">
+                    {a.label}
+                  </th>
+                ))}
+                <th className="px-4 py-3 text-right text-xs font-semibold text-slate">$ on hand</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {field.map((c) => {
+                const a = bySlug.get(c.slug)!;
+                return (
+                  <tr key={c.slug} className="hover:bg-paper">
+                    <td className="px-4 py-3">
+                      <Link href={`/dashboard/research/${c.slug}`} className="font-medium text-ink hover:underline">
+                        {c.name}
+                      </Link>
+                      <span className="ml-2 font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate">
+                        {partyLabel(c.party)}
+                        {c.incumbent ? " · incumbent" : ""}
+                      </span>
+                    </td>
+                    {ISSUE_AXES.map((ax) => {
+                      const v = a.axes.find((x) => x.issueId === ax.id)!.verdict;
+                      const cfg = VERDICT[v];
+                      return (
+                        <td key={ax.id} className="px-3 py-3 text-center">
+                          <span className={`inline-flex h-6 w-6 items-center justify-center rounded-sm font-bold ${cfg.cls}`}>
+                            {cfg.mark}
+                          </span>
+                        </td>
+                      );
+                    })}
+                    <td className="px-4 py-3 text-right font-mono text-xs text-slate">{usd(fec[c.slug]?.totals.cashOnHand)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
-        {bills.length === 0 ? (
-          <p className="card p-6 text-sm text-slate">No {relation} bills stored.</p>
-        ) : (
-          <div className="grid gap-2 sm:grid-cols-2">
-            {bills.slice(0, 60).map((b) => (
-              <a
-                key={b.id}
-                href={b.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="card p-4 hover:border-ink"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-field">
-                    {b.billType} {b.number} · {b.congress}th
-                  </span>
-                  {b.policyArea && <span className="font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate">{b.policyArea}</span>}
-                </div>
-                <p className="mt-2 text-sm text-ink">{b.title ?? "(untitled)"}</p>
-              </a>
-            ))}
-          </div>
-        )}
+        <p className="mt-3 text-xs text-slate">
+          <span className="font-bold text-field">✓</span> sourced agreement ·{" "}
+          <span className="font-bold text-brick">✕</span> sourced difference ·{" "}
+          <span className="font-bold text-slate">·</span> no sourced position (unknown). Money from OpenFEC.
+        </p>
       </section>
+
+      {field.length <= 1 && (
+        <div className="rounded-sm border border-field/30 bg-field/5 px-4 py-3 text-sm text-slate">
+          <p className="font-semibold text-ink">Only the seed entry is loaded.</p>
+          <p className="mt-1">
+            Populate the field with{" "}
+            <span className="font-mono">RESEARCH_FIELD_JSON</span> (candidate roster) and{" "}
+            <span className="font-mono">RESEARCH_STATEMENTS_JSON</span> (sourced positions), then trigger{" "}
+            <span className="font-mono">/api/research/ingest</span> with the CRON_SECRET bearer. See{" "}
+            <span className="font-mono">candidate/opposition-research-expansion-plan.md</span>.
+          </p>
+        </div>
+      )}
 
       <p className="mt-8 text-xs text-slate">
-        Public federal records (Congress.gov + House Clerk). Use the cited source on every claim. Contrast must
-        stay factual — see <span className="font-mono">candidate/contrast-positioning.md</span>.
+        Public primary sources only (OpenFEC, Congress.gov, House Clerk, cited statements). Contrast must stay
+        factual — see <span className="font-mono">candidate/contrast-positioning.md</span>.
       </p>
     </>
   );

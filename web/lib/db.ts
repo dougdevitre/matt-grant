@@ -31,6 +31,10 @@ export const PK = {
   votes: (bioguideId: string) => `VOTES#${bioguideId}`,
   bills: (bioguideId: string) => `BILLS#${bioguideId}`,
   ingestRuns: (target: string) => `INGESTRUN#${target}`,
+  // Multi-candidate field engine (opposition / alignment research).
+  candidates: "CANDIDATE",
+  fec: "FEC",
+  statements: (slug: string) => `STMT#${slug}`,
 } as const;
 
 export function newId(): string {
