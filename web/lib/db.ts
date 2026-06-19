@@ -36,6 +36,7 @@ export const PK = {
   fec: "FEC",
   fecDonors: "FECDONORS",
   stateLeg: (slug: string) => `STATELEG#${slug}`,
+  timeline: (slug: string) => `TIMELINE#${slug}`,
   statements: (slug: string) => `STMT#${slug}`,
 } as const;
 
