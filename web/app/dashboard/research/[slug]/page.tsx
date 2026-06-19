@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { requireCap } from "@/lib/auth";
 import { PageHeader } from "@/components/dashboard/Notice";
 import { dbConfigured } from "@/lib/db";
 import { getCandidate, partyLabel } from "@/lib/integrations/research/candidates";
@@ -17,6 +18,7 @@ const VERDICT_TEXT = { agree: "text-field", differ: "text-brick", unknown: "text
 const VERDICT_LABEL = { agree: "Agrees with Matt", differ: "Differs", unknown: "No sourced position" } as const;
 
 export default async function CandidatePage({ params }: { params: Promise<{ slug: string }> }) {
+  await requireCap("viewResearch"); // gate the per-candidate drilldown too (H1)
   const { slug } = await params;
   const c = getCandidate(slug);
   if (!c) notFound();
