@@ -34,6 +34,8 @@ export const PK = {
   // Multi-candidate field engine (opposition / alignment research).
   candidates: "CANDIDATE",
   fec: "FEC",
+  fecDonors: "FECDONORS",
+  stateLeg: (slug: string) => `STATELEG#${slug}`,
   statements: (slug: string) => `STMT#${slug}`,
 } as const;
 

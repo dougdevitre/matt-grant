@@ -6,7 +6,7 @@ import { getCandidate, partyLabel } from "@/lib/integrations/research/candidates
 import { statementsFor } from "@/lib/integrations/statements/data";
 import { alignCandidate } from "@/lib/analysis/alignment";
 import { ISSUE_AXES, axis } from "@/lib/integrations/research/issues";
-import { getFec } from "@/lib/integrations/research/store";
+import { getFec, getDonorProfile, getStateLeg } from "@/lib/integrations/research/store";
 import { getVotes, getBills } from "@/lib/integrations/legislative/store";
 
 export const dynamic = "force-dynamic";
@@ -25,12 +25,16 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
   const a = alignCandidate(c, statements);
 
   let fec = null,
+    donors: Awaited<ReturnType<typeof getDonorProfile>> = null,
+    stateLeg: Awaited<ReturnType<typeof getStateLeg>> = null,
     votes: Awaited<ReturnType<typeof getVotes>> = [],
     bills: Awaited<ReturnType<typeof getBills>> = [];
   if (dbConfigured) {
     try {
-      [fec, votes, bills] = await Promise.all([
+      [fec, donors, stateLeg, votes, bills] = await Promise.all([
         getFec(slug),
+        getDonorProfile(slug),
+        c.stateLegId ? getStateLeg(slug) : Promise.resolve(null),
         c.bioguideId ? getVotes(c.bioguideId) : Promise.resolve([]),
         c.bioguideId ? getBills(c.bioguideId, { relation: "sponsored" }) : Promise.resolve([]),
       ]);
@@ -38,6 +42,8 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
       /* degrade */
     }
   }
+  const hasDonorData =
+    donors && (donors.topEmployers.length || donors.topOccupations.length || donors.bySize.length || donors.byState.length);
 
   return (
     <>
@@ -129,6 +135,70 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
           </p>
         )}
       </section>
+
+      {/* Donor profile (FEC Schedule A aggregates) */}
+      {hasDonorData && donors && (
+        <section className="mb-10">
+          <h2 className="mb-1 font-display text-2xl font-semibold text-ink">Donor profile</h2>
+          <p className="mb-3 text-xs text-slate">Who funds them — from FEC itemized receipts (Schedule A). Describes the money, not donors personally.</p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {([
+              ["Top employers", donors.topEmployers],
+              ["Top occupations", donors.topOccupations],
+              ["By gift size", donors.bySize],
+              ["By state", donors.byState],
+            ] as const).map(([label, buckets]) => (
+              <div key={label} className="card p-4">
+                <h3 className="mb-2 text-xs font-semibold uppercase tracking-eyebrow text-slate">{label}</h3>
+                {buckets.length === 0 ? (
+                  <p className="text-xs text-slate">—</p>
+                ) : (
+                  <ul className="space-y-1">
+                    {buckets.slice(0, 6).map((b, i) => (
+                      <li key={`${label}-${i}`} className="flex justify-between gap-2 text-sm">
+                        <span className="truncate text-ink">{b.label}</span>
+                        <span className="shrink-0 font-mono text-xs text-slate">{usd(b.amount)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+          <a href={donors.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block font-mono text-xs text-field hover:underline">
+            fec.gov ↗
+          </a>
+        </section>
+      )}
+
+      {/* State legislative record (Open States) */}
+      {c.stateLegId && (
+        <section className="mb-10">
+          <h2 className="mb-3 font-display text-2xl font-semibold text-ink">State legislative record</h2>
+          {stateLeg ? (
+            <div className="card p-5">
+              <p className="text-sm text-slate">
+                {stateLeg.currentRole ?? "MO General Assembly"} · {stateLeg.party ?? "—"}
+              </p>
+              <h3 className="mt-3 mb-2 text-xs font-semibold uppercase tracking-eyebrow text-slate">Sponsored bills</h3>
+              <div className="divide-y divide-line">
+                {stateLeg.sponsored.slice(0, 12).map((b, i) => (
+                  <a key={`${b.identifier}-${i}`} href={b.sourceUrl} target="_blank" rel="noopener noreferrer" className="block py-2 text-sm hover:bg-paper">
+                    <span className="font-mono text-xs text-field">{b.identifier}</span> {b.title ?? "(untitled)"}
+                  </a>
+                ))}
+              </div>
+              <a href={stateLeg.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block font-mono text-xs text-field hover:underline">
+                openstates.org ↗
+              </a>
+            </div>
+          ) : (
+            <p className="card p-6 text-sm text-slate">
+              No state record stored. Set OPENSTATES_API_KEY, then trigger /api/research/ingest.
+            </p>
+          )}
+        </section>
+      )}
 
       {/* Federal record — members only */}
       {c.bioguideId ? (

@@ -1,7 +1,8 @@
 import { PutCommand, GetCommand, QueryCommand, BatchWriteCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK } from "@/lib/db";
 import type { Candidate } from "./candidates";
-import type { FecSummary } from "../fec/types";
+import type { FecSummary, DonorProfile } from "../fec/types";
+import type { StateLegRecord } from "../openstates/client";
 
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];
@@ -49,4 +50,28 @@ export async function getAllFec(): Promise<Record<string, FecSummary>> {
   const map: Record<string, FecSummary> = {};
   for (const it of (out.Items ?? []) as Array<FecSummary & { SK: string }>) map[it.SK] = it;
   return map;
+}
+
+// ---- FEC donor profiles (one item per candidate slug) ----
+export async function persistDonorProfile(slug: string, profile: DonorProfile): Promise<void> {
+  await ddb.send(
+    new PutCommand({ TableName: TABLE, Item: { PK: PK.fecDonors, SK: slug, type: "fec-donors", ...profile, source: "open.fec.gov" } }),
+  );
+}
+
+export async function getDonorProfile(slug: string): Promise<DonorProfile | null> {
+  const out = await ddb.send(new GetCommand({ TableName: TABLE, Key: { PK: PK.fecDonors, SK: slug } }));
+  return (out.Item as unknown as DonorProfile) ?? null;
+}
+
+// ---- State legislative record (Open States) ----
+export async function persistStateLeg(slug: string, record: StateLegRecord): Promise<void> {
+  await ddb.send(
+    new PutCommand({ TableName: TABLE, Item: { PK: PK.stateLeg(slug), SK: "record", type: "state-leg", ...record, source: "openstates.org" } }),
+  );
+}
+
+export async function getStateLeg(slug: string): Promise<StateLegRecord | null> {
+  const out = await ddb.send(new GetCommand({ TableName: TABLE, Key: { PK: PK.stateLeg(slug), SK: "record" } }));
+  return (out.Item as unknown as StateLegRecord) ?? null;
 }
