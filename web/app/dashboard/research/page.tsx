@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { requireCap } from "@/lib/auth";
 import { PageHeader, HowTo } from "@/components/dashboard/Notice";
 import { dbConfigured } from "@/lib/db";
 import { loadField, partyLabel } from "@/lib/integrations/research/candidates";
@@ -21,6 +22,7 @@ const VERDICT = {
 } as const;
 
 export default async function ResearchPage() {
+  await requireCap("viewResearch"); // organizers are denied; don't rely on the sidebar hiding the link (H1)
   const field = loadField().filter((c) => c.active !== false);
   const statements = loadStatements();
   const analysis = analyzeField(field, statements, new Date().toISOString());
