@@ -1,7 +1,8 @@
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK } from "@/lib/db";
 import { loadField, type Candidate } from "./candidates";
-import { persistCandidates, persistFec, persistDonorProfile, persistFecDetail, persistStateLeg, persistTimeline } from "./store";
+import { persistCandidates, persistFec, persistDonorProfile, persistFecDetail, persistStateLeg, persistTimeline, persistWikiBio } from "./store";
+import { fetchWikiBio } from "../wikipedia/client";
 import { buildTimeline } from "./timeline";
 import { FecClient, fecEnabled } from "../fec/client";
 import { OpenStatesClient, openStatesEnabled } from "../openstates/client";
@@ -18,7 +19,7 @@ export type FieldIngestResult = {
   stateLeg: number;
   perCandidate: Record<
     string,
-    { fec?: boolean; federal?: { votes: number; bills: number }; stateLeg?: number; timeline?: number; error?: string }
+    { fec?: boolean; federal?: { votes: number; bills: number }; stateLeg?: number; timeline?: number; bio?: boolean; error?: string }
   >;
 };
 
@@ -100,6 +101,12 @@ export async function runFieldIngest(): Promise<FieldIngestResult> {
           await persistStateLeg(c.slug, record);
           entry.stateLeg = record.sponsored.length;
           result.stateLeg += 1;
+        }
+        // Wikipedia bio — any candidate; guarded resolution avoids the wrong person.
+        const bio = await fetchWikiBio(c.name, c.wikipediaTitle ?? undefined);
+        if (bio) {
+          await persistWikiBio(c.slug, bio);
+          entry.bio = true;
         }
         // Tenure timeline — for any candidate with a federal record or FEC id.
         // Reuse the bills the federal step already fetched (no re-paginate).

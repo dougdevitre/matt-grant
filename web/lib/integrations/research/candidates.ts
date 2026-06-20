@@ -17,6 +17,7 @@ export type Candidate = {
   fecCandidateId?: string | null; // FEC linkage — every federal candidate has one
   stateLegId?: string | null; // MO General Assembly key, if they held state office
   website?: string | null; // provenance for curated statements
+  wikipediaTitle?: string | null; // exact Wikipedia article title — pins bio resolution
   active?: boolean; // false once a candidate exits the race
 };
 
@@ -53,6 +54,7 @@ function parseFieldJson(raw: string): Candidate[] {
         fecCandidateId: (c.fecCandidateId as string) ?? null,
         stateLegId: (c.stateLegId as string) ?? null,
         website: (c.website as string) ?? null,
+        wikipediaTitle: (c.wikipediaTitle as string) ?? null,
         active: c.active === undefined ? true : Boolean(c.active),
       }))
       .filter((c) => c.slug);
