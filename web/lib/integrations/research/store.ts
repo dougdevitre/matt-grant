@@ -4,6 +4,7 @@ import { batchWritePut } from "../batchWrite";
 import type { Candidate } from "./candidates";
 import type { FecSummary, DonorProfile, FecDetail } from "../fec/types";
 import type { WikiBio } from "../wikipedia/client";
+import type { NewsFeed } from "../news/client";
 import type { StateLegRecord } from "../openstates/client";
 import type { TenureTimeline } from "./timeline";
 
@@ -79,6 +80,16 @@ export async function persistWikiBio(slug: string, bio: WikiBio): Promise<void> 
 export async function getWikiBio(slug: string): Promise<WikiBio | null> {
   const out = await ddb.send(new GetCommand({ TableName: TABLE, Key: { PK: PK.wikiBio, SK: slug } }));
   return (out.Item as unknown as WikiBio) ?? null;
+}
+
+// ---- Recent-coverage feed (Google News RSS, one item per slug) ----
+export async function persistNews(slug: string, feed: NewsFeed): Promise<void> {
+  await ddb.send(new PutCommand({ TableName: TABLE, Item: { PK: PK.news, SK: slug, type: "news", ...feed, source: "news.google.com" } }));
+}
+
+export async function getNews(slug: string): Promise<NewsFeed | null> {
+  const out = await ddb.send(new GetCommand({ TableName: TABLE, Key: { PK: PK.news, SK: slug } }));
+  return (out.Item as unknown as NewsFeed) ?? null;
 }
 
 // ---- State legislative record (Open States) ----
