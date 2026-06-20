@@ -14,11 +14,33 @@ deployable and reversible, with **no gap** where a secret is unavailable.
 Cross-referenced: every `process.env.*` the app reads vs `/matt-grant/*` in SSM vs
 the Amplify app's environment variables.
 
-### A. Secrets already in SSM — wire these to `getSecret` (step 2)
+### A. Secrets in SSM — what can actually move to `getSecret`
 
-`ANTHROPIC_API_KEY`, `CENSUS_API_KEY`, `CLERK_SECRET_KEY`,
-`CLERK_WEBHOOK_SIGNING_SECRET`, `CONGRESS_GOV_API_KEY`, `CRON_SECRET`,
-`FEC_API_KEY`, `OPENSTATES_API_KEY`, `WALGREENS_API_KEY`, `WALGREENS_AFF_ID`.
+Key constraint: the Clerk SDK and the client build read some secrets from env
+**directly**, so those can never move to a runtime loader — they stay in env
+(baked or Amplify env) regardless. The migration therefore REDUCES the baked
+secret footprint; it cannot zero it.
+
+**A1 — wireable (the app's own code reads them):**
+
+- `CRON_SECRET` — ✅ wired (cron + ingest auth)
+- `ANTHROPIC_API_KEY` — ✅ wired (press/topics)
+- `FEC_API_KEY`, `CONGRESS_GOV_API_KEY`, `OPENSTATES_API_KEY`, `CENSUS_API_KEY`,
+  `WALGREENS_API_KEY`/`AFF_ID` — wireable, but each has a module-scope `enabled`
+  flag (`export const fecEnabled = !!process.env…`) that must be refactored to
+  resolve async. Low security value (free public-data keys) → deferred.
+- `UNSUB_SECRET` — module-scope, feeds *sync* token functions; needs a sync→async
+  refactor of the unsubscribe chain. (Create it in SSM first — section B.)
+- `WINRED_WEBHOOK_SECRET` — parked; create in SSM first (section B).
+
+**A2 — CANNOT move (read by the SDK / build, not our code):**
+
+- `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SIGNING_SECRET` — `@clerk/*` (incl.
+  `verifyWebhook`) reads these from env. They MUST stay in env.
+- `NEXT_PUBLIC_*` — inlined into the client bundle at build time.
+
+So step 3 (un-baking) can drop the A1 secrets from the artifact, but the Clerk
+secrets remain.
 
 ### B. Secrets the app reads but that are NOT in SSM — CREATE before un-baking (step 3)
 
