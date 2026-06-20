@@ -26,6 +26,7 @@ BASE_URL="${BASE_URL:?set BASE_URL to the deployed site origin, e.g. https://mat
 CRON_SECRET="${CRON_SECRET:?set CRON_SECRET (same value the routes verify)}"
 ALERT_EMAIL="${ALERT_EMAIL:-}"
 LOG_RETENTION_DAYS="${LOG_RETENTION_DAYS:-90}"
+AMPLIFY_APP_ID="${AMPLIFY_APP_ID:-d1roai8s7wowoi}"
 ACCT="$(aws sts get-caller-identity --query Account --output text)"
 
 say() { printf '\n=== %s ===\n' "$*"; }
@@ -40,16 +41,14 @@ aws dynamodb update-continuous-backups \
   >/dev/null && echo "PITR enabled."
 
 # ── 2. CloudWatch log retention ─────────────────────────────────────────────────
-# Amplify/Lambda log groups default to "never expire". Cap retention to control
-# cost. Applies to existing Amplify + Lambda groups; new groups created later
-# should be re-run through this (or set at creation in IaC).
-say "Log retention → ${LOG_RETENTION_DAYS}d"
-for prefix in /aws/amplify /aws/lambda; do
-  for lg in $(aws logs describe-log-groups --log-group-name-prefix "$prefix" \
-                --region "$REGION" --query 'logGroups[].logGroupName' --output text); do
-    aws logs put-retention-policy --log-group-name "$lg" \
-      --retention-in-days "$LOG_RETENTION_DAYS" --region "$REGION" && echo "  $lg"
-  done
+# Cap retention (default never-expire) on THIS app's log groups only — matched by
+# the Amplify app id so we never touch unrelated projects in the account.
+say "Log retention → ${LOG_RETENTION_DAYS}d (app ${AMPLIFY_APP_ID} only)"
+for lg in $(aws logs describe-log-groups --region "$REGION" \
+              --query "logGroups[?contains(logGroupName, '${AMPLIFY_APP_ID}')].logGroupName" \
+              --output text); do
+  aws logs put-retention-policy --log-group-name "$lg" \
+    --retention-in-days "$LOG_RETENTION_DAYS" --region "$REGION" && echo "  $lg"
 done
 
 # ── 3. Scheduled jobs (EventBridge Scheduler → API destination) ──────────────────
@@ -75,8 +74,10 @@ create_destination() { # name path
     aws events create-api-destination --name "$name" --region "$REGION" \
       --connection-arn "$CONN_ARN" --http-method POST \
       --invocation-endpoint "${BASE_URL}${path}" \
-      --invocation-rate-limit-per-second 10 >/dev/null && echo "  api-destination $name"
+      --invocation-rate-limit-per-second 10 >/dev/null && echo "  api-destination $name" >&2
   fi
+  # ONLY the ARN goes to stdout — this is captured via $(). Any log/progress
+  # line above must go to stderr (>&2) or it pollutes the captured value.
   aws events describe-api-destination --name "$name" --region "$REGION" --query ApiDestinationArn --output text
 }
 DEST_INGEST="$(create_destination matt-grant-ingest /api/research/ingest)"
