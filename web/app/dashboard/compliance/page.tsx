@@ -37,7 +37,6 @@ const kindColor: Record<Deadline["kind"], string> = {
 export default async function CompliancePage() {
   if (!can((await staffGate()).role, "viewCompliance")) redirect("/dashboard?denied=compliance");
   // Server component: current time resolves at request render, which is correct here.
-  // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
   const fmt = (iso: string) =>
     new Date(iso + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
