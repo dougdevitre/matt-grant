@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import { drainOnce } from "@/lib/campaigns";
 import { sesEnabled } from "@/lib/email/send";
 import { SITE_URL } from "@/lib/site";
+import { getSecret } from "@/lib/ssm";
 
 // Background worker for queued email campaigns. Point an EventBridge Scheduler
 // (every ~1 min) at this route with `Authorization: Bearer <CRON_SECRET>`. Each
@@ -13,8 +14,8 @@ export const dynamic = "force-dynamic";
 
 const MAX_BATCHES_PER_RUN = 4; // 4 × 25 = up to 100 sends/invocation
 
-function authorized(req: NextRequest): boolean {
-  const secret = process.env.CRON_SECRET;
+async function authorized(req: NextRequest): Promise<boolean> {
+  const secret = await getSecret("CRON_SECRET"); // env-first; SSM once un-baked
   if (!secret) return false; // fail closed
   const got = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
   const a = Buffer.from(got);
@@ -23,7 +24,7 @@ function authorized(req: NextRequest): boolean {
 }
 
 async function handle(req: NextRequest) {
-  if (!authorized(req)) return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
+  if (!(await authorized(req))) return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   if (!sesEnabled) return NextResponse.json({ ok: true, skipped: "SES not configured" });
 
   const host = req.headers.get("host");
