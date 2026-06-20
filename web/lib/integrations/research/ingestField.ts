@@ -77,54 +77,60 @@ export async function runFieldIngest(): Promise<FieldIngestResult> {
   // Cap concurrency so the per-candidate fan-out (each does several FEC calls)
   // doesn't burst past upstream rate limits. H4.
   await mapLimit(field, 4, async (c) => {
+      // Each enrichment is isolated: the incumbent's heavy FEC/congress queries
+      // time out under load, and a single failure must NOT abort the candidate's
+      // OTHER data (the coarse try/catch used to drop the bio + timeline). Every
+      // step degrades independently and records its own error.
       const entry: FieldIngestResult["perCandidate"][string] = {};
-      try {
-        if (fec && c.fecCandidateId) {
-          const [summary, donors, detail] = await Promise.all([
-            fec.getSummary(c.fecCandidateId, cycle),
-            fec.getDonorProfile(c.fecCandidateId, cycle),
-            fec.getDetail(c.fecCandidateId, cycle),
-          ]);
-          await Promise.all([persistFec(c.slug, summary), persistDonorProfile(c.slug, donors), persistFecDetail(c.slug, detail)]);
-          entry.fec = true;
-          result.fec += 1;
-        }
-        let federalBills: { relation: string; congress: number }[] | undefined;
-        if (c.bioguideId && process.env.CONGRESS_GOV_API_KEY) {
-          // Isolated: the incumbent's cosponsored-legislation pull (1,700+ bills)
-          // can time out on congress.gov. Don't let that abort the candidate's
-          // OTHER enrichments (bio, timeline) — degrade to "no federal data".
-          try {
-            const fed = await ingestFederal(c);
-            entry.federal = fed.counts;
-            federalBills = fed.bills;
-            result.federal += 1;
-          } catch (e) {
-            entry.error = `federal: ${String(e)}`;
-          }
-        }
-        if (openStates && c.stateLegId) {
+      const errs: string[] = [];
+
+      // FEC — summary / donor profile / detail persisted independently.
+      if (fec && c.fecCandidateId) {
+        const fid = c.fecCandidateId;
+        const [s, d, det] = await Promise.allSettled([fec.getSummary(fid, cycle), fec.getDonorProfile(fid, cycle), fec.getDetail(fid, cycle)]);
+        if (s.status === "fulfilled") {
+          try { await persistFec(c.slug, s.value); entry.fec = true; result.fec += 1; } catch (e) { errs.push(`fec.persist: ${String(e)}`); }
+        } else errs.push(`fec.summary: ${String(s.reason)}`);
+        if (d.status === "fulfilled") { await persistDonorProfile(c.slug, d.value).catch((e) => errs.push(`donor.persist: ${String(e)}`)); } else errs.push(`fec.donors: ${String(d.reason)}`);
+        if (det.status === "fulfilled") { await persistFecDetail(c.slug, det.value).catch((e) => errs.push(`detail.persist: ${String(e)}`)); } else errs.push(`fec.detail: ${String(det.reason)}`);
+      }
+
+      // Federal record (Congress.gov + House Clerk) — sitting/former members only.
+      let federalBills: { relation: string; congress: number }[] | undefined;
+      if (c.bioguideId && process.env.CONGRESS_GOV_API_KEY) {
+        try {
+          const fed = await ingestFederal(c);
+          entry.federal = fed.counts;
+          federalBills = fed.bills;
+          result.federal += 1;
+        } catch (e) { errs.push(`federal: ${String(e)}`); }
+      }
+
+      if (openStates && c.stateLegId) {
+        try {
           const record = await openStates.getRecord(c.stateLegId);
           await persistStateLeg(c.slug, record);
           entry.stateLeg = record.sponsored.length;
           result.stateLeg += 1;
-        }
-        // Wikipedia bio — any candidate; guarded resolution avoids the wrong person.
+        } catch (e) { errs.push(`stateLeg: ${String(e)}`); }
+      }
+
+      // Wikipedia bio — any candidate; guarded resolution avoids the wrong person.
+      try {
         const bio = await fetchWikiBio(c.name, c.wikipediaTitle ?? undefined);
-        if (bio) {
-          await persistWikiBio(c.slug, bio);
-          entry.bio = true;
-        }
-        // Tenure timeline — for any candidate with a federal record or FEC id.
-        // Reuse the bills the federal step already fetched (no re-paginate).
-        if (c.bioguideId || c.fecCandidateId) {
+        if (bio) { await persistWikiBio(c.slug, bio); entry.bio = true; }
+      } catch (e) { errs.push(`bio: ${String(e)}`); }
+
+      // Tenure timeline — reuse the federal bills if that step succeeded.
+      if (c.bioguideId || c.fecCandidateId) {
+        try {
           const timeline = await buildTimeline(c, federalBills ? { bills: federalBills } : undefined);
           await persistTimeline(c.slug, timeline);
           entry.timeline = timeline.totalTerms;
-        }
-      } catch (err) {
-        entry.error = String(err);
+        } catch (e) { errs.push(`timeline: ${String(e)}`); }
       }
+
+      if (errs.length) entry.error = errs.join("; ");
       result.perCandidate[c.slug] = entry;
   });
 
