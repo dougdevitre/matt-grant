@@ -1,9 +1,13 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// Accessibility harness — runs axe against the public site. It boots a production
-// build (what actually ships) and is kept separate from the vitest unit suite
-// (which owns *.test.ts; these are *.spec.ts under e2e/). See e2e/README.md.
+// Accessibility harness — runs axe against the public site. By default it boots a
+// local production build (what ships). Set A11Y_BASE_URL to scan a DEPLOYED URL
+// instead (skips the local server) — e.g. the Amplify URL or the live domain.
+// Kept separate from the vitest unit suite (*.test.ts); these are *.spec.ts under
+// e2e/. See e2e/README.md.
+const remoteBase = process.env.A11Y_BASE_URL;
 const PORT = 3100;
+const baseURL = remoteBase ?? `http://127.0.0.1:${PORT}`;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -11,12 +15,17 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   reporter: process.env.CI ? "github" : "list",
-  use: { baseURL: `http://127.0.0.1:${PORT}` },
+  use: { baseURL },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  webServer: {
-    command: `npm run build && npx next start -p ${PORT}`,
-    url: `http://127.0.0.1:${PORT}`,
-    timeout: 180_000,
-    reuseExistingServer: !process.env.CI,
-  },
+  // Only boot a local server when scanning localhost; a deployed URL is already up.
+  ...(remoteBase
+    ? {}
+    : {
+        webServer: {
+          command: `npm run build && npx next start -p ${PORT}`,
+          url: `http://127.0.0.1:${PORT}`,
+          timeout: 180_000,
+          reuseExistingServer: !process.env.CI,
+        },
+      }),
 });
