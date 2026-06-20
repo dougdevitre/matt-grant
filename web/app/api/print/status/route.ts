@@ -13,5 +13,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "orders[] is required" }, { status: 400 });
   }
   const r = await wgPost("/api/photo/order/status/v3", { act: "orderstatus", orders });
-  return NextResponse.json({ configured: true, ...(r.json as object) }, { status: r.ok ? 200 : 502 });
+  if (!r.ok) return NextResponse.json({ configured: true, error: "Service unavailable" }, { status: 502 });
+  return NextResponse.json({ configured: true, ...(r.json as object) });
 }

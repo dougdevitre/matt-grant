@@ -38,6 +38,7 @@ export const PK = {
   candidates: "CANDIDATE",
   fec: "FEC",
   fecDonors: "FECDONORS",
+  printOrders: "PRINTORDER", // submitted print-order dedupe keys (idempotency)
   stateLeg: (slug: string) => `STATELEG#${slug}`,
   timeline: (slug: string) => `TIMELINE#${slug}`,
   statements: (slug: string) => `STMT#${slug}`,

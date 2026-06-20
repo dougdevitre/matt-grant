@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { verifySnsMessage } from "@/lib/sns";
 import { suppress } from "@/lib/subscribers";
 import { recordEngagement } from "@/lib/campaigns";
+import { classifySesEvent, type SesEvent } from "@/lib/sesEvents";
 
 // SES → SNS deliverability webhook (email-campaign-plan §2). Permanent bounces
 // and complaints auto-suppress the address so we stop mailing it — protecting
@@ -45,41 +46,29 @@ export async function POST(req: NextRequest) {
   }
 
   if (msg.Type === "Notification" && typeof msg.Message === "string") {
-    let event: {
-      eventType?: string;
-      notificationType?: string;
-      bounce?: { bounceType?: string; bouncedRecipients?: { emailAddress?: string }[] };
-      complaint?: { complainedRecipients?: { emailAddress?: string }[] };
-      mail?: { tags?: Record<string, string[]> };
-    };
+    let event: SesEvent;
     try {
       event = JSON.parse(msg.Message);
     } catch {
       return NextResponse.json({ ok: true, note: "unparsable message" });
     }
-    const kind = event.eventType ?? event.notificationType;
 
-    // Delivery/open/click analytics (config-set events carry mail.tags.campaign_id).
-    if (kind === "Delivery" || kind === "Open" || kind === "Click") {
-      const cid = event.mail?.tags?.campaign_id?.[0];
-      if (cid) await recordEngagement(cid, kind === "Delivery" ? "delivered" : kind === "Open" ? "open" : "click");
-      return NextResponse.json({ ok: true, recorded: kind });
+    const action = classifySesEvent(event);
+    if (action.kind === "engagement") {
+      await recordEngagement(action.campaignId, action.event);
+      return NextResponse.json({ ok: true, recorded: action.event });
     }
-
-    const emails: string[] = [];
-    if (kind === "Bounce" && event.bounce?.bounceType === "Permanent") {
-      for (const r of event.bounce.bouncedRecipients ?? []) if (r.emailAddress) emails.push(r.emailAddress);
-    } else if (kind === "Complaint") {
-      for (const r of event.complaint?.complainedRecipients ?? []) if (r.emailAddress) emails.push(r.emailAddress);
-    }
-    for (const e of emails) {
-      try {
-        await suppress(e, kind === "Complaint" ? "complained" : "bounced");
-      } catch {
-        /* best-effort */
+    if (action.kind === "suppress") {
+      for (const e of action.emails) {
+        try {
+          await suppress(e, action.reason);
+        } catch {
+          /* best-effort */
+        }
       }
+      return NextResponse.json({ ok: true, suppressed: action.emails.length });
     }
-    return NextResponse.json({ ok: true, suppressed: emails.length });
+    return NextResponse.json({ ok: true });
   }
 
   return NextResponse.json({ ok: true });
