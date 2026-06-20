@@ -46,3 +46,25 @@ export type CycleFinance = {
   ieOppose: number | null; // independent expenditures AGAINST
   sourceUrl: string;
 };
+
+// Deeper per-candidate detail for the profile: WHICH outside committees spend
+// for/against them (Schedule E top spenders) and WHERE the campaign spends its
+// money (Schedule B disbursements by purpose). All public FEC data.
+export type IeSpender = { committee: string; amount: number; stance: "support" | "oppose" };
+export type SpendCategory = { purpose: string; amount: number };
+
+export type FecDetail = {
+  fecCandidateId: string;
+  cycle: number;
+  ie: {
+    support: number; // total outside $ spent FOR them
+    oppose: number; // total outside $ spent AGAINST them
+    topSpenders: IeSpender[];
+  };
+  spending: {
+    total: number;
+    byPurpose: SpendCategory[];
+  };
+  sourceUrl: string;
+  retrievedAt: string;
+};
