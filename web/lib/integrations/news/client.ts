@@ -12,6 +12,15 @@ export type NewsFeed = { items: NewsItem[]; retrievedAt: string };
 
 type RssItem = { title?: unknown; link?: unknown; pubDate?: unknown; source?: unknown };
 
+// Relevance guard: require the candidate's full name in the headline. Google News
+// RSS phrase matching is loose — a "Chuck Summers" query returns an unrelated
+// Summers obituary, a "Nick Vivio" query returns a Trump piece. Without this,
+// low-profile challengers get noisy, misleading coverage. Conservative on purpose:
+// fewer-but-correct beats more-but-wrong in an oppo-research tool.
+export function headlineMatches(name: string, title: string): boolean {
+  return title.toLowerCase().includes(name.trim().toLowerCase());
+}
+
 export async function fetchNews(name: string, maxItems = 6): Promise<NewsFeed | null> {
   const q = encodeURIComponent(`"${name}" Missouri`);
   const url = `https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en`;
@@ -43,7 +52,7 @@ export async function fetchNews(name: string, maxItems = 6): Promise<NewsFeed | 
       const date = it.pubDate ? new Date(String(it.pubDate)).toISOString() : null;
       return { title, url: String(it.link ?? ""), source, date };
     })
-    .filter((i) => i.title && i.url);
+    .filter((i) => i.title && i.url && headlineMatches(name, i.title));
 
   items.sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
   return { items: items.slice(0, maxItems), retrievedAt: new Date().toISOString() };
