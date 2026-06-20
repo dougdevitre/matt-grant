@@ -91,10 +91,17 @@ export async function runFieldIngest(): Promise<FieldIngestResult> {
         }
         let federalBills: { relation: string; congress: number }[] | undefined;
         if (c.bioguideId && process.env.CONGRESS_GOV_API_KEY) {
-          const fed = await ingestFederal(c);
-          entry.federal = fed.counts;
-          federalBills = fed.bills;
-          result.federal += 1;
+          // Isolated: the incumbent's cosponsored-legislation pull (1,700+ bills)
+          // can time out on congress.gov. Don't let that abort the candidate's
+          // OTHER enrichments (bio, timeline) — degrade to "no federal data".
+          try {
+            const fed = await ingestFederal(c);
+            entry.federal = fed.counts;
+            federalBills = fed.bills;
+            result.federal += 1;
+          } catch (e) {
+            entry.error = `federal: ${String(e)}`;
+          }
         }
         if (openStates && c.stateLegId) {
           const record = await openStates.getRecord(c.stateLegId);
