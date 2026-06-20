@@ -26,6 +26,16 @@ export type WikiBio = {
 
 const POLITICS = /\b(politician|congress|representative|senator|republican|democrat|missouri|u\.?s\.? house|candidate|state house|state senate|alderman|mayor)\b/i;
 
+// The wrong-person guard, as a pure predicate so it can be unit-tested: an
+// auto-resolved article is only trusted if it reads as a politician AND mentions
+// the candidate's surname. This is what stops the tool from showing a different
+// "Ann Wagner" (or anyone else) on a candidate's profile.
+export function looksLikeCandidate(name: string, title: string, description: string | null, extract: string): boolean {
+  const last = name.trim().split(/\s+/).pop()?.toLowerCase() ?? "";
+  const hay = `${title} ${description ?? ""} ${extract}`.toLowerCase();
+  return POLITICS.test(hay) && last.length >= 3 && hay.includes(last);
+}
+
 async function summary(title: string): Promise<Json | null> {
   try {
     return await fetchJsonWithRetry<Json>(`${WP}/api/rest_v1/page/summary/${encodeURIComponent(title)}`, { headers, ...BOUND, label: "wikipedia summary" });
@@ -56,11 +66,7 @@ export async function fetchWikiBio(name: string, titleOverride?: string | null):
   const description = (s.description as string | undefined) ?? null;
 
   // Wrong-person guard — skip only when an exact title was pinned in the roster.
-  if (!titleOverride) {
-    const last = name.trim().split(/\s+/).pop()?.toLowerCase() ?? "";
-    const hay = `${title} ${description ?? ""} ${extract}`.toLowerCase();
-    if (!POLITICS.test(hay) || last.length < 3 || !hay.includes(last)) return null;
-  }
+  if (!titleOverride && !looksLikeCandidate(name, title, description, extract)) return null;
 
   const desktop = (s.content_urls as Json | undefined)?.desktop as Json | undefined;
   return {
