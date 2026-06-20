@@ -7,7 +7,7 @@ import { getCandidate, partyLabel } from "@/lib/integrations/research/candidates
 import { statementsFor } from "@/lib/integrations/statements/data";
 import { alignCandidate } from "@/lib/analysis/alignment";
 import { ISSUE_AXES, axis } from "@/lib/integrations/research/issues";
-import { getFec, getDonorProfile, getFecDetail, getWikiBio, getStateLeg } from "@/lib/integrations/research/store";
+import { getFec, getDonorProfile, getFecDetail, getWikiBio, getNews, getStateLeg } from "@/lib/integrations/research/store";
 import { getVotes, getBills } from "@/lib/integrations/legislative/store";
 
 export const dynamic = "force-dynamic";
@@ -30,16 +30,18 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
     donors: Awaited<ReturnType<typeof getDonorProfile>> = null,
     detail: Awaited<ReturnType<typeof getFecDetail>> = null,
     bio: Awaited<ReturnType<typeof getWikiBio>> = null,
+    news: Awaited<ReturnType<typeof getNews>> = null,
     stateLeg: Awaited<ReturnType<typeof getStateLeg>> = null,
     votes: Awaited<ReturnType<typeof getVotes>> = [],
     bills: Awaited<ReturnType<typeof getBills>> = [];
   if (dbConfigured) {
     try {
-      [fec, donors, detail, bio, stateLeg, votes, bills] = await Promise.all([
+      [fec, donors, detail, bio, news, stateLeg, votes, bills] = await Promise.all([
         getFec(slug),
         getDonorProfile(slug),
         getFecDetail(slug),
         getWikiBio(slug),
+        getNews(slug),
         c.stateLegId ? getStateLeg(slug) : Promise.resolve(null),
         c.bioguideId ? getVotes(c.bioguideId) : Promise.resolve([]),
         c.bioguideId ? getBills(c.bioguideId, { relation: "sponsored" }) : Promise.resolve([]),
@@ -89,6 +91,27 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
               </a>
             </div>
           </div>
+        </section>
+      )}
+
+      {/* In the news (Google News) */}
+      {news && news.items.length > 0 && (
+        <section className="mb-8">
+          <h2 className="mb-1 font-display text-lg font-semibold text-ink">In the news</h2>
+          <p className="mb-3 text-xs text-slate">Recent coverage via Google News — linked headlines, not our characterization. Verify each at the source.</p>
+          <ul className="card divide-y divide-line p-0">
+            {news.items.map((n, i) => (
+              <li key={`news-${i}`} className="px-4 py-2.5">
+                <a href={n.url} target="_blank" rel="noopener noreferrer" className="text-sm text-ink hover:underline">
+                  {n.title}
+                </a>
+                <div className="mt-0.5 text-xs text-slate">
+                  {n.source ?? "—"}
+                  {n.date ? ` · ${new Date(n.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` : ""}
+                </div>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 
