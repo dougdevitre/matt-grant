@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { PRESS_TOPICS, type TopicCluster } from "@/lib/pressTopics";
 import { PRIORITIES } from "@/lib/site";
+import { getSecret } from "@/lib/ssm";
 
 export const runtime = "nodejs";
 
-const KEY = process.env.ANTHROPIC_API_KEY ?? process.env.MATT_GRANT_ANTHROPIC_API_KEY ?? "";
 const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5-20251001";
 
 // Faithful platform context handed to the model so questions stay grounded.
@@ -36,6 +36,9 @@ export async function POST(req: Request) {
   } catch {
     /* empty body is fine */
   }
+
+  // env-first; SSM once un-baked. Legacy alias stays env-only.
+  const KEY = (await getSecret("ANTHROPIC_API_KEY")) || process.env.MATT_GRANT_ANTHROPIC_API_KEY || "";
 
   // Graceful degradation: no key → serve the curated, platform-faithful set.
   if (!KEY) return ok(PRESS_TOPICS, "curated");
