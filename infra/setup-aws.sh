@@ -51,7 +51,7 @@ for lg in $(aws logs describe-log-groups --region "$REGION" \
     --retention-in-days "$LOG_RETENTION_DAYS" --region "$REGION" && echo "  $lg"
 done
 
-# ── 3. Scheduled jobs (EventBridge Scheduler → API destination) ──────────────────
+# ── 3. Scheduled jobs (EventBridge Rules → API destination) ──────────────────────
 # Amplify has no native cron and ignores vercel.json, so the weekly research
 # ingest and the ~1-min email-drain never fire. This wires both as real schedules.
 # Auth: an EventBridge Connection holds the bearer secret as an Authorization
@@ -83,31 +83,39 @@ create_destination() { # name path
 DEST_INGEST="$(create_destination matt-grant-ingest /api/research/ingest)"
 DEST_DRAIN="$(create_destination matt-grant-email-drain /api/cron/email-drain)"
 
-# Execution role the Scheduler assumes to invoke the API destinations.
+# Execution role EventBridge assumes to invoke the API destinations. Trust must be
+# events.amazonaws.com for EventBridge Rules. (Idempotently corrected from any
+# earlier scheduler.amazonaws.com trust.)
 ROLE_NAME="matt-grant-scheduler-role"
+TRUST='{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"events.amazonaws.com"},"Action":"sts:AssumeRole"}]}'
 if ! aws iam get-role --role-name "$ROLE_NAME" >/dev/null 2>&1; then
-  aws iam create-role --role-name "$ROLE_NAME" \
-    --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"scheduler.amazonaws.com"},"Action":"sts:AssumeRole"}]}' \
-    >/dev/null && echo "role $ROLE_NAME created"
+  aws iam create-role --role-name "$ROLE_NAME" --assume-role-policy-document "$TRUST" >/dev/null && echo "role $ROLE_NAME created"
+else
+  aws iam update-assume-role-policy --role-name "$ROLE_NAME" --policy-document "$TRUST" >/dev/null && echo "role $ROLE_NAME trust → events.amazonaws.com"
 fi
 aws iam put-role-policy --role-name "$ROLE_NAME" --policy-name invoke-api-destinations \
   --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":\"events:InvokeApiDestination\",\"Resource\":[\"${DEST_INGEST}\",\"${DEST_DRAIN}\"]}]}" \
-  >/dev/null && echo "scheduler policy attached"
+  >/dev/null && echo "invoke policy attached"
 ROLE_ARN="arn:aws:iam::${ACCT}:role/${ROLE_NAME}"
 
-create_schedule() { # name cron destArn
-  local name="$1" expr="$2" dest="$3"
-  aws scheduler create-schedule --name "$name" --region "$REGION" \
-    --schedule-expression "$expr" --flexible-time-window '{"Mode":"OFF"}' \
-    --target "{\"Arn\":\"${dest}\",\"RoleArn\":\"${ROLE_ARN}\",\"RetryPolicy\":{\"MaximumRetryAttempts\":2}}" \
-    2>/dev/null && echo "  schedule $name created" \
-    || aws scheduler update-schedule --name "$name" --region "$REGION" \
-         --schedule-expression "$expr" --flexible-time-window '{"Mode":"OFF"}' \
-         --target "{\"Arn\":\"${dest}\",\"RoleArn\":\"${ROLE_ARN}\",\"RetryPolicy\":{\"MaximumRetryAttempts\":2}}" \
-         >/dev/null && echo "  schedule $name updated"
+# A scheduled EventBridge Rule per job, targeting the API destination. We use
+# Rules (not the newer EventBridge Scheduler) so this works on AWS CLI v2.4+.
+# IAM is eventually consistent — a freshly-created role can take a few seconds
+# before put-targets accepts it; the retry below absorbs that.
+create_rule() { # name expr destArn
+  local name="$1" expr="$2" dest="$3" failed
+  aws events put-rule --name "$name" --region "$REGION" \
+    --schedule-expression "$expr" --state ENABLED >/dev/null && echo "  rule $name set ($expr)"
+  local targets="[{\"Id\":\"1\",\"Arn\":\"${dest}\",\"RoleArn\":\"${ROLE_ARN}\",\"RetryPolicy\":{\"MaximumRetryAttempts\":2}}]"
+  for attempt in 1 2 3; do
+    failed=$(aws events put-targets --rule "$name" --region "$REGION" --targets "$targets" --query 'FailedEntryCount' --output text)
+    [ "$failed" = "0" ] && { echo "    target wired"; return 0; }
+    sleep 5
+  done
+  echo "    WARNING: target not wired after retries (FailedEntryCount=$failed) — re-run to retry"
 }
-create_schedule matt-grant-research-ingest "cron(0 8 ? * MON *)" "$DEST_INGEST"
-create_schedule matt-grant-email-drain     "rate(1 minute)"      "$DEST_DRAIN"
+create_rule matt-grant-research-ingest "cron(0 8 ? * MON *)" "$DEST_INGEST"
+create_rule matt-grant-email-drain     "rate(1 minute)"      "$DEST_DRAIN"
 
 # ── 4. Alerting ──────────────────────────────────────────────────────────────────
 # Without this, donations/emails can stop silently. Alarm on SSR Lambda errors and
