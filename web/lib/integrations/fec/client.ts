@@ -208,7 +208,9 @@ export class FecClient {
   }
 
   private async spendingByPurpose(committeeId: string, cycle: number): Promise<FecDetail["spending"]> {
-    const d = await this.get(`/committee/${committeeId}/schedules/schedule_b/by_purpose/`, { cycle: String(cycle), per_page: "20", sort: "-total" }).catch(() => ({} as Json));
+    // Schedule B aggregate takes committee_id as a param (same shape as the
+    // Schedule A donor aggregates), NOT a /committee/{id}/ nested path.
+    const d = await this.get("/schedules/schedule_b/by_purpose/", { committee_id: committeeId, cycle: String(cycle), per_page: "20", sort: "-total" }).catch(() => ({} as Json));
     const byPurpose: SpendCategory[] = ((d.results as Json[] | undefined) ?? [])
       .map((r) => ({ purpose: String(r.purpose ?? "—"), amount: num(r.total) ?? 0 }))
       .filter((b) => b.amount > 0)
