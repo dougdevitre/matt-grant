@@ -1,7 +1,7 @@
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK } from "@/lib/db";
 import { loadField, type Candidate } from "./candidates";
-import { persistCandidates, persistFec, persistDonorProfile, persistStateLeg, persistTimeline } from "./store";
+import { persistCandidates, persistFec, persistDonorProfile, persistFecDetail, persistStateLeg, persistTimeline } from "./store";
 import { buildTimeline } from "./timeline";
 import { FecClient, fecEnabled } from "../fec/client";
 import { OpenStatesClient, openStatesEnabled } from "../openstates/client";
@@ -79,11 +79,12 @@ export async function runFieldIngest(): Promise<FieldIngestResult> {
       const entry: FieldIngestResult["perCandidate"][string] = {};
       try {
         if (fec && c.fecCandidateId) {
-          const [summary, donors] = await Promise.all([
+          const [summary, donors, detail] = await Promise.all([
             fec.getSummary(c.fecCandidateId, cycle),
             fec.getDonorProfile(c.fecCandidateId, cycle),
+            fec.getDetail(c.fecCandidateId, cycle),
           ]);
-          await Promise.all([persistFec(c.slug, summary), persistDonorProfile(c.slug, donors)]);
+          await Promise.all([persistFec(c.slug, summary), persistDonorProfile(c.slug, donors), persistFecDetail(c.slug, detail)]);
           entry.fec = true;
           result.fec += 1;
         }
