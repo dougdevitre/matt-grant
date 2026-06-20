@@ -23,7 +23,10 @@ export class CongressClient {
     u.searchParams.set("api_key", this.apiKey);
     u.searchParams.set("format", "json");
     for (const [k, v] of Object.entries(params)) u.searchParams.set(k, v);
-    return await fetchJsonWithRetry<Json>(u, { headers: { accept: "application/json" }, label: `congress.gov ${path}` });
+    // congress.gov is a slow gov API, especially for big paginated lists — give it
+    // more time per page (the default 15s × 3 retries was timing out the
+    // incumbent's cosponsored pull) but fewer retries so it can't compound.
+    return await fetchJsonWithRetry<Json>(u, { headers: { accept: "application/json" }, timeoutMs: 25000, retries: 2, label: `congress.gov ${path}` });
   }
 
   async getMember(bioguideId: string): Promise<LegMember> {
@@ -41,17 +44,17 @@ export class CongressClient {
     };
   }
 
-  private async paginate(path: string, key: string): Promise<Json[]> {
+  private async paginate(path: string, key: string, maxPages = 40): Promise<Json[]> {
     const out: Json[] = [];
     const limit = 250;
     let offset = 0;
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < maxPages; i++) {
       const d = await this.get(path, { limit: String(limit), offset: String(offset) });
       const items = (d[key] as Json[] | undefined) ?? [];
       out.push(...items);
       if (items.length < limit) break;
       offset += limit;
-      if (i === 39) console.warn(`congress.gov paginate: hit ${40 * limit}-record cap on ${path}; results may be truncated (M7)`);
+      if (i === maxPages - 1) console.warn(`congress.gov paginate: hit ${maxPages * limit}-record cap on ${path}; results may be truncated (M7)`);
     }
     return out;
   }
@@ -99,7 +102,10 @@ export class CongressClient {
   }
 
   async getCosponsored(bioguideId: string): Promise<LegBillRec[]> {
-    const items = await this.paginate(`/member/${bioguideId}/cosponsored-legislation`, "cosponsoredLegislation");
+    // Cap pages: prolific members cosponsor thousands of bills, which times out
+    // congress.gov and isn't displayed individually (the profile shows SPONSORED
+    // bills). 8 pages (≤2,000) covers term/count needs while staying bounded.
+    const items = await this.paginate(`/member/${bioguideId}/cosponsored-legislation`, "cosponsoredLegislation", 8);
     return items.map((i) => this.normBill(i, "cosponsored")).filter((b) => b.number);
   }
 }
