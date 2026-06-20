@@ -1,6 +1,6 @@
 // Minimal OpenFEC client (api.open.fec.gov/v1). Public campaign-finance data.
 // Free key at https://api.data.gov/signup/ — DEMO_KEY works at low rate limits.
-import type { FecSummary, DonorProfile, DonorBucket, CycleFinance } from "./types";
+import type { FecSummary, DonorProfile, DonorBucket, CycleFinance, FecDetail, IeSpender, SpendCategory } from "./types";
 import { fetchJsonWithRetry } from "../http";
 
 const BASE = "https://api.open.fec.gov/v1";
@@ -151,5 +151,69 @@ export class FecClient {
       .map((r) => ({ label: SIZE_LABEL[String(r.size)] ?? `$${r.size}+`, amount: num(r.total) ?? 0 }))
       .filter((b) => b.amount > 0);
     return { ...base, topEmployers, topOccupations, bySize, byState };
+  }
+
+  // Deeper profile detail: outside money (Schedule E, for/against + top spenders)
+  // and how the campaign spends (Schedule B disbursements by purpose).
+  async getDetail(fecCandidateId: string, cycle: number): Promise<FecDetail> {
+    const committeeId = await this.committeeId(fecCandidateId);
+    const [ie, spending] = await Promise.all([
+      this.independentExpenditures(fecCandidateId, cycle),
+      committeeId ? this.spendingByPurpose(committeeId, cycle) : Promise.resolve({ total: 0, byPurpose: [] as SpendCategory[] }),
+    ]);
+    return {
+      fecCandidateId,
+      cycle,
+      ie,
+      spending,
+      sourceUrl: `https://www.fec.gov/data/independent-expenditures/?data_type=processed&candidate_id=${fecCandidateId}&cycle=${cycle}`,
+      retrievedAt: new Date().toISOString(),
+    };
+  }
+
+  // Accurate for/against totals from the by_candidate aggregate; top spenders
+  // from raw Schedule E (top 100 by amount), grouped per committee + stance.
+  private async independentExpenditures(candidateId: string, cycle: number): Promise<FecDetail["ie"]> {
+    const [byCand, raw] = await Promise.all([
+      this.get("/schedules/schedule_e/by_candidate/", { candidate_id: candidateId, cycle: String(cycle), election_full: "true" }).catch(() => ({} as Json)),
+      this.get("/schedules/schedule_e/", { candidate_id: candidateId, cycle: String(cycle), election_full: "true", per_page: "100", sort: "-expenditure_amount" }).catch(() => ({} as Json)),
+    ]);
+    let support = 0;
+    let oppose = 0;
+    for (const r of (byCand.results as Json[] | undefined) ?? []) {
+      const t = num(r.total) ?? 0;
+      if (r.support_oppose_indicator === "S") support += t;
+      else if (r.support_oppose_indicator === "O") oppose += t;
+    }
+    const byCommittee = new Map<string, IeSpender>();
+    for (const r of (raw.results as Json[] | undefined) ?? []) {
+      const amount = num(r.expenditure_amount) ?? 0;
+      if (amount <= 0) continue;
+      const stance: IeSpender["stance"] = r.support_oppose_indicator === "O" ? "oppose" : "support";
+      const committee = String(r.committee_name ?? (r.committee as Json | undefined)?.name ?? "Unknown committee");
+      const key = `${committee}|${stance}`;
+      const prev = byCommittee.get(key);
+      if (prev) prev.amount += amount;
+      else byCommittee.set(key, { committee, amount, stance });
+    }
+    // If the aggregate endpoint returned nothing, fall back to the raw rows.
+    if (support === 0 && oppose === 0) {
+      for (const s of byCommittee.values()) {
+        if (s.stance === "support") support += s.amount;
+        else oppose += s.amount;
+      }
+    }
+    const topSpenders = [...byCommittee.values()].sort((a, b) => b.amount - a.amount).slice(0, 6);
+    return { support, oppose, topSpenders };
+  }
+
+  private async spendingByPurpose(committeeId: string, cycle: number): Promise<FecDetail["spending"]> {
+    const d = await this.get(`/committee/${committeeId}/schedules/schedule_b/by_purpose/`, { cycle: String(cycle), per_page: "20", sort: "-total" }).catch(() => ({} as Json));
+    const byPurpose: SpendCategory[] = ((d.results as Json[] | undefined) ?? [])
+      .map((r) => ({ purpose: String(r.purpose ?? "—"), amount: num(r.total) ?? 0 }))
+      .filter((b) => b.amount > 0)
+      .slice(0, 8);
+    const total = byPurpose.reduce((s, b) => s + b.amount, 0);
+    return { total, byPurpose };
   }
 }

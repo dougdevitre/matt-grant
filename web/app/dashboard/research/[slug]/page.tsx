@@ -7,7 +7,7 @@ import { getCandidate, partyLabel } from "@/lib/integrations/research/candidates
 import { statementsFor } from "@/lib/integrations/statements/data";
 import { alignCandidate } from "@/lib/analysis/alignment";
 import { ISSUE_AXES, axis } from "@/lib/integrations/research/issues";
-import { getFec, getDonorProfile, getStateLeg } from "@/lib/integrations/research/store";
+import { getFec, getDonorProfile, getFecDetail, getStateLeg } from "@/lib/integrations/research/store";
 import { getVotes, getBills } from "@/lib/integrations/legislative/store";
 
 export const dynamic = "force-dynamic";
@@ -28,14 +28,16 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
 
   let fec = null,
     donors: Awaited<ReturnType<typeof getDonorProfile>> = null,
+    detail: Awaited<ReturnType<typeof getFecDetail>> = null,
     stateLeg: Awaited<ReturnType<typeof getStateLeg>> = null,
     votes: Awaited<ReturnType<typeof getVotes>> = [],
     bills: Awaited<ReturnType<typeof getBills>> = [];
   if (dbConfigured) {
     try {
-      [fec, donors, stateLeg, votes, bills] = await Promise.all([
+      [fec, donors, detail, stateLeg, votes, bills] = await Promise.all([
         getFec(slug),
         getDonorProfile(slug),
+        getFecDetail(slug),
         c.stateLegId ? getStateLeg(slug) : Promise.resolve(null),
         c.bioguideId ? getVotes(c.bioguideId) : Promise.resolve([]),
         c.bioguideId ? getBills(c.bioguideId, { relation: "sponsored" }) : Promise.resolve([]),
@@ -169,6 +171,65 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
           </div>
           <a href={donors.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block font-mono text-xs text-field hover:underline">
             fec.gov ↗
+          </a>
+        </section>
+      )}
+
+      {/* Outside money + spending breakdown (FEC Schedule E / B) */}
+      {detail && (detail.ie.support > 0 || detail.ie.oppose > 0 || detail.spending.byPurpose.length > 0) && (
+        <section className="mb-10">
+          <h2 className="mb-1 font-display text-2xl font-semibold text-ink">Outside money &amp; spending</h2>
+          <p className="mb-3 text-xs text-slate">
+            Independent expenditures by OTHER committees for/against them (FEC Schedule E) and how their own campaign
+            spends (Schedule B). Public data — cite fec.gov, not this dashboard.
+          </p>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="card p-5">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-eyebrow text-slate">Outside money (for / against)</h3>
+              <div className="mb-3 flex gap-8">
+                <div>
+                  <div className="font-mono text-lg font-bold text-field">{usd(detail.ie.support)}</div>
+                  <div className="text-xs text-slate">spent supporting</div>
+                </div>
+                <div>
+                  <div className="font-mono text-lg font-bold text-brick">{usd(detail.ie.oppose)}</div>
+                  <div className="text-xs text-slate">spent opposing</div>
+                </div>
+              </div>
+              {detail.ie.topSpenders.length > 0 ? (
+                <ul className="space-y-1 border-t border-line pt-2">
+                  {detail.ie.topSpenders.map((s, i) => (
+                    <li key={`ie-${i}`} className="flex items-center justify-between gap-2 text-sm">
+                      <span className="truncate text-ink">{s.committee}</span>
+                      <span className={`shrink-0 font-mono text-xs ${s.stance === "oppose" ? "text-brick" : "text-field"}`}>
+                        {s.stance === "oppose" ? "✕ " : "✓ "}
+                        {usd(s.amount)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-slate">No independent expenditures on record.</p>
+              )}
+            </div>
+            <div className="card p-5">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-eyebrow text-slate">Where the campaign spends</h3>
+              {detail.spending.byPurpose.length > 0 ? (
+                <ul className="space-y-1">
+                  {detail.spending.byPurpose.map((b, i) => (
+                    <li key={`sp-${i}`} className="flex justify-between gap-2 text-sm">
+                      <span className="truncate text-ink">{b.purpose}</span>
+                      <span className="shrink-0 font-mono text-xs text-slate">{usd(b.amount)}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-slate">No itemized disbursements on record.</p>
+              )}
+            </div>
+          </div>
+          <a href={detail.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block font-mono text-xs text-field hover:underline">
+            fec.gov independent expenditures ↗
           </a>
         </section>
       )}

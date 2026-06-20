@@ -2,7 +2,7 @@ import { PutCommand, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK } from "@/lib/db";
 import { batchWritePut } from "../batchWrite";
 import type { Candidate } from "./candidates";
-import type { FecSummary, DonorProfile } from "../fec/types";
+import type { FecSummary, DonorProfile, FecDetail } from "../fec/types";
 import type { StateLegRecord } from "../openstates/client";
 import type { TenureTimeline } from "./timeline";
 
@@ -56,6 +56,18 @@ export async function persistDonorProfile(slug: string, profile: DonorProfile): 
 export async function getDonorProfile(slug: string): Promise<DonorProfile | null> {
   const out = await ddb.send(new GetCommand({ TableName: TABLE, Key: { PK: PK.fecDonors, SK: slug } }));
   return (out.Item as unknown as DonorProfile) ?? null;
+}
+
+// ---- FEC deeper detail: outside money + spending breakdown (one item per slug) ----
+export async function persistFecDetail(slug: string, detail: FecDetail): Promise<void> {
+  await ddb.send(
+    new PutCommand({ TableName: TABLE, Item: { PK: PK.fecDetail, SK: slug, type: "fec-detail", ...detail, source: "open.fec.gov" } }),
+  );
+}
+
+export async function getFecDetail(slug: string): Promise<FecDetail | null> {
+  const out = await ddb.send(new GetCommand({ TableName: TABLE, Key: { PK: PK.fecDetail, SK: slug } }));
+  return (out.Item as unknown as FecDetail) ?? null;
 }
 
 // ---- State legislative record (Open States) ----

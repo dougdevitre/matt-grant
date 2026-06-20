@@ -38,6 +38,7 @@ export const PK = {
   candidates: "CANDIDATE",
   fec: "FEC",
   fecDonors: "FECDONORS",
+  fecDetail: "FECDETAIL", // outside money (Sched E) + spending breakdown (Sched B)
   printOrders: "PRINTORDER", // submitted print-order dedupe keys (idempotency)
   stateLeg: (slug: string) => `STATELEG#${slug}`,
   timeline: (slug: string) => `TIMELINE#${slug}`,
