@@ -40,6 +40,7 @@ export const PK = {
   fecDonors: "FECDONORS",
   fecDetail: "FECDETAIL", // outside money (Sched E) + spending breakdown (Sched B)
   wikiBio: "WIKIBIO", // candidate Wikipedia bio enrichment
+  news: "NEWS", // candidate recent-coverage feed (Google News RSS)
   printOrders: "PRINTORDER", // submitted print-order dedupe keys (idempotency)
   stateLeg: (slug: string) => `STATELEG#${slug}`,
   timeline: (slug: string) => `TIMELINE#${slug}`,
