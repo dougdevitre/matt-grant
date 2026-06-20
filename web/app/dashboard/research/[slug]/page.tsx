@@ -7,7 +7,7 @@ import { getCandidate, partyLabel } from "@/lib/integrations/research/candidates
 import { statementsFor } from "@/lib/integrations/statements/data";
 import { alignCandidate } from "@/lib/analysis/alignment";
 import { ISSUE_AXES, axis } from "@/lib/integrations/research/issues";
-import { getFec, getDonorProfile, getFecDetail, getStateLeg } from "@/lib/integrations/research/store";
+import { getFec, getDonorProfile, getFecDetail, getWikiBio, getStateLeg } from "@/lib/integrations/research/store";
 import { getVotes, getBills } from "@/lib/integrations/legislative/store";
 
 export const dynamic = "force-dynamic";
@@ -29,15 +29,17 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
   let fec = null,
     donors: Awaited<ReturnType<typeof getDonorProfile>> = null,
     detail: Awaited<ReturnType<typeof getFecDetail>> = null,
+    bio: Awaited<ReturnType<typeof getWikiBio>> = null,
     stateLeg: Awaited<ReturnType<typeof getStateLeg>> = null,
     votes: Awaited<ReturnType<typeof getVotes>> = [],
     bills: Awaited<ReturnType<typeof getBills>> = [];
   if (dbConfigured) {
     try {
-      [fec, donors, detail, stateLeg, votes, bills] = await Promise.all([
+      [fec, donors, detail, bio, stateLeg, votes, bills] = await Promise.all([
         getFec(slug),
         getDonorProfile(slug),
         getFecDetail(slug),
+        getWikiBio(slug),
         c.stateLegId ? getStateLeg(slug) : Promise.resolve(null),
         c.bioguideId ? getVotes(c.bioguideId) : Promise.resolve([]),
         c.bioguideId ? getBills(c.bioguideId, { relation: "sponsored" }) : Promise.resolve([]),
@@ -68,6 +70,27 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
           </>
         ) : null}
       </p>
+
+      {/* Background (Wikipedia) */}
+      {bio && (
+        <section className="mb-8">
+          <div className="card flex gap-4 p-5">
+            {bio.thumbnail ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={bio.thumbnail} alt={bio.title} loading="lazy" className="hidden h-20 w-20 shrink-0 rounded-sm object-cover sm:block" />
+            ) : null}
+            <div>
+              <h2 className="font-display text-lg font-semibold text-ink">
+                Background{bio.description ? <span className="font-normal text-slate"> · {bio.description}</span> : null}
+              </h2>
+              <p className="mt-1 text-sm text-slate">{bio.extract}</p>
+              <a href={bio.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block font-mono text-xs text-field hover:underline">
+                Wikipedia ↗
+              </a>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Alignment readout */}
       <section className="mb-10">
