@@ -3,6 +3,7 @@ import { ddb, TABLE, PK } from "@/lib/db";
 import { batchWritePut } from "../batchWrite";
 import type { Candidate } from "./candidates";
 import type { FecSummary, DonorProfile, FecDetail } from "../fec/types";
+import type { WikiBio } from "../wikipedia/client";
 import type { StateLegRecord } from "../openstates/client";
 import type { TenureTimeline } from "./timeline";
 
@@ -68,6 +69,16 @@ export async function persistFecDetail(slug: string, detail: FecDetail): Promise
 export async function getFecDetail(slug: string): Promise<FecDetail | null> {
   const out = await ddb.send(new GetCommand({ TableName: TABLE, Key: { PK: PK.fecDetail, SK: slug } }));
   return (out.Item as unknown as FecDetail) ?? null;
+}
+
+// ---- Wikipedia bio (one item per slug) ----
+export async function persistWikiBio(slug: string, bio: WikiBio): Promise<void> {
+  await ddb.send(new PutCommand({ TableName: TABLE, Item: { PK: PK.wikiBio, SK: slug, type: "wiki-bio", ...bio, source: "en.wikipedia.org" } }));
+}
+
+export async function getWikiBio(slug: string): Promise<WikiBio | null> {
+  const out = await ddb.send(new GetCommand({ TableName: TABLE, Key: { PK: PK.wikiBio, SK: slug } }));
+  return (out.Item as unknown as WikiBio) ?? null;
 }
 
 // ---- State legislative record (Open States) ----

@@ -1,0 +1,70 @@
+// Wikipedia bio enrichment for candidate profiles. Free, no key. Factual + fully
+// sourced (links to the article). The risk in an oppo-research tool is grabbing
+// the WRONG person's article, so auto-resolution is guarded: the summary must read
+// as a politician AND mention the candidate's surname, or we return null. A roster
+// can also pin an exact `wikipediaTitle` to skip resolution entirely.
+import { fetchJsonWithRetry } from "../http";
+
+const WP = "https://en.wikipedia.org";
+const UA = "MattGrantForCongress-Research/1.0 (campaign research)";
+const headers = { "user-agent": UA, accept: "application/json" };
+
+type Json = Record<string, unknown>;
+
+export type WikiBio = {
+  title: string;
+  description: string | null; // e.g. "American politician (born 1962)"
+  extract: string; // intro paragraph
+  url: string;
+  thumbnail: string | null;
+  retrievedAt: string;
+};
+
+const POLITICS = /\b(politician|congress|representative|senator|republican|democrat|missouri|u\.?s\.? house|candidate|state house|state senate|alderman|mayor)\b/i;
+
+async function summary(title: string): Promise<Json | null> {
+  try {
+    return await fetchJsonWithRetry<Json>(`${WP}/api/rest_v1/page/summary/${encodeURIComponent(title)}`, { headers, label: "wikipedia summary" });
+  } catch {
+    return null;
+  }
+}
+
+async function searchTopTitle(query: string): Promise<string | null> {
+  try {
+    const d = await fetchJsonWithRetry<Json>(`${WP}/w/rest.php/v1/search/page?q=${encodeURIComponent(query)}&limit=3`, { headers, label: "wikipedia search" });
+    const pages = (d.pages as Json[] | undefined) ?? [];
+    const top = pages[0];
+    return top ? (String(top.title ?? top.key ?? "") || null) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchWikiBio(name: string, titleOverride?: string | null): Promise<WikiBio | null> {
+  const title = titleOverride || (await searchTopTitle(`${name} Missouri politician`));
+  if (!title) return null;
+
+  const s = await summary(title);
+  if (!s || s.type === "disambiguation") return null;
+  const extract = String(s.extract ?? "").trim();
+  if (!extract) return null;
+  const description = (s.description as string | undefined) ?? null;
+
+  // Wrong-person guard — skip only when an exact title was pinned in the roster.
+  if (!titleOverride) {
+    const last = name.trim().split(/\s+/).pop()?.toLowerCase() ?? "";
+    const hay = `${title} ${description ?? ""} ${extract}`.toLowerCase();
+    if (!POLITICS.test(hay) || last.length < 3 || !hay.includes(last)) return null;
+  }
+
+  const desktop = (s.content_urls as Json | undefined)?.desktop as Json | undefined;
+  return {
+    title: String(s.title ?? title),
+    description,
+    extract,
+    url: (desktop?.page as string) ?? `${WP}/wiki/${encodeURIComponent(title)}`,
+    thumbnail: ((s.thumbnail as Json | undefined)?.source as string) ?? null,
+    retrievedAt: new Date().toISOString(),
+  };
+}
