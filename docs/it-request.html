@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>IT Setup Request — Matt Grant for Congress</title>
+<style>
+  @page { size: Letter; margin: 0.6in 0.7in; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a2230; font-size: 10.5pt; line-height: 1.45; margin: 0; }
+  h1 { font-size: 20pt; margin: 0 0 2px; color: #0F2540; letter-spacing: -0.01em; }
+  .sub { color: #5A6472; font-size: 10pt; margin: 0 0 14px; }
+  h2 { font-size: 12.5pt; color: #fff; background: #0F2540; padding: 5px 10px; border-radius: 4px; margin: 20px 0 10px; }
+  h3 { font-size: 11pt; margin: 14px 0 4px; color: #0F2540; }
+  .lead { background: #f4f6f9; border-left: 3px solid #B5343B; padding: 9px 12px; border-radius: 0 4px 4px 0; font-size: 9.8pt; margin: 0 0 14px; }
+  .item { border: 1px solid #E4E2DA; border-radius: 6px; padding: 9px 12px; margin: 9px 0; page-break-inside: avoid; }
+  .item .t { font-weight: 700; color: #0F2540; font-size: 10.8pt; }
+  .item .why { color: #5A6472; font-size: 9.6pt; margin: 1px 0 6px; }
+  ol { margin: 4px 0 4px 18px; padding: 0; }
+  ol li { margin: 2px 0; }
+  ul { margin: 3px 0 3px 16px; padding: 0; }
+  ul li { margin: 1px 0; }
+  a { color: #1d5fd6; text-decoration: none; word-break: break-word; }
+  .send { background: #eef4ee; border-radius: 4px; padding: 4px 8px; margin-top: 6px; font-size: 9.5pt; }
+  .send b { color: #16365C; }
+  .box { font-size: 12pt; color: #0F2540; }
+  .warn { color: #B5343B; font-weight: 700; }
+  .pill { display: inline-block; background: #B5343B; color: #fff; font-size: 7.5pt; font-weight: 700; padding: 1px 6px; border-radius: 10px; vertical-align: middle; letter-spacing: 0.04em; }
+  .muted { color: #5A6472; font-size: 9.3pt; }
+  table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin: 4px 0; }
+  td { padding: 3px 6px; border-bottom: 1px solid #eee; vertical-align: top; }
+  td:first-child { white-space: nowrap; font-weight: 600; color: #16365C; }
+  .foot { margin-top: 16px; background: #0F2540; color: #fff; border-radius: 6px; padding: 10px 12px; font-size: 9.6pt; page-break-inside: avoid; }
+  .foot a { color: #9ec5ff; }
+  code { background: #f0f0ee; padding: 0 3px; border-radius: 3px; font-size: 9pt; }
+</style>
+</head>
+<body>
+
+<h1>IT Setup Request</h1>
+<p class="sub">Matt Grant for Congress — Missouri District 2 · accounts &amp; access the campaign needs to own</p>
+
+<div class="lead">
+  <b>Why:</b> so the <b>committee owns its own services</b> (cleaner for FEC and for continuity).
+  Please create each account below with the <b>committee email</b> and the committee card.<br>
+  <b>How to send me credentials — securely:</b> never email/text a key in plain text. For each item,
+  either <b>add me as a team member/admin</b>, or <b>send the key through a one-time link</b>
+  (I'll send you a 1Password "Send" / onetimesecret link that self-destructs after one view).
+  Tick the box as you finish each one.
+</div>
+
+<h2>Priority 1 — Start now (live site + slow approvals)</h2>
+
+<div class="item">
+  <div><span class="box">☐</span> <span class="t">1. WinRed — donation tracking</span> <span class="muted">(you already have WinRed)</span></div>
+  <div class="why">The donate button works, but donations aren't being recorded back into our system until the webhook is connected.</div>
+  <ol>
+    <li>In WinRed, go to <b>Settings → Webhooks</b> and add me as a team member —</li>
+    <li><i>or</i> add a webhook there using a secret value I'll send you.</li>
+  </ol>
+  <div class="send"><b>Send me:</b> WinRed team access (or confirm the webhook is added). <b>Cost:</b> none.</div>
+</div>
+
+<div class="item">
+  <div><span class="box">☐</span> <span class="t">2. Anthropic — the AI features</span></div>
+  <div class="why">Powers the AI writing/press tools on the site.</div>
+  <ol>
+    <li>Sign up at <a href="https://console.anthropic.com">console.anthropic.com</a> (committee email).</li>
+    <li>Add a payment method — start with about <b>$20</b> in credit.</li>
+    <li>Go to <b>Settings → API Keys → Create Key</b>.</li>
+  </ol>
+  <div class="send"><b>Send me:</b> the API key (or add me under Settings → Members). <b>Cost:</b> usage-based; a small balance lasts a long time.</div>
+</div>
+
+<div class="item">
+  <div><span class="box">☐</span> <span class="t">3. Twilio — voter texting</span> <span class="pill">DO FIRST</span></div>
+  <div class="why"><span class="warn">Approval takes several business days — start this before the others.</span> For sending campaign texts (GOTV, volunteer coordination).</div>
+  <ol>
+    <li>Create an account at <a href="https://www.twilio.com">twilio.com</a> (committee email + billing) and buy a phone number.</li>
+    <li><b>Register for political texting (required):</b> complete Twilio's <b>A2P 10DLC</b> brand + campaign registration. US carriers require this for any campaign SMS, and <b>political</b> use needs the committee's legal info — FEC committee name, <b>EIN</b>, address, and website.</li>
+  </ol>
+  <div class="send"><b>Send me:</b> the <b>Account SID</b> + <b>Auth Token</b> (or add me as a user) and the phone number. <b>Cost:</b> pay-as-you-go per text + a small monthly number fee.</div>
+</div>
+
+<h2>Social media — three layers (do them in order)</h2>
+
+<h3>a. Account access — quick, do first</h3>
+<div class="item">
+  <div class="why">One official campaign account per platform (committee email), and <b>add me as admin/manager</b> so we can post and pull analytics. Secure the handles you want <b>now</b>, even if we don't post everywhere yet.</div>
+  <table>
+    <tr><td>☐ Facebook Page</td><td>Meta Business Suite → People → add admin</td></tr>
+    <tr><td>☐ Instagram</td><td>link to the Facebook Page in Meta Business Suite</td></tr>
+    <tr><td>☐ X (Twitter)</td><td>share login via 1Password, or X delegate access</td></tr>
+    <tr><td>☐ YouTube</td><td>Brand Account → Settings → Managers</td></tr>
+    <tr><td>☐ LinkedIn</td><td>campaign Page → add admin</td></tr>
+    <tr><td>☐ TikTok</td><td>share login via 1Password</td></tr>
+    <tr><td>☐ Truth Social</td><td>share login via 1Password</td></tr>
+  </table>
+</div>
+
+<h3>b. "Sign in with…" login apps (OAuth) — Google, Facebook, LinkedIn</h3>
+<div class="item">
+  <div class="why">So staff/supporters can log in with these. Each is a <b>developer app</b> that issues a <b>Client ID + Client Secret</b>. Create it under the committee and send me both — I plug them into our login system.</div>
+  <ul>
+    <li>☐ <b>Google</b> — <a href="https://console.cloud.google.com">console.cloud.google.com</a> → new project → APIs &amp; Services → Credentials → <b>OAuth client ID</b>.</li>
+    <li>☐ <b>Facebook</b> — <a href="https://developers.facebook.com">developers.facebook.com</a> → Create App → add <b>Facebook Login</b>.</li>
+    <li>☐ <b>LinkedIn</b> — <a href="https://developer.linkedin.com">developer.linkedin.com</a> → Create App → add <b>Sign In with LinkedIn (OpenID Connect)</b>.</li>
+  </ul>
+  <div class="send"><b>Send me:</b> the <b>Client ID + Client Secret</b> for each.</div>
+</div>
+
+<h3>c. Posting APIs — publish/schedule content from our tools</h3>
+<div class="item">
+  <div class="why">Most require <b>app review</b>, so start early. Create under the committee; send me the app credentials/tokens.</div>
+  <ul>
+    <li>☐ <b>Meta Graph API</b> (Facebook Page + Instagram) — same Meta app as (b); request the posting permissions (review-gated).</li>
+    <li>☐ <b>LinkedIn</b> — Community Management / Posts API (access request + review).</li>
+    <li>☐ <b>X (Twitter) API</b> — <a href="https://developer.x.com">developer.x.com</a>. <span class="warn">Paid</span> (~$100/mo Basic tier).</li>
+    <li>☐ <b>YouTube Data API</b> — enable it in the same Google Cloud project as (b).</li>
+  </ul>
+</div>
+
+<h2>Priority 2 — Only if we use in-store printing</h2>
+<div class="item">
+  <div><span class="box">☐</span> <span class="t">4. Walgreens — same-day photo prints</span></div>
+  <div class="why">Lets supporters print flyers/signs at a local Walgreens.</div>
+  <ol>
+    <li>Register on the Walgreens developer / affiliate portal (committee email).</li>
+  </ol>
+  <div class="send"><b>Send me:</b> API key, affiliate ID, publisher ID. <b>Cost:</b> none to register.</div>
+</div>
+
+<h2>Priority 3 — Free government data keys (2 minutes each)</h2>
+<div class="item">
+  <div class="why">All <b>free</b> — just an email and "request a key." Send me each key (it's usually in the confirmation email).</div>
+  <table>
+    <tr><td>☐ FEC</td><td>campaign-finance data — <a href="https://api.data.gov/signup/">api.data.gov/signup</a></td></tr>
+    <tr><td>☐ Congress.gov</td><td>voting record / bills — <a href="https://api.congress.gov/sign-up/">api.congress.gov/sign-up</a></td></tr>
+    <tr><td>☐ U.S. Census</td><td>district demographics — <a href="https://api.census.gov/data/key_signup.html">api.census.gov/data/key_signup.html</a></td></tr>
+    <tr><td>☐ Open States</td><td>state-legislature records — <a href="https://open.pluralpolicy.com/accounts/profile/">open.pluralpolicy.com</a></td></tr>
+  </table>
+</div>
+
+<div class="foot">
+  <b>What I'm handling (not on your list):</b> Clerk (staff login — the Google/Facebook/LinkedIn login apps above feed into it),
+  AWS / email / domain (already running), and internal app secrets.<br><br>
+  <b>If you're short on time, this order:</b> Twilio (start the registration!) → WinRed → Anthropic → social handles →
+  login (OAuth) apps → posting APIs → Walgreens → free data keys.<br>
+  <b>Send each back as:</b> "added you as a member/admin" <i>or</i> "here's the one-time link."
+</div>
+
+</body>
+</html>
