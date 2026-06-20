@@ -82,6 +82,8 @@ create_destination() { # name path
 }
 DEST_INGEST="$(create_destination matt-grant-ingest /api/research/ingest)"
 DEST_DRAIN="$(create_destination matt-grant-email-drain /api/cron/email-drain)"
+DEST_NEWS="$(create_destination matt-grant-research-news /api/research/news)"
+DEST_BIO="$(create_destination matt-grant-research-bio /api/research/bio)"
 
 # Execution role EventBridge assumes to invoke the API destinations. Trust must be
 # events.amazonaws.com for EventBridge Rules. (Idempotently corrected from any
@@ -94,7 +96,7 @@ else
   aws iam update-assume-role-policy --role-name "$ROLE_NAME" --policy-document "$TRUST" >/dev/null && echo "role $ROLE_NAME trust → events.amazonaws.com"
 fi
 aws iam put-role-policy --role-name "$ROLE_NAME" --policy-name invoke-api-destinations \
-  --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":\"events:InvokeApiDestination\",\"Resource\":[\"${DEST_INGEST}\",\"${DEST_DRAIN}\"]}]}" \
+  --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":\"events:InvokeApiDestination\",\"Resource\":\"arn:aws:events:${REGION}:${ACCT}:api-destination/matt-grant-*\"}]}" \
   >/dev/null && echo "invoke policy attached"
 ROLE_ARN="arn:aws:iam::${ACCT}:role/${ROLE_NAME}"
 
@@ -116,6 +118,10 @@ create_rule() { # name expr destArn
 }
 create_rule matt-grant-research-ingest "cron(0 8 ? * MON *)" "$DEST_INGEST"
 create_rule matt-grant-email-drain     "rate(1 minute)"      "$DEST_DRAIN"
+# Lightweight enrichments refresh on their own cadence (decoupled from the heavy
+# ingest): news daily (time-sensitive), bios weekly (rarely change).
+create_rule matt-grant-research-news   "cron(0 9 * * ? *)"   "$DEST_NEWS"
+create_rule matt-grant-research-bio    "cron(0 9 ? * MON *)" "$DEST_BIO"
 
 # ── 4. Alerting ──────────────────────────────────────────────────────────────────
 # Without this, donations/emails can stop silently. Alarm on SSR Lambda errors and
