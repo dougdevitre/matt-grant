@@ -6,8 +6,12 @@
 import { fetchJsonWithRetry } from "../http";
 
 const WP = "https://en.wikipedia.org";
-const UA = "MattGrantForCongress-Research/1.0 (campaign research)";
+// Wikimedia's User-Agent policy REQUIRES contact info; datacenter IPs (Lambda)
+// are blocked/tarpitted without it. Bound tightly (short timeout, no retry) so a
+// slow/blocked Wikipedia can never hang the ingest — bios are best-effort.
+const UA = "MattGrantForCongress/1.0 (https://mattgrantforcongress.org; mattgrantforcongress@gmail.com)";
 const headers = { "user-agent": UA, accept: "application/json" };
+const BOUND = { timeoutMs: 7000, retries: 1 } as const;
 
 type Json = Record<string, unknown>;
 
@@ -24,7 +28,7 @@ const POLITICS = /\b(politician|congress|representative|senator|republican|democ
 
 async function summary(title: string): Promise<Json | null> {
   try {
-    return await fetchJsonWithRetry<Json>(`${WP}/api/rest_v1/page/summary/${encodeURIComponent(title)}`, { headers, label: "wikipedia summary" });
+    return await fetchJsonWithRetry<Json>(`${WP}/api/rest_v1/page/summary/${encodeURIComponent(title)}`, { headers, ...BOUND, label: "wikipedia summary" });
   } catch {
     return null;
   }
@@ -32,7 +36,7 @@ async function summary(title: string): Promise<Json | null> {
 
 async function searchTopTitle(query: string): Promise<string | null> {
   try {
-    const d = await fetchJsonWithRetry<Json>(`${WP}/w/rest.php/v1/search/page?q=${encodeURIComponent(query)}&limit=3`, { headers, label: "wikipedia search" });
+    const d = await fetchJsonWithRetry<Json>(`${WP}/w/rest.php/v1/search/page?q=${encodeURIComponent(query)}&limit=3`, { headers, ...BOUND, label: "wikipedia search" });
     const pages = (d.pages as Json[] | undefined) ?? [];
     const top = pages[0];
     return top ? (String(top.title ?? top.key ?? "") || null) : null;
