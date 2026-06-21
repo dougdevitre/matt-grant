@@ -36,7 +36,7 @@ applications:
             - |
               for k in DASHBOARD_ALLOWLIST CLERK_WEBHOOK_SIGNING_SECRET \
                        ANTHROPIC_API_KEY ANTHROPIC_MODEL CONGRESS_GOV_API_KEY CRON_SECRET FEC_API_KEY \
-                       OPENSTATES_API_KEY CENSUS_API_KEY; do
+                       OPENSTATES_API_KEY CENSUS_API_KEY WINRED_WEBHOOK_SECRET; do
                 v=$(aws ssm get-parameter --name "/matt-grant/$k" --with-decryption --region "${AWS_REGION:-us-east-1}" \
                       --query 'Parameter.Value' --output text 2>/dev/null || true)
                 if [ -n "$v" ] && [ "$v" != "None" ]; then echo "$k=$v" >> .env.production; fi
