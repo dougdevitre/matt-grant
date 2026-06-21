@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { dbConfigured } from "@/lib/db";
 import { recordContribution } from "@/lib/donors";
-import { normalizeWinred, extractWinredToken } from "@/lib/winred";
+import { normalizeWinred, extractWinredToken, classifyWinredEvent } from "@/lib/winred";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { donationThankYou } from "@/lib/email/templates";
 import { getSecret } from "@/lib/ssm";
@@ -59,6 +59,9 @@ export async function POST(req: NextRequest) {
   }
 
   const rec = normalizeWinred(payload);
+  const event = classifyWinredEvent(payload);
+  // Refunds/disputes reverse a prior gift instead of adding one.
+  const isRefund = event === "refunded" || event === "dispute_lost";
   if (!rec.amount && !rec.email) {
     // Nothing recognizable — accept (200) so WinRed doesn't hammer retries, but
     // flag it so a real schema mismatch is visible in logs.
@@ -73,7 +76,11 @@ export async function POST(req: NextRequest) {
   try {
     // Funnel through the shared recorder so the gift lands in contributions[]
     // (counted by the dashboard) and dedupes by email; externalId makes webhook
-    // retries idempotent.
+    // retries idempotent. A refund records a NEGATIVE entry under a distinct
+    // externalId (`<id>:refund`) so it both nets out the donor total and stays
+    // idempotent against duplicate refund webhooks — without being deduped against
+    // the original gift.
+    const cents = Math.round((rec.amount ?? 0) * 100);
     await recordContribution({
       email: rec.email,
       name: rec.name,
@@ -82,10 +89,11 @@ export async function POST(req: NextRequest) {
       zip: rec.zip,
       employer: rec.employer,
       occupation: rec.occupation,
-      amountCents: Math.round((rec.amount ?? 0) * 100),
+      amountCents: isRefund ? -cents : cents,
       method: "WinRed",
       source: "winred",
-      externalId: rec.externalId,
+      externalId: isRefund ? (rec.externalId ? `${rec.externalId}:refund` : undefined) : rec.externalId,
+      type: isRefund ? "refund" : undefined,
       recurring: rec.recurring,
       receivedAt: rec.donatedAt ?? undefined,
     });
@@ -93,8 +101,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "failed to record donation" }, { status: 502 });
   }
 
-  // Best-effort thank-you — never fail the webhook if email is down/unconfigured.
-  if (sesEnabled && rec.email) {
+  // Thank-you only for new gifts — never email a "thanks" for a refund/dispute.
+  // Best-effort: never fail the webhook if email is down/unconfigured.
+  if (!isRefund && sesEnabled && rec.email) {
     try {
       const tpl = donationThankYou(rec.firstName ?? "Friend", rec.amount);
       await sendEmail({ to: rec.email, subject: tpl.subject, html: tpl.html, text: tpl.text });
@@ -103,5 +112,12 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, recorded: true, amount: rec.amount, emailed: sesEnabled && !!rec.email });
+  return NextResponse.json({
+    ok: true,
+    recorded: true,
+    event,
+    refund: isRefund,
+    amount: rec.amount,
+    emailed: !isRefund && sesEnabled && !!rec.email,
+  });
 }
