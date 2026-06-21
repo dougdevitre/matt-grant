@@ -48,6 +48,27 @@ export function extractWinredToken(
   return bearer || xWinredToken || "";
 }
 
+export type WinredEvent = "created" | "refunded" | "dispute_lost" | "unknown";
+
+// Which WinRed event this payload represents. The integration can send Donation
+// Created / Refunded / Dispute Lost to the same endpoint, so we must branch:
+// refunds/disputes net OUT of the donor total rather than adding to it. Defensive
+// across field-name variants (event / event_type / type / status, top-level or
+// nested under `data`, plus refunded flags) — confirm against a real refund
+// sample from your account; unknown-with-an-amount falls through as a gift.
+export function classifyWinredEvent(payload: Json): WinredEvent {
+  const d = (payload.data && typeof payload.data === "object" ? (payload.data as Json) : payload) as Json;
+  const raw = [payload.event, payload.event_type, payload.type, payload.status, d.event, d.event_type, d.type, d.status].find(
+    (v) => typeof v === "string",
+  ) as string | undefined;
+  const s = (raw ?? "").toLowerCase();
+  if (s.includes("dispute")) return "dispute_lost";
+  if (s.includes("refund")) return "refunded";
+  if (d.refunded === true || (typeof d.refunded_at === "string" && d.refunded_at.length > 0)) return "refunded";
+  if (s.includes("creat") || s.includes("donation") || s.includes("success")) return "created";
+  return "unknown";
+}
+
 export function normalizeWinred(payload: Json): NormalizedDonation {
   // Some webhook configs wrap the donation as { data: {...} }.
   const d = (payload.data && typeof payload.data === "object" ? (payload.data as Json) : payload) as Json;

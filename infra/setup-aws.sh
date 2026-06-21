@@ -145,5 +145,42 @@ else
   echo "(skipping alerting — set ALERT_EMAIL to enable)"
 fi
 
+# ── 5. Research-data staleness canary ────────────────────────────────────────────
+# Route 53 health check on the public freshness endpoint, which returns 503 when
+# candidate data has gone stale (no ingest in RESEARCH_STALE_DAYS). The check goes
+# unhealthy → CloudWatch alarm → the same SNS topic. Tagged so re-runs reuse the
+# existing check instead of creating duplicates. (Route 53 health-check metrics are
+# global, published to us-east-1 — where this alarm must live.)
+if [ -n "$ALERT_EMAIL" ]; then
+  say "Research staleness canary"
+  HC_HOST="$(printf '%s' "$BASE_URL" | sed -E 's#^https?://##; s#/.*$##')"
+  HC_ID=""
+  for id in $(aws route53 list-health-checks --query "HealthChecks[].Id" --output text 2>/dev/null); do
+    nm=$(aws route53 list-tags-for-resource --resource-type healthcheck --resource-id "$id" \
+          --query "ResourceTagSet.Tags[?Key=='Name']|[0].Value" --output text 2>/dev/null)
+    if [ "$nm" = "matt-grant-research-health" ]; then HC_ID="$id"; break; fi
+  done
+  if [ -z "$HC_ID" ]; then
+    HC_ID=$(aws route53 create-health-check \
+      --caller-reference "matt-grant-research-health-$(date +%s)" \
+      --health-check-config "Type=HTTPS,FullyQualifiedDomainName=${HC_HOST},ResourcePath=/api/research/health,Port=443,RequestInterval=30,FailureThreshold=3,MeasureLatency=false" \
+      --query "HealthCheck.Id" --output text)
+    aws route53 change-tags-for-resource --resource-type healthcheck --resource-id "$HC_ID" \
+      --add-tags Key=Name,Value=matt-grant-research-health >/dev/null && echo "health check created: $HC_ID"
+  else
+    echo "health check exists: $HC_ID"
+  fi
+  aws cloudwatch put-metric-alarm --region us-east-1 \
+    --alarm-name matt-grant-research-stale \
+    --alarm-description "Research data is stale (or the site is down) — /api/research/health is failing" \
+    --namespace AWS/Route53 --metric-name HealthCheckStatus --statistic Minimum \
+    --dimensions "Name=HealthCheckId,Value=${HC_ID}" \
+    --period 60 --evaluation-periods 3 --threshold 1 --comparison-operator LessThanThreshold \
+    --treat-missing-data breaching \
+    --alarm-actions "$TOPIC_ARN" >/dev/null && echo "alarm matt-grant-research-stale set"
+else
+  echo "(skipping staleness canary — set ALERT_EMAIL to enable)"
+fi
+
 say "Done"
 echo "Next: verify a manual run — curl -X POST -H \"Authorization: Bearer \$CRON_SECRET\" ${BASE_URL}/api/cron/email-drain"

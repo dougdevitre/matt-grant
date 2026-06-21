@@ -13,11 +13,12 @@ import { ddb, TABLE, PK, newId, dbConfigured } from "@/lib/db";
 // double-count.
 
 type Contribution = {
-  amountCents: number;
+  amountCents: number; // negative for a refund/dispute reversal — nets out of the sum
   method?: string;
   election?: string;
   receivedAt?: string;
   externalId?: string;
+  type?: string; // "refund" for a reversal; absent for an ordinary gift
 };
 
 export type ContributionInput = {
@@ -28,13 +29,14 @@ export type ContributionInput = {
   zip?: string | null;
   employer?: string | null;
   occupation?: string | null;
-  amountCents?: number;
+  amountCents?: number; // negative to reverse a prior gift (refund/dispute)
   method?: string;
   election?: string;
   source?: string;
   externalId?: string | null;
   recurring?: boolean;
   receivedAt?: string;
+  type?: string; // "refund" tags a reversal entry
 };
 
 export async function recordContribution(c: ContributionInput): Promise<void> {
@@ -50,14 +52,17 @@ export async function recordContribution(c: ContributionInput): Promise<void> {
     if (prior.some((x) => x.externalId === c.externalId)) return;
   }
 
+  // Append for any non-zero amount: positive is a gift, negative reverses one
+  // (a WinRed refund/dispute) so getDonors()/sumContribs() net it out naturally.
   const contribs: Contribution[] =
-    amountCents > 0
+    amountCents !== 0
       ? [{
           amountCents,
           method: c.method ?? "WinRed",
           election: c.election ?? "PRIMARY",
           receivedAt: now,
           ...(c.externalId ? { externalId: c.externalId } : {}),
+          ...(c.type ? { type: c.type } : {}),
         }]
       : [];
 

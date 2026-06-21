@@ -1,5 +1,29 @@
 import { describe, it, expect } from "vitest";
-import { normalizeWinred, extractWinredToken } from "@/lib/winred";
+import { normalizeWinred, extractWinredToken, classifyWinredEvent } from "@/lib/winred";
+
+describe("classifyWinredEvent", () => {
+  it("classifies created donations from common event fields", () => {
+    expect(classifyWinredEvent({ event: "donation.created", amount: 100 })).toBe("created");
+    expect(classifyWinredEvent({ type: "DonationCreated" })).toBe("created");
+    expect(classifyWinredEvent({ status: "success" })).toBe("created");
+  });
+
+  it("classifies refunds (string event or refunded flag), top-level or nested", () => {
+    expect(classifyWinredEvent({ event: "donation.refunded" })).toBe("refunded");
+    expect(classifyWinredEvent({ data: { event_type: "Refund" } })).toBe("refunded");
+    expect(classifyWinredEvent({ data: { refunded: true } })).toBe("refunded");
+    expect(classifyWinredEvent({ refunded_at: "2026-06-21T00:00:00Z" })).toBe("refunded");
+  });
+
+  it("classifies a lost dispute as its own kind (also a reversal)", () => {
+    expect(classifyWinredEvent({ event: "donation.dispute_lost" })).toBe("dispute_lost");
+    expect(classifyWinredEvent({ type: "DisputeLost" })).toBe("dispute_lost");
+  });
+
+  it("returns unknown when no event signal is present (route treats as a gift if it has an amount)", () => {
+    expect(classifyWinredEvent({ amount: 2500, donor: { email: "a@b.co" } })).toBe("unknown");
+  });
+});
 
 describe("extractWinredToken", () => {
   it("reads the static `token` field from the top level of the body (WinRed's mechanism)", () => {
