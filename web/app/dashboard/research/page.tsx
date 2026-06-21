@@ -8,6 +8,7 @@ import { analyzeField } from "@/lib/analysis/alignment";
 import { ISSUE_AXES } from "@/lib/integrations/research/issues";
 import { getAllFec, getAllFecDetail, getAllNews } from "@/lib/integrations/research/store";
 import { lastFieldIngest } from "@/lib/integrations/research/ingestField";
+import { fieldFreshness } from "@/lib/integrations/research/freshness";
 import type { FecSummary, FecDetail } from "@/lib/integrations/fec/types";
 import type { NewsFeed } from "@/lib/integrations/news/client";
 
@@ -40,15 +41,23 @@ export default async function ResearchPage() {
     }
   }
 
+  // Reliable freshness from the data's own timestamps (per-step retrievedAt),
+  // not the run record — a heavy run can exceed the Lambda window and never write
+  // its ok:true end-record even though the data landed fine.
+  const fresh = fieldFreshness({ detail, news, fec, runAt: run?.startedAt ?? null });
+
   const bySlug = new Map(analysis.candidates.map((a) => [a.slug, a]));
 
   return (
     <>
       <PageHeader kicker="Field & alignment research" title="The MO-02 primary field">
-        {run && (
-          <span className="font-mono text-xs text-slate">
-            last ingest: {run.ok ? "✓" : "✕"} {new Date(run.startedAt).toLocaleDateString()}
+        {fresh.latestAt ? (
+          <span className={`font-mono text-xs ${fresh.stale ? "text-brick" : "text-slate"}`}>
+            {fresh.stale ? "⚠ stale — " : "data as of "}
+            {new Date(fresh.latestAt).toLocaleDateString()}
           </span>
+        ) : (
+          <span className="font-mono text-xs text-brick">⚠ no candidate data ingested yet</span>
         )}
       </PageHeader>
 
