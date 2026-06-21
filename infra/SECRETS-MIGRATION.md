@@ -90,11 +90,16 @@ keep them in env so step 3 only removes *secret* names from the bake loop.
    (the last via the now-async unsubscribe token chain). `CLERK_*` stay in env (A2);
    the free public-data API keys are deferred (A1). Because env still wins, this
    deployed with zero behavior change.
-3. **Stop baking the secrets.** Remove the secret names from the `.env.production`
-   materialization loop in `amplify.yml` (keep non-secret config like
-   `DYNAMODB_TABLE`, `AWS_REGION`, `NEXT_PUBLIC_*`). Deploy. Now those secrets are
-   absent from env, so `getSecret` reads them from SSM at runtime — out of the
-   artifact. Verify the app still authenticates webhooks/cron and calls the LLM.
+3. **Stop baking the secrets.** ✅ **APPLIED in code.** `amplify.yml` no longer
+   materializes `CRON_SECRET`, `ANTHROPIC_API_KEY`, `WINRED_WEBHOOK_SECRET`, or
+   `UNSUB_SECRET` into `.env.production` (removed from both the env-materialize and
+   the SSM-pull loops). Non-secret config (`DYNAMODB_TABLE`, `AWS_REGION`,
+   `NEXT_PUBLIC_*`, `ANTHROPIC_MODEL`, public-data API keys) and the Clerk secrets
+   stay baked. **DEPLOY GATE:** this only takes effect on deploy, and only works if
+   step 1 (runtime-role SSM read) is in place and all four params exist in SSM —
+   confirm both before merging to `main`. After deploy, verify webhooks/cron still
+   authenticate and the press-topics LLM call still works, then confirm the four
+   secrets are absent from the deployed env.
 4. **Rotate.** Any secret that ever lived in a baked/cached build is considered
    exposed — regenerate it in its console (Clerk, Anthropic, WinRed, and the
    app-generated `CRON_SECRET`/`UNSUB_SECRET`) and update the SSM parameter. Then
