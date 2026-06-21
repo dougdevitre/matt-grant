@@ -51,4 +51,24 @@ describe("getSecret", () => {
     expect(await getSecret("MG_TEST_MISSING")).toBeUndefined();
     expect(sendMock).toHaveBeenCalledTimes(1);
   });
+
+  it("re-fetches after the TTL so a rotated secret self-heals (no redeploy)", async () => {
+    vi.useFakeTimers();
+    try {
+      sendMock.mockResolvedValueOnce({ Parameter: { Value: "old" } });
+      expect(await getSecret("MG_TEST_TTL")).toBe("old");
+
+      // within the TTL window → served from cache, no second SSM call
+      sendMock.mockResolvedValueOnce({ Parameter: { Value: "rotated" } });
+      expect(await getSecret("MG_TEST_TTL")).toBe("old");
+      expect(sendMock).toHaveBeenCalledTimes(1);
+
+      // past the TTL → re-fetch picks up the rotated value
+      vi.advanceTimersByTime(5 * 60_000 + 1);
+      expect(await getSecret("MG_TEST_TTL")).toBe("rotated");
+      expect(sendMock).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
