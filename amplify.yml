@@ -11,11 +11,21 @@ applications:
             # Amplify injects app env vars into the BUILD env but not the SSR
             # runtime. Materialize the server-side vars into .env.production so
             # the Next.js server (and middleware) can read them at runtime.
+            #
+            # NOTE: the four runtime-loaded secrets — CRON_SECRET, ANTHROPIC_API_KEY,
+            # WINRED_WEBHOOK_SECRET, UNSUB_SECRET — are intentionally ABSENT here.
+            # The app reads them via getSecret() (web/lib/ssm.ts) from SSM at runtime
+            # on the SSR compute role, so they never land in the .next artifact/cache
+            # (infra/SECRETS-MIGRATION.md step 3). CLERK_SECRET_KEY and
+            # CLERK_WEBHOOK_SIGNING_SECRET MUST stay baked — the Clerk SDK reads them
+            # from env directly. The public-data API keys (FEC/CONGRESS/OPENSTATES/
+            # CENSUS/WALGREENS) stay baked too: their module-scope `enabled` flags
+            # read process.env at import (deferred, low value).
             - |
               for k in WALGREENS_API_KEY WALGREENS_AFF_ID WALGREENS_PUBLISHER_ID WALGREENS_ENV \
                        DYNAMODB_TABLE AWS_REGION S3_ASSETS_BUCKET ASSETS_CDN_URL \
                        SES_FROM SES_CONFIG_SET \
-                       CONGRESS_GOV_API_KEY CRON_SECRET ANTHROPIC_API_KEY ANTHROPIC_MODEL \
+                       CONGRESS_GOV_API_KEY ANTHROPIC_MODEL \
                        RESEARCH_BIOGUIDE_ID RESEARCH_VOTE_YEAR RESEARCH_FROM_ROLL RESEARCH_TO_ROLL \
                        FEC_API_KEY RESEARCH_FEC_CYCLE RESEARCH_INCUMBENT_FEC_ID \
                        OPENSTATES_API_KEY CENSUS_API_KEY \
@@ -23,20 +33,22 @@ applications:
                        NEXT_PUBLIC_MEDIA_BOOKING_URL NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY \
                        NEXT_PUBLIC_CLERK_SIGN_IN_URL NEXT_PUBLIC_CLERK_SIGN_UP_URL \
                        CLERK_SECRET_KEY CLERK_WEBHOOK_SIGNING_SECRET ALLOW_OPEN_DASHBOARD DASHBOARD_ALLOWLIST \
-                       WINRED_WEBHOOK_SECRET SES_SNS_TOPIC_ARN UNSUB_SECRET; do
+                       SES_SNS_TOPIC_ARN; do
                 v=$(printenv "$k" 2>/dev/null || true)
                 [ -n "$v" ] && echo "$k=$v" >> .env.production
               done
               echo "Materialized $(wc -l < .env.production 2>/dev/null || echo 0) runtime vars into .env.production"
-            # RBAC params live in SSM Parameter Store (/matt-grant/*). Pull them
-            # into the SSR runtime. Additive + non-fatal: keyless builds and the
-            # env-var flow above are unaffected. Requires the Amplify build role
-            # to allow ssm:GetParameter on /matt-grant/* (+ kms:Decrypt for the
-            # SecureString secret).
+            # Non-secret config + the Clerk webhook secret live in SSM Parameter
+            # Store (/matt-grant/*). Pull them into the SSR runtime. Additive +
+            # non-fatal: keyless builds and the env-var flow above are unaffected.
+            # The four runtime-loaded secrets are intentionally NOT pulled here —
+            # getSecret() reads them at runtime so they stay out of the artifact.
+            # Requires the Amplify build role to allow ssm:GetParameter on
+            # /matt-grant/* (+ kms:Decrypt for SecureStrings).
             - |
               for k in DASHBOARD_ALLOWLIST CLERK_WEBHOOK_SIGNING_SECRET \
-                       ANTHROPIC_API_KEY ANTHROPIC_MODEL CONGRESS_GOV_API_KEY CRON_SECRET FEC_API_KEY \
-                       OPENSTATES_API_KEY CENSUS_API_KEY WINRED_WEBHOOK_SECRET; do
+                       ANTHROPIC_MODEL CONGRESS_GOV_API_KEY FEC_API_KEY \
+                       OPENSTATES_API_KEY CENSUS_API_KEY; do
                 v=$(aws ssm get-parameter --name "/matt-grant/$k" --with-decryption --region "${AWS_REGION:-us-east-1}" \
                       --query 'Parameter.Value' --output text 2>/dev/null || true)
                 if [ -n "$v" ] && [ "$v" != "None" ]; then echo "$k=$v" >> .env.production; fi
