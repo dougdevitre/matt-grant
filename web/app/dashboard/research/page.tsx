@@ -6,9 +6,10 @@ import { loadField, partyLabel } from "@/lib/integrations/research/candidates";
 import { loadStatements } from "@/lib/integrations/statements/data";
 import { analyzeField } from "@/lib/analysis/alignment";
 import { ISSUE_AXES } from "@/lib/integrations/research/issues";
-import { getAllFec } from "@/lib/integrations/research/store";
+import { getAllFec, getAllFecDetail, getAllNews } from "@/lib/integrations/research/store";
 import { lastFieldIngest } from "@/lib/integrations/research/ingestField";
-import type { FecSummary } from "@/lib/integrations/fec/types";
+import type { FecSummary, FecDetail } from "@/lib/integrations/fec/types";
+import type { NewsFeed } from "@/lib/integrations/news/client";
 
 export const dynamic = "force-dynamic";
 
@@ -28,10 +29,12 @@ export default async function ResearchPage() {
   const analysis = analyzeField(field, statements, new Date().toISOString());
 
   let fec: Record<string, FecSummary> = {};
+  let detail: Record<string, FecDetail> = {};
+  let news: Record<string, NewsFeed> = {};
   let run: Awaited<ReturnType<typeof lastFieldIngest>> = null;
   if (dbConfigured) {
     try {
-      [fec, run] = await Promise.all([getAllFec(), lastFieldIngest()]);
+      [fec, detail, news, run] = await Promise.all([getAllFec(), getAllFecDetail(), getAllNews(), lastFieldIngest()]);
     } catch {
       /* degrade to no money/run data */
     }
@@ -99,11 +102,16 @@ export default async function ResearchPage() {
                   </th>
                 ))}
                 <th className="px-4 py-3 text-right text-xs font-semibold text-slate">$ on hand</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-slate">Outside $</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate">Latest coverage</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
               {field.map((c) => {
                 const a = bySlug.get(c.slug)!;
+                const d = detail[c.slug];
+                const outside = d ? d.ie.support + d.ie.oppose : 0;
+                const latest = news[c.slug]?.items[0];
                 return (
                   <tr key={c.slug} className="hover:bg-paper">
                     <td className="px-4 py-3">
@@ -127,6 +135,28 @@ export default async function ResearchPage() {
                       );
                     })}
                     <td className="px-4 py-3 text-right font-mono text-xs text-slate">{usd(fec[c.slug]?.totals.cashOnHand)}</td>
+                    <td className="px-4 py-3 text-right font-mono text-xs text-slate">
+                      {outside > 0 ? (
+                        <span title={`${usd(d!.ie.support)} supporting · ${usd(d!.ie.oppose)} opposing`}>{usd(outside)}</span>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="max-w-xs px-4 py-3 text-xs">
+                      {latest ? (
+                        <a
+                          href={latest.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-ink hover:underline"
+                          title={latest.title}
+                        >
+                          {latest.title.length > 64 ? `${latest.title.slice(0, 61)}…` : latest.title}
+                        </a>
+                      ) : (
+                        <span className="text-slate">—</span>
+                      )}
+                    </td>
                   </tr>
                 );
               })}
@@ -136,7 +166,9 @@ export default async function ResearchPage() {
         <p className="mt-3 text-xs text-slate">
           <span className="font-bold text-field">✓</span> sourced agreement ·{" "}
           <span className="font-bold text-brick">✕</span> sourced difference ·{" "}
-          <span className="font-bold text-slate">·</span> no sourced position (unknown). Money from OpenFEC.
+          <span className="font-bold text-slate">·</span> no sourced position (unknown). <strong>Outside $</strong> =
+          independent expenditures for + against (OpenFEC Schedule E); hover for the for/against split.{" "}
+          <strong>Latest coverage</strong> links the most recent on-topic headline (Google News). Money from OpenFEC.
         </p>
       </section>
 

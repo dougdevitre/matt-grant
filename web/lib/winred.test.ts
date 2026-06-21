@@ -1,5 +1,36 @@
 import { describe, it, expect } from "vitest";
-import { normalizeWinred } from "@/lib/winred";
+import { normalizeWinred, extractWinredToken } from "@/lib/winred";
+
+describe("extractWinredToken", () => {
+  it("reads the static `token` field from the top level of the body (WinRed's mechanism)", () => {
+    expect(extractWinredToken({ token: "s3cret", amount: 100 }, null, null)).toBe("s3cret");
+  });
+
+  it("reads `token` nested under a { data: {...} } envelope", () => {
+    expect(extractWinredToken({ data: { token: "s3cret" } }, null, null)).toBe("s3cret");
+  });
+
+  it("prefers the body token over header fallbacks", () => {
+    expect(extractWinredToken({ token: "body" }, "Bearer hdr", "xhdr")).toBe("body");
+  });
+
+  it("falls back to a Bearer Authorization header for manual/direct posts", () => {
+    expect(extractWinredToken({ amount: 100 }, "Bearer hdrtok", null)).toBe("hdrtok");
+  });
+
+  it("falls back to x-winred-token when no body token or bearer is present", () => {
+    expect(extractWinredToken({ amount: 100 }, null, "xtok")).toBe("xtok");
+  });
+
+  it("returns empty string when no token is present anywhere (→ 401 upstream)", () => {
+    expect(extractWinredToken({ amount: 100, email: "a@b.co" }, null, null)).toBe("");
+  });
+
+  it("ignores a non-string/empty token field", () => {
+    expect(extractWinredToken({ token: "" }, null, null)).toBe("");
+    expect(extractWinredToken({ token: 12345 as unknown as string }, null, null)).toBe("");
+  });
+});
 
 describe("normalizeWinred", () => {
   it("parses the documented nested-donor shape (amount in cents → dollars)", () => {
