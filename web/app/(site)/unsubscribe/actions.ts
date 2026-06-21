@@ -7,7 +7,7 @@ import { verifyUnsubToken, setPreferences, TOPICS, isTopic } from "@/lib/subscri
 // form, so one subscriber can't edit another's preferences.
 export async function savePreferences(formData: FormData) {
   const token = String(formData.get("token") ?? "");
-  const email = verifyUnsubToken(token);
+  const email = await verifyUnsubToken(token);
   if (!email) redirect("/unsubscribe?error=1");
 
   if (String(formData.get("action")) === "all") {
