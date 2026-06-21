@@ -18,9 +18,9 @@ const usd = (n: number | null | undefined) =>
   n == null ? "—" : `$${Math.round(n).toLocaleString("en-US")}`;
 
 const VERDICT = {
-  agree: { mark: "✓", cls: "bg-field text-paper" },
-  differ: { mark: "✕", cls: "bg-brick text-paper" },
-  unknown: { mark: "·", cls: "bg-line text-slate" },
+  agree: { mark: "✓", cls: "bg-field text-paper", label: "Agrees" },
+  differ: { mark: "✕", cls: "bg-brick text-paper", label: "Differs" },
+  unknown: { mark: "·", cls: "bg-line text-slate", label: "No sourced position" },
 } as const;
 
 export default async function ResearchPage() {
@@ -104,15 +104,15 @@ export default async function ResearchPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-line text-left">
-                <th className="px-4 py-3 font-semibold text-ink">Candidate</th>
+                <th scope="col" className="px-4 py-3 font-semibold text-ink">Candidate</th>
                 {ISSUE_AXES.map((a) => (
-                  <th key={a.id} className="px-3 py-3 text-center text-xs font-semibold text-slate">
+                  <th key={a.id} scope="col" className="px-3 py-3 text-center text-xs font-semibold text-slate">
                     {a.label}
                   </th>
                 ))}
-                <th className="px-4 py-3 text-right text-xs font-semibold text-slate">$ on hand</th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-slate">Outside $</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate">Latest coverage</th>
+                <th scope="col" className="px-4 py-3 text-right text-xs font-semibold text-slate">$ on hand</th>
+                <th scope="col" className="px-4 py-3 text-right text-xs font-semibold text-slate">Outside $</th>
+                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-slate">Latest coverage</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
@@ -137,9 +137,13 @@ export default async function ResearchPage() {
                       const cfg = VERDICT[v];
                       return (
                         <td key={ax.id} className="px-3 py-3 text-center">
-                          <span className={`inline-flex h-6 w-6 items-center justify-center rounded-sm font-bold ${cfg.cls}`}>
+                          <span
+                            className={`inline-flex h-6 w-6 items-center justify-center rounded-sm font-bold ${cfg.cls}`}
+                            aria-hidden="true"
+                          >
                             {cfg.mark}
                           </span>
+                          <span className="sr-only">{`${ax.label}: ${cfg.label}`}</span>
                         </td>
                       );
                     })}
