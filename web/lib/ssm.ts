@@ -14,16 +14,27 @@ import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 // Missing parameter / no access → undefined, so the app degrades exactly like it
 // does today when a secret is unset. Wiring call sites + flipping amplify.yml +
 // rotation is a separate, reviewed step (see infra/SECRETS-MIGRATION.md).
+//
+// CACHE TTL: a fetched value is cached for SSM_SECRET_TTL_MS (default 5 min), not
+// for the whole container lifetime. This means a ROTATION in SSM is picked up
+// within the TTL with no redeploy — without a TTL, warm Lambdas held the old
+// value indefinitely and a new bearer/key would 401 until the container cycled.
+// The TTL trades a bounded staleness window for self-healing rotation; the per-
+// container SSM call rate stays ~1 per secret per TTL (negligible).
 
 const PREFIX = process.env.SSM_PARAM_PREFIX ?? "/matt-grant";
-const cache = new Map<string, string | undefined>();
+const TTL_MS = Number(process.env.SSM_SECRET_TTL_MS) || 5 * 60_000;
+type Entry = { value: string | undefined; expires: number };
+const cache = new Map<string, Entry>();
 let client: SSMClient | null = null;
 const ssm = () => (client ??= new SSMClient({ region: process.env.AWS_REGION ?? "us-east-1" }));
 
 export async function getSecret(name: string): Promise<string | undefined> {
   const fromEnv = process.env[name];
   if (fromEnv) return fromEnv; // env always wins — no-op until secrets stop being baked
-  if (cache.has(name)) return cache.get(name);
+
+  const hit = cache.get(name);
+  if (hit && hit.expires > Date.now()) return hit.value; // fresh within TTL
 
   let value: string | undefined;
   try {
@@ -32,7 +43,7 @@ export async function getSecret(name: string): Promise<string | undefined> {
   } catch {
     value = undefined; // not found / unauthorized — degrade like an unset secret
   }
-  cache.set(name, value);
+  cache.set(name, { value, expires: Date.now() + TTL_MS });
   return value;
 }
 
