@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 async function unsub(token: string | null): Promise<boolean> {
-  const email = token ? verifyUnsubToken(token) : null;
+  const email = token ? await verifyUnsubToken(token) : null;
   if (!email) return false;
   try {
     await suppress(email);

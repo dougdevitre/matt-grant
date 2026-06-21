@@ -7,8 +7,8 @@ import type { Email } from "@/lib/email/templates";
 // the Email by the broadcast template; here we add the per-recipient
 // unsubscribe/preferences URLs + the RFC 8058 List-Unsubscribe headers.
 export async function sendBroadcastEmail(o: { to: string; email: Email; base: string; campaignId?: string }) {
-  const u = unsubscribeUrl(o.base, o.to);
-  const oneClick = unsubscribeApiUrl(o.base, o.to);
+  const u = await unsubscribeUrl(o.base, o.to);
+  const oneClick = await unsubscribeApiUrl(o.base, o.to);
   return sendEmail({
     to: o.to,
     subject: o.email.subject,
