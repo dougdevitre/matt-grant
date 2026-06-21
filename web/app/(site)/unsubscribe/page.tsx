@@ -14,7 +14,7 @@ export default async function UnsubscribePage({
   searchParams: Promise<{ token?: string; saved?: string; error?: string }>;
 }) {
   const { token, saved, error } = await searchParams;
-  const email = token ? verifyUnsubToken(token) : null;
+  const email = token ? await verifyUnsubToken(token) : null;
 
   if (!email) {
     return (

@@ -29,9 +29,18 @@ secret footprint; it cannot zero it.
   `WALGREENS_API_KEY`/`AFF_ID` — wireable, but each has a module-scope `enabled`
   flag (`export const fecEnabled = !!process.env…`) that must be refactored to
   resolve async. Low security value (free public-data keys) → deferred.
-- `UNSUB_SECRET` — module-scope, feeds *sync* token functions; needs a sync→async
-  refactor of the unsubscribe chain. (Create it in SSM first — section B.)
-- `WINRED_WEBHOOK_SECRET` — parked; create in SSM first (section B).
+- `UNSUB_SECRET` — ✅ wired. The unsubscribe token chain in `lib/subscribers.ts`
+  (`sign`/`unsubToken`/`unsubscribeUrl`/`unsubscribeApiUrl`/`verifyUnsubToken`) is
+  now async and resolves the key via `getSecret("UNSUB_SECRET")` → `CRON_SECRET` →
+  dev default. All callers (`campaignSend.ts`, the `/unsubscribe` page/action, and
+  `/api/unsubscribe`) `await` it. env-first → no behavior change until un-baked.
+  (Create `/matt-grant/UNSUB_SECRET` in SSM before step 3 — section B.)
+- `WINRED_WEBHOOK_SECRET` — ✅ wired (`/api/webhooks/winred` reads via getSecret).
+  Create in SSM before step 3 (section B).
+
+**Step 2 is complete: every wireable app secret now reads through `getSecret`.** The
+remaining work is AWS-operational (steps 1, 3, 4 + section B) and needs account
+access — none of it changes app code.
 
 **A2 — CANNOT move (read by the SDK / build, not our code):**
 
@@ -45,6 +54,7 @@ secrets remain.
 ### B. Secrets the app reads but that are NOT in SSM — CREATE before un-baking (step 3)
 
 Otherwise `getSecret` returns `undefined` once the env var stops being baked.
+
 - **`WINRED_WEBHOOK_SECRET`** — set *nowhere* today (not SSM, not Amplify env), so
   the WinRed webhook is fail-closed (401) and won't record donations once WinRed
   posts to it. Generate a value, store at `/matt-grant/WINRED_WEBHOOK_SECRET`, and
@@ -70,13 +80,16 @@ keep them in env so step 3 only removes *secret* names from the bake loop.
 
 1. **Grant the runtime role SSM read.** Give the Amplify **SSR compute** role (not
    the build role) `ssm:GetParameter` on the exact `arn:aws:ssm:…:parameter/matt-grant/*`
-   ARNs + `kms:Decrypt` on the one key. Leave the build role's SSM/KMS in place for now.
-2. **Wire call sites to `getSecret`.** Replace `process.env.X` reads of secrets
-   with `await getSecret("X")` in their (already async) request handlers. Targets:
-   `CRON_SECRET`, `WINRED_WEBHOOK_SECRET`, `CLERK_WEBHOOK_SIGNING_SECRET`,
-   `UNSUB_SECRET`, `ANTHROPIC_API_KEY`, and the external API keys. Because env still
-   wins, this deploys with zero behavior change. (Module-level `const KEY =
-   process.env.X` reads must move inside the async handler first.)
+   ARNs + `kms:Decrypt` scoped to SSM (`kms:ViaService`). Leave the build role's
+   SSM/KMS in place for now. **Automated:** `infra/setup-aws.sh` step 6 attaches
+   the inline policy `matt-grant-ssm-runtime-read` to the app's compute role (and
+   tells you how to create one if the app has none yet).
+2. **Wire call sites to `getSecret`.** ✅ **DONE.** All secrets the app's own code
+   reads now resolve via `await getSecret("X")` in their (async) handlers:
+   `CRON_SECRET`, `ANTHROPIC_API_KEY`, `WINRED_WEBHOOK_SECRET`, and `UNSUB_SECRET`
+   (the last via the now-async unsubscribe token chain). `CLERK_*` stay in env (A2);
+   the free public-data API keys are deferred (A1). Because env still wins, this
+   deployed with zero behavior change.
 3. **Stop baking the secrets.** Remove the secret names from the `.env.production`
    materialization loop in `amplify.yml` (keep non-secret config like
    `DYNAMODB_TABLE`, `AWS_REGION`, `NEXT_PUBLIC_*`). Deploy. Now those secrets are

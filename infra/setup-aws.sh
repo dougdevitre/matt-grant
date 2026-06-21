@@ -182,5 +182,50 @@ else
   echo "(skipping staleness canary — set ALERT_EMAIL to enable)"
 fi
 
+# ── 6. Runtime SSM read access (secrets-migration step 1) ─────────────────────────
+# Grant the Amplify SSR *compute* role (NOT the build role) scoped read on the
+# app's SSM parameters + decrypt of SecureStrings, so getSecret() (web/lib/ssm.ts)
+# can fetch secrets at runtime once they stop being baked into the artifact. This
+# is the prerequisite for un-baking amplify.yml (infra/SECRETS-MIGRATION.md step 3).
+#
+# Scoping: ssm:GetParameter(s) limited to /matt-grant/*; kms:Decrypt limited to
+# SSM-issued calls only (kms:ViaService condition) so it cannot decrypt anything
+# else in the account. The build role's SSM/KMS stays in place until after rotation
+# (step 4) — do NOT remove it here.
+say "Runtime SSM read access (compute role)"
+COMPUTE_ROLE_ARN="$(aws amplify get-app --app-id "$AMPLIFY_APP_ID" --region "$REGION" \
+  --query 'app.computeRoleArn' --output text 2>/dev/null || true)"
+if [ -z "$COMPUTE_ROLE_ARN" ] || [ "$COMPUTE_ROLE_ARN" = "None" ]; then
+  echo "  No compute role on app ${AMPLIFY_APP_ID}. Create one and attach it first:"
+  echo "    aws amplify update-app --app-id ${AMPLIFY_APP_ID} --compute-role-arn <roleArn>"
+  echo "  (trust policy principal: amplify.amazonaws.com). Then re-run this step."
+else
+  COMPUTE_ROLE_NAME="${COMPUTE_ROLE_ARN##*/}"
+  echo "  compute role: ${COMPUTE_ROLE_NAME}"
+  aws iam put-role-policy --role-name "$COMPUTE_ROLE_NAME" \
+    --policy-name matt-grant-ssm-runtime-read \
+    --policy-document "$(cat <<JSON
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadMattGrantParams",
+      "Effect": "Allow",
+      "Action": ["ssm:GetParameter", "ssm:GetParameters"],
+      "Resource": "arn:aws:ssm:${REGION}:${ACCT}:parameter/matt-grant/*"
+    },
+    {
+      "Sid": "DecryptViaSsmOnly",
+      "Effect": "Allow",
+      "Action": "kms:Decrypt",
+      "Resource": "*",
+      "Condition": { "StringEquals": { "kms:ViaService": "ssm.${REGION}.amazonaws.com" } }
+    }
+  ]
+}
+JSON
+)" >/dev/null && echo "  inline policy matt-grant-ssm-runtime-read attached"
+fi
+
 say "Done"
 echo "Next: verify a manual run — curl -X POST -H \"Authorization: Bearer \$CRON_SECRET\" ${BASE_URL}/api/cron/email-drain"
