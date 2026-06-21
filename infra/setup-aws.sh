@@ -227,5 +227,78 @@ JSON
 )" >/dev/null && echo "  inline policy matt-grant-ssm-runtime-read attached"
 fi
 
+# ── 7. AWS Backup plan (infra/README.md item #3) ──────────────────────────────────
+# Belt-and-suspenders beyond PITR: PITR gives 35-day continuous restore but is
+# tied to the table's own lifecycle (a table delete takes PITR with it). AWS Backup
+# stores independent daily snapshots in a separate vault with their own retention,
+# surviving an accidental table drop. Daily snapshot of the DynamoDB table, kept
+# 35 days. Idempotent: reuses the role/vault/plan/selection if they already exist.
+say "AWS Backup plan for $TABLE"
+BACKUP_ROLE="matt-grant-backup-role"
+BACKUP_VAULT="matt-grant-backup"
+BACKUP_PLAN_NAME="matt-grant-daily"
+TABLE_ARN="arn:aws:dynamodb:${REGION}:${ACCT}:table/${TABLE}"
+
+# 7a. Service role AWS Backup assumes to snapshot/restore.
+if ! aws iam get-role --role-name "$BACKUP_ROLE" >/dev/null 2>&1; then
+  aws iam create-role --role-name "$BACKUP_ROLE" \
+    --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"backup.amazonaws.com"},"Action":"sts:AssumeRole"}]}' \
+    >/dev/null && echo "  role $BACKUP_ROLE created"
+else
+  echo "  role $BACKUP_ROLE exists"
+fi
+aws iam attach-role-policy --role-name "$BACKUP_ROLE" \
+  --policy-arn arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup >/dev/null
+aws iam attach-role-policy --role-name "$BACKUP_ROLE" \
+  --policy-arn arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForRestores >/dev/null
+BACKUP_ROLE_ARN="arn:aws:iam::${ACCT}:role/${BACKUP_ROLE}"
+
+# 7b. Dedicated vault (separate failure domain from the table).
+if ! aws backup describe-backup-vault --backup-vault-name "$BACKUP_VAULT" --region "$REGION" >/dev/null 2>&1; then
+  aws backup create-backup-vault --backup-vault-name "$BACKUP_VAULT" --region "$REGION" \
+    >/dev/null && echo "  vault $BACKUP_VAULT created"
+else
+  echo "  vault $BACKUP_VAULT exists"
+fi
+
+# 7c. Daily plan, 35-day retention — reuse by name so re-runs don't duplicate.
+PLAN_ID="$(aws backup list-backup-plans --region "$REGION" \
+  --query "BackupPlansList[?BackupPlanName=='${BACKUP_PLAN_NAME}']|[0].BackupPlanId" --output text 2>/dev/null)"
+if [ -z "$PLAN_ID" ] || [ "$PLAN_ID" = "None" ]; then
+  PLAN_ID="$(aws backup create-backup-plan --region "$REGION" --backup-plan "$(cat <<JSON
+{
+  "BackupPlanName": "${BACKUP_PLAN_NAME}",
+  "Rules": [{
+    "RuleName": "daily-35d",
+    "TargetBackupVaultName": "${BACKUP_VAULT}",
+    "ScheduleExpression": "cron(0 6 * * ? *)",
+    "StartWindowMinutes": 60,
+    "CompletionWindowMinutes": 180,
+    "Lifecycle": { "DeleteAfterDays": 35 }
+  }]
+}
+JSON
+)" --query BackupPlanId --output text)" && echo "  plan $BACKUP_PLAN_NAME created ($PLAN_ID)"
+else
+  echo "  plan $BACKUP_PLAN_NAME exists ($PLAN_ID)"
+fi
+
+# 7d. Select the DynamoDB table into the plan (skip if already selected).
+HAS_SEL="$(aws backup list-backup-selections --backup-plan-id "$PLAN_ID" --region "$REGION" \
+  --query "BackupSelectionsList[?SelectionName=='matt-grant-table']|[0].SelectionId" --output text 2>/dev/null)"
+if [ -z "$HAS_SEL" ] || [ "$HAS_SEL" = "None" ]; then
+  aws backup create-backup-selection --backup-plan-id "$PLAN_ID" --region "$REGION" \
+    --backup-selection "$(cat <<JSON
+{
+  "SelectionName": "matt-grant-table",
+  "IamRoleArn": "${BACKUP_ROLE_ARN}",
+  "Resources": ["${TABLE_ARN}"]
+}
+JSON
+)" >/dev/null && echo "  table selected into plan"
+else
+  echo "  table already selected"
+fi
+
 say "Done"
 echo "Next: verify a manual run — curl -X POST -H \"Authorization: Bearer \$CRON_SECRET\" ${BASE_URL}/api/cron/email-drain"

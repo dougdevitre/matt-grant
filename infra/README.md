@@ -28,18 +28,21 @@ It provisions:
 
 These are flagged HIGH in the assessment and need decisions/credentials:
 
-1. **Secrets out of the build artifact.** `amplify.yml` writes decrypted SSM
-   SecureStrings into `.env.production` at build time; with `.next` + build cache
-   as artifacts, plaintext secrets can land in the artifact store/cache. Move to
-   **runtime SSM reads** via the SSR Lambda role (a small `lib/ssm.ts` cached
-   loader — owned by a follow-up), then **rotate** every secret that has lived in
-   a cached build: `CLERK_SECRET_KEY`, `ANTHROPIC_API_KEY`, `CRON_SECRET`,
-   `WINRED_WEBHOOK_SECRET`, `CLERK_WEBHOOK_SIGNING_SECRET`, `UNSUB_SECRET`.
-2. **Scope IAM.** Remove `kms:Decrypt` + `ssm:GetParameter` from the Amplify
-   **build** role; grant them on the specific parameter ARNs to the **runtime**
-   SSR role only.
-3. **AWS Backup plan** (belt-and-suspenders beyond PITR) — add a daily plan +
-   selection for the table once a backup service role exists.
+1. **Secrets out of the build artifact.** ✅ **DONE** (see `SECRETS-MIGRATION.md`).
+   The four app-readable secrets (`CRON_SECRET`, `ANTHROPIC_API_KEY`,
+   `WINRED_WEBHOOK_SECRET`, `UNSUB_SECRET`) now load at runtime from SSM via
+   `web/lib/ssm.ts` `getSecret()` on the compute role and are no longer baked into
+   `.env.production`. Remaining: **rotate** the secrets that lived in a cached build.
+   (`CLERK_SECRET_KEY`/`CLERK_WEBHOOK_SIGNING_SECRET` stay baked — the Clerk SDK
+   reads env directly.)
+2. **Scope IAM.** ✅ **DONE / N/A.** Runtime read is scoped to the compute role
+   (step 6: `ssm:GetParameter` on `/matt-grant/*` + `kms:Decrypt` via SSM only).
+   The app has **no build/service role** (`iamServiceRoleArn` is null), so there is
+   no build-role grant to remove.
+3. **AWS Backup plan** (belt-and-suspenders beyond PITR) — ✅ **scripted** in
+   `setup-aws.sh` step 7: a `matt-grant-backup-role`, a `matt-grant-backup` vault,
+   a daily 35-day plan (`matt-grant-daily`), and a selection of the DynamoDB table.
+   PITR alone dies with the table; these snapshots live in a separate vault.
 4. **S3 / encryption** — confirm the assets bucket has Block Public Access ON +
    CloudFront OAC, and set explicit SSE-KMS on the table if required for PII.
 
