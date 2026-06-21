@@ -26,6 +26,15 @@ export default defineConfig({
           url: `http://127.0.0.1:${PORT}`,
           timeout: 180_000,
           reuseExistingServer: !process.env.CI,
+          // Open the staff dashboard for scanning: force demo mode (Clerk off) so
+          // the middleware takes the open-demo branch. Mirrors CI, where no Clerk
+          // secrets are set. Never used against a deployed URL (that path is gated).
+          env: {
+            ...process.env,
+            ALLOW_OPEN_DASHBOARD: "true",
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "",
+            CLERK_SECRET_KEY: "",
+          },
         },
       }),
 });
