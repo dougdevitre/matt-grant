@@ -300,5 +300,64 @@ else
   echo "  table already selected"
 fi
 
+# ── 8. S3 assets bucket hardening + encryption audit (infra/README.md item #4) ────
+# Enforce the safe, unambiguous controls (Block Public Access, default encryption);
+# AUDIT and report the judgment-call ones (CloudFront OAC, public bucket policy)
+# rather than mutating a live distribution/policy. The bucket should be private and
+# reachable only through CloudFront via Origin Access Control.
+say "S3 assets bucket hardening + encryption audit"
+BUCKET="${S3_ASSETS_BUCKET:-$(aws ssm get-parameter --name /matt-grant/S3_ASSETS_BUCKET \
+  --region "$REGION" --query Parameter.Value --output text 2>/dev/null || true)}"
+if [ -z "$BUCKET" ] || [ "$BUCKET" = "None" ]; then
+  echo "  (no assets bucket resolved — set S3_ASSETS_BUCKET or /matt-grant/S3_ASSETS_BUCKET; skipping)"
+else
+  echo "  bucket: $BUCKET"
+  # 8a. Block Public Access — enforce all four (safe + idempotent). With CloudFront
+  # OAC the bucket never needs to be public.
+  aws s3api put-public-access-block --bucket "$BUCKET" \
+    --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true \
+    >/dev/null && echo "  Block Public Access: ON (all four) ✓"
+  # 8b. Default encryption — ensure at-rest encryption; apply SSE-S3 if none set.
+  if aws s3api get-bucket-encryption --bucket "$BUCKET" >/dev/null 2>&1; then
+    alg=$(aws s3api get-bucket-encryption --bucket "$BUCKET" \
+      --query 'ServerSideEncryptionConfiguration.Rules[0].ApplyServerSideEncryptionByDefault.SSEAlgorithm' --output text)
+    echo "  default encryption: $alg ✓"
+  else
+    aws s3api put-bucket-encryption --bucket "$BUCKET" \
+      --server-side-encryption-configuration '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"},"BucketKeyEnabled":true}]}' \
+      >/dev/null && echo "  default encryption: applied AES256 ✓"
+  fi
+  # 8c. AUDIT-ONLY (no changes): public-policy status + CloudFront OAC pattern.
+  echo "  --- audit (no changes made below) ---"
+  if aws s3api get-bucket-policy-status --bucket "$BUCKET" --query 'PolicyStatus.IsPublic' \
+       --output text 2>/dev/null | grep -qi true; then
+    echo "  WARNING: bucket policy is PUBLIC — make it private and serve via CloudFront OAC"
+  else
+    echo "  bucket policy: not public ✓"
+  fi
+  if aws s3api get-bucket-policy --bucket "$BUCKET" --query Policy --output text 2>/dev/null \
+       | grep -q "cloudfront.amazonaws.com"; then
+    echo "  bucket policy grants the CloudFront service principal (OAC pattern) ✓"
+  else
+    echo "  NOTE: no CloudFront principal in bucket policy — confirm OAC is set on the distribution"
+  fi
+fi
+
+# 8d. DynamoDB encryption-at-rest — report SSE type; optional upgrade to KMS.
+# An empty SSEDescription means the AWS-OWNED key (always-on, but not in your
+# account/CloudTrail). SET_TABLE_KMS=1 upgrades to an AWS-MANAGED KMS key so key
+# usage is auditable — recommended if the table holds PII (donor data).
+say "DynamoDB encryption-at-rest ($TABLE)"
+SSE_TYPE="$(aws dynamodb describe-table --table-name "$TABLE" --region "$REGION" \
+  --query 'Table.SSEDescription.SSEType' --output text 2>/dev/null)"
+echo "  current SSE: ${SSE_TYPE:-AWS_OWNED (default, always-on)}"
+if [ "${SET_TABLE_KMS:-0}" = "1" ] && [ "$SSE_TYPE" != "KMS" ]; then
+  aws dynamodb update-table --table-name "$TABLE" --region "$REGION" \
+    --sse-specification Enabled=true,SSEType=KMS >/dev/null \
+    && echo "  upgrading to SSE-KMS (AWS-managed key) — key usage now in CloudTrail ✓"
+else
+  echo "  (set SET_TABLE_KMS=1 to upgrade to an AWS-managed KMS key for PII/audit)"
+fi
+
 say "Done"
 echo "Next: verify a manual run — curl -X POST -H \"Authorization: Bearer \$CRON_SECRET\" ${BASE_URL}/api/cron/email-drain"
