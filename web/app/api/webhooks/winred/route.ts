@@ -5,6 +5,7 @@ import { recordContribution } from "@/lib/donors";
 import { normalizeWinred } from "@/lib/winred";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { donationThankYou } from "@/lib/email/templates";
+import { getSecret } from "@/lib/ssm";
 
 // WinRed donation webhook: records each contribution to the donor partition and
 // fires a branded thank-you receipt. Secured by a shared secret you configure in
@@ -25,30 +26,45 @@ function secretMatches(provided: string, expected: string): boolean {
   return timingSafeEqual(a, b);
 }
 
-function authorized(req: NextRequest): boolean {
-  const expected = process.env.WINRED_WEBHOOK_SECRET;
-  if (!expected) return false; // refuse to run unconfigured
+type Json = Record<string, unknown>;
+
+// WinRed authenticates by adding a STATIC FIELD to the webhook JSON body (set under
+// the integration's "Donation Webhook Fields" → "Add a static JSON field"), NOT an
+// Authorization header — WinRed's webhook config offers no header/secret field. We
+// verify that `token` field against WINRED_WEBHOOK_SECRET, read via getSecret so the
+// value comes from SSM at runtime (rotating it needs no rebuild). A header fallback
+// (x-winred-token / bearer) is kept so direct/manual test posts still work.
+function pickToken(req: NextRequest, payload: Json): string {
+  if (typeof payload.token === "string" && payload.token) return payload.token;
+  const data = payload.data && typeof payload.data === "object" ? (payload.data as Json) : null;
+  if (data && typeof data.token === "string" && data.token) return data.token;
   const auth = req.headers.get("authorization") ?? "";
   const bearer = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-  const provided = bearer || req.headers.get("x-winred-token") || "";
+  return bearer || req.headers.get("x-winred-token") || "";
+}
+
+async function authorized(req: NextRequest, payload: Json): Promise<boolean> {
+  const expected = await getSecret("WINRED_WEBHOOK_SECRET");
+  if (!expected) return false; // refuse to run unconfigured
+  const provided = pickToken(req, payload);
   return !!provided && secretMatches(provided, expected);
 }
 
-type Json = Record<string, unknown>;
-
 export async function POST(req: NextRequest) {
-  if (!authorized(req)) {
-    return NextResponse.json(
-      { error: "unauthorized (set WINRED_WEBHOOK_SECRET and send it as a bearer token or x-winred-token)" },
-      { status: 401 },
-    );
-  }
-
+  // Parse first: WinRed's secret rides in the JSON body (static field), so we must
+  // read the body before we can authenticate.
   let payload: Json;
   try {
     payload = (await req.json()) as Json;
   } catch {
     return NextResponse.json({ error: "invalid JSON body" }, { status: 400 });
+  }
+
+  if (!(await authorized(req, payload))) {
+    return NextResponse.json(
+      { error: "unauthorized (WinRed must send the configured `token` field matching WINRED_WEBHOOK_SECRET)" },
+      { status: 401 },
+    );
   }
 
   const rec = normalizeWinred(payload);
