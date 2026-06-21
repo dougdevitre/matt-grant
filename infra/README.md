@@ -43,8 +43,13 @@ These are flagged HIGH in the assessment and need decisions/credentials:
    `setup-aws.sh` step 7: a `matt-grant-backup-role`, a `matt-grant-backup` vault,
    a daily 35-day plan (`matt-grant-daily`), and a selection of the DynamoDB table.
    PITR alone dies with the table; these snapshots live in a separate vault.
-4. **S3 / encryption** — confirm the assets bucket has Block Public Access ON +
-   CloudFront OAC, and set explicit SSE-KMS on the table if required for PII.
+4. **S3 / encryption** — ✅ **scripted** in `setup-aws.sh` step 8: enforces Block
+   Public Access (all four) + default bucket encryption on the assets bucket, and
+   **audits** the judgment calls — reports whether the bucket policy is public and
+   whether it follows the CloudFront-OAC pattern (no live distribution/policy is
+   mutated). Step 8d reports the DynamoDB SSE type and, with `SET_TABLE_KMS=1`,
+   upgrades the table to an AWS-managed KMS key so key usage is auditable in
+   CloudTrail (recommended for donor PII).
 
 ## Verifying the schedules fire
 
