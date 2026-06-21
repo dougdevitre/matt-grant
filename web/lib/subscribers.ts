@@ -1,14 +1,26 @@
 import crypto from "node:crypto";
 import { GetCommand, UpdateCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, dbConfigured } from "@/lib/db";
+import { getSecret } from "@/lib/ssm";
 
 // Subscriber list with per-topic preferences + one-click unsubscribe
 // (email-campaign-plan §3/§4). A broadcast is suppressed when the address is
 // globally unsubscribed/bounced/complained, OR opted out of that broadcast's
 // topic. Unsubscribe links are stateless: token = base64url(email).hmac.
 const SUB_PK = "SUBSCRIBER";
-const SECRET = process.env.UNSUB_SECRET || process.env.CRON_SECRET || "dev-unsubscribe-secret-change-me";
 const norm = (e: string) => e.trim().toLowerCase();
+
+// HMAC key for unsubscribe tokens. Resolved at call time via getSecret so it can
+// move out of the baked artifact into runtime SSM (infra/SECRETS-MIGRATION.md).
+// env-first → no behavior change while UNSUB_SECRET is still baked. Falls back to
+// CRON_SECRET (legacy) then a dev-only default, preserving the prior precedence.
+async function unsubSecret(): Promise<string> {
+  return (
+    (await getSecret("UNSUB_SECRET")) ||
+    (await getSecret("CRON_SECRET")) ||
+    "dev-unsubscribe-secret-change-me"
+  );
+}
 
 // Subscriber-facing broadcast topics. A subscriber can opt out of any subset
 // (per-topic) or unsubscribe globally. Keys are stable; labels are shown on the
@@ -25,20 +37,21 @@ const TOPIC_KEYS = new Set<string>(TOPICS.map((t) => t.key));
 export const isTopic = (v: unknown): v is TopicKey => typeof v === "string" && TOPIC_KEYS.has(v);
 
 // ───────────────────────── stateless unsubscribe token ─────────────────────────
-function sign(email: string): string {
-  return crypto.createHmac("sha256", SECRET).update(norm(email)).digest("base64url").slice(0, 24);
+async function sign(email: string): Promise<string> {
+  const secret = await unsubSecret();
+  return crypto.createHmac("sha256", secret).update(norm(email)).digest("base64url").slice(0, 24);
 }
-export function unsubToken(email: string): string {
-  return `${Buffer.from(norm(email)).toString("base64url")}.${sign(email)}`;
+export async function unsubToken(email: string): Promise<string> {
+  return `${Buffer.from(norm(email)).toString("base64url")}.${await sign(email)}`;
 }
-export function unsubscribeUrl(baseUrl: string, email: string): string {
-  return `${baseUrl.replace(/\/$/, "")}/unsubscribe?token=${unsubToken(email)}`;
+export async function unsubscribeUrl(baseUrl: string, email: string): Promise<string> {
+  return `${baseUrl.replace(/\/$/, "")}/unsubscribe?token=${await unsubToken(email)}`;
 }
 // RFC 8058 one-click target for the List-Unsubscribe header (handles POST).
-export function unsubscribeApiUrl(baseUrl: string, email: string): string {
-  return `${baseUrl.replace(/\/$/, "")}/api/unsubscribe?token=${unsubToken(email)}`;
+export async function unsubscribeApiUrl(baseUrl: string, email: string): Promise<string> {
+  return `${baseUrl.replace(/\/$/, "")}/api/unsubscribe?token=${await unsubToken(email)}`;
 }
-export function verifyUnsubToken(token: string): string | null {
+export async function verifyUnsubToken(token: string): Promise<string | null> {
   const [b64, sig] = (token || "").split(".");
   if (!b64 || !sig) return null;
   let email: string;
@@ -47,7 +60,7 @@ export function verifyUnsubToken(token: string): string | null {
   } catch {
     return null;
   }
-  const expected = sign(email);
+  const expected = await sign(email);
   const a = Buffer.from(sig);
   const b = Buffer.from(expected);
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
