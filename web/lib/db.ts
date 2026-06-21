@@ -42,6 +42,7 @@ export const PK = {
   wikiBio: "WIKIBIO", // candidate Wikipedia bio enrichment
   news: "NEWS", // candidate recent-coverage feed (Google News RSS)
   printOrders: "PRINTORDER", // submitted print-order dedupe keys (idempotency)
+  rateLimit: "RATELIMIT", // fixed-window rate-limit counters (auto-expire via TTL)
   stateLeg: (slug: string) => `STATELEG#${slug}`,
   timeline: (slug: string) => `TIMELINE#${slug}`,
   statements: (slug: string) => `STMT#${slug}`,

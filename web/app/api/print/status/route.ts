@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { walgreensEnabled, wgPost } from "@/lib/walgreens";
+import { rateLimit, clientIp } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -7,6 +8,8 @@ export const runtime = "nodejs";
 // Pickup → Sold.
 export async function POST(req: Request) {
   if (!walgreensEnabled) return NextResponse.json({ configured: false, statuses: [] });
+  const rl = await rateLimit(`print:${clientIp(req)}`, { limit: 60, windowSec: 60 });
+  if (!rl.allowed) return NextResponse.json({ error: "Too many requests — please slow down." }, { status: 429 });
   const body = await req.json().catch(() => ({}));
   const orders = body?.orders;
   if (!Array.isArray(orders) || !orders.length) {
