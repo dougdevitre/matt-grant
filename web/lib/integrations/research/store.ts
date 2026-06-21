@@ -72,6 +72,17 @@ export async function getFecDetail(slug: string): Promise<FecDetail | null> {
   return (out.Item as unknown as FecDetail) ?? null;
 }
 
+// Batch variant for the field overview, which renders every candidate at once —
+// one Query instead of N GetItems (mirrors getAllFec).
+export async function getAllFecDetail(): Promise<Record<string, FecDetail>> {
+  const out = await ddb.send(
+    new QueryCommand({ TableName: TABLE, KeyConditionExpression: "PK = :p", ExpressionAttributeValues: { ":p": PK.fecDetail } }),
+  );
+  const map: Record<string, FecDetail> = {};
+  for (const it of (out.Items ?? []) as Array<FecDetail & { SK: string }>) map[it.SK] = it;
+  return map;
+}
+
 // ---- Wikipedia bio (one item per slug) ----
 export async function persistWikiBio(slug: string, bio: WikiBio): Promise<void> {
   await ddb.send(new PutCommand({ TableName: TABLE, Item: { PK: PK.wikiBio, SK: slug, type: "wiki-bio", ...bio, source: "en.wikipedia.org" } }));
@@ -90,6 +101,16 @@ export async function persistNews(slug: string, feed: NewsFeed): Promise<void> {
 export async function getNews(slug: string): Promise<NewsFeed | null> {
   const out = await ddb.send(new GetCommand({ TableName: TABLE, Key: { PK: PK.news, SK: slug } }));
   return (out.Item as unknown as NewsFeed) ?? null;
+}
+
+// Batch variant for the field overview (one Query for all candidates' feeds).
+export async function getAllNews(): Promise<Record<string, NewsFeed>> {
+  const out = await ddb.send(
+    new QueryCommand({ TableName: TABLE, KeyConditionExpression: "PK = :p", ExpressionAttributeValues: { ":p": PK.news } }),
+  );
+  const map: Record<string, NewsFeed> = {};
+  for (const it of (out.Items ?? []) as Array<NewsFeed & { SK: string }>) map[it.SK] = it;
+  return map;
 }
 
 // ---- State legislative record (Open States) ----

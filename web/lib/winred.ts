@@ -31,6 +31,23 @@ export type NormalizedDonation = {
   donatedAt?: string;
 };
 
+// Token extraction for webhook auth. WinRed's webhook config has NO header or
+// signature field — it only lets you add a STATIC FIELD to the JSON body (under
+// "Donation Webhook Fields"). We read that `token` (top-level, or nested under a
+// `data` wrapper); a header fallback (Bearer / x-winred-token) is kept so manual
+// or direct test posts still work. Pure so the route's auth is unit-testable.
+export function extractWinredToken(
+  payload: Json,
+  authorization: string | null,
+  xWinredToken: string | null,
+): string {
+  if (typeof payload.token === "string" && payload.token) return payload.token;
+  const data = payload.data && typeof payload.data === "object" ? (payload.data as Json) : null;
+  if (data && typeof data.token === "string" && data.token) return data.token;
+  const bearer = authorization?.startsWith("Bearer ") ? authorization.slice(7) : "";
+  return bearer || xWinredToken || "";
+}
+
 export function normalizeWinred(payload: Json): NormalizedDonation {
   // Some webhook configs wrap the donation as { data: {...} }.
   const d = (payload.data && typeof payload.data === "object" ? (payload.data as Json) : payload) as Json;

@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { dbConfigured } from "@/lib/db";
 import { recordContribution } from "@/lib/donors";
-import { normalizeWinred } from "@/lib/winred";
+import { normalizeWinred, extractWinredToken } from "@/lib/winred";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { donationThankYou } from "@/lib/email/templates";
 import { getSecret } from "@/lib/ssm";
@@ -34,19 +34,10 @@ type Json = Record<string, unknown>;
 // verify that `token` field against WINRED_WEBHOOK_SECRET, read via getSecret so the
 // value comes from SSM at runtime (rotating it needs no rebuild). A header fallback
 // (x-winred-token / bearer) is kept so direct/manual test posts still work.
-function pickToken(req: NextRequest, payload: Json): string {
-  if (typeof payload.token === "string" && payload.token) return payload.token;
-  const data = payload.data && typeof payload.data === "object" ? (payload.data as Json) : null;
-  if (data && typeof data.token === "string" && data.token) return data.token;
-  const auth = req.headers.get("authorization") ?? "";
-  const bearer = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-  return bearer || req.headers.get("x-winred-token") || "";
-}
-
 async function authorized(req: NextRequest, payload: Json): Promise<boolean> {
   const expected = await getSecret("WINRED_WEBHOOK_SECRET");
   if (!expected) return false; // refuse to run unconfigured
-  const provided = pickToken(req, payload);
+  const provided = extractWinredToken(payload, req.headers.get("authorization"), req.headers.get("x-winred-token"));
   return !!provided && secretMatches(provided, expected);
 }
 
