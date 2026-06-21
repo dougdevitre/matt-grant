@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { walgreensEnabled, wgPost } from "@/lib/walgreens";
+import { rateLimit, clientIp } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 
 // Nearby Walgreens that can fulfill the current cart, with pickup promise times.
 export async function POST(req: Request) {
   if (!walgreensEnabled) return NextResponse.json({ configured: false, photoStores: [] });
+  const rl = await rateLimit(`print:${clientIp(req)}`, { limit: 60, windowSec: 60 });
+  if (!rl.allowed) return NextResponse.json({ error: "Too many requests — please slow down." }, { status: 429 });
   const body = await req.json().catch(() => ({}));
   const { latitude, longitude, productDetails } = body ?? {};
   if (!latitude || !longitude || !Array.isArray(productDetails) || !productDetails.length) {

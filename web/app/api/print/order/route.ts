@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { PutCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { walgreens, walgreensEnabled, wgPost } from "@/lib/walgreens";
 import { ddb, TABLE, PK, dbConfigured } from "@/lib/db";
+import { rateLimit, clientIp } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -20,6 +21,10 @@ export async function POST(req: Request) {
   if (!walgreensEnabled) {
     return NextResponse.json({ error: "Printing is not configured yet." }, { status: 503 });
   }
+  // Its own, tighter budget than the read proxies: this PLACES paid orders, so a
+  // legit user needs only a handful per minute.
+  const rl = await rateLimit(`print-order:${clientIp(req)}`, { limit: 8, windowSec: 60 });
+  if (!rl.allowed) return NextResponse.json({ error: "Too many requests — please slow down." }, { status: 429 });
   const body = await req.json().catch(() => ({}));
   const { firstName, lastName, phone, email, storeNum, promiseTime, productDetails, couponCode, agreedToTerms } = body ?? {};
 

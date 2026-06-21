@@ -62,7 +62,8 @@ export async function POST(req: NextRequest) {
   if (!rec.amount && !rec.email) {
     // Nothing recognizable — accept (200) so WinRed doesn't hammer retries, but
     // flag it so a real schema mismatch is visible in logs.
-    return NextResponse.json({ ok: true, note: "no recognizable donation fields", keys: Object.keys(payload) });
+    // Count only — don't reflect attacker-supplied field names back in the response.
+    return NextResponse.json({ ok: true, note: "no recognizable donation fields", fieldCount: Object.keys(payload).length });
   }
 
   if (!dbConfigured) {
