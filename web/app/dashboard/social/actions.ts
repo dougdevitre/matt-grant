@@ -6,6 +6,7 @@ import { can } from "@/lib/rbac";
 import { createPost, cancelPost, confirmChannelPosted, drainDue } from "@/lib/social/schedule";
 import { toChannelIds, isChannelId, type ChannelId } from "@/lib/social/channels";
 import { footprintScore, type ChannelMetrics, type FootprintReport } from "@/lib/social/optimize";
+import { recordSnapshot } from "@/lib/social/footprint";
 
 export type ActionState = { ok: boolean; message: string };
 
@@ -88,12 +89,9 @@ export async function confirmPostedAction(formData: FormData): Promise<void> {
   revalidatePath("/dashboard/social");
 }
 
-// Profile Optimizer — analyze the per-channel metrics an admin enters and return
-// the awareness/conversion read + footprint index. No write; pure compute.
-export async function analyzeProfileAction(_prev: { report: FootprintReport | null; message: string }, formData: FormData): Promise<{ report: FootprintReport | null; message: string }> {
-  const g = await staffGate();
-  if (!can(g.role, "manageSocial")) return { report: null, message: "Only admins can use the optimizer." };
-
+// Pull per-channel metrics out of the optimizer form. Shared by the analyze and
+// save-snapshot actions so they read the form identically.
+function parseMetrics(formData: FormData): ChannelMetrics[] {
   const num = (ch: string, field: string) => Math.max(0, Number(formData.get(`${ch}_${field}`) ?? 0) || 0);
   const metrics: ChannelMetrics[] = [];
   for (const ch of formData.getAll("metricChannel").map(String)) {
@@ -113,6 +111,26 @@ export async function analyzeProfileAction(_prev: { report: FootprintReport | nu
       conversions30d: num(ch, "conversions30d"),
     });
   }
+  return metrics;
+}
+
+// Profile Optimizer — analyze the per-channel metrics an admin enters and return
+// the awareness/conversion read + footprint index. No write; pure compute.
+export async function analyzeProfileAction(_prev: { report: FootprintReport | null; message: string }, formData: FormData): Promise<{ report: FootprintReport | null; message: string }> {
+  const g = await staffGate();
+  if (!can(g.role, "manageSocial")) return { report: null, message: "Only admins can use the optimizer." };
+  const metrics = parseMetrics(formData);
   if (metrics.length === 0) return { report: null, message: "Enter metrics for at least one channel." };
   return { report: footprintScore(metrics), message: "" };
+}
+
+// Save the current analysis to the footprint history so the index trend is
+// tracked over time. Void action used as a form button's formAction.
+export async function saveFootprintSnapshot(formData: FormData): Promise<void> {
+  const g = await staffGate();
+  if (!can(g.role, "manageSocial")) return;
+  const metrics = parseMetrics(formData);
+  if (metrics.length === 0) return;
+  await recordSnapshot(footprintScore(metrics), g.email ?? "system");
+  revalidatePath("/dashboard/social");
 }

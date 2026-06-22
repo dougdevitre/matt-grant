@@ -66,6 +66,9 @@ Instant-generation triggers. When a user types any of these commands, generate t
 | `/endorsesocial [name]` | Endorsement social media posts |
 | `/gotvsocial` | GOTV social media posts for the final week |
 | `/issuegraphic [issue]` | Social media graphic concept with copy |
+| `/commandcenter` | How to use the admin Social Command Center (`/dashboard/social`): compose once, schedule to every channel, and post now or later. See `messaging/digital-footprint-strategy.md`. |
+| `/optimizeprofile` | Profile Optimizer walkthrough — turn each platform's 30-day analytics into awareness + conversion insights and a footprint dominance index you track over time |
+| `/footprint` | Digital-footprint domination plan — the closed loop between the Command Center (output) and Profile Optimizer (feedback). Loads `messaging/digital-footprint-strategy.md` |
 
 ### Podcast Campaign
 | Command | Output |

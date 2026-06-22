@@ -162,6 +162,16 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
           <Link href="/dashboard/tasks" className="btn-ghost mt-6 w-full">Open the board</Link>
         </div>
       </div>
+
+      {can(role, "manageSocial") && (
+        <div className="card mt-6 flex flex-wrap items-center justify-between gap-3 p-6">
+          <div>
+            <p className="eyebrow text-slate">Social command center · admin</p>
+            <p className="mt-1 text-sm text-ink">Schedule and publish to every channel, and optimize each profile for awareness + conversion.</p>
+          </div>
+          <Link href="/dashboard/social" className="btn-primary">Open command center</Link>
+        </div>
+      )}
     </>
   );
 }

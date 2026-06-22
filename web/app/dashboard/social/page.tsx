@@ -8,6 +8,7 @@ import { CHANNELS, composeText, toChannelIds, type ChannelId } from "@/lib/socia
 import { cancelPostAction, confirmPostedAction } from "@/app/dashboard/social/actions";
 import { SOCIAL_POSTS } from "@/lib/socialPosts";
 import { channelConfigured } from "@/lib/social/publish";
+import { listSnapshots } from "@/lib/social/footprint";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ const when = (iso?: string) =>
 export default async function SocialPage() {
   await requireCap("manageSocial");
 
-  const posts = await listPosts();
+  const [posts, snapshots] = await Promise.all([listPosts(), listSnapshots()]);
   const visible = posts.filter((p) => p.status !== "canceled");
 
   // Map the static 50-post countdown library into composer-ready templates.
@@ -167,7 +168,7 @@ export default async function SocialPage() {
           Enter each platform&apos;s last-30-day analytics to see where you&apos;re winning attention vs. losing it, how each channel converts, and the
           single highest-leverage move per channel — plus a combined footprint score to track domination over time.
         </p>
-        <SocialProfileOptimizer />
+        <SocialProfileOptimizer history={snapshots} />
       </section>
     </>
   );

@@ -43,15 +43,38 @@ export async function channelConfigured(channel: ChannelId): Promise<boolean> {
   }
 }
 
-// Per-channel API senders. These are intentionally thin: each reads its token and
-// POSTs the platform's publish endpoint. They are only reached when a token is
-// present, so the default deployment never calls them. Wire real endpoints here
-// as each platform's app/credentials are approved for the committee.
-async function apiPublish(channel: ChannelId, _post: PublishablePost, _token: string): Promise<PublishResult> {
-  // NOTE: real endpoint wiring lands per-platform as credentials are approved.
-  // Until an adapter is implemented we fail loudly rather than silently dropping
-  // a post the admin believes went out via API.
-  return { ok: false, mode: "api", error: `Auto-publish for ${channel} is not implemented yet — post manually or remove its token.` };
+// Per-channel API senders. These are only reached when a token is present, so the
+// default deployment never calls them. X is the reference adapter (a real X API v2
+// call); the others fail loudly until wired so a post the admin believes went out
+// via API is never silently dropped.
+async function apiPublish(channel: ChannelId, post: PublishablePost, token: string): Promise<PublishResult> {
+  if (channel === "x") return publishToX(post, token);
+  return { ok: false, mode: "api", error: `Auto-publish for ${channel} is not implemented yet — post manually or remove its ${TOKEN_ENV[channel]}.` };
+}
+
+// Reference adapter: post text to X via API v2 (POST /2/tweets with an OAuth2
+// user-context Bearer token that has tweet.write scope). Media upload is a
+// separate, OAuth1.0a/v2-media flow not wired here — if the post has an image,
+// the link/caption still goes out and the admin attaches media in-app. Keeping
+// the contract honest: a non-2xx response surfaces as a failure, not a silent OK.
+async function publishToX(post: PublishablePost, token: string): Promise<PublishResult> {
+  const text = copyText(post);
+  let res: Response;
+  try {
+    res = await fetch("https://api.twitter.com/2/tweets", {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+  } catch (err) {
+    return { ok: false, mode: "api", error: err instanceof Error ? err.message : "network error reaching X" };
+  }
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    return { ok: false, mode: "api", error: `X API ${res.status}${detail ? `: ${detail.slice(0, 200)}` : ""}` };
+  }
+  const body = (await res.json().catch(() => null)) as { data?: { id?: string } } | null;
+  return { ok: true, mode: "api", externalId: body?.data?.id };
 }
 
 /**

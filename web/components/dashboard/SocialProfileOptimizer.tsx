@@ -1,9 +1,10 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { analyzeProfileAction } from "@/app/dashboard/social/actions";
+import { analyzeProfileAction, saveFootprintSnapshot } from "@/app/dashboard/social/actions";
 import { CHANNELS, CHANNEL_IDS, type ChannelId } from "@/lib/social/channels";
 import type { FootprintReport } from "@/lib/social/optimize";
+import type { FootprintSnapshot } from "@/lib/social/footprint";
 
 const FIELDS: { key: string; label: string }[] = [
   { key: "followers", label: "Followers" },
@@ -17,7 +18,7 @@ const FIELDS: { key: string; label: string }[] = [
 
 const priColor = { high: "text-brick", medium: "text-[#9a6f1a]", low: "text-slate" } as const;
 
-export function SocialProfileOptimizer() {
+export function SocialProfileOptimizer({ history = [] }: { history?: FootprintSnapshot[] }) {
   const [state, action, pending] = useActionState<{ report: FootprintReport | null; message: string }, FormData>(analyzeProfileAction, { report: null, message: "" });
   const [active, setActive] = useState<ChannelId[]>(["x", "facebook", "instagram"]);
   const input = "w-24 rounded-sm border border-line bg-white px-2 py-1 text-sm text-ink focus:border-field";
@@ -73,6 +74,24 @@ export function SocialProfileOptimizer() {
         {state.message && <p className="mt-3 text-sm text-brick">{state.message}</p>}
       </div>
 
+      {history.length > 1 && (
+        <div className="card p-5">
+          <div className="flex items-center justify-between">
+            <p className="eyebrow text-slate">Footprint index — trend</p>
+            <span className="font-mono text-[0.6rem] text-slate">last {history.length} snapshots</span>
+          </div>
+          <div className="mt-4 flex items-end gap-1.5" style={{ height: 96 }}>
+            {[...history].reverse().map((s, i) => (
+              <div key={i} className="group relative flex flex-1 flex-col items-center justify-end" title={`${s.index}/100 · ${new Date(s.at).toLocaleDateString()}`}>
+                <div className="w-full rounded-t-sm bg-gradient-to-t from-field to-gold" style={{ height: `${Math.max(3, s.index)}%` }} />
+                <span className="mt-1 font-mono text-[0.55rem] text-slate">{s.index}</span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-2 font-mono text-[0.6rem] text-slate">Oldest → newest. The trend line is the real measure of footprint domination.</p>
+        </div>
+      )}
+
       {report && (
         <>
           <div className="card p-6">
@@ -90,6 +109,9 @@ export function SocialProfileOptimizer() {
             <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-line">
               <div className="h-full rounded-full bg-gradient-to-r from-field to-gold" style={{ width: `${report.index}%` }} />
             </div>
+            <button type="submit" formAction={saveFootprintSnapshot} className="mt-3 rounded-sm border border-line bg-white px-3 py-1.5 text-xs font-semibold text-ink hover:border-ink">
+              Save snapshot to track the trend
+            </button>
             {report.missingChannels.length > 0 && (
               <p className="mt-3 text-xs text-slate">
                 Presence gaps — no data yet on: <span className="text-ink">{report.missingChannels.map((c) => CHANNELS[c].label).join(", ")}</span>. Each unclaimed channel caps the index.
