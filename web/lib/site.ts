@@ -62,7 +62,7 @@ export const BRAND_DOWNLOADS = [
   { file: "brand/logo-blue.png", label: "Logo (navy)" },
   { file: "brand/logo-red.png", label: "Logo (red)" },
   { file: "brand/headshot.png", label: "Matt's headshot" },
-  { file: "marketing/infographic.png", label: "The Four Fights — infographic" },
+  { file: "marketing/infographic.png", label: "The Four Priorities — infographic" },
   { file: "marketing/banner-standard-of-service.png", label: "A New Standard of Service — banner" },
   { file: "marketing/grant-campaign-engine.pdf", label: "Campaign overview deck (PDF)" },
   { file: "marketing/child-protection-act-brief.pdf", label: "CHILD Protection Act — one-pager (PDF)" },

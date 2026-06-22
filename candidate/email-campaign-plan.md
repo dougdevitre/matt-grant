@@ -22,7 +22,7 @@ volunteer welcome · donation thank-you/receipt · contact-form receipt · event
 sign-in/security (handled by Clerk) · petition/pledge confirmation.
 
 **Broadcast (1:many — requires consent + unsubscribe):**
-issue spotlights (the four fights) · GOTV series (D-30 → D-1) · fundraising appeals · event invites ·
+issue spotlights (the four priorities) · GOTV series (D-30 → D-1) · fundraising appeals · event invites ·
 press/news roundups · endorsement announcements · volunteer mobilization.
 
 ## 2. Delivery — AWS SES (AWS-native)
