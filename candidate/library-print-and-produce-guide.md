@@ -61,7 +61,7 @@ branded and already carrying the required disclaimer. Match the asset to the lib
 | **Palm cards / flyers** (the 16 marketing flyers) | Mobile print, color or B&W | Door-to-door, events, leave-behinds, community boards |
 | **Yard / window sign** (print kit) | Large-format on **adhesive vinyl** or cardstock | Your home window, car window, supporter yards (with permission) |
 | **"A New Standard of Service" banner** | Large-format on **Tyvek banner** | Booths, rallies, farmers markets, parades |
-| **"Four Fights" infographic** | Glossy or photo paper poster | Community boards, coffee-hour tables, group meetings |
+| **"Four Priorities" infographic** | Glossy or photo paper poster | Community boards, coffee-hour tables, group meetings |
 | **Mailer** (print kit) | Color mobile print | Hand-delivery to neighbors, packets |
 | **Social squares / stories** (1080×1080 / 1080×1920) | Color photo paper | Printed handbills, bulletin-board minis |
 | **Logo / icons** | Cricut vinyl or T-shirt press | Stickers, T-shirts, totes, magnets |
@@ -183,7 +183,7 @@ campaign. Follow these rules.
   Committee."** line. It's legally required on public campaign materials.
 - **Get permission before posting.** Put yard and window signs only on **private property with the
   owner's OK** — your own home, or a supporter's, with their consent. Ask first, every time.
-- **Be honest.** Share only Matt's published platform (the *Four Fights* and the proposed CHILD
+- **Be honest.** Share only Matt's published platform (the *Four Priorities* and the proposed CHILD
   Protection Act). Don't alter the art, add claims, invent quotes or numbers, or attack the opponent.
 - **Be a good neighbor.** Take signs down promptly after the election, don't litter, and follow each
   library's facility rules when you print or produce on-site.

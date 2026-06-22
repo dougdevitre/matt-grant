@@ -17,7 +17,7 @@ GitHub account. The goal is a single pipeline: **a public data source or repo �
 ```mermaid
 flowchart LR
     S["SOURCES\nAPIs · public datasets · repos"] --> Y["SYNTHESIS\njoin · verify · label"]
-    Y --> I["ISSUE\none of the Four Fights"]
+    Y --> I["ISSUE\none of the Four Priorities"]
     I --> A["ACTION\nmessage · target · contact · raise"]
     A --> V(["VOTE\nAug 4, 2026"])
 ```
@@ -53,14 +53,14 @@ family-court corruption** and the **CHILD Protection Act (Corruption Hiding Insi
 They are nonpartisan tools; here they are read as *infrastructure that can organize and present
 already-public information* behind the reform argument.
 
-| Repository | What it is (per its GitHub description) | Role in the family-court fight |
+| Repository | What it is (per its GitHub description) | Role in the family-court work |
 |---|---|---|
 | `justice-analytics` | Bias-detection engine + case-outcome analytics, disparity dashboards | Turn **public** court-system data into disparity visuals that illustrate *why* reform is needed |
 | `justice-score-engine` | Access-to-justice scoring / measurement | A repeatable "how fair is the system" metric to frame the problem |
 | `justice-knowledge-graph` | Connects laws, cases, people, processes (open legal data) | Link the CHILD Act's Title IV-D lever to the statutes/processes it touches |
 | `evidence-timeline` | Turns notes into court-neutral chronologies | Constituent-story intake that is structured and court-neutral |
 | `vetted-legal-ai` / `vetted-legal-ai-engine` | RAG with citation validation + audit logs | Keep every public claim **cited and verifiable** — directly serves our "no invented facts" rule |
-| `court-doc-engine` / `pro-se-toolkit` / `justice-navigator` | Guided forms, self-rep toolkits, journey maps | "Help while we fight for reform" — constituent-service value, not a policy claim |
+| `court-doc-engine` / `pro-se-toolkit` / `justice-navigator` | Guided forms, self-rep toolkits, journey maps | "Help while we work for reform" — constituent-service value, not a policy claim |
 | `legal-resource-discovery` | Geo-based legal-aid resource finder | A genuinely useful constituent resource to offer MO-02 families |
 | `get-elected` | The upstream nonpartisan campaign skill (this repo) | The operating system for everything in `messaging/`, `tactics/`, `workflows/` |
 
