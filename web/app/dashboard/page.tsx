@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getOverview } from "@/lib/queries";
 import { listStaff } from "@/lib/staff";
 import { dollars } from "@/lib/money";
+import { staffGate } from "@/lib/auth";
+import { can } from "@/lib/rbac";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 
@@ -19,6 +22,15 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
 }
 
 export default async function OverviewPage({ searchParams }: { searchParams: Promise<{ denied?: string }> }) {
+  // The overview shows finance/donor totals, so it must gate viewOverview itself —
+  // not rely on the sidebar hiding the link. A partner (Peace Room only) has no
+  // viewOverview, so send them to their one allowed surface instead of leaking
+  // totals or bouncing them into a denied-redirect loop.
+  const { role } = await staffGate();
+  if (!can(role, "viewOverview")) {
+    redirect(can(role, "viewPeaceRoom") ? "/dashboard/peace-room" : "/sign-in");
+  }
+
   const { denied } = await searchParams;
   const o = await getOverview();
 

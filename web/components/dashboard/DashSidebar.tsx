@@ -7,6 +7,7 @@ import { can, type Capability, type Role } from "@/lib/rbac";
 
 const ITEMS: { href: string; label: string; icon: string; cap: Capability }[] = [
   { href: "/dashboard", label: "Overview", icon: "overview", cap: "viewOverview" },
+  { href: "/dashboard/peace-room", label: "Peace Room", icon: "plan", cap: "viewPeaceRoom" },
   { href: "/dashboard/donors", label: "Donors", icon: "donors", cap: "viewFinanceTotals" },
   { href: "/dashboard/finance", label: "Finance", icon: "finance", cap: "viewFinanceTotals" },
   { href: "/dashboard/compliance", label: "Compliance", icon: "compliance", cap: "viewCompliance" },
