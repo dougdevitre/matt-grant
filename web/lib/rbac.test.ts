@@ -64,7 +64,7 @@ const GRANTS: Record<Role, Capability[]> = {
     ...PEACE_CAPS,
     "viewCommunity",
   ],
-  supporter: ["viewCommunity"],
+  supporter: ["viewCommunity", "viewPeaceRoom"],
   partner: [...PEACE_CAPS],
 };
 
@@ -119,19 +119,21 @@ describe("rbac capability matrix", () => {
   });
 
   // HARD WALL: a supporter (any self-signup from the public) may touch ONLY the
-  // community hub — never donors, finance, compliance, research, the dashboard
-  // tools, the plan, or team management. Opening public signup at launch makes
-  // this the most-exercised wall in the app; if it fails, the public can see
-  // private campaign data. Do not weaken it.
-  it("supporter can reach ONLY the community hub — nothing private or staff", () => {
-    expect(can("supporter", "viewCommunity")).toBe(true);
-    const offLimits = ALL_CAPS.filter((c) => c !== "viewCommunity");
+  // community hub + the shared Peace Room board — both render the same public-safe
+  // case-for-change content and NOTHING private (never donors, finance, compliance,
+  // research, the dashboard tools, the plan, or team management). Opening public
+  // signup at launch makes this the most-exercised wall in the app; if it fails,
+  // the public can see private campaign data. Do not weaken it.
+  const SUPPORTER_CAPS: Capability[] = ["viewCommunity", "viewPeaceRoom"];
+  it("supporter can reach ONLY the community hub + shared Peace Room — nothing private or staff", () => {
+    for (const cap of SUPPORTER_CAPS) expect(can("supporter", cap)).toBe(true);
+    const offLimits = ALL_CAPS.filter((c) => !SUPPORTER_CAPS.includes(c));
     for (const cap of offLimits) {
       expect(can("supporter", cap), `supporter must NOT have ${cap}`).toBe(false);
     }
-    // a supporter is not even in the staff dashboard surfaces
+    // a supporter is not in any private staff dashboard surface
     expect(can("supporter", "viewOverview")).toBe(false);
-    expect(can("supporter", "viewPeaceRoom")).toBe(false);
+    expect(can("supporter", "contributePeaceRoom")).toBe(false); // view the board, not edit it
     expect(can("supporter", "viewDonorDetail")).toBe(false);
     expect(can("supporter", "viewFinanceTotals")).toBe(false);
     expect(can("supporter", "manageTeam")).toBe(false);
