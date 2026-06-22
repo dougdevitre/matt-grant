@@ -167,7 +167,7 @@ export default function HomePage() {
             <p className="eyebrow text-goldlight">Campaign HQ · by invitation</p>
             <h2 className="mt-3 text-4xl font-semibold sm:text-5xl">Where the team works together.</h2>
             <p className="mt-4 text-lg text-paper/80">
-              Sign in to the Peace Room — the campaign's collaborative hub, where the team and coalition
+              Sign in to the Peace Room — the campaign&apos;s collaborative hub, where the team and coalition
               partners run fundraising, field, volunteers, and strategy to restore public trust in MO-02.
             </p>
           </div>
