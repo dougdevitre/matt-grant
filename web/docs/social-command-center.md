@@ -26,7 +26,7 @@ Caption limits, hashtag norms, and image specs live in `CHANNELS`. Highlights:
 
 | Channel | Max chars | Feed truncates at | Rec. hashtags | API auto-publish |
 |---|---|---|---|---|
-| X (Twitter) | 280 | 280 | 1–2 | ✅ implemented (text/link) |
+| X (Twitter) | 280 | 280 | 1–2 | ✅ implemented (text + image) |
 | Facebook | 5,000 | 250 | 0–2 | ✅ implemented (text + photo) |
 | Instagram | 2,200 | 125 | 3–5 (max 30) | ✅ implemented (image required) |
 | LinkedIn | 3,000 | 210 | 3–5 | manual (stub) |
@@ -49,7 +49,7 @@ Store each in SSM at `/matt-grant/<NAME>` (SecureString). A channel auto-publish
 
 | Channel | Secrets | Notes |
 |---|---|---|
-| X | `X_ACCESS_TOKEN` | OAuth2 user-context token with `tweet.write`. Posts text/link (media upload is a follow-up). |
+| X | `X_ACCESS_TOKEN` | OAuth2 user-context token with `tweet.write` (+ `media.write` for images). Posts text/link and uploads an attached image via the v2 media endpoint. |
 | Facebook | `FACEBOOK_PAGE_TOKEN`, `FACEBOOK_PAGE_ID` | Page token with `pages_manage_posts`. Photo post when media attached, else feed post. |
 | Instagram | `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_USER_ID` | IG business/creator account id; token with `instagram_content_publish`. **Image required** (no text-only IG posts). |
 | LinkedIn / TikTok / YouTube / Threads | `<PLATFORM>_ACCESS_TOKEN` | Adapter not implemented yet — stages manually until wired in `apiPublish()`. |

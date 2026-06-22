@@ -129,19 +129,63 @@ async function publishToInstagram(post: PublishablePost, token: string): Promise
   return published.ok ? { ok: true, mode: "api", externalId: published.id } : { ok: false, mode: "api", error: published.error };
 }
 
-// Reference adapter: post text to X via API v2 (POST /2/tweets with an OAuth2
-// user-context Bearer token that has tweet.write scope). Media upload is a
-// separate, OAuth1.0a/v2-media flow not wired here — if the post has an image,
-// the link/caption still goes out and the admin attaches media in-app. Keeping
-// the contract honest: a non-2xx response surfaces as a failure, not a silent OK.
+// Upload an image to X and return its media id, for attaching to a tweet. Targets
+// the X API v2 media upload endpoint with the same OAuth2 user-context Bearer.
+// Defensive id parsing (data.id / media_id_string / id) since the field has
+// shifted across X API versions — verify against live creds before relying on it.
+async function uploadXMedia(mediaUrl: string, token: string): Promise<{ ok: true; mediaId: string } | { ok: false; error: string }> {
+  let imgRes: Response;
+  try {
+    imgRes = await fetch(mediaUrl);
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "could not fetch the image" };
+  }
+  if (!imgRes.ok) return { ok: false, error: `could not fetch image (${imgRes.status})` };
+  const bytes = await imgRes.arrayBuffer();
+  const contentType = imgRes.headers.get("content-type") || "image/png";
+
+  const form = new FormData();
+  form.append("media", new Blob([bytes], { type: contentType }), "image");
+  form.append("media_category", "tweet_image");
+  let res: Response;
+  try {
+    res = await fetch("https://api.x.com/2/media/upload", { method: "POST", headers: { authorization: `Bearer ${token}` }, body: form });
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "network error reaching X media upload" };
+  }
+  const text = await res.text().catch(() => "");
+  if (!res.ok) return { ok: false, error: `X media ${res.status}${text ? `: ${text.slice(0, 160)}` : ""}` };
+  let body: { data?: { id?: string }; media_id_string?: string; id?: string } | null = null;
+  try {
+    body = JSON.parse(text);
+  } catch {
+    /* fall through to the no-id error */
+  }
+  const id = body?.data?.id ?? body?.media_id_string ?? body?.id;
+  return id ? { ok: true, mediaId: String(id) } : { ok: false, error: "X media upload returned no media id" };
+}
+
+// Reference adapter: post to X via API v2 (POST /2/tweets with an OAuth2
+// user-context Bearer token that has tweet.write scope). When the post has an
+// image, it's uploaded first and attached via media_ids; a media failure surfaces
+// as a post failure (never a silent text-only fallback). A non-2xx tweet response
+// likewise surfaces as a failure, not a silent OK.
 async function publishToX(post: PublishablePost, token: string): Promise<PublishResult> {
   const text = copyText(post);
+  let mediaIds: string[] | undefined;
+  const media = absoluteMediaUrl(post.mediaUrl);
+  if (media) {
+    const up = await uploadXMedia(media, token);
+    if (!up.ok) return { ok: false, mode: "api", error: up.error };
+    mediaIds = [up.mediaId];
+  }
+
   let res: Response;
   try {
     res = await fetch("https://api.twitter.com/2/tweets", {
       method: "POST",
       headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, ...(mediaIds ? { media: { media_ids: mediaIds } } : {}) }),
     });
   } catch (err) {
     return { ok: false, mode: "api", error: err instanceof Error ? err.message : "network error reaching X" };

@@ -12,6 +12,62 @@ function res(status: number, body: unknown): Response {
   return { ok: status >= 200 && status < 300, status, text: async () => text, json: async () => JSON.parse(text) } as unknown as Response;
 }
 
+// An image-bytes response (for the media-fetch step of X uploads).
+function imgRes(): Response {
+  return {
+    ok: true,
+    status: 200,
+    headers: { get: () => "image/png" },
+    arrayBuffer: async () => new ArrayBuffer(8),
+  } as unknown as Response;
+}
+
+describe("X publisher (API v2)", () => {
+  beforeEach(() => {
+    process.env.X_ACCESS_TOKEN = "tkn";
+    _clearSecretCache();
+  });
+  afterEach(() => {
+    delete process.env.X_ACCESS_TOKEN;
+    vi.restoreAllMocks();
+  });
+
+  it("posts text only with no media (single call to /2/tweets)", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(res(201, { data: { id: "tw_1" } }));
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await publishToChannel("x", { caption: "Vote Aug 4", hashtags: ["#MO02"] });
+    expect(r).toMatchObject({ ok: true, mode: "api", externalId: "tw_1" });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0]).toContain("/2/tweets");
+  });
+
+  it("uploads media then attaches media_ids to the tweet", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(imgRes()) // fetch image bytes
+      .mockResolvedValueOnce(res(200, { data: { id: "media_9" } })) // X media upload
+      .mockResolvedValueOnce(res(201, { data: { id: "tw_2" } })); // create tweet
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await publishToChannel("x", { caption: "Hi", hashtags: [], mediaUrl: "https://cdn.example.com/x.png" });
+    expect(r).toMatchObject({ ok: true, externalId: "tw_2" });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock.mock.calls[1][0]).toContain("/2/media/upload");
+    const tweetBody = String((fetchMock.mock.calls[2][1] as RequestInit).body);
+    expect(tweetBody).toContain("media_9");
+  });
+
+  it("fails the post (no silent text-only) when media upload errors", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(imgRes())
+      .mockResolvedValueOnce(res(400, { title: "bad media" }));
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await publishToChannel("x", { caption: "Hi", hashtags: [], mediaUrl: "https://cdn.example.com/x.png" });
+    expect(r.ok).toBe(false);
+    expect(fetchMock).toHaveBeenCalledTimes(2); // never reached /2/tweets
+  });
+});
+
 describe("Facebook publisher (Meta Graph)", () => {
   beforeEach(() => {
     process.env.FACEBOOK_PAGE_TOKEN = "tkn";
