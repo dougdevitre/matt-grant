@@ -68,21 +68,13 @@ export async function POST(req: NextRequest) {
   }
 
   // Welcome new public supporters. Staff/partner invitees already get their own
-  // invite email, so only the self-signup "supporter" floor is welcomed here.
-  // Best-effort: a mail hiccup must never fail the webhook (Clerk would retry).
+  // invite email, so only the self-signup "supporter" floor is welcomed here. The
+  // send is idempotent (welcomedAt flag) and also runs on first /community visit,
+  // so a missed/failed webhook send still gets the user welcomed.
   let welcomed = false;
   if (role === "supporter") {
-    try {
-      const { sesEnabled, sendEmail } = await import("@/lib/email/send");
-      if (sesEnabled) {
-        const { supporterWelcome } = await import("@/lib/email/templates");
-        const tpl = supporterWelcome((data.first_name || "there").trim() || "there");
-        const res = await sendEmail({ to: email, subject: tpl.subject, html: tpl.html, text: tpl.text });
-        welcomed = res.sent;
-      }
-    } catch {
-      /* welcome email is non-critical */
-    }
+    const { ensureWelcomed } = await import("@/lib/welcome");
+    welcomed = await ensureWelcomed({ userId, email, firstName: data.first_name });
   }
 
   return NextResponse.json({ ok: true, email, role, welcomed });
