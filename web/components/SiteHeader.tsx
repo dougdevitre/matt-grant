@@ -4,9 +4,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { CAMPAIGN, NAV } from "@/lib/site";
 
-export function SiteHeader() {
+// clerkEnabled is passed from the (server) layout: the Clerk account controls
+// only render when ClerkProvider is mounted (it isn't in keyless demo mode).
+export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -42,7 +45,22 @@ export function SiteHeader() {
           })}
         </nav>
 
-        <div className="hidden lg:block">
+        <div className="hidden items-center gap-4 lg:flex">
+          {clerkEnabled && (
+            <>
+              <SignedOut>
+                <Link href="/sign-in" className="text-sm font-semibold text-slate transition-colors hover:text-ink">
+                  Sign in
+                </Link>
+              </SignedOut>
+              <SignedIn>
+                <Link href="/community" className="text-sm font-semibold text-slate transition-colors hover:text-ink">
+                  My community
+                </Link>
+                <UserButton afterSignOutUrl="/" />
+              </SignedIn>
+            </>
+          )}
           <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
             Donate
           </a>
@@ -71,6 +89,23 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
+            {clerkEnabled && (
+              <>
+                <SignedOut>
+                  <Link href="/sign-in" onClick={() => setOpen(false)} className="border-b border-line/60 py-3 text-sm font-semibold text-ink">
+                    Sign in
+                  </Link>
+                </SignedOut>
+                <SignedIn>
+                  <Link href="/community" onClick={() => setOpen(false)} className="border-b border-line/60 py-3 text-sm font-semibold text-ink">
+                    My community
+                  </Link>
+                  <div className="flex items-center gap-2 py-3 text-sm font-semibold text-ink">
+                    <UserButton afterSignOutUrl="/" /> Account &amp; sign out
+                  </div>
+                </SignedIn>
+              </>
+            )}
             <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary mt-4">
               Donate
             </a>
