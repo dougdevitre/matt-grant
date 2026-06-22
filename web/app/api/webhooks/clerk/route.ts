@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
 
   const data = evt.data as {
     id?: string;
+    first_name?: string | null;
     email_addresses?: { id: string; email_address: string }[];
     primary_email_address_id?: string;
   };
@@ -66,5 +67,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "failed to set role" }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, email, role });
+  // Welcome new public supporters. Staff/partner invitees already get their own
+  // invite email, so only the self-signup "supporter" floor is welcomed here.
+  // Best-effort: a mail hiccup must never fail the webhook (Clerk would retry).
+  let welcomed = false;
+  if (role === "supporter") {
+    try {
+      const { sesEnabled, sendEmail } = await import("@/lib/email/send");
+      if (sesEnabled) {
+        const { supporterWelcome } = await import("@/lib/email/templates");
+        const tpl = supporterWelcome((data.first_name || "there").trim() || "there");
+        const res = await sendEmail({ to: email, subject: tpl.subject, html: tpl.html, text: tpl.text });
+        welcomed = res.sent;
+      }
+    } catch {
+      /* welcome email is non-critical */
+    }
+  }
+
+  return NextResponse.json({ ok: true, email, role, welcomed });
 }
