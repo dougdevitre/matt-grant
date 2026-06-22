@@ -89,7 +89,7 @@ export const CHANNELS: Record<ChannelId, ChannelSpec> = {
     imageFormat: "web_banner",
     imageSpec: { w: 1200, h: 627 },
     bestTimesCt: ["7:30 AM", "12:00 PM", "5:30 PM"],
-    apiPublish: false,
+    apiPublish: true,
     color: "#0A66C2",
   },
   tiktok: {

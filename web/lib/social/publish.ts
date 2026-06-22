@@ -37,7 +37,7 @@ const CHANNEL_CONFIG: Record<ChannelId, ChannelConfig> = {
   x: { token: "X_ACCESS_TOKEN" },
   facebook: { token: "FACEBOOK_PAGE_TOKEN", id: "FACEBOOK_PAGE_ID" },
   instagram: { token: "INSTAGRAM_ACCESS_TOKEN", id: "INSTAGRAM_USER_ID" },
-  linkedin: { token: "LINKEDIN_ACCESS_TOKEN" },
+  linkedin: { token: "LINKEDIN_ACCESS_TOKEN", id: "LINKEDIN_AUTHOR_URN" },
   tiktok: { token: "TIKTOK_ACCESS_TOKEN" },
   youtube: { token: "YOUTUBE_ACCESS_TOKEN" },
   threads: { token: "THREADS_ACCESS_TOKEN" },
@@ -72,6 +72,7 @@ async function apiPublish(channel: ChannelId, post: PublishablePost, token: stri
   if (channel === "x") return publishToX(post, token);
   if (channel === "facebook") return publishToFacebook(post, token);
   if (channel === "instagram") return publishToInstagram(post, token);
+  if (channel === "linkedin") return publishToLinkedIn(post, token);
   return { ok: false, mode: "api", error: `Auto-publish for ${channel} is not implemented yet — post manually or remove its ${CHANNEL_CONFIG[channel].token}.` };
 }
 
@@ -93,6 +94,40 @@ async function metaPost(url: string, params: Record<string, string>): Promise<{ 
     /* non-JSON 2xx — treat as success without an id */
   }
   return { ok: true, id: body?.id ?? body?.post_id };
+}
+
+// LinkedIn. Posts a UGC share as the configured author (org or person URN) via
+// /v2/ugcPosts. Text-only (link rides in the commentary text); image sharing is a
+// separate register-upload flow left as a follow-up. Needs LINKEDIN_AUTHOR_URN
+// (e.g. urn:li:organization:123) + a token with w_organization_social/w_member_social.
+async function publishToLinkedIn(post: PublishablePost, token: string): Promise<PublishResult> {
+  const author = await getSecret("LINKEDIN_AUTHOR_URN");
+  if (!author) return { ok: false, mode: "api", error: "LINKEDIN_AUTHOR_URN is not set." };
+  const payload = {
+    author,
+    lifecycleState: "PUBLISHED",
+    specificContent: { "com.linkedin.ugc.ShareContent": { shareCommentary: { text: copyText(post) }, shareMediaCategory: "NONE" } },
+    visibility: { "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC" },
+  };
+  let res: Response;
+  try {
+    res = await fetch("https://api.linkedin.com/v2/ugcPosts", {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json", "x-restli-protocol-version": "2.0.0" },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    return { ok: false, mode: "api", error: err instanceof Error ? err.message : "network error reaching LinkedIn" };
+  }
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    return { ok: false, mode: "api", error: `LinkedIn API ${res.status}${detail ? `: ${detail.slice(0, 160)}` : ""}` };
+  }
+  // The created share id comes back in the x-restli-id header (or the body).
+  const headerId = res.headers.get("x-restli-id");
+  if (headerId) return { ok: true, mode: "api", externalId: headerId };
+  const body = (await res.json().catch(() => null)) as { id?: string } | null;
+  return { ok: true, mode: "api", externalId: body?.id };
 }
 
 // Facebook Page. With an image → POST {page}/photos (url + caption); text-only →
@@ -261,6 +296,10 @@ export async function verifyChannel(channel: ChannelId): Promise<ChannelStatus> 
     const igUserId = await getSecret("INSTAGRAM_USER_ID");
     const r = await metaGet(`${META_GRAPH}/${igUserId}?fields=username&access_token=${encodeURIComponent(token)}`, "username");
     return r.ok ? { channel, mode: "api", ok: true, detail: `Connected to @${r.value}.` } : { channel, mode: "api", ok: false, detail: r.error };
+  }
+  if (channel === "linkedin") {
+    const author = await getSecret("LINKEDIN_AUTHOR_URN");
+    return { channel, mode: "api", ok: true, detail: `Configured — posting as ${author}.` };
   }
   if (channel === "x") {
     try {

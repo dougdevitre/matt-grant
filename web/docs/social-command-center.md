@@ -15,6 +15,7 @@ Admin-only via the RBAC capability `manageSocial` (`lib/rbac.ts`). Captains, mem
 | `lib/social/channels.ts` | Per-channel schema — char limits, hashtag norms, image specs, best-time windows. One source of truth the composer and optimizer both read. |
 | `lib/social/optimize.ts` | Pure engine: `scoreContent()` grades a draft against a channel; `analyzeChannel()` / `footprintScore()` turn analytics into insights + a dominance index. Unit-tested, no I/O. |
 | `lib/social/schedule.ts` | DynamoDB store (partition `SOCIALPOST`) + `drainDue()` worker. Claim-before-publish so overlapping cron runs never double-post. |
+| `lib/social/scheduler.ts` | Best-time auto-scheduler — timezone-correct (America/Chicago) planner that lays N posts onto each channel's optimal windows. Powers the "Fill the week" panel. |
 | `lib/social/publish.ts` | Per-channel publishing adapters with graceful degradation (API mode vs. manual mode). |
 | `app/api/cron/social-drain/route.ts` | Background worker that publishes scheduled posts at their time. Same `CRON_SECRET` + cadence as the email drain. |
 | `app/dashboard/social/{page,actions}.tsx` | The UI + server actions (schedule / post now / cancel / confirm-posted / analyze profile). |
@@ -29,7 +30,7 @@ Caption limits, hashtag norms, and image specs live in `CHANNELS`. Highlights:
 | X (Twitter) | 280 | 280 | 1–2 | ✅ implemented (text + image) |
 | Facebook | 5,000 | 250 | 0–2 | ✅ implemented (text + photo) |
 | Instagram | 2,200 | 125 | 3–5 (max 30) | ✅ implemented (image required) |
-| LinkedIn | 3,000 | 210 | 3–5 | manual (stub) |
+| LinkedIn | 3,000 | 210 | 3–5 | ✅ implemented (text/link) |
 | TikTok | 4,000 | 100 | 3–5 | manual (stub) |
 | YouTube (Shorts) | 5,000 (desc) | 100 | 2–3 | manual (stub) |
 | Threads | 500 | 500 | 0–1 | manual (stub) |
@@ -52,7 +53,8 @@ Store each in SSM at `/matt-grant/<NAME>` (SecureString). A channel auto-publish
 | X | `X_ACCESS_TOKEN` | OAuth2 user-context token with `tweet.write` (+ `media.write` for images). Posts text/link and uploads an attached image via the v2 media endpoint. |
 | Facebook | `FACEBOOK_PAGE_TOKEN`, `FACEBOOK_PAGE_ID` | Page token with `pages_manage_posts`. Photo post when media attached, else feed post. |
 | Instagram | `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_USER_ID` | IG business/creator account id; token with `instagram_content_publish`. **Image required** (no text-only IG posts). |
-| LinkedIn / TikTok / YouTube / Threads | `<PLATFORM>_ACCESS_TOKEN` | Adapter not implemented yet — stages manually until wired in `apiPublish()`. |
+| LinkedIn | `LINKEDIN_ACCESS_TOKEN`, `LINKEDIN_AUTHOR_URN` | Author URN (e.g. `urn:li:organization:123`); token with `w_organization_social`/`w_member_social`. Text/link share (image upload is a follow-up). |
+| TikTok / YouTube / Threads | `<PLATFORM>_ACCESS_TOKEN` | Adapter not implemented yet — stages manually until wired in `apiPublish()`. |
 
 **Meta image fetch:** Instagram (and Facebook photo posts) need a **publicly reachable** image. The composer's on-brand graphic is `/api/graphics?…`, which is public; `absoluteMediaUrl()` rewrites it against `SITE_URL` so Meta can fetch it. Override the Graph version with `META_GRAPH_VERSION` as Meta deprecates versions.
 

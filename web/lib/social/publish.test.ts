@@ -9,7 +9,13 @@ import { _clearSecretCache } from "@/lib/ssm";
 
 function res(status: number, body: unknown): Response {
   const text = typeof body === "string" ? body : JSON.stringify(body);
-  return { ok: status >= 200 && status < 300, status, text: async () => text, json: async () => JSON.parse(text) } as unknown as Response;
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    headers: { get: () => null }, // no x-restli-id by default; adapters fall back to the body
+    text: async () => text,
+    json: async () => JSON.parse(text),
+  } as unknown as Response;
 }
 
 // An image-bytes response (for the media-fetch step of X uploads).
@@ -141,6 +147,36 @@ describe("Instagram publisher (Meta Graph)", () => {
     const r = await publishToChannel("instagram", { caption: "Hi", hashtags: [] });
     expect(r.ok).toBe(false);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("LinkedIn publisher (UGC)", () => {
+  beforeEach(() => {
+    process.env.LINKEDIN_ACCESS_TOKEN = "tkn";
+    process.env.LINKEDIN_AUTHOR_URN = "urn:li:organization:42";
+    _clearSecretCache();
+  });
+  afterEach(() => {
+    delete process.env.LINKEDIN_ACCESS_TOKEN;
+    delete process.env.LINKEDIN_AUTHOR_URN;
+    vi.restoreAllMocks();
+  });
+
+  it("posts a UGC share as the configured author and returns the share id", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(res(201, { id: "urn:li:share:7" }));
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await publishToChannel("linkedin", { caption: "Vote Aug 4", hashtags: ["#MO02"] });
+    expect(r).toMatchObject({ ok: true, mode: "api", externalId: "urn:li:share:7" });
+    expect(fetchMock.mock.calls[0][0]).toContain("/v2/ugcPosts");
+    const body = String((fetchMock.mock.calls[0][1] as RequestInit).body);
+    expect(body).toContain("urn:li:organization:42");
+    expect(body).toContain("PUBLISHED");
+  });
+
+  it("surfaces a LinkedIn API error as a failure", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(res(401, { message: "expired" })));
+    const r = await publishToChannel("linkedin", { caption: "Hi", hashtags: [] });
+    expect(r.ok).toBe(false);
   });
 });
 

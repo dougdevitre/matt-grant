@@ -2,6 +2,7 @@ import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { SocialComposer } from "@/components/dashboard/SocialComposer";
 import { SocialProfileOptimizer } from "@/components/dashboard/SocialProfileOptimizer";
 import { SocialConnections } from "@/components/dashboard/SocialConnections";
+import { SocialAutoSchedule } from "@/components/dashboard/SocialAutoSchedule";
 import { CopyButton } from "@/components/dashboard/CopyButton";
 import { requireCap } from "@/lib/auth";
 import { listPosts, type ScheduledPost } from "@/lib/social/schedule";
@@ -80,8 +81,9 @@ export default async function SocialPage() {
         </p>
       </div>
 
-      <div className="mb-8">
+      <div className="mb-8 grid gap-4 lg:grid-cols-2">
         <SocialConnections />
+        <SocialAutoSchedule />
       </div>
 
       <SocialComposer library={library} />

@@ -9,6 +9,8 @@ import { footprintScore, type ChannelMetrics, type FootprintReport } from "@/lib
 import { recordSnapshot } from "@/lib/social/footprint";
 import { verifyChannel, type ChannelStatus } from "@/lib/social/publish";
 import { CHANNEL_IDS } from "@/lib/social/channels";
+import { planSlots } from "@/lib/social/scheduler";
+import { SOCIAL_POSTS } from "@/lib/socialPosts";
 
 export type ActionState = { ok: boolean; message: string };
 
@@ -135,6 +137,41 @@ export async function saveFootprintSnapshot(formData: FormData): Promise<void> {
   if (metrics.length === 0) return;
   await recordSnapshot(footprintScore(metrics), g.email ?? "system");
   revalidatePath("/dashboard/social");
+}
+
+// Auto-schedule: drop the next N posts from the content calendar onto each
+// selected channel's best-time slots over the coming days. Admins only.
+export async function fillWeekAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const g = await staffGate();
+  if (!can(g.role, "manageSocial")) return { ok: false, message: "Only admins can use the command center." };
+
+  const channels = toChannelIds(formData.getAll("channels").map(String));
+  if (channels.length === 0) return { ok: false, message: "Pick at least one channel." };
+  const count = Math.min(21, Math.max(1, Number(formData.get("count") ?? 7) || 7));
+
+  // Take the next `count` posts from the countdown calendar (highest day first —
+  // i.e. furthest from Election Day, the natural posting order).
+  const library = [...SOCIAL_POSTS].sort((a, b) => b.day - a.day).slice(0, count);
+  const slots = planSlots(channels, library.length, new Date().toISOString());
+  if (slots.length === 0) return { ok: false, message: "No future slots available — try more channels or a longer window." };
+
+  let scheduled = 0;
+  for (let i = 0; i < Math.min(slots.length, library.length); i++) {
+    const p = library[i];
+    await createPost({
+      caption: p.caption,
+      hashtags: p.hashtags,
+      channels: toChannelIds(p.channels).filter((c) => channels.includes(c)).length ? toChannelIds(p.channels).filter((c) => channels.includes(c)) : channels,
+      pillar: p.pillar,
+      cta: p.cta,
+      scheduledAt: slots[i],
+      createdBy: g.email ?? "system",
+    });
+    scheduled++;
+  }
+  revalidatePath("/dashboard/social");
+  const first = new Date(slots[0]).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  return { ok: true, message: `Scheduled ${scheduled} posts at best-time slots, starting ${first}. Review them in the calendar below.` };
 }
 
 // Verify each channel's credentials without posting — read-only Graph/X calls so
