@@ -18,7 +18,7 @@ export function EmailComposer({
 }: {
   broadcasts: BroadcastMeta[];
   counts: { volunteers: number; donors: number };
-  segments?: { value: string; label: string; count: number }[];
+  segments?: { value: string; label: string; count: number; group: string }[];
   canSend: boolean;
   disabled: boolean;
 }) {
@@ -97,15 +97,17 @@ export function EmailComposer({
             <option value="all">Everyone</option>
             <option value="volunteers">Volunteers</option>
             <option value="donors">Donors</option>
-            {segments.length > 0 && (
-              <optgroup label="By interest (supporters)">
-                {segments.map((s) => (
-                  <option key={s.value} value={s.value}>
-                    {s.label} ({s.count})
-                  </option>
-                ))}
+            {[...new Set(segments.map((s) => s.group))].map((group) => (
+              <optgroup key={group} label={group}>
+                {segments
+                  .filter((s) => s.group === group)
+                  .map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label} ({s.count})
+                    </option>
+                  ))}
               </optgroup>
-            )}
+            ))}
           </select>
           <span className="font-mono text-xs text-slate">~{audienceCount} recipient{audienceCount === 1 ? "" : "s"} (before opt-outs)</span>
         </div>

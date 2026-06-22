@@ -9,13 +9,14 @@ import { sesEnabled } from "@/lib/email/send";
 import { sendBroadcastEmail } from "@/lib/campaignSend";
 import { getBroadcast } from "@/lib/email/broadcasts";
 import { createCampaign, drainOnce } from "@/lib/campaigns";
-import { segmentEmails } from "@/lib/profile";
+import { segmentEmails, isWayToHelp } from "@/lib/profile";
 import { isIssueId } from "@/lib/integrations/research/issues";
 
 export type SendState = { ok: boolean; message: string };
-// Audience is a staff list (volunteers/donors/all) OR a profile interest segment
-// "issue:<id>" — supporters who told us they care about that priority.
-export type Audience = "volunteers" | "donors" | "all" | `issue:${string}`;
+// Audience is a staff list (volunteers/donors/all) OR a profile segment:
+// "issue:<id>" (cares about a priority) or "way:<wayToHelp>" (wants to volunteer,
+// host, …) — both come from the supporter's onboarding profile.
+export type Audience = "volunteers" | "donors" | "all" | `issue:${string}` | `way:${string}`;
 
 async function baseUrl(): Promise<string> {
   const h = await headers();
@@ -26,10 +27,15 @@ async function baseUrl(): Promise<string> {
 
 async function recipientsFor(audience: Audience): Promise<string[]> {
   const out = new Set<string>();
-  // Interest segment: supporters who care about this issue (profile-driven).
+  // Profile segments (supporter-driven). Interest, or way-they-want-to-help.
   if (audience.startsWith("issue:")) {
     const issue = audience.slice("issue:".length);
     if (isIssueId(issue)) (await segmentEmails({ issue })).forEach((e) => out.add(e));
+    return [...out];
+  }
+  if (audience.startsWith("way:")) {
+    const wayToHelp = audience.slice("way:".length);
+    if (isWayToHelp(wayToHelp)) (await segmentEmails({ wayToHelp })).forEach((e) => out.add(e));
     return [...out];
   }
   if (audience === "volunteers" || audience === "all") {
@@ -46,12 +52,10 @@ async function recipientsFor(audience: Audience): Promise<string[]> {
 function parse(formData: FormData) {
   const broadcast = getBroadcast(String(formData.get("templateKey") ?? ""));
   const a = String(formData.get("audience") ?? "all");
-  const audience: Audience =
-    a === "volunteers" || a === "donors"
-      ? a
-      : a.startsWith("issue:") && isIssueId(a.slice("issue:".length))
-        ? (a as Audience)
-        : "all";
+  const validSegment =
+    (a.startsWith("issue:") && isIssueId(a.slice("issue:".length))) ||
+    (a.startsWith("way:") && isWayToHelp(a.slice("way:".length)));
+  const audience: Audience = a === "volunteers" || a === "donors" ? a : validSegment ? (a as Audience) : "all";
   const vars: Record<string, string> = {};
   const missing: string[] = [];
   if (broadcast) {
