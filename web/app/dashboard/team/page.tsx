@@ -18,7 +18,8 @@ export const dynamic = "force-dynamic";
 const roleBadge: Record<string, string> = {
   admin: "bg-brick/10 text-brick",
   captain: "bg-gold/15 text-[#9a6f1a]",
-  organizer: "bg-field/10 text-field",
+  member: "bg-field/10 text-field",
+  partner: "bg-ink/5 text-slate",
 };
 
 export default async function TeamPage() {
@@ -34,7 +35,7 @@ export default async function TeamPage() {
       <PageHeader kicker="Members" title="Team & access" />
       <HowTo
         steps={[
-          "Invite a teammate by email and pick a role: Organizer (field), Captain (field + read-only finance/donor totals), or Admin (everything).",
+          "Invite a teammate by email and pick a role: Member (field), Captain (field + read-only finance/donor totals), or Admin (everything).",
           "They get a Clerk invitation email and their role is applied when they accept — so this works even with sign-up locked to invitation-only.",
           "Change someone's access anytime with the role dropdown, then Update — it writes through to their Clerk profile.",
           "The two admins in the server allowlist can't be changed or removed here — edit DASHBOARD_ALLOWLIST for those.",

@@ -49,7 +49,9 @@ export async function staffGate(): Promise<Gate> {
   const metaRole = asRole((user?.publicMetadata as { role?: unknown } | undefined)?.role);
   if (metaRole) return { ok: true, email, role: metaRole };
   const { staffRole } = await import("@/lib/staff");
-  const role = await staffRole(email);
+  // Normalize through asRole so a legacy/stale stored value (e.g. "organizer")
+  // resolves to a current role rather than slipping through as an unknown one.
+  const role = asRole(await staffRole(email));
   return { ok: !!role, email, role };
 }
 

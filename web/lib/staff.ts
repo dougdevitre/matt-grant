@@ -3,11 +3,12 @@
 // enter if their email is in the env list OR an active row here.
 import { PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, dbConfigured } from "@/lib/db";
-import type { Role } from "@/lib/rbac";
+import { asRole, type Role } from "@/lib/rbac";
 
-// Unified with the RBAC matrix (admin | captain | organizer). The DynamoDB row
-// is the pending-invite store + fallback; Clerk publicMetadata.role is the
-// runtime source of truth (set by the user.created webhook / team page).
+// Unified with the RBAC matrix (admin | captain | member). The DynamoDB row is
+// the pending-invite store + fallback; Clerk publicMetadata.role is the runtime
+// source of truth (set by the user.created webhook / team page). Stored values
+// pass through asRole() so legacy "organizer" rows resolve to "member".
 export type StaffRole = Role;
 export type StaffMember = { email: string; name?: string; role: StaffRole; invitedBy?: string; status: "active" | "removed"; createdAt: string };
 const norm = (e: string) => e.trim().toLowerCase();
@@ -15,7 +16,7 @@ const norm = (e: string) => e.trim().toLowerCase();
 export async function listStaff(): Promise<StaffMember[]> {
   if (!dbConfigured) return [];
   const r = await ddb.send(new QueryCommand({ TableName: TABLE, KeyConditionExpression: "PK = :p", ExpressionAttributeValues: { ":p": PK.staff } }));
-  return (r.Items ?? []).map((i) => ({ email: String(i.SK), name: i.name, role: (i.role as StaffRole) ?? "organizer", invitedBy: i.invitedBy, status: i.status ?? "active", createdAt: i.createdAt })) as StaffMember[];
+  return (r.Items ?? []).map((i) => ({ email: String(i.SK), name: i.name, role: asRole(i.role) ?? "member", invitedBy: i.invitedBy, status: i.status ?? "active", createdAt: i.createdAt })) as StaffMember[];
 }
 
 // Returns the active member's role, or null if not an invited staffer.
@@ -29,7 +30,7 @@ export async function staffRole(email?: string | null): Promise<StaffRole | null
     }));
     const row = r.Items?.[0];
     if (!row || row.status === "removed") return null;
-    return (row.role as StaffRole) ?? "organizer";
+    return asRole(row.role) ?? "member";
   } catch {
     return null;
   }

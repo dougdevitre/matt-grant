@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { addStaff, removeStaff, setStaffRole, staffRole } from "@/lib/staff";
 import { staffGate } from "@/lib/auth";
-import { can, asRole } from "@/lib/rbac";
+import { can, asRole, INVITABLE_ROLES } from "@/lib/rbac";
 import { setClerkRoleByEmail, inviteToClerk } from "@/lib/clerkRoles";
 import { recordAccessChange } from "@/lib/audit";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
@@ -23,7 +23,10 @@ export async function inviteStaff(_prev: InviteResult | null, formData: FormData
   const inviter = await guardAdmin();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const name = String(formData.get("name") ?? "").trim();
-  const role = asRole(formData.get("role")) ?? "organizer";
+  // Staff picker may only assign internal roles — `partner` is provisioned via
+  // the Peace Room invite flow, never here, so it can't be granted by accident.
+  const requested = asRole(formData.get("role"));
+  const role = requested && INVITABLE_ROLES.includes(requested) ? requested : "member";
   if (!email || !email.includes("@")) return { ok: false, message: "Enter a valid email address." };
 
   let clerk = { invited: false, existing: false };
