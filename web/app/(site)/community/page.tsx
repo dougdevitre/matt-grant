@@ -3,7 +3,9 @@ import type { Metadata } from "next";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { CaseForChange } from "@/components/CaseForChange";
+import { CommunityOnboarding } from "@/components/CommunityOnboarding";
 import { donorSummaryForEmail } from "@/lib/donorStatus";
+import { getProfile } from "@/lib/profile";
 import { dollars } from "@/lib/money";
 import { CAMPAIGN, SITE_URL } from "@/lib/site";
 
@@ -25,6 +27,10 @@ export default async function CommunityPage() {
   // contribution — never anyone else's data (see donorStatus.ts). Giving unlocks
   // the donor view automatically.
   const donor = await donorSummaryForEmail(gate.email);
+
+  // Show the (non-blocking) onboarding card until the supporter has filled it in.
+  const profile = await getProfile(gate.email);
+  const onboarded = !!profile?.onboardedAt;
 
   let firstName = "";
   try {
@@ -81,6 +87,9 @@ export default async function CommunityPage() {
           You&apos;re on the team — go to Campaign HQ →
         </Link>
       )}
+
+      {/* Additive onboarding — only until they've personalized; never blocks the hub */}
+      {!onboarded && <CommunityOnboarding />}
 
       {/* The shared, public-safe case-for-change board */}
       <CaseForChange />
