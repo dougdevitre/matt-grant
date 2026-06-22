@@ -60,14 +60,19 @@ Channels flip to API mode automatically once their secrets land — no redeploy 
 
 ## Scheduling worker
 
-`drainDue()` mirrors the email drain. Point an EventBridge Scheduler (~every minute) at:
+`drainDue()` mirrors the email drain and is wired by `infra/setup-aws.sh` as the
+`matt-grant-social-drain` EventBridge rule (`rate(1 minute)`), hitting:
 
 ```
 POST https://<host>/api/cron/social-drain
 Authorization: Bearer <CRON_SECRET>
 ```
 
-It claims each due post (`scheduled → posting`) with a conditional update before publishing, so two overlapping runs can't double-post. "Post now" in the UI publishes the first item inline so it goes out immediately.
+(Run `CRON_SECRET=… BASE_URL=… bash infra/setup-aws.sh` to provision it alongside
+the email drain — Amplify has no native cron.) It claims each due post
+(`scheduled → posting`) with a conditional update before publishing, so two
+overlapping runs can't double-post. "Post now" in the UI publishes the first item
+inline so it goes out immediately.
 
 ## Media / S3
 
