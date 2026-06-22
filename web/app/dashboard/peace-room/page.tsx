@@ -5,6 +5,8 @@ import { PageHeader } from "@/components/dashboard/Notice";
 import { getIssue } from "@/lib/issues";
 import { ISSUE_AXES, type IssueId } from "@/lib/integrations/research/issues";
 import { getStoredCandidates, getTimeline } from "@/lib/integrations/research/store";
+import { getBills } from "@/lib/integrations/legislative/store";
+import { rankByFamilyCourtRelevance } from "@/lib/analysis/childAct";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Peace Room — the case for change" };
@@ -23,28 +25,57 @@ type Indicator = { value: string; caption: string; source?: string } | null;
 export default async function PeaceRoomPage() {
   await requireCap("viewPeaceRoom");
 
-  // Strongest live indicator: the incumbent's tenure (Congress.gov-sourced via
-  // the research ingest) is the data point for term limits — careerism the seat
-  // was never meant to reward. Degrades to "pending" when no ingest has run.
+  // Indicators are derived from the incumbent's public record (Congress.gov via
+  // the research ingest). Resolve the incumbent once, then read both feeds.
+  // Everything degrades to "pending" when no ingest has run — never a guess.
+  const incumbent = await getStoredCandidates()
+    .then((cs) => cs.find((c) => c.incumbent) ?? null)
+    .catch(() => null);
+
+  // Term limits: tenure — careerism the seat was never meant to reward.
   let tenure: Indicator = null;
-  try {
-    const incumbent = (await getStoredCandidates()).find((c) => c.incumbent);
-    const t = incumbent ? await getTimeline(incumbent.slug) : null;
-    if (t && t.totalTerms && t.firstYear) {
-      tenure = {
-        value: `${t.totalTerms} terms`,
-        caption: `in office since ${t.firstYear} — the careerism term limits are meant to end.`,
-        source: "Congress.gov",
-      };
+  // Family courts: how much of the incumbent's record touches the CHILD Act's
+  // Title IV-D family-court-accountability lever. A low number is the gap Matt
+  // is running to close.
+  let familyCourts: Indicator = null;
+
+  if (incumbent) {
+    try {
+      const t = await getTimeline(incumbent.slug);
+      if (t?.totalTerms && t.firstYear) {
+        tenure = {
+          value: `${t.totalTerms} terms`,
+          caption: `in office since ${t.firstYear} — the careerism term limits are meant to end.`,
+          source: "Congress.gov",
+        };
+      }
+    } catch {
+      /* pending */
     }
-  } catch {
-    /* store unavailable → pending */
+    if (incumbent.bioguideId) {
+      try {
+        const bills = await getBills(incumbent.bioguideId);
+        if (bills.length) {
+          const relevant = rankByFamilyCourtRelevance(bills);
+          familyCourts = {
+            value: `${relevant.length} of ${bills.length}`,
+            caption:
+              relevant.length === 0
+                ? "bills in the incumbent's record touch family-court accountability — the gap Matt is running to close."
+                : "bills in the incumbent's record touch family-court accountability.",
+            source: "Congress.gov",
+          };
+        }
+      } catch {
+        /* pending */
+      }
+    }
   }
 
-  // Per-issue indicator. Only term-limits has a wired, sourced data feed today;
-  // the others are explicitly marked pending rather than fabricated.
+  // Term limits and family courts have wired, sourced feeds; smaller government
+  // and lower taxes are explicitly pending rather than fabricated.
   const indicatorFor = (id: IssueId): Indicator =>
-    id === "term-limits" ? tenure : null;
+    id === "term-limits" ? tenure : id === "family-courts" ? familyCourts : null;
 
   return (
     <>
