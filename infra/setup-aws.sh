@@ -6,7 +6,7 @@
 # donor data + fundraising email:
 #   1. DynamoDB Point-In-Time Recovery (PITR)         — Reliability (no backups)
 #   2. CloudWatch log-group retention                  — Cost (logs never expire)
-#   3. The two scheduled jobs (ingest + email-drain)   — Reliability (cron is dead on Amplify)
+#   3. The scheduled jobs (ingest + email/social drains) — Reliability (cron is dead on Amplify)
 #   4. A Lambda-errors CloudWatch alarm → SNS email    — Operational Excellence (no alerting)
 #
 # REVIEW BEFORE RUNNING. This was authored without access to the live account,
@@ -82,6 +82,7 @@ create_destination() { # name path
 }
 DEST_INGEST="$(create_destination matt-grant-ingest /api/research/ingest)"
 DEST_DRAIN="$(create_destination matt-grant-email-drain /api/cron/email-drain)"
+DEST_SOCIAL="$(create_destination matt-grant-social-drain /api/cron/social-drain)"
 DEST_NEWS="$(create_destination matt-grant-research-news /api/research/news)"
 DEST_BIO="$(create_destination matt-grant-research-bio /api/research/bio)"
 
@@ -118,6 +119,8 @@ create_rule() { # name expr destArn
 }
 create_rule matt-grant-research-ingest "cron(0 8 ? * MON *)" "$DEST_INGEST"
 create_rule matt-grant-email-drain     "rate(1 minute)"      "$DEST_DRAIN"
+# Scheduled social posts publish at their time — same ~1-min cadence as email.
+create_rule matt-grant-social-drain    "rate(1 minute)"      "$DEST_SOCIAL"
 # Lightweight enrichments refresh on their own cadence (decoupled from the heavy
 # ingest): news daily (time-sensitive), bios weekly (rarely change).
 create_rule matt-grant-research-news   "cron(0 9 * * ? *)"   "$DEST_NEWS"

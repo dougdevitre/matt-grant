@@ -58,8 +58,9 @@ you specifically want long-running containers.
 
 Amplify does **not** provision the cron jobs, DynamoDB backups, log retention, or alarms. These are
 codified in **`infra/setup-aws.sh`** (see `infra/README.md`) — one idempotent, reviewable script that
-wires both scheduled jobs (`/api/research/ingest` weekly + `/api/cron/email-drain` every minute) via
-EventBridge Scheduler, enables DynamoDB PITR, caps CloudWatch log retention, and sets a Lambda-errors
+wires the scheduled jobs (`/api/research/ingest` weekly + `/api/cron/email-drain` and
+`/api/cron/social-drain` every minute) via EventBridge, enables DynamoDB PITR, caps CloudWatch log
+retention, and sets a Lambda-errors
 alarm. Run it after the first deploy:
 
 ```bash
