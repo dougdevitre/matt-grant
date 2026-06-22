@@ -26,13 +26,13 @@ Caption limits, hashtag norms, and image specs live in `CHANNELS`. Highlights:
 
 | Channel | Max chars | Feed truncates at | Rec. hashtags | API auto-publish |
 |---|---|---|---|---|
-| X (Twitter) | 280 | 280 | 1–2 | ready to wire |
-| Facebook | 5,000 | 250 | 0–2 | ready to wire |
-| Instagram | 2,200 | 125 | 3–5 (max 30) | ready to wire |
-| LinkedIn | 3,000 | 210 | 3–5 | manual |
-| TikTok | 4,000 | 100 | 3–5 | manual |
-| YouTube (Shorts) | 5,000 (desc) | 100 | 2–3 | manual |
-| Threads | 500 | 500 | 0–1 | manual |
+| X (Twitter) | 280 | 280 | 1–2 | ✅ implemented (text/link) |
+| Facebook | 5,000 | 250 | 0–2 | ✅ implemented (text + photo) |
+| Instagram | 2,200 | 125 | 3–5 (max 30) | ✅ implemented (image required) |
+| LinkedIn | 3,000 | 210 | 3–5 | manual (stub) |
+| TikTok | 4,000 | 100 | 3–5 | manual (stub) |
+| YouTube (Shorts) | 5,000 (desc) | 100 | 2–3 | manual (stub) |
+| Threads | 500 | 500 | 0–1 | manual (stub) |
 
 These move — re-verify against each platform's current docs and update `CHANNELS` (the staleness convention from `compliance-baseline.md`). Sources used: Glow Social / TypeCount / Letter Counter 2026 character-limit guides.
 
@@ -40,17 +40,23 @@ These move — re-verify against each platform's current docs and update `CHANNE
 
 Like SES, Clerk, and S3 elsewhere in the app, publishing **degrades gracefully**:
 
-- **API mode** — when a channel's access token is present (read via `getSecret`), `drainDue()` posts it automatically through that platform's API at the scheduled time.
-- **Manual mode** — with no token, the post is **staged** at its scheduled time and surfaces in the "Ready to post" queue with copy-ready text + the attached image, exactly like Buffer's "reminder" posts for platforms without a publish API. An admin pushes it and clicks **Mark posted**.
+- **API mode** — when a channel is **fully configured** (all its required secrets present, read via `getSecret`), `drainDue()` posts it automatically through that platform's API at the scheduled time.
+- **Manual mode** — otherwise the post is **staged** at its scheduled time and surfaces in the "Ready to post" queue with copy-ready text + the attached image, exactly like Buffer's "reminder" posts for platforms without a publish API. An admin pushes it and clicks **Mark posted**. A channel with a token but a missing id stages (not errors).
 
-### Turning on auto-publish for a channel
+### Required secrets per channel
 
-1. Create the platform app / get a long-lived access token for the committee account.
-2. Store it in SSM at `/matt-grant/<TOKEN>` (SecureString) — e.g. `X_ACCESS_TOKEN`, `FACEBOOK_PAGE_TOKEN`, `INSTAGRAM_ACCESS_TOKEN`, `LINKEDIN_ACCESS_TOKEN`, `TIKTOK_ACCESS_TOKEN`, `YOUTUBE_ACCESS_TOKEN`, `THREADS_ACCESS_TOKEN`. (Token env names live in `publish.ts`.)
-3. Implement the platform call in `apiPublish()` in `lib/social/publish.ts` (it currently fails loudly rather than silently dropping a post the admin thinks went out).
-4. The channel flips to API mode automatically — no redeploy needed (SSM TTL is ~5 min).
+Store each in SSM at `/matt-grant/<NAME>` (SecureString). A channel auto-publishes only when **all** of its secrets are present.
 
-No tokens are committed. Absence = manual mode; the feature is fully usable day one without any platform credentials.
+| Channel | Secrets | Notes |
+|---|---|---|
+| X | `X_ACCESS_TOKEN` | OAuth2 user-context token with `tweet.write`. Posts text/link (media upload is a follow-up). |
+| Facebook | `FACEBOOK_PAGE_TOKEN`, `FACEBOOK_PAGE_ID` | Page token with `pages_manage_posts`. Photo post when media attached, else feed post. |
+| Instagram | `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_USER_ID` | IG business/creator account id; token with `instagram_content_publish`. **Image required** (no text-only IG posts). |
+| LinkedIn / TikTok / YouTube / Threads | `<PLATFORM>_ACCESS_TOKEN` | Adapter not implemented yet — stages manually until wired in `apiPublish()`. |
+
+**Meta image fetch:** Instagram (and Facebook photo posts) need a **publicly reachable** image. The composer's on-brand graphic is `/api/graphics?…`, which is public; `absoluteMediaUrl()` rewrites it against `SITE_URL` so Meta can fetch it. Override the Graph version with `META_GRAPH_VERSION` as Meta deprecates versions.
+
+Channels flip to API mode automatically once their secrets land — no redeploy needed (SSM TTL is ~5 min). No tokens are committed; the feature is fully usable day one without any platform credentials.
 
 ## Scheduling worker
 

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { scoreContent, analyzeChannel, footprintScore, type ChannelMetrics } from "@/lib/social/optimize";
 import { composeText, toChannelIds } from "@/lib/social/channels";
 import { rollUp } from "@/lib/social/schedule";
+import { absoluteMediaUrl } from "@/lib/social/publish";
 
 describe("scoreContent", () => {
   it("flags an over-limit X post as an error and counts how far over", () => {
@@ -104,5 +105,16 @@ describe("rollUp post status", () => {
   });
   it("is failed when all channels failed", () => {
     expect(rollUp(["x"], { x: { status: "failed", mode: "api" } })).toBe("failed");
+  });
+});
+
+describe("absoluteMediaUrl (Meta needs a fetchable URL)", () => {
+  it("makes a relative app URL absolute against the live site", () => {
+    expect(absoluteMediaUrl("/api/graphics?format=ig_square")).toBe("https://mattgrantforcongress.org/api/graphics?format=ig_square");
+  });
+  it("passes absolute URLs through and drops anything else", () => {
+    expect(absoluteMediaUrl("https://cdn.example.com/a.png")).toBe("https://cdn.example.com/a.png");
+    expect(absoluteMediaUrl(undefined)).toBeUndefined();
+    expect(absoluteMediaUrl("data:image/png;base64,xxx")).toBeUndefined();
   });
 });

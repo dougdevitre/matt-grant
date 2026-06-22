@@ -9,7 +9,12 @@
 // (read through getSecret). No tokens are committed; absence = manual mode.
 
 import { getSecret } from "@/lib/ssm";
+import { SITE_URL } from "@/lib/site";
 import { composeText, type ChannelId } from "@/lib/social/channels";
+
+// Meta Graph API version. Override with META_GRAPH_VERSION as Meta deprecates
+// versions (~2yr cadence). Both Facebook Page + Instagram publishing go through it.
+const META_GRAPH = `https://graph.facebook.com/${process.env.META_GRAPH_VERSION || "v21.0"}`;
 
 export type PublishablePost = {
   caption: string;
@@ -23,33 +28,105 @@ export type PublishResult =
   | { ok: true; mode: "manual" } // staged; awaiting a human to post it
   | { ok: false; mode: "api" | "manual"; error: string };
 
-// The secret name that, when present, switches a channel from manual → API mode.
-const TOKEN_ENV: Record<ChannelId, string> = {
-  x: "X_ACCESS_TOKEN",
-  facebook: "FACEBOOK_PAGE_TOKEN",
-  instagram: "INSTAGRAM_ACCESS_TOKEN",
-  linkedin: "LINKEDIN_ACCESS_TOKEN",
-  tiktok: "TIKTOK_ACCESS_TOKEN",
-  youtube: "YOUTUBE_ACCESS_TOKEN",
-  threads: "THREADS_ACCESS_TOKEN",
+// Secrets each channel needs for direct API publishing: an access token, and for
+// the Meta channels an account id too. A channel is "configured" (auto-publish)
+// only when ALL of its required secrets are present; otherwise it degrades to
+// manual mode. No secrets are committed; absence = manual mode.
+type ChannelConfig = { token: string; id?: string };
+const CHANNEL_CONFIG: Record<ChannelId, ChannelConfig> = {
+  x: { token: "X_ACCESS_TOKEN" },
+  facebook: { token: "FACEBOOK_PAGE_TOKEN", id: "FACEBOOK_PAGE_ID" },
+  instagram: { token: "INSTAGRAM_ACCESS_TOKEN", id: "INSTAGRAM_USER_ID" },
+  linkedin: { token: "LINKEDIN_ACCESS_TOKEN" },
+  tiktok: { token: "TIKTOK_ACCESS_TOKEN" },
+  youtube: { token: "YOUTUBE_ACCESS_TOKEN" },
+  threads: { token: "THREADS_ACCESS_TOKEN" },
 };
 
-/** True if this channel has credentials wired for direct API publishing. */
+/** True if this channel has ALL credentials wired for direct API publishing. */
 export async function channelConfigured(channel: ChannelId): Promise<boolean> {
+  const cfg = CHANNEL_CONFIG[channel];
   try {
-    return !!(await getSecret(TOKEN_ENV[channel]));
+    if (!(await getSecret(cfg.token))) return false;
+    if (cfg.id && !(await getSecret(cfg.id))) return false;
+    return true;
   } catch {
     return false;
   }
 }
 
-// Per-channel API senders. These are only reached when a token is present, so the
-// default deployment never calls them. X is the reference adapter (a real X API v2
-// call); the others fail loudly until wired so a post the admin believes went out
-// via API is never silently dropped.
+// Resolve a media URL Meta can fetch: relative app URLs (e.g. /api/graphics?…,
+// which is public) become absolute against the live site; absolute URLs pass
+// through; anything else is dropped.
+export function absoluteMediaUrl(url?: string): string | undefined {
+  if (!url) return undefined;
+  if (/^https?:\/\//i.test(url)) return url;
+  if (url.startsWith("/")) return `${SITE_URL}${url}`;
+  return undefined;
+}
+
+// Per-channel API senders. Only reached when the channel is fully configured, so
+// the default deployment never calls them. Channels without an adapter fail loudly
+// rather than silently dropping a post the admin believes went out via API.
 async function apiPublish(channel: ChannelId, post: PublishablePost, token: string): Promise<PublishResult> {
   if (channel === "x") return publishToX(post, token);
-  return { ok: false, mode: "api", error: `Auto-publish for ${channel} is not implemented yet — post manually or remove its ${TOKEN_ENV[channel]}.` };
+  if (channel === "facebook") return publishToFacebook(post, token);
+  if (channel === "instagram") return publishToInstagram(post, token);
+  return { ok: false, mode: "api", error: `Auto-publish for ${channel} is not implemented yet — post manually or remove its ${CHANNEL_CONFIG[channel].token}.` };
+}
+
+// Shared POST + error handling for Meta Graph endpoints. Returns the created id
+// (`id` for IG / Page feed, `post_id` for Page photos) or a client-safe error.
+async function metaPost(url: string, params: Record<string, string>): Promise<{ ok: true; id?: string } | { ok: false; error: string }> {
+  let res: Response;
+  try {
+    res = await fetch(url, { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(params) });
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "network error reaching Meta" };
+  }
+  const text = await res.text().catch(() => "");
+  if (!res.ok) return { ok: false, error: `Meta API ${res.status}${text ? `: ${text.slice(0, 200)}` : ""}` };
+  let body: { id?: string; post_id?: string } | null = null;
+  try {
+    body = JSON.parse(text);
+  } catch {
+    /* non-JSON 2xx — treat as success without an id */
+  }
+  return { ok: true, id: body?.id ?? body?.post_id };
+}
+
+// Facebook Page. With an image → POST {page}/photos (url + caption); text-only →
+// POST {page}/feed (message + optional link). Needs FACEBOOK_PAGE_ID + a Page
+// access token with pages_manage_posts.
+async function publishToFacebook(post: PublishablePost, token: string): Promise<PublishResult> {
+  const pageId = await getSecret("FACEBOOK_PAGE_ID");
+  if (!pageId) return { ok: false, mode: "api", error: "FACEBOOK_PAGE_ID is not set." };
+  const message = copyText(post);
+  const media = absoluteMediaUrl(post.mediaUrl);
+  const r = media
+    ? await metaPost(`${META_GRAPH}/${pageId}/photos`, { url: media, caption: message, access_token: token })
+    : await metaPost(`${META_GRAPH}/${pageId}/feed`, { message, ...(post.link ? { link: post.link } : {}), access_token: token });
+  return r.ok ? { ok: true, mode: "api", externalId: r.id } : { ok: false, mode: "api", error: r.error };
+}
+
+// Instagram (Graph API content publishing). Two steps: create a media container
+// from a PUBLIC image_url + caption, then publish it. IG has no text-only post, so
+// an image is required. Needs INSTAGRAM_USER_ID (IG business/creator account) + a
+// token with instagram_content_publish.
+async function publishToInstagram(post: PublishablePost, token: string): Promise<PublishResult> {
+  const igUserId = await getSecret("INSTAGRAM_USER_ID");
+  if (!igUserId) return { ok: false, mode: "api", error: "INSTAGRAM_USER_ID is not set." };
+  const media = absoluteMediaUrl(post.mediaUrl);
+  if (!media) return { ok: false, mode: "api", error: "Instagram requires an image — attach a graphic before scheduling." };
+
+  const created = await metaPost(`${META_GRAPH}/${igUserId}/media`, { image_url: media, caption: copyText(post), access_token: token });
+  if (!created.ok) return { ok: false, mode: "api", error: created.error };
+  if (!created.id) return { ok: false, mode: "api", error: "Instagram did not return a media container id." };
+
+  // Images are processed near-instantly, so publish straight away. (Video/Reels
+  // would need a status poll on the container before publishing.)
+  const published = await metaPost(`${META_GRAPH}/${igUserId}/media_publish`, { creation_id: created.id, access_token: token });
+  return published.ok ? { ok: true, mode: "api", externalId: published.id } : { ok: false, mode: "api", error: published.error };
 }
 
 // Reference adapter: post text to X via API v2 (POST /2/tweets with an OAuth2
@@ -79,10 +156,12 @@ async function publishToX(post: PublishablePost, token: string): Promise<Publish
 
 /**
  * Publish one channel. Returns mode:"manual" (caller stages it for a human) when
- * the channel has no API token — that is the normal, non-error path.
+ * the channel isn't fully configured — that is the normal, non-error path, so a
+ * partially-configured channel (token but no id) stages rather than erroring.
  */
 export async function publishToChannel(channel: ChannelId, post: PublishablePost): Promise<PublishResult> {
-  const token = await getSecret(TOKEN_ENV[channel]).catch(() => null);
+  if (!(await channelConfigured(channel))) return { ok: true, mode: "manual" };
+  const token = await getSecret(CHANNEL_CONFIG[channel].token).catch(() => null);
   if (!token) return { ok: true, mode: "manual" };
   try {
     return await apiPublish(channel, post, token);
