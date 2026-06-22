@@ -74,7 +74,9 @@ So staff/supporters can log in with these. Each is a **developer app** that issu
 them into the login system.
 
 - **Google** — Google Cloud Console (<https://console.cloud.google.com>) → new project
-  → APIs & Services → Credentials → OAuth client ID.
+  → APIs & Services → Credentials → OAuth client ID. *(Easiest: just add me as an
+  **Owner** on the project and I build the credentials myself — full step-by-step in
+  [`docs/google-youtube-setup.md`](./google-youtube-setup.md).)*
 - **Facebook** — Meta for Developers (<https://developers.facebook.com>) → Create App
   → add **Facebook Login**.
 - **LinkedIn** — LinkedIn Developers (<https://developer.linkedin.com>) → Create App →
@@ -89,7 +91,9 @@ early. Same idea — create under the committee, send me the app credentials/tok
   posting permissions (review-gated).
 - **LinkedIn** — Community Management / Posts API (access request + review).
 - **X (Twitter) API** — developer.x.com; note paid tiers (~$100/mo for Basic).
-- **YouTube Data API** — enable it in the same Google Cloud project as (b).
+- **YouTube Data API** — enable it in the same Google Cloud project as (b). Channel
+  uploads also need me added as a **Manager** on the YouTube Brand Account — see
+  [`docs/google-youtube-setup.md`](./google-youtube-setup.md).
 
 ---
 
