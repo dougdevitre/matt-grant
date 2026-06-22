@@ -83,11 +83,11 @@ Open with a single compelling sentence that creates urgency or emotional connect
 
 ### 2. Story (2-4 sentences)
 Connect the ask to a personal story, a voter interaction, or a campaign moment. Make the reader feel something.
-> "Last week, I met Maria at our town hall in Springfield. She works two jobs and still can't afford her daughter's insulin. She asked me: 'Will anyone in office actually fight for us?' I told her yes."
+> "Last week, I met Maria at our town hall in Springfield. She works two jobs and still can't afford her daughter's insulin. She asked me: 'Will anyone in office actually stand up for us?' I told her yes."
 
 ### 3. The Ask (1-2 sentences + button/link)
 Be specific about the amount. Give them a reason to give that amount. Include a prominent donation link or button.
-> "Will you chip in $25 right now so we can fight for families like Maria's? [DONATE $25]"
+> "Will you chip in $25 right now so we can stand up for families like Maria's? [DONATE $25]"
 
 ### 4. Urgency (1-2 sentences)
 Explain WHY they need to act now. A deadline, a matching gift, a goal, or an opponent action.
@@ -211,7 +211,7 @@ I wasn't planning to talk about [issue] this week. Then I met [person's first na
 
 That conversation reminded me exactly why I got into this race. [One sentence connecting the story to the campaign's mission.]
 
-**If stories like [person's name]'s matter to you, will you chip in $25 to help us fight for families like theirs?**
+**If stories like [person's name]'s matter to you, will you chip in $25 to help us stand up for families like theirs?**
 
 [DONATE $25]
 

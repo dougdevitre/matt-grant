@@ -11,7 +11,7 @@ library**, and a path to **automated posting** (API / connector / MCP).
 ## 1. What's built (live)
 
 - **Public Media page** (`/media`) — downloads the brand assets (logo variants, headshot, the *Four
-  Fights* infographic, the *New Standard of Service* banner, the campaign deck) and renders the
+  Priorities* infographic, the *New Standard of Service* banner, the campaign deck) and renders the
   50-post calendar with **Copy caption**, **Share to X**, **Share to Facebook**, **Square ↓**
   (1080×1080 feed), and **Story ↓** (1080×1920).
 - **`lib/socialPosts.ts`** — the typed index of 50 posts (the source of truth; also exported to S3).
@@ -31,7 +31,7 @@ library**, and a path to **automated posting** (API / connector / MCP).
 ## 3. The 50-post countdown calendar
 
 One post per day, **D-50 → D-1**, an arc that: introduces Matt (bio/values) → builds the four
-fights → activates coalitions & personas → intensifies **GOTV** in the final ~10 days. Each item has
+priorities → activates coalitions & personas → intensifies **GOTV** in the final ~10 days. Each item has
 caption, hashtags, channel(s), persona, coalition, CTA, and a suggested graphic. Post one a day.
 
 ## 4. S3 content library structure

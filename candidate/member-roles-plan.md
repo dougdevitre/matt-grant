@@ -1,4 +1,4 @@
-# Member Roles — Tiered Access for the War Room
+# Member Roles — Tiered Access for the Peace Room
 
 **Recommendation: yes, add roles.** Today access is binary (allowlisted → sees everything). The War
 Room mixes **high-sensitivity** data (donor PII, finances, the filing calendar) with **operational**

@@ -240,7 +240,7 @@ ACKNOWLEDGE → BRIDGE → MESSAGE
 
 "That's an important question. [ACKNOWLEDGE]
  What I hear from voters across this district is... [BRIDGE]
- ...that they need [YOUR ISSUE]. That's why I'm fighting for 
+ ...that they need [YOUR ISSUE]. That's why I'm standing up for 
  [YOUR POSITION]." [MESSAGE]
 ```
 
@@ -274,7 +274,7 @@ WEAK (pure attack, no positive):
 
 STRONG (contrast with positive alternative):
 "When the school budget was on the line, my opponent voted no — 
-putting our kids' education at risk. I'll fight for full funding 
+putting our kids' education at risk. I'll stand up for full funding 
 for our schools because every child in this district deserves 
 a quality education."
 
@@ -283,7 +283,7 @@ WEAK (vague):
 
 STRONG (specific):
 "My opponent voted three times against raising the minimum wage. 
-I'll fight for a living wage because no one working full-time 
+I'll stand up for a living wage because no one working full-time 
 should struggle to pay rent in this community."
 ```
 

@@ -44,7 +44,7 @@ mg-<category>-<topic>-<descriptor>-<WxH>.<ext>
 | `mg-social-gotv-countdown-d07-1080x1920.png` | story, 7-days-out GOTV |
 | `mg-print-yardsign-childrenfirst-24x18.pdf` | 24×18 yard sign |
 | `mg-video-ad-familycourt-30s.mp4` | 30-second family-court ad |
-| `mg-marketing-fourfights-infographic-1920x1080.png` | the Four Fights infographic |
+| `mg-marketing-fourfights-infographic-1920x1080.png` | the Four Priorities infographic |
 
 Rules: no spaces, no capitals, no account IDs; date GOTV items `d07`/`d01`; keep the **original**
 high-res in `private/raw/` and only put export-ready files in `public/`.

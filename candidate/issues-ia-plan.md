@@ -5,11 +5,11 @@ dedicated child page that carries its graphic, video, argument, commitment, and 
 
 ## 1. Information architecture
 
-Today `/about` mixes bio + issues, and the home "Four Fights" cards link nowhere. New structure:
+Today `/about` mixes bio + issues, and the home "Four Priorities" cards link nowhere. New structure:
 
 ```
 /about              → Matt's story ONLY (hero, career ledger, values, CTA)
-/issues             → index: the Four Fights overview + infographic, cards → each child page
+/issues             → index: the Four Priorities overview + infographic, cards → each child page
 /issues/family-courts
 /issues/term-limits
 /issues/smaller-government
@@ -17,7 +17,7 @@ Today `/about` mixes bio + issues, and the home "Four Fights" cards link nowhere
 ```
 
 **Nav change:** replace the single `About Matt / Issues` item with **`About Matt`** (`/about`) and
-**`Issues`** (`/issues`). Home's Four Fights cards become links to each child page.
+**`Issues`** (`/issues`). Home's Four Priorities cards become links to each child page.
 
 ## 2. Per-issue content model (`lib/issues.ts`)
 
@@ -49,7 +49,7 @@ Extend the current `PRIORITIES` into a richer typed structure (keep `id`/slug, `
 
 | Issue | Graphic (live) | Video | Argument & commitment | Other items |
 |---|---|---|---|---|
-| **family-courts** | `social/feed/D-47.png` + Four Fights infographic | `video/mg-video-fixing-missouris-broken-system.mp4` | platform.md §1 + CHILD Act | CHILD Act one-pager, coalition kit, press (RICO, pending) |
+| **family-courts** | `social/feed/D-47.png` + Four Priorities infographic | `video/mg-video-fixing-missouris-broken-system.mp4` | platform.md §1 + CHILD Act | CHILD Act one-pager, coalition kit, press (RICO, pending) |
 | **term-limits** | `social/feed/D-45.png` | ☐ none yet | platform.md §2 (grandfather clause) | print rendition D-45 |
 | **smaller-government** | `social/feed/D-44.png` | ☐ none yet | platform.md §3 (hiring freeze, early retirement) | print rendition D-44 |
 | **lower-taxes** | `social/feed/D-43.png` | ☐ none yet | platform.md §4 (cut waste first) | print rendition D-43 |
@@ -66,7 +66,7 @@ Extend the current `PRIORITIES` into a richer typed structure (keep `id`/slug, `
 
 - `app/(site)/issues/page.tsx` (index) + `app/(site)/issues/[slug]/page.tsx` with
   `generateStaticParams` over the four slugs; per-page `metadata` (title/description/OG = issue graphic).
-- Home Four Fights cards → `/issues/<slug>`; About page **drops** the issues section and keeps a short
+- Home Four Priorities cards → `/issues/<slug>`; About page **drops** the issues section and keeps a short
   "Where Matt stands → /issues" teaser.
 - `NAV` split; update any in-page `#issues` anchors and the `/about` CTA copy.
 - Optional redirect: `/about#issues` → `/issues`.

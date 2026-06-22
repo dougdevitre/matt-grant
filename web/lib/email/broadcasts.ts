@@ -45,7 +45,7 @@ export const BROADCASTS: BroadcastDef[] = [
     key: "newsletter",
     label: "Campaign newsletter",
     topic: "news",
-    description: "The Four Fights overview + a get-involved CTA. No inputs.",
+    description: "The Four Priorities overview + a get-involved CTA. No inputs.",
     fields: [],
     build: (v) => filled(campaignNewsletter(), v),
   },

@@ -74,7 +74,7 @@ export function contactReceipt(firstName = "there"): Email {
       eyebrow: "Message received",
       title,
       bodyHtml: `<p>Thanks for reaching out, ${firstName}. A member of the campaign will get back to you soon.</p>
-        <p>In the meantime, here's where Matt stands on the four fights that matter for Missouri's 2nd District.</p>`,
+        <p>In the meantime, here's where Matt stands on the four priorities that matter for Missouri's 2nd District.</p>`,
       button: { label: "See the issues", href: `${SITE_URL}/issues`, color: "navy" },
     }),
     text: renderText({ title, lines: [`Thanks for reaching out, ${firstName}. We'll be in touch.`, "", "See the issues: " + `${SITE_URL}/issues`] }),
@@ -95,7 +95,7 @@ export function issueSpotlight(slug: string): Email {
       subtitle: issue.tagline,
       bodyHtml: `<p>${issue.argument}</p>
         <p><strong>Matt's commitment:</strong> ${issue.commitment}</p>
-        <p style="margin-top:20px;font-weight:bold;color:#0F2540;">Explore the other fights:</p>`,
+        <p style="margin-top:20px;font-weight:bold;color:#0F2540;">Explore the other priorities:</p>`,
       cards: others,
       button: { label: "Read the full argument", href: `${SITE_URL}/issues/${issue.slug}`, color: "blue" },
       secondaryButton: { label: "Donate", href: CAMPAIGN.donateUrl, color: "red" },
@@ -110,15 +110,15 @@ export function issueSpotlight(slug: string): Email {
 }
 
 export function campaignNewsletter(): Email {
-  const title = "Four fights worth winning";
+  const title = "Four priorities worth standing for";
   return {
-    subject: "The four fights — and how you can help",
+    subject: "The four priorities — and how you can help",
     html: renderEmail({
       preheader: "Where Matt stands, and your plan to help.",
       eyebrow: "Campaign update",
       title,
       subtitle: "Where Matt stands — and how you can move this race forward.",
-      heroImage: { src: img("marketing/infographic.png"), alt: "The Four Fights" },
+      heroImage: { src: img("marketing/infographic.png"), alt: "The Four Priorities" },
       bodyHtml: `<p>Here's where Matt stands on the issues that matter most for Missouri's 2nd District — and how you can move this race forward before ${CAMPAIGN.electionLabel}.</p>`,
       cards: ISSUES.map(issueCard),
       signature: true,
