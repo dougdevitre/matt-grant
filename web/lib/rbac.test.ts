@@ -22,10 +22,16 @@ const ALL_CAPS: Capability[] = [
   "viewCompliance",
   "sendEmailCampaign",
   "manageTeam",
+  "viewPeaceRoom",
+  "contributePeaceRoom",
 ];
 
-// The agreed access rules (2026-06-18). Captain = field leader + read-only
-// finance/donor totals; sending email campaigns + team management = admin only.
+// The shared Peace Room caps — the ONLY thing a partner may reach.
+const PEACE_CAPS: Capability[] = ["viewPeaceRoom", "contributePeaceRoom"];
+
+// The agreed access rules. Captain = field leader + read-only finance/donor
+// totals; sending email campaigns + team management = admin only; member = field
+// & content; partner = Peace Room only.
 const GRANTS: Record<Role, Capability[]> = {
   admin: ALL_CAPS,
   captain: [
@@ -41,8 +47,9 @@ const GRANTS: Record<Role, Capability[]> = {
     "viewPlan",
     "viewFinanceTotals",
     "draftEmailCampaign",
+    ...PEACE_CAPS,
   ],
-  organizer: [
+  member: [
     "viewOverview",
     "manageVolunteers",
     "manageTasks",
@@ -51,7 +58,9 @@ const GRANTS: Record<Role, Capability[]> = {
     "viewPhotos",
     "viewMap",
     "viewTargets",
+    ...PEACE_CAPS,
   ],
+  partner: [...PEACE_CAPS],
 };
 
 describe("rbac capability matrix", () => {
@@ -75,7 +84,25 @@ describe("rbac capability matrix", () => {
     expect(can("admin", "manageTeam")).toBe(true);
     expect(can("captain", "sendEmailCampaign")).toBe(false);
     expect(can("captain", "manageTeam")).toBe(false);
-    expect(can("organizer", "manageTeam")).toBe(false);
+    expect(can("member", "manageTeam")).toBe(false);
+  });
+
+  // HARD WALL: a partner (external coalition member / allied campaign) may touch
+  // ONLY the shared Peace Room — never donors, finance, compliance, internal
+  // research, the plan, or team management. If this fails, partner isolation is
+  // broken and private campaign data is exposed. Do not weaken it.
+  it("partner can reach ONLY the shared Peace Room — nothing private", () => {
+    for (const cap of PEACE_CAPS) expect(can("partner", cap)).toBe(true);
+    const privateCaps = ALL_CAPS.filter((c) => !PEACE_CAPS.includes(c));
+    for (const cap of privateCaps) {
+      expect(can("partner", cap), `partner must NOT have ${cap}`).toBe(false);
+    }
+    // explicit spot-checks on the most sensitive surfaces
+    expect(can("partner", "viewDonorDetail")).toBe(false);
+    expect(can("partner", "viewFinanceTotals")).toBe(false);
+    expect(can("partner", "viewCompliance")).toBe(false);
+    expect(can("partner", "manageTeam")).toBe(false);
+    expect(can("partner", "viewResearch")).toBe(false);
   });
 
   it("denies a null / unknown role", () => {
@@ -86,10 +113,15 @@ describe("rbac capability matrix", () => {
 });
 
 describe("asRole", () => {
-  it("accepts the three known roles", () => {
+  it("accepts the four known roles", () => {
     expect(asRole("admin")).toBe("admin");
     expect(asRole("captain")).toBe("captain");
-    expect(asRole("organizer")).toBe("organizer");
+    expect(asRole("member")).toBe("member");
+    expect(asRole("partner")).toBe("partner");
+  });
+
+  it("maps the legacy 'organizer' value to 'member' (no migration)", () => {
+    expect(asRole("organizer")).toBe("member");
   });
 
   it("rejects anything else", () => {

@@ -62,7 +62,7 @@ const VOTE_MATH = [
 ];
 
 export default async function PlanPage() {
-  await requireCap("viewPlan"); // organizers are denied; don't rely on the sidebar hiding the link (H1)
+  await requireCap("viewPlan"); // members are denied; don't rely on the sidebar hiding the link (H1)
   return (
     <>
       <PageHeader kicker="Strategy" title={`Plan to win ${CAMPAIGN.districtShort}`} />
