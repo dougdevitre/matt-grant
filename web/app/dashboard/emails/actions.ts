@@ -9,9 +9,13 @@ import { sesEnabled } from "@/lib/email/send";
 import { sendBroadcastEmail } from "@/lib/campaignSend";
 import { getBroadcast } from "@/lib/email/broadcasts";
 import { createCampaign, drainOnce } from "@/lib/campaigns";
+import { segmentEmails } from "@/lib/profile";
+import { isIssueId } from "@/lib/integrations/research/issues";
 
 export type SendState = { ok: boolean; message: string };
-export type Audience = "volunteers" | "donors" | "all";
+// Audience is a staff list (volunteers/donors/all) OR a profile interest segment
+// "issue:<id>" — supporters who told us they care about that priority.
+export type Audience = "volunteers" | "donors" | "all" | `issue:${string}`;
 
 async function baseUrl(): Promise<string> {
   const h = await headers();
@@ -22,6 +26,12 @@ async function baseUrl(): Promise<string> {
 
 async function recipientsFor(audience: Audience): Promise<string[]> {
   const out = new Set<string>();
+  // Interest segment: supporters who care about this issue (profile-driven).
+  if (audience.startsWith("issue:")) {
+    const issue = audience.slice("issue:".length);
+    if (isIssueId(issue)) (await segmentEmails({ issue })).forEach((e) => out.add(e));
+    return [...out];
+  }
   if (audience === "volunteers" || audience === "all") {
     const { rows } = await getVolunteers();
     rows.forEach((v) => v.email && out.add(v.email.toLowerCase()));
@@ -36,7 +46,12 @@ async function recipientsFor(audience: Audience): Promise<string[]> {
 function parse(formData: FormData) {
   const broadcast = getBroadcast(String(formData.get("templateKey") ?? ""));
   const a = String(formData.get("audience") ?? "all");
-  const audience: Audience = a === "volunteers" || a === "donors" ? a : "all";
+  const audience: Audience =
+    a === "volunteers" || a === "donors"
+      ? a
+      : a.startsWith("issue:") && isIssueId(a.slice("issue:".length))
+        ? (a as Audience)
+        : "all";
   const vars: Record<string, string> = {};
   const missing: string[] = [];
   if (broadcast) {
