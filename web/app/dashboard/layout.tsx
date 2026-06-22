@@ -42,7 +42,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             priority
           />
           <div className="leading-tight">
-            <p className="font-display text-base font-semibold">War Room</p>
+            <p className="font-display text-base font-semibold">Peace Room</p>
             <p className="font-mono text-[0.6rem] uppercase tracking-eyebrow text-paper/60">
               {CAMPAIGN.districtShort} · Aug 4
             </p>

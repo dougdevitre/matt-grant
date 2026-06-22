@@ -7,7 +7,7 @@ import { congressEnabled } from "@/lib/integrations/legislative/config";
 export function OnboardingChecklist({ hasData, teamInvited }: { hasData: boolean; teamInvited: number }) {
   const steps = [
     { done: hasData, title: "Add your real data", desc: "Log actual donors, expenditures, and volunteers — demo data is loaded for now.", href: "/dashboard/donors", cta: "Open donors" },
-    { done: teamInvited > 0, title: "Invite your team", desc: "Give members access to the War Room — instantly, no redeploy.", href: "/dashboard/team", cta: "Invite teammates" },
+    { done: teamInvited > 0, title: "Invite your team", desc: "Give members access to the Peace Room — instantly, no redeploy.", href: "/dashboard/team", cta: "Invite teammates" },
     { done: sesEnabled, title: "Turn on email", desc: "Verify a sender in SES so receipts and broadcasts actually send.", href: undefined, cta: undefined },
     { done: congressEnabled, title: "Connect opposition research", desc: "Add a Congress.gov key to pull the opponent's record.", href: "/dashboard/research", cta: "Open research" },
   ];
