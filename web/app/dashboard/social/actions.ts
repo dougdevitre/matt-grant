@@ -1,0 +1,118 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { staffGate } from "@/lib/auth";
+import { can } from "@/lib/rbac";
+import { createPost, cancelPost, confirmChannelPosted, drainDue } from "@/lib/social/schedule";
+import { toChannelIds, isChannelId, type ChannelId } from "@/lib/social/channels";
+import { footprintScore, type ChannelMetrics, type FootprintReport } from "@/lib/social/optimize";
+
+export type ActionState = { ok: boolean; message: string };
+
+function parseHashtags(raw: string): string[] {
+  return raw
+    .split(/[\s,]+/)
+    .map((t) => t.trim().replace(/^#+/, ""))
+    .filter(Boolean)
+    .map((t) => `#${t}`);
+}
+
+// Schedule (or save as a draft / post now). Admins only.
+export async function schedulePost(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const g = await staffGate();
+  if (!can(g.role, "manageSocial")) return { ok: false, message: "Only admins can use the command center." };
+
+  const caption = String(formData.get("caption") ?? "").trim();
+  if (!caption) return { ok: false, message: "Write a caption first." };
+
+  const channels = toChannelIds(formData.getAll("channels").map(String));
+  if (channels.length === 0) return { ok: false, message: "Pick at least one channel." };
+
+  const hashtags = parseHashtags(String(formData.get("hashtags") ?? ""));
+  const link = String(formData.get("link") ?? "").trim() || undefined;
+  const mediaUrl = String(formData.get("mediaUrl") ?? "").trim() || undefined;
+  const mediaKey = String(formData.get("mediaKey") ?? "").trim() || undefined;
+  const pillar = String(formData.get("pillar") ?? "").trim() || undefined;
+  const cta = String(formData.get("cta") ?? "").trim() || undefined;
+
+  const rawWhen = String(formData.get("scheduledAt") ?? "").trim();
+  const mode = String(formData.get("mode") ?? "schedule"); // schedule | now | draft
+  let scheduledAt: string | undefined;
+  if (mode === "now") {
+    scheduledAt = new Date().toISOString();
+  } else if (mode === "schedule" && rawWhen) {
+    const d = new Date(rawWhen);
+    if (isNaN(d.getTime())) return { ok: false, message: "That schedule time isn't valid." };
+    scheduledAt = d.toISOString();
+  } else if (mode === "schedule" && !rawWhen) {
+    return { ok: false, message: "Pick a date and time, or choose Post now / Save draft." };
+  }
+
+  await createPost({ caption, hashtags, channels, link, mediaUrl, mediaKey, pillar, cta, scheduledAt, createdBy: g.email ?? "system" });
+
+  // Post-now: publish the due item inline so it goes out immediately; the cron
+  // worker would otherwise pick it up within a minute.
+  if (mode === "now") {
+    try {
+      await drainDue();
+    } catch {
+      /* cron worker will retry */
+    }
+  }
+  revalidatePath("/dashboard/social");
+  return {
+    ok: true,
+    message:
+      mode === "now"
+        ? `Publishing to ${channels.length} channel(s) now — API channels post automatically, manual channels are staged below to copy & post.`
+        : mode === "draft"
+          ? "Saved as a draft."
+          : `Scheduled for ${rawWhen.replace("T", " ")} across ${channels.length} channel(s).`,
+  };
+}
+
+export async function cancelPostAction(formData: FormData): Promise<void> {
+  const g = await staffGate();
+  if (!can(g.role, "manageSocial")) return;
+  const id = String(formData.get("id") ?? "");
+  if (id) await cancelPost(id);
+  revalidatePath("/dashboard/social");
+}
+
+export async function confirmPostedAction(formData: FormData): Promise<void> {
+  const g = await staffGate();
+  if (!can(g.role, "manageSocial")) return;
+  const id = String(formData.get("id") ?? "");
+  const channel = String(formData.get("channel") ?? "");
+  if (id && isChannelId(channel)) await confirmChannelPosted(id, channel as ChannelId);
+  revalidatePath("/dashboard/social");
+}
+
+// Profile Optimizer — analyze the per-channel metrics an admin enters and return
+// the awareness/conversion read + footprint index. No write; pure compute.
+export async function analyzeProfileAction(_prev: { report: FootprintReport | null; message: string }, formData: FormData): Promise<{ report: FootprintReport | null; message: string }> {
+  const g = await staffGate();
+  if (!can(g.role, "manageSocial")) return { report: null, message: "Only admins can use the optimizer." };
+
+  const num = (ch: string, field: string) => Math.max(0, Number(formData.get(`${ch}_${field}`) ?? 0) || 0);
+  const metrics: ChannelMetrics[] = [];
+  for (const ch of formData.getAll("metricChannel").map(String)) {
+    if (!isChannelId(ch)) continue;
+    const followers = num(ch, "followers");
+    const posts30d = num(ch, "posts30d");
+    // Skip channels left entirely blank so the footprint reflects real presence.
+    if (followers === 0 && posts30d === 0 && num(ch, "impressions30d") === 0) continue;
+    metrics.push({
+      channel: ch as ChannelId,
+      followers,
+      posts30d,
+      impressions30d: num(ch, "impressions30d"),
+      engagements30d: num(ch, "engagements30d"),
+      profileVisits30d: num(ch, "profileVisits30d"),
+      linkClicks30d: num(ch, "linkClicks30d"),
+      conversions30d: num(ch, "conversions30d"),
+    });
+  }
+  if (metrics.length === 0) return { report: null, message: "Enter metrics for at least one channel." };
+  return { report: footprintScore(metrics), message: "" };
+}

@@ -69,6 +69,7 @@ export type Capability =
   | "viewDonorDetail" // full donor list incl. PII / editing
   | "viewCompliance"
   | "sendEmailCampaign"
+  | "manageSocial" // social command center: schedule/publish + profile optimizer
   | "manageTeam"
   // shared Peace Room (the one surface partners can reach)
   | "viewPeaceRoom"
@@ -97,6 +98,7 @@ const MATRIX: Record<Role, Capability[]> = {
     "viewDonorDetail",
     "viewCompliance",
     "sendEmailCampaign",
+    "manageSocial",
     "manageTeam",
     "viewPeaceRoom",
     "contributePeaceRoom",
