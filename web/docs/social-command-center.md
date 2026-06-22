@@ -16,7 +16,11 @@ Admin-only via the RBAC capability `manageSocial` (`lib/rbac.ts`). Captains, mem
 | `lib/social/optimize.ts` | Pure engine: `scoreContent()` grades a draft against a channel; `analyzeChannel()` / `footprintScore()` turn analytics into insights + a dominance index. Unit-tested, no I/O. |
 | `lib/social/schedule.ts` | DynamoDB store (partition `SOCIALPOST`) + `drainDue()` worker. Claim-before-publish so overlapping cron runs never double-post. |
 | `lib/social/scheduler.ts` | Best-time auto-scheduler — timezone-correct (America/Chicago) planner that lays N posts onto each channel's optimal windows. Powers the "Fill the week" panel. |
-| `lib/social/publish.ts` | Per-channel publishing adapters with graceful degradation (API mode vs. manual mode). |
+| `lib/social/publish.ts` | Per-channel publishing adapters + `resolveCredentials()` (OAuth connection → manual token fallback) with graceful degradation. |
+| `lib/social/credentials.ts` | Reads the OAuth *app* credentials from `/mattgrant/prod/social/<platform>/<field>`. |
+| `lib/social/connections.ts` | DynamoDB store (`SOCIALAUTH`) for per-account OAuth tokens from the connect flow. |
+| `lib/social/metaOAuth.ts` | Meta (FB+IG) OAuth: authorize URL + code→long-lived-token→Page/IG exchange. |
+| `app/api/social/{connect,callback}/[platform]` | The OAuth connect + callback routes (admin-only; CSRF state cookie). |
 | `app/api/cron/social-drain/route.ts` | Background worker that publishes scheduled posts at their time. Same `CRON_SECRET` + cadence as the email drain. |
 | `app/dashboard/social/{page,actions}.tsx` | The UI + server actions (schedule / post now / cancel / confirm-posted / analyze profile). |
 | `components/dashboard/Social*.tsx` | Composer (live per-channel scoring), Profile Optimizer, copy button. |
@@ -41,24 +45,32 @@ These move — re-verify against each platform's current docs and update `CHANNE
 
 Like SES, Clerk, and S3 elsewhere in the app, publishing **degrades gracefully**:
 
-- **API mode** — when a channel is **fully configured** (all its required secrets present, read via `getSecret`), `drainDue()` posts it automatically through that platform's API at the scheduled time.
-- **Manual mode** — otherwise the post is **staged** at its scheduled time and surfaces in the "Ready to post" queue with copy-ready text + the attached image, exactly like Buffer's "reminder" posts for platforms without a publish API. An admin pushes it and clicks **Mark posted**. A channel with a token but a missing id stages (not errors).
+- **API mode** — when a channel has credentials (an OAuth connection, or a manual token fallback), `drainDue()` posts it automatically through that platform's API at the scheduled time.
+- **Manual mode** — otherwise the post is **staged** at its scheduled time and surfaces in the "Ready to post" queue with copy-ready text + the attached image, exactly like Buffer's "reminder" posts for platforms without a publish API. An admin pushes it and clicks **Mark posted**.
 
-### Required secrets per channel
+### Getting credentials: two ways
 
-Store each in SSM at `/matt-grant/<NAME>` (SecureString). A channel auto-publishes only when **all** of its secrets are present.
+`resolveCredentials(channel)` (in `publish.ts`) checks, in order: (1) a stored **OAuth connection**, then (2) a **manual token** fallback in env/SSM.
 
-| Channel | Secrets | Notes |
-|---|---|---|
-| X | `X_ACCESS_TOKEN` | OAuth2 user-context token with `tweet.write` (+ `media.write` for images). Posts text/link and uploads an attached image via the v2 media endpoint. |
-| Facebook | `FACEBOOK_PAGE_TOKEN`, `FACEBOOK_PAGE_ID` | Page token with `pages_manage_posts`. Photo post when media attached, else feed post. |
-| Instagram | `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_USER_ID` | IG business/creator account id; token with `instagram_content_publish`. **Image required** (no text-only IG posts). |
-| LinkedIn | `LINKEDIN_ACCESS_TOKEN`, `LINKEDIN_AUTHOR_URN` | Author URN (e.g. `urn:li:organization:123`); token with `w_organization_social`/`w_member_social`. Text/link share (image upload is a follow-up). |
-| TikTok / YouTube / Threads | `<PLATFORM>_ACCESS_TOKEN` | Adapter not implemented yet — stages manually until wired in `apiPublish()`. |
+**1. In-app OAuth connect (recommended — "auth established through the app").** The admin clicks **Connect** on the Channel connections panel. The flow uses the OAuth *app* credentials the campaign loaded into Parameter Store under `/mattgrant/prod/social/<platform>/<field>` (`app_id`, `app_secret`, `redirect_uri`, …; read by `lib/social/credentials.ts`).
 
-**Meta image fetch:** Instagram (and Facebook photo posts) need a **publicly reachable** image. The composer's on-brand graphic is `/api/graphics?…`, which is public; `absoluteMediaUrl()` rewrites it against `SITE_URL` so Meta can fetch it. Override the Graph version with `META_GRAPH_VERSION` as Meta deprecates versions.
+- `GET /api/social/connect/facebook` → Meta consent (CSRF state in an httpOnly cookie).
+- `GET /api/social/callback/facebook` → exchanges the code for a long-lived user token, resolves the **Page** (its token is what we post with) and the linked **Instagram business account**, and stores them in DynamoDB (`SOCIALAUTH` partition, `lib/social/connections.ts`).
+- One Meta connect powers **both** Facebook and Instagram. The platform's registered `redirect_uri` must point at `…/api/social/callback/facebook`.
 
-Channels flip to API mode automatically once their secrets land — no redeploy needed (SSM TTL is ~5 min). No tokens are committed; the feature is fully usable day one without any platform credentials.
+**2. Manual token fallback** (env/SSM flat names under `/matt-grant/<NAME>`): `X_ACCESS_TOKEN`; `FACEBOOK_PAGE_TOKEN`+`FACEBOOK_PAGE_ID`; `INSTAGRAM_ACCESS_TOKEN`+`INSTAGRAM_USER_ID`; `LINKEDIN_ACCESS_TOKEN`+`LINKEDIN_AUTHOR_URN`. Useful for testing or platforms without a connect flow yet.
+
+| Channel | Connect flow | Posts | Scopes |
+|---|---|---|---|
+| Facebook | ✅ Meta OAuth | photo (media attached) / feed | `pages_manage_posts`, `pages_read_engagement`, `pages_show_list` |
+| Instagram | ✅ via the Meta connect | image required (container→publish) | `instagram_basic`, `instagram_content_publish` |
+| X | manual token for now | text/link + image (v2 media) | `tweet.write` (+ `media.write`) |
+| LinkedIn | manual token for now | text/link UGC share | `w_organization_social`/`w_member_social` |
+| TikTok / YouTube / Threads | — | not implemented (video / no adapter) | — |
+
+**Meta image fetch:** Instagram (and Facebook photo posts) need a **publicly reachable** image. The composer's on-brand graphic is `/api/graphics?…`, which is public; `absoluteMediaUrl()` rewrites it against `SITE_URL` so Meta can fetch it. Override the Graph version with `META_GRAPH_VERSION`.
+
+Channels flip to API mode automatically once connected — no redeploy needed. No tokens are committed; the feature is fully usable day one without any platform credentials.
 
 ## Scheduling worker
 

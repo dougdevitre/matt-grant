@@ -11,6 +11,7 @@ import { cancelPostAction, confirmPostedAction } from "@/app/dashboard/social/ac
 import { SOCIAL_POSTS } from "@/lib/socialPosts";
 import { channelConfigured } from "@/lib/social/publish";
 import { listSnapshots } from "@/lib/social/footprint";
+import { getConnection } from "@/lib/social/connections";
 
 export const dynamic = "force-dynamic";
 
@@ -28,11 +29,15 @@ const STATUS_STYLE: Record<string, string> = {
 const when = (iso?: string) =>
   iso ? new Date(iso).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—";
 
-export default async function SocialPage() {
+export default async function SocialPage({ searchParams }: { searchParams: Promise<{ connected?: string; error?: string }> }) {
   await requireCap("manageSocial");
+  const { connected, error } = await searchParams;
 
-  const [posts, snapshots] = await Promise.all([listPosts(), listSnapshots()]);
+  const [posts, snapshots, metaConn] = await Promise.all([listPosts(), listSnapshots(), getConnection("facebook")]);
   const visible = posts.filter((p) => p.status !== "canceled");
+  const meta = metaConn?.pageToken
+    ? { connected: true, detail: [metaConn.pageName && `Page ${metaConn.pageName}`, metaConn.igUsername && `@${metaConn.igUsername}`].filter(Boolean).join(" · ") || "connected" }
+    : { connected: false };
 
   // Map the static 50-post countdown library into composer-ready templates.
   const library = SOCIAL_POSTS.map((p) => ({
@@ -58,6 +63,17 @@ export default async function SocialPage() {
   return (
     <>
       <PageHeader kicker="Comms · Admin only" title="Social command center" />
+
+      {connected && (
+        <div className="mb-6 rounded-sm border border-field/40 bg-field/10 px-4 py-3 text-sm text-field">
+          Connected {connected} — auto-publishing is now live for it.
+        </div>
+      )}
+      {error && (
+        <div className="mb-6 rounded-sm border border-brick/40 bg-brick/10 px-4 py-3 text-sm text-brick">
+          Connection failed: {error}
+        </div>
+      )}
       <HowTo
         steps={[
           "Compose once, publish to every channel — the per-channel preview flags anything over the character limit, missing hashtags, no CTA, or a missing “Paid for by” line before it ships.",
@@ -82,7 +98,7 @@ export default async function SocialPage() {
       </div>
 
       <div className="mb-8 grid gap-4 lg:grid-cols-2">
-        <SocialConnections />
+        <SocialConnections meta={meta} />
         <SocialAutoSchedule />
       </div>
 
