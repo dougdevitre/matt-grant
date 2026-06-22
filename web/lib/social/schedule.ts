@@ -39,6 +39,7 @@ export type ScheduledPost = {
   link?: string;
   mediaKey?: string;
   mediaUrl?: string;
+  videoUrl?: string;
   pillar?: string;
   cta?: string;
   scheduledAt?: string; // absent = draft
@@ -57,6 +58,7 @@ export async function createPost(input: {
   link?: string;
   mediaKey?: string;
   mediaUrl?: string;
+  videoUrl?: string;
   pillar?: string;
   cta?: string;
   scheduledAt?: string; // ISO; absent or empty → draft
@@ -82,6 +84,7 @@ export async function createPost(input: {
         ...(input.link ? { link: input.link } : {}),
         ...(input.mediaKey ? { mediaKey: input.mediaKey } : {}),
         ...(input.mediaUrl ? { mediaUrl: input.mediaUrl } : {}),
+        ...(input.videoUrl ? { videoUrl: input.videoUrl } : {}),
         ...(input.pillar ? { pillar: input.pillar } : {}),
         ...(input.cta ? { cta: input.cta } : {}),
         ...(scheduled ? { scheduledAt: input.scheduledAt } : {}),
@@ -201,7 +204,7 @@ export async function drainDue(limit = 10): Promise<{ processed: number; posts: 
       throw e;
     }
 
-    const payload: PublishablePost = { caption: post.caption, hashtags: post.hashtags ?? [], link: post.link, mediaUrl: post.mediaUrl };
+    const payload: PublishablePost = { caption: post.caption, hashtags: post.hashtags ?? [], link: post.link, mediaUrl: post.mediaUrl, videoUrl: post.videoUrl };
     const perChannel: Partial<Record<ChannelId, ChannelState>> = { ...post.perChannel };
     for (const channel of post.channels ?? []) {
       if (!CHANNELS[channel]) continue;

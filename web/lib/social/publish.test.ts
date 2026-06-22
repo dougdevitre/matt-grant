@@ -180,6 +180,159 @@ describe("LinkedIn publisher (UGC)", () => {
   });
 });
 
+// A binary-bytes response (for the video-fetch step of YouTube uploads).
+function binRes(contentType = "video/mp4"): Response {
+  return {
+    ok: true,
+    status: 200,
+    headers: { get: () => contentType },
+    arrayBuffer: async () => new ArrayBuffer(16),
+  } as unknown as Response;
+}
+
+describe("Threads publisher (Graph)", () => {
+  beforeEach(() => {
+    process.env.THREADS_ACCESS_TOKEN = "tkn";
+    process.env.THREADS_USER_ID = "th1";
+    _clearSecretCache();
+  });
+  afterEach(() => {
+    delete process.env.THREADS_ACCESS_TOKEN;
+    delete process.env.THREADS_USER_ID;
+    vi.restoreAllMocks();
+  });
+
+  it("creates a TEXT container then publishes it when there's no image", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(res(200, { id: "container_t" }))
+      .mockResolvedValueOnce(res(200, { id: "thread_1" }));
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await publishToChannel("threads", { caption: "Vote Aug 4", hashtags: ["#MO02"] });
+    expect(r).toMatchObject({ ok: true, mode: "api", externalId: "thread_1" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[0][0]).toContain("/th1/threads");
+    expect(String((fetchMock.mock.calls[0][1] as RequestInit).body)).toContain("media_type=TEXT");
+    expect(fetchMock.mock.calls[1][0]).toContain("/th1/threads_publish");
+    expect(String((fetchMock.mock.calls[1][1] as RequestInit).body)).toContain("creation_id=container_t");
+  });
+
+  it("creates an IMAGE container (absolute url) when a graphic is attached", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(res(200, { id: "container_i" }))
+      .mockResolvedValueOnce(res(200, { id: "thread_2" }));
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await publishToChannel("threads", { caption: "Hi", hashtags: [], mediaUrl: "/api/graphics?format=ig_square" });
+    expect(r).toMatchObject({ ok: true, externalId: "thread_2" });
+    const body = decodeURIComponent(String((fetchMock.mock.calls[0][1] as RequestInit).body));
+    expect(body).toContain("media_type=IMAGE");
+    expect(body).toContain("https://mattgrantforcongress.org/api/graphics");
+  });
+
+  it("surfaces a Threads error as a failure", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(res(400, { error: { message: "bad token" } })));
+    const r = await publishToChannel("threads", { caption: "Hi", hashtags: [] });
+    expect(r.ok).toBe(false);
+  });
+});
+
+describe("TikTok publisher (Content Posting API)", () => {
+  beforeEach(() => {
+    process.env.TIKTOK_ACCESS_TOKEN = "tkn";
+    _clearSecretCache();
+  });
+  afterEach(() => {
+    delete process.env.TIKTOK_ACCESS_TOKEN;
+    vi.restoreAllMocks();
+  });
+
+  it("posts a PHOTO from the graphic when there's no video", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(res(200, { data: { publish_id: "pub_1" }, error: { code: "ok" } }));
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await publishToChannel("tiktok", { caption: "Hi", hashtags: ["#MO02"], mediaUrl: "https://cdn.example.com/x.png" });
+    expect(r).toMatchObject({ ok: true, mode: "api", externalId: "pub_1" });
+    expect(fetchMock.mock.calls[0][0]).toContain("/post/publish/content/init/");
+    const body = String((fetchMock.mock.calls[0][1] as RequestInit).body);
+    expect(body).toContain("PHOTO");
+    expect(body).toContain("photo_images");
+  });
+
+  it("posts a VIDEO via the video endpoint when a video URL is attached", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(res(200, { data: { publish_id: "pub_2" }, error: { code: "ok" } }));
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await publishToChannel("tiktok", { caption: "Hi", hashtags: [], videoUrl: "https://cdn.example.com/v.mp4" });
+    expect(r).toMatchObject({ ok: true, externalId: "pub_2" });
+    expect(fetchMock.mock.calls[0][0]).toContain("/post/publish/video/init/");
+    expect(String((fetchMock.mock.calls[0][1] as RequestInit).body)).toContain("v.mp4");
+  });
+
+  it("refuses to publish with neither image nor video", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await publishToChannel("tiktok", { caption: "Hi", hashtags: [] });
+    expect(r.ok).toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("surfaces a TikTok error.code (200 body) as a failure", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(res(200, { data: {}, error: { code: "spam_risk_too_many_posts", message: "rate limited" } })));
+    const r = await publishToChannel("tiktok", { caption: "Hi", hashtags: [], mediaUrl: "https://cdn.example.com/x.png" });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toContain("rate limited");
+  });
+});
+
+describe("YouTube publisher (Data API v3)", () => {
+  beforeEach(() => {
+    process.env.YOUTUBE_ACCESS_TOKEN = "tkn";
+    _clearSecretCache();
+  });
+  afterEach(() => {
+    delete process.env.YOUTUBE_ACCESS_TOKEN;
+    vi.restoreAllMocks();
+  });
+
+  it("stages manually (no API call) when the post has no video", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await publishToChannel("youtube", { caption: "Hi", hashtags: [], mediaUrl: "https://cdn.example.com/x.png" });
+    expect(r).toEqual({ ok: true, mode: "manual" });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("opens a resumable session and PUTs the video bytes", async () => {
+    const initRes = {
+      ok: true,
+      status: 200,
+      headers: { get: (h: string) => (h.toLowerCase() === "location" ? "https://upload.youtube/session/123" : null) },
+      text: async () => "",
+      json: async () => ({}),
+    } as unknown as Response;
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(binRes()) // fetch the video bytes
+      .mockResolvedValueOnce(initRes) // open resumable session → location header
+      .mockResolvedValueOnce(res(200, { id: "yt_1" })); // PUT bytes → video id
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await publishToChannel("youtube", { caption: "Short hook\nmore", hashtags: ["#Shorts"], videoUrl: "https://cdn.example.com/v.mp4" });
+    expect(r).toMatchObject({ ok: true, mode: "api", externalId: "yt_1" });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock.mock.calls[1][0]).toContain("uploadType=resumable");
+    expect(fetchMock.mock.calls[2][0]).toBe("https://upload.youtube/session/123");
+    expect((fetchMock.mock.calls[2][1] as RequestInit).method).toBe("PUT");
+  });
+
+  it("fails (not silent) when the session returns no upload URL", async () => {
+    const noLocation = { ok: true, status: 200, headers: { get: () => null }, text: async () => "", json: async () => ({}) } as unknown as Response;
+    const fetchMock = vi.fn().mockResolvedValueOnce(binRes()).mockResolvedValueOnce(noLocation);
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await publishToChannel("youtube", { caption: "Hi", hashtags: [], videoUrl: "https://cdn.example.com/v.mp4" });
+    expect(r.ok).toBe(false);
+    expect(fetchMock).toHaveBeenCalledTimes(2); // never PUT
+  });
+});
+
 describe("channel staging without credentials", () => {
   it("stages manually (not error) when a channel is unconfigured", async () => {
     const r = await publishToChannel("facebook", { caption: "Hi", hashtags: [] });

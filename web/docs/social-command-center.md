@@ -31,9 +31,9 @@ Caption limits, hashtag norms, and image specs live in `CHANNELS`. Highlights:
 | Facebook | 5,000 | 250 | 0–2 | ✅ implemented (text + photo) |
 | Instagram | 2,200 | 125 | 3–5 (max 30) | ✅ implemented (image required) |
 | LinkedIn | 3,000 | 210 | 3–5 | ✅ implemented (text/link) |
-| TikTok | 4,000 | 100 | 3–5 | manual (stub) |
-| YouTube (Shorts) | 5,000 (desc) | 100 | 2–3 | manual (stub) |
-| Threads | 500 | 500 | 0–1 | manual (stub) |
+| TikTok | 4,000 | 100 | 3–5 | ✅ implemented (video, or PHOTO post from the graphic) |
+| YouTube (Shorts) | 5,000 (desc) | 100 | 2–3 | ✅ implemented (resumable video upload; image-only posts stage) |
+| Threads | 500 | 500 | 0–1 | ✅ implemented (text + image) |
 
 These move — re-verify against each platform's current docs and update `CHANNELS` (the staleness convention from `compliance-baseline.md`). Sources used: Glow Social / TypeCount / Letter Counter 2026 character-limit guides.
 
@@ -54,9 +54,13 @@ Store each in SSM at `/matt-grant/<NAME>` (SecureString). A channel auto-publish
 | Facebook | `FACEBOOK_PAGE_TOKEN`, `FACEBOOK_PAGE_ID` | Page token with `pages_manage_posts`. Photo post when media attached, else feed post. |
 | Instagram | `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_USER_ID` | IG business/creator account id; token with `instagram_content_publish`. **Image required** (no text-only IG posts). |
 | LinkedIn | `LINKEDIN_ACCESS_TOKEN`, `LINKEDIN_AUTHOR_URN` | Author URN (e.g. `urn:li:organization:123`); token with `w_organization_social`/`w_member_social`. Text/link share (image upload is a follow-up). |
-| TikTok / YouTube / Threads | `<PLATFORM>_ACCESS_TOKEN` | Adapter not implemented yet — stages manually until wired in `apiPublish()`. |
+| Threads | `THREADS_ACCESS_TOKEN`, `THREADS_USER_ID` | Token with `threads_content_publish`. Same container→publish flow as Instagram, but Threads allows text-only — posts a TEXT thread without a graphic, an IMAGE thread with one. |
+| TikTok | `TIKTOK_ACCESS_TOKEN` | Token with the `video.publish` scope (Content Posting API, direct post). A public **video URL** posts as a video; otherwise the on-brand graphic posts as a **PHOTO** (TikTok has no text-only post). Both pull the asset by URL, so the campaign domain must be a **verified URL-prefix property** in the TikTok developer portal. |
+| YouTube (Shorts) | `YOUTUBE_ACCESS_TOKEN` | OAuth token with the `youtube.upload` scope. A Short is a **video**, so a post auto-publishes only when it carries a **video URL** (resumable `videos.insert`, privacy `public`); an image-only post honestly **stages for manual posting** rather than faking a video. |
 
-**Meta image fetch:** Instagram (and Facebook photo posts) need a **publicly reachable** image. The composer's on-brand graphic is `/api/graphics?…`, which is public; `absoluteMediaUrl()` rewrites it against `SITE_URL` so Meta can fetch it. Override the Graph version with `META_GRAPH_VERSION` as Meta deprecates versions.
+**Video URL.** TikTok and YouTube consume an optional public **video URL** carried on the post (`videoUrl`, set from the composer's "Video URL" field). YouTube needs it to publish at all; TikTok prefers it but falls back to a photo post. `absoluteMediaUrl()` rewrites a relative path against `SITE_URL`, same as images.
+
+**Meta image fetch:** Instagram (and Facebook photo posts) need a **publicly reachable** image. The composer's on-brand graphic is `/api/graphics?…`, which is public; `absoluteMediaUrl()` rewrites it against `SITE_URL` so Meta can fetch it. Override the Graph version with `META_GRAPH_VERSION` as Meta deprecates versions (`THREADS_GRAPH_VERSION` does the same for Threads).
 
 Channels flip to API mode automatically once their secrets land — no redeploy needed (SSM TTL is ~5 min). No tokens are committed; the feature is fully usable day one without any platform credentials.
 
