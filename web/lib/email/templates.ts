@@ -45,6 +45,38 @@ export function volunteerWelcome(firstName = "there"): Email {
   };
 }
 
+export function supporterWelcome(firstName = "there"): Email {
+  const title = `Welcome to the community, ${firstName}.`;
+  return {
+    subject: "You're in — welcome to the Matt Grant for Congress community",
+    html: renderEmail({
+      preheader: "You just joined the movement to restore public trust in MO-02.",
+      eyebrow: "You're in",
+      title,
+      subtitle: "You just joined the movement to restore public trust in Missouri's 2nd District.",
+      heroImage: { src: img("brand/headshot.png"), alt: "Matt Grant" },
+      bodyHtml: `<p>Thanks for joining — it's good to have you. This race is won one neighbor at a time, and you just made it stronger.</p>
+        <p>Here's how to make an immediate difference:</p>
+        <ul>
+          <li><strong>See the case for change</strong> — the data on why it's time for new leadership in MO-02.</li>
+          <li><strong>Share it</strong> — bring a neighbor into the community.</li>
+          <li><strong>Chip in</strong> if you're able — every dollar funds doors, calls, and mail before ${CAMPAIGN.electionLabel}.</li>
+        </ul>`,
+      signature: true,
+      button: { label: "Enter your community", href: `${SITE_URL}/community`, color: "blue" },
+      secondaryButton: { label: "Donate", href: CAMPAIGN.donateUrl, color: "red" },
+    }),
+    text: renderText({
+      title,
+      lines: [
+        "Thanks for joining the Matt Grant for Congress community. This race is won one neighbor at a time.",
+        "",
+        "Enter your community: " + `${SITE_URL}/community`,
+      ],
+    }),
+  };
+}
+
 export function donationThankYou(firstName = "Friend", amount?: number): Email {
   const amt = amount ? `$${amount}` : "your gift";
   const title = `Thank you, ${firstName}.`;
@@ -216,6 +248,7 @@ export function announcement(): Email {
 
 // Registry for previews / sends.
 export const EMAIL_TEMPLATES: { key: string; kind: "transactional" | "broadcast"; build: () => Email }[] = [
+  { key: "supporter-welcome", kind: "transactional", build: () => supporterWelcome("Sam") },
   { key: "volunteer-welcome", kind: "transactional", build: () => volunteerWelcome("Sam") },
   { key: "donation-thank-you", kind: "transactional", build: () => donationThankYou("Sam", 50) },
   { key: "contact-receipt", kind: "transactional", build: () => contactReceipt("Sam") },
