@@ -24,6 +24,7 @@ const ALL_CAPS: Capability[] = [
   "manageTeam",
   "viewPeaceRoom",
   "contributePeaceRoom",
+  "viewCommunity",
 ];
 
 // The shared Peace Room caps — the ONLY thing a partner may reach.
@@ -31,7 +32,7 @@ const PEACE_CAPS: Capability[] = ["viewPeaceRoom", "contributePeaceRoom"];
 
 // The agreed access rules. Captain = field leader + read-only finance/donor
 // totals; sending email campaigns + team management = admin only; member = field
-// & content; partner = Peace Room only.
+// & content; supporter = public community hub only; partner = Peace Room only.
 const GRANTS: Record<Role, Capability[]> = {
   admin: ALL_CAPS,
   captain: [
@@ -48,6 +49,7 @@ const GRANTS: Record<Role, Capability[]> = {
     "viewFinanceTotals",
     "draftEmailCampaign",
     ...PEACE_CAPS,
+    "viewCommunity",
   ],
   member: [
     "viewOverview",
@@ -59,7 +61,9 @@ const GRANTS: Record<Role, Capability[]> = {
     "viewMap",
     "viewTargets",
     ...PEACE_CAPS,
+    "viewCommunity",
   ],
+  supporter: ["viewCommunity"],
   partner: [...PEACE_CAPS],
 };
 
@@ -103,6 +107,25 @@ describe("rbac capability matrix", () => {
     expect(can("partner", "viewCompliance")).toBe(false);
     expect(can("partner", "manageTeam")).toBe(false);
     expect(can("partner", "viewResearch")).toBe(false);
+  });
+
+  // HARD WALL: a supporter (any self-signup from the public) may touch ONLY the
+  // community hub — never donors, finance, compliance, research, the dashboard
+  // tools, the plan, or team management. Opening public signup at launch makes
+  // this the most-exercised wall in the app; if it fails, the public can see
+  // private campaign data. Do not weaken it.
+  it("supporter can reach ONLY the community hub — nothing private or staff", () => {
+    expect(can("supporter", "viewCommunity")).toBe(true);
+    const offLimits = ALL_CAPS.filter((c) => c !== "viewCommunity");
+    for (const cap of offLimits) {
+      expect(can("supporter", cap), `supporter must NOT have ${cap}`).toBe(false);
+    }
+    // a supporter is not even in the staff dashboard surfaces
+    expect(can("supporter", "viewOverview")).toBe(false);
+    expect(can("supporter", "viewPeaceRoom")).toBe(false);
+    expect(can("supporter", "viewDonorDetail")).toBe(false);
+    expect(can("supporter", "viewFinanceTotals")).toBe(false);
+    expect(can("supporter", "manageTeam")).toBe(false);
   });
 
   // partner must never be assignable from the staff picker / role dropdown — it's

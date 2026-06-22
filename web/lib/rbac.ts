@@ -6,23 +6,27 @@
 // so access rules live in exactly one place.
 //
 // Decisions baked in:
-//   • 4 roles: admin / captain / member / partner
+//   • 5 roles: admin / captain / member / supporter / partner
 //   • captain = field leader + READ-ONLY finance & donor totals (no editing,
 //     no compliance, no role assignment)
 //   • member = field & content (was "organizer" — legacy value still accepted)
+//   • supporter = the PUBLIC community tier. The default stamped on anyone who
+//     self-signs-up at launch. Sees the community hub + the case-for-change board
+//     and NOTHING private — no donors, finance, compliance, internal research,
+//     plan, or team. A hard wall, like partner: supporters are the public.
 //   • partner = the shared Peace Room ONLY. A coalition partner / allied campaign
 //     joins to collaborate on the public "time for change" case and can see
 //     NOTHING private — no donors, finance, compliance, internal research, plan,
 //     or team management. This is a hard wall: partners are external.
 //   • sending email campaigns is admins-only (captains may draft)
 
-export type Role = "admin" | "captain" | "member" | "partner";
+export type Role = "admin" | "captain" | "member" | "supporter" | "partner";
 
-export const ROLES: Role[] = ["admin", "captain", "member", "partner"];
+export const ROLES: Role[] = ["admin", "captain", "member", "supporter", "partner"];
 
-// Roles an admin may assign from the team page. `partner` is provisioned through
-// the Peace Room invite flow (Phase 4), never the internal staff picker, so it
-// can't be handed out alongside staff roles by accident.
+// Roles an admin may assign from the team page. `supporter` is self-assigned at
+// signup and `partner` is provisioned through the Peace Room invite flow — neither
+// is handed out from the internal staff picker.
 export const INVITABLE_ROLES: Role[] = ["admin", "captain", "member"];
 
 // Legacy role values that map onto a current role, so existing Clerk metadata /
@@ -33,6 +37,7 @@ export const ROLE_LABELS: Record<Role, string> = {
   admin: "Admin",
   captain: "Captain",
   member: "Member",
+  supporter: "Supporter",
   partner: "Partner",
 };
 
@@ -40,6 +45,7 @@ export const ROLE_BLURBS: Record<Role, string> = {
   admin: "Full access — finance, compliance, donors, email sends, and team management.",
   captain: "Field leader — organizing, content, and research, plus read-only finance & donor totals.",
   member: "Field & content — volunteers, tasks, graphics, and the map.",
+  supporter: "Community supporter — the community hub + the case-for-change board. No internal campaign data.",
   partner: "Coalition partner — the shared Peace Room only. No donors, finance, compliance, or internal campaign data.",
 };
 
@@ -66,7 +72,9 @@ export type Capability =
   | "manageTeam"
   // shared Peace Room (the one surface partners can reach)
   | "viewPeaceRoom"
-  | "contributePeaceRoom";
+  | "contributePeaceRoom"
+  // public community hub (the one surface supporters can reach)
+  | "viewCommunity";
 
 // Capabilities granted to each role. Each role is listed explicitly (rather than
 // "all") so adding a new capability forces a conscious decision about who gets
@@ -92,6 +100,7 @@ const MATRIX: Record<Role, Capability[]> = {
     "manageTeam",
     "viewPeaceRoom",
     "contributePeaceRoom",
+    "viewCommunity",
   ],
   captain: [
     "viewOverview",
@@ -108,6 +117,7 @@ const MATRIX: Record<Role, Capability[]> = {
     "draftEmailCampaign",
     "viewPeaceRoom",
     "contributePeaceRoom",
+    "viewCommunity",
   ],
   member: [
     "viewOverview",
@@ -120,7 +130,12 @@ const MATRIX: Record<Role, Capability[]> = {
     "viewTargets",
     "viewPeaceRoom",
     "contributePeaceRoom",
+    "viewCommunity",
   ],
+  // HARD WALL — public community hub only. The default for self-signups. Do NOT
+  // add private/staff capabilities here; the supporter-isolation test in
+  // rbac.test.ts asserts this list stays minimal.
+  supporter: ["viewCommunity"],
   // HARD WALL — Peace Room only. Do NOT add private capabilities here; the
   // partner-isolation test in rbac.test.ts asserts this list stays minimal.
   partner: ["viewPeaceRoom", "contributePeaceRoom"],
@@ -130,6 +145,7 @@ const CAP_SETS: Record<Role, Set<Capability>> = {
   admin: new Set(MATRIX.admin),
   captain: new Set(MATRIX.captain),
   member: new Set(MATRIX.member),
+  supporter: new Set(MATRIX.supporter),
   partner: new Set(MATRIX.partner),
 };
 
