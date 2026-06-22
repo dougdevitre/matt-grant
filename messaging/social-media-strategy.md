@@ -2,6 +2,8 @@
 
 A complete social media playbook for political campaigns at every level. Social media is the primary way voters under 50 will encounter your campaign. This guide covers platform selection, content planning, posting cadence, paid amplification, compliance, and crisis management.
 
+> **Operating the tools:** for the closed-loop doctrine that ties the web app's admin **Social Command Center** (publish + schedule to every channel) to the **Profile Optimizer** (awareness + conversion analysis), see [`digital-footprint-strategy.md`](./digital-footprint-strategy.md).
+
 ---
 
 ## Platform Selection by Race Size

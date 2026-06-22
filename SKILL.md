@@ -239,6 +239,7 @@ Load only what is needed for the current task:
 | `messaging/debate-prep.md` | User is preparing for a debate, forum, or candidate Q&A |
 | `messaging/press-release-templates.md` | User needs to draft a press release — announcement, endorsement, policy, response, or milestone |
 | `messaging/social-media-strategy.md` | User asks about social media for their campaign — platform selection, content, compliance |
+| `messaging/digital-footprint-strategy.md` | User asks how to dominate their digital footprint, run a social command center, schedule/cross-post to channels, or optimize profiles for awareness + conversion (pairs with the web app's `/dashboard/social`) |
 | `messaging/email-fundraising.md` | User asks about email marketing, fundraising sequences, list building, or email best practices |
 | `messaging/paid-media-planning.md` | User asks about TV, radio, digital ads, direct mail, media buying, or ad budget allocation |
 | `messaging/podcast-campaign.md` | User asks about podcasts — guesting on shows, launching a campaign podcast, podcast prep, interview questions, website copy, social media promotion, hashtags, or guest packages. Generates pitch emails, briefing sheets, promo packages, show notes, and launch plans. |

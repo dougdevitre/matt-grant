@@ -21,6 +21,7 @@ const ALL_CAPS: Capability[] = [
   "viewDonorDetail",
   "viewCompliance",
   "sendEmailCampaign",
+  "manageSocial",
   "manageTeam",
   "viewPeaceRoom",
   "contributePeaceRoom",
@@ -89,6 +90,14 @@ describe("rbac capability matrix", () => {
     expect(can("captain", "sendEmailCampaign")).toBe(false);
     expect(can("captain", "manageTeam")).toBe(false);
     expect(can("member", "manageTeam")).toBe(false);
+  });
+
+  it("the social command center is admin-only", () => {
+    expect(can("admin", "manageSocial")).toBe(true);
+    expect(can("captain", "manageSocial")).toBe(false);
+    expect(can("member", "manageSocial")).toBe(false);
+    expect(can("supporter", "manageSocial")).toBe(false);
+    expect(can("partner", "manageSocial")).toBe(false);
   });
 
   // HARD WALL: a partner (external coalition member / allied campaign) may touch
