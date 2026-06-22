@@ -44,7 +44,7 @@ export async function inviteStaff(_prev: InviteResult | null, formData: FormData
       const html = renderEmail({
         eyebrow: "Campaign HQ",
         title: "You're on the team.",
-        bodyHtml: `<p>You've been invited to the Matt Grant for Congress <strong>War Room</strong> — the campaign's private command center.</p>
+        bodyHtml: `<p>You've been invited to the Matt Grant for Congress <strong>Peace Room</strong> — the campaign's collaborative hub, where the team works together to restore public trust in MO-02.</p>
           <p>Sign in with <strong>${email}</strong> to get started.</p>`,
         button: { label: "Sign in to HQ", href: `${SITE_URL}/sign-in`, color: "red" },
       });
