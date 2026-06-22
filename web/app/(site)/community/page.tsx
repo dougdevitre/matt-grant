@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { CaseForChange } from "@/components/CaseForChange";
+import { donorSummaryForEmail } from "@/lib/donorStatus";
+import { dollars } from "@/lib/money";
 import { CAMPAIGN, SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -19,13 +21,30 @@ export default async function CommunityPage() {
   const gate = await staffGate();
   const isStaff = can(gate.role, "viewOverview"); // admin / captain / member
 
+  // Donor tier is derived from the signed-in user's OWN email matching a positive
+  // contribution — never anyone else's data (see donorStatus.ts). Giving unlocks
+  // the donor view automatically.
+  const donor = await donorSummaryForEmail(gate.email);
+
   let firstName = "";
   try {
     const { currentUser } = await import("@clerk/nextjs/server");
     const u = await currentUser();
     firstName = (u?.firstName ?? "").trim();
+
+    // Guarantee the welcome email. Any signed-in community member (a supporter,
+    // or a brand-new self-signup whose role hasn't stamped yet — i.e. not staff
+    // or partner) who hasn't been welcomed gets it now. Idempotent via the
+    // welcomedAt flag, so it can't double-send with the webhook. This is the
+    // reliable path: it doesn't depend on the webhook firing or its send working.
+    const welcomedAt = (u?.privateMetadata as { welcomedAt?: unknown } | undefined)?.welcomedAt;
+    const isCommunityMember = !isStaff && gate.role !== "partner";
+    if (u && gate.email && !welcomedAt && isCommunityMember) {
+      const { ensureWelcomed } = await import("@/lib/welcome");
+      await ensureWelcomed({ userId: u.id, email: gate.email, firstName: u.firstName });
+    }
   } catch {
-    /* clerk off (demo) — no name */
+    /* clerk off (demo) — no name, no welcome */
   }
 
   const shareText = encodeURIComponent(
@@ -35,7 +54,7 @@ export default async function CommunityPage() {
 
   return (
     <section className="container-page py-16 sm:py-20">
-      <p className="eyebrow text-brick">You&apos;re in</p>
+      <p className="eyebrow text-brick">{donor.hasDonated ? "Donor · thank you" : "You’re in"}</p>
       <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">
         Welcome to the community{firstName ? `, ${firstName}` : ""}.
       </h1>
@@ -43,6 +62,19 @@ export default async function CommunityPage() {
         You&apos;re now part of the movement to restore public trust in MO-02. Here&apos;s the case we&apos;re
         making together — and three ways you can help right now.
       </p>
+
+      {donor.hasDonated && (
+        <div className="mt-6 max-w-2xl rounded-sm border border-gold/40 bg-gold/10 p-5">
+          <p className="font-display text-lg font-semibold text-ink">
+            Thank you for chipping in{firstName ? `, ${firstName}` : ""}.
+          </p>
+          <p className="mt-1 text-sm text-slate">
+            Your support{donor.totalCents > 0 ? ` of ${dollars(donor.totalCents)}` : ""}
+            {donor.gifts > 1 ? ` across ${donor.gifts} gifts` : ""} is funding doors, calls, and mail
+            across MO-02. You&apos;re part of the core making this race winnable.
+          </p>
+        </div>
+      )}
 
       {isStaff && (
         <Link href="/dashboard" className="mt-6 inline-block text-sm font-semibold text-brick hover:underline">
@@ -61,7 +93,7 @@ export default async function CommunityPage() {
           className="card flex flex-col p-6 transition-colors hover:border-brick"
         >
           <span className="font-mono text-2xl text-brick" aria-hidden>◈</span>
-          <p className="mt-3 font-display text-lg font-semibold">Chip in</p>
+          <p className="mt-3 font-display text-lg font-semibold">{donor.hasDonated ? "Give again" : "Chip in"}</p>
           <p className="mt-1 text-sm text-slate">Every dollar funds doors, calls, and mail before {CAMPAIGN.electionLabel}.</p>
         </a>
         <a
