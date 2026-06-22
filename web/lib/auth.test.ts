@@ -44,7 +44,7 @@ describe("staffGate role resolution", () => {
   it("env allowlist wins → admin (case-insensitive)", async () => {
     enableClerk();
     process.env.DASHBOARD_ALLOWLIST = "boss@x.co, other@x.co";
-    const g = await gateWith({ user: userWith("Boss@X.co", "organizer") });
+    const g = await gateWith({ user: userWith("Boss@X.co", "member") });
     expect(g).toMatchObject({ ok: true, role: "admin" }); // allowlist beats the metadata role
   });
 
@@ -54,10 +54,10 @@ describe("staffGate role resolution", () => {
     expect(g).toMatchObject({ ok: true, role: "captain" });
   });
 
-  it("falls back to the DynamoDB staff row when no metadata role", async () => {
+  it("falls back to the DynamoDB staff row when no metadata role (legacy 'organizer' → member)", async () => {
     enableClerk();
     const g = await gateWith({ user: userWith("org@x.co"), dbRole: "organizer" });
-    expect(g).toMatchObject({ ok: true, role: "organizer" });
+    expect(g).toMatchObject({ ok: true, role: "member" });
   });
 
   it("denies a signed-in user who is in none of the sources", async () => {

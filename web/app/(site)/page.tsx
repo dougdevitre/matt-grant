@@ -191,7 +191,7 @@ export default function HomePage() {
 
           <div className="mt-10 flex flex-wrap items-center gap-4">
             <Link href="/sign-in" className="btn-gold">Sign in to HQ</Link>
-            <span className="text-sm text-paper/60">Campaign staff &amp; organizers · access by invitation.</span>
+            <span className="text-sm text-paper/60">Campaign staff &amp; members · access by invitation.</span>
           </div>
         </div>
       </section>

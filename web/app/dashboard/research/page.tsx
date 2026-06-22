@@ -24,7 +24,7 @@ const VERDICT = {
 } as const;
 
 export default async function ResearchPage() {
-  await requireCap("viewResearch"); // organizers are denied; don't rely on the sidebar hiding the link (H1)
+  await requireCap("viewResearch"); // members are denied; don't rely on the sidebar hiding the link (H1)
   const field = loadField().filter((c) => c.active !== false);
   const statements = loadStatements();
   const analysis = analyzeField(field, statements, new Date().toISOString());
