@@ -8,6 +8,7 @@ import { NextResponse, type NextRequest } from "next/server";
 const isProtectedRoute = createRouteMatcher([
   "/dashboard(.*)",
   "/community(.*)",
+  "/go",
   "/api/research/member(.*)",
   "/api/assets(.*)",
 ]);

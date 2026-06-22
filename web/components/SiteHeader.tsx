@@ -4,8 +4,28 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs";
 import { CAMPAIGN, NAV } from "@/lib/site";
+
+// Role-aware "your dashboard" link. Reads publicMetadata.role (exposed to the
+// client by design) and points each tier at their own home — staff → /dashboard,
+// partner → Peace Room, supporter/donor/new → /community. Only rendered inside
+// <SignedIn> when Clerk is on, so useUser() always has a provider.
+function AccountLink({ className, onNavigate }: { className: string; onNavigate?: () => void }) {
+  const { user } = useUser();
+  const role = (user?.publicMetadata as { role?: string } | undefined)?.role;
+  const dest =
+    role === "admin" || role === "captain" || role === "member"
+      ? { href: "/dashboard", label: "Dashboard" }
+      : role === "partner"
+        ? { href: "/dashboard/peace-room", label: "Peace Room" }
+        : { href: "/community", label: "My community" };
+  return (
+    <Link href={dest.href} onClick={onNavigate} className={className}>
+      {dest.label}
+    </Link>
+  );
+}
 
 // clerkEnabled is passed from the (server) layout: the Clerk account controls
 // only render when ClerkProvider is mounted (it isn't in keyless demo mode).
@@ -54,9 +74,7 @@ export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean })
                 </Link>
               </SignedOut>
               <SignedIn>
-                <Link href="/community" className="text-sm font-semibold text-slate transition-colors hover:text-ink">
-                  My community
-                </Link>
+                <AccountLink className="text-sm font-semibold text-slate transition-colors hover:text-ink" />
                 <UserButton afterSignOutUrl="/" />
               </SignedIn>
             </>
@@ -97,9 +115,10 @@ export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean })
                   </Link>
                 </SignedOut>
                 <SignedIn>
-                  <Link href="/community" onClick={() => setOpen(false)} className="border-b border-line/60 py-3 text-sm font-semibold text-ink">
-                    My community
-                  </Link>
+                  <AccountLink
+                    className="border-b border-line/60 py-3 text-sm font-semibold text-ink"
+                    onNavigate={() => setOpen(false)}
+                  />
                   <div className="flex items-center gap-2 py-3 text-sm font-semibold text-ink">
                     <UserButton afterSignOutUrl="/" /> Account &amp; sign out
                   </div>

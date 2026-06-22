@@ -18,11 +18,11 @@ export default async function SignInPage() {
     );
   }
   const { SignIn } = await import("@clerk/nextjs");
-  // Supporters land in /community; a staffer bounced from a protected route still
-  // returns there via the honored redirect_url.
+  // After sign-in, /go routes the user to THEIR dashboard by role; a staffer
+  // bounced from a protected route still returns there via the honored redirect_url.
   return (
     <div className="grid min-h-screen place-items-center bg-ink px-6">
-      <SignIn fallbackRedirectUrl="/community" />
+      <SignIn fallbackRedirectUrl="/go" />
     </div>
   );
 }
