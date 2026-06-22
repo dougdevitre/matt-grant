@@ -1,6 +1,7 @@
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { AskMatt } from "@/components/AskMatt";
+import { clerkEnabled } from "@/lib/auth";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,7 +12,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       >
         Skip to content
       </a>
-      <SiteHeader />
+      <SiteHeader clerkEnabled={clerkEnabled} />
       <main id="main">{children}</main>
       <SiteFooter />
       <AskMatt />
