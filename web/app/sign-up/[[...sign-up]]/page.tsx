@@ -16,12 +16,12 @@ export default async function SignUpPage() {
     );
   }
   const { SignUp } = await import("@clerk/nextjs");
-  // Organic joins land in the supporter community hub. fallbackRedirectUrl still
-  // honors a redirect_url (e.g. a staffer bounced from /dashboard), so only direct
-  // sign-ups default to /community.
+  // After sign-up, /go routes the user to THEIR dashboard by role (supporter →
+  // /community). fallbackRedirectUrl still honors a redirect_url (e.g. a staffer
+  // bounced from a protected page), so only direct sign-ups go through /go.
   return (
     <div className="grid min-h-screen place-items-center bg-ink px-6">
-      <SignUp fallbackRedirectUrl="/community" />
+      <SignUp fallbackRedirectUrl="/go" />
     </div>
   );
 }
