@@ -87,11 +87,13 @@ export function donationThankYou(firstName = "Friend", amount?: number): Email {
       eyebrow: "Receipt of support",
       title,
       subtitle: "Your support is the engine of this campaign — thank you.",
+      heroImage: { src: img("brand/headshot.png"), alt: "Matt Grant" },
       bodyHtml: `<p>Your contribution of <strong>${amt}</strong> goes straight to the work: doors knocked, calls made, and neighbors reached before ${CAMPAIGN.electionLabel}.</p>
         <p>Matt doesn't just talk — he takes action, and so do you. Thank you for being part of it.</p>
         <p style="font-size:13px;color:#6B7280;">Contributions to ${CAMPAIGN.committee} are not tax-deductible. Federal law requires us to use best efforts to collect and report the name, mailing address, occupation, and employer of individuals whose contributions exceed $200 in an election cycle.</p>`,
       signature: true,
-      button: { label: "Share why you gave", href: `${SITE_URL}/media`, color: "red" },
+      button: { label: "Visit your community", href: `${SITE_URL}/community`, color: "blue" },
+      secondaryButton: { label: "Share why you gave", href: `${SITE_URL}/media`, color: "red" },
     }),
     text: renderText({ title, lines: [`Your contribution of ${amt} funds doors, calls, and neighbors reached before ${CAMPAIGN.electionLabel}. Thank you.`] }),
   };
@@ -105,11 +107,13 @@ export function contactReceipt(firstName = "there"): Email {
       preheader: "Thanks for reaching out. We'll be in touch.",
       eyebrow: "Message received",
       title,
+      heroImage: { src: img("brand/headshot.png"), alt: "Matt Grant" },
       bodyHtml: `<p>Thanks for reaching out, ${firstName}. A member of the campaign will get back to you soon.</p>
-        <p>In the meantime, here's where Matt stands on the four priorities that matter for Missouri's 2nd District.</p>`,
-      button: { label: "See the issues", href: `${SITE_URL}/issues`, color: "navy" },
+        <p>In the meantime, join the community to follow the case for change, find ways to help, and get updates from the campaign.</p>`,
+      button: { label: "Join the community", href: `${SITE_URL}/community`, color: "blue" },
+      secondaryButton: { label: "See the issues", href: `${SITE_URL}/issues`, color: "navy" },
     }),
-    text: renderText({ title, lines: [`Thanks for reaching out, ${firstName}. We'll be in touch.`, "", "See the issues: " + `${SITE_URL}/issues`] }),
+    text: renderText({ title, lines: [`Thanks for reaching out, ${firstName}. We'll be in touch.`, "", "Join the community: " + `${SITE_URL}/community`] }),
   };
 }
 
@@ -154,7 +158,7 @@ export function campaignNewsletter(): Email {
       bodyHtml: `<p>Here's where Matt stands on the issues that matter most for Missouri's 2nd District — and how you can move this race forward before ${CAMPAIGN.electionLabel}.</p>`,
       cards: ISSUES.map(issueCard),
       signature: true,
-      button: { label: "Get involved", href: `${SITE_URL}/contact`, color: "blue" },
+      button: { label: "Join the community", href: `${SITE_URL}/community`, color: "blue" },
       secondaryButton: { label: "Donate", href: CAMPAIGN.donateUrl, color: "red" },
       unsubscribeUrl: UNSUB,
     }),
