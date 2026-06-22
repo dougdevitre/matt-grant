@@ -19,8 +19,9 @@ Admin-only via the RBAC capability `manageSocial` (`lib/rbac.ts`). Captains, mem
 | `lib/social/publish.ts` | Per-channel publishing adapters + `resolveCredentials()` (OAuth connection → manual token fallback) with graceful degradation. |
 | `lib/social/credentials.ts` | Reads the OAuth *app* credentials from `/mattgrant/prod/social/<platform>/<field>`. |
 | `lib/social/connections.ts` | DynamoDB store (`SOCIALAUTH`) for per-account OAuth tokens from the connect flow. |
-| `lib/social/metaOAuth.ts` | Meta (FB+IG) OAuth: authorize URL + code→long-lived-token→Page/IG exchange. |
-| `app/api/social/{connect,callback}/[platform]` | The OAuth connect + callback routes (admin-only; CSRF state cookie). |
+| `lib/social/metaOAuth.ts` | Meta (FB+IG) OAuth: authorize URL + code→long-lived-token→Page/IG exchange + refresh + multi-Page. |
+| `lib/social/oauth/` | Provider registry (`index.ts`) + per-provider modules (`facebook.ts`, `x.ts`, `linkedin.ts`), shared `types.ts`, and `refresh.ts` (refresh-on-read + cron backstop). |
+| `app/api/social/{connect,callback}/[platform]` | Platform-agnostic OAuth routes (admin-only; CSRF state + PKCE verifier cookies). |
 | `app/api/cron/social-drain/route.ts` | Background worker that publishes scheduled posts at their time. Same `CRON_SECRET` + cadence as the email drain. |
 | `app/dashboard/social/{page,actions}.tsx` | The UI + server actions (schedule / post now / cancel / confirm-posted / analyze profile). |
 | `components/dashboard/Social*.tsx` | Composer (live per-channel scoring), Profile Optimizer, copy button. |
@@ -52,21 +53,28 @@ Like SES, Clerk, and S3 elsewhere in the app, publishing **degrades gracefully**
 
 `resolveCredentials(channel)` (in `publish.ts`) checks, in order: (1) a stored **OAuth connection**, then (2) a **manual token** fallback in env/SSM.
 
-**1. In-app OAuth connect (recommended — "auth established through the app").** The admin clicks **Connect** on the Channel connections panel. The flow uses the OAuth *app* credentials the campaign loaded into Parameter Store under `/mattgrant/prod/social/<platform>/<field>` (`app_id`, `app_secret`, `redirect_uri`, …; read by `lib/social/credentials.ts`).
+**1. In-app OAuth connect (recommended — "auth established through the app").** The admin clicks **Connect** on the Channel connections panel. The flow uses the OAuth *app* credentials the campaign loaded into Parameter Store under `/mattgrant/prod/social/<platform>/<field>` (read by `lib/social/credentials.ts`). Providers live in `lib/social/oauth/<provider>.ts` behind a registry (`oauth/index.ts`); the routes `GET /api/social/{connect,callback}/[platform]` are platform-agnostic dispatchers.
 
-- `GET /api/social/connect/facebook` → Meta consent (CSRF state in an httpOnly cookie).
-- `GET /api/social/callback/facebook` → exchanges the code for a long-lived user token, resolves the **Page** (its token is what we post with) and the linked **Instagram business account**, and stores them in DynamoDB (`SOCIALAUTH` partition, `lib/social/connections.ts`).
-- One Meta connect powers **both** Facebook and Instagram. The platform's registered `redirect_uri` must point at `…/api/social/callback/facebook`.
+- **Facebook (+ Instagram):** Meta OAuth → long-lived user token → the **Page** (its token is what we post with) and the linked **Instagram business account**. One connect powers both channels.
+- **X:** OAuth2 **Authorization Code + PKCE** (verifier in a second cookie) → access + refresh token. `offline.access` scope is required for the refresh token.
+- **LinkedIn:** OAuth2 (`openid profile w_member_social`) → access token; the author URN is resolved from OpenID `userinfo` (`urn:li:person:{sub}`).
+- Connections are stored in DynamoDB (`SOCIALAUTH` partition, `lib/social/connections.ts`). Each platform's registered `redirect_uri` must point at `…/api/social/callback/<platform>`.
 
-**2. Manual token fallback** (env/SSM flat names under `/matt-grant/<NAME>`): `X_ACCESS_TOKEN`; `FACEBOOK_PAGE_TOKEN`+`FACEBOOK_PAGE_ID`; `INSTAGRAM_ACCESS_TOKEN`+`INSTAGRAM_USER_ID`; `LINKEDIN_ACCESS_TOKEN`+`LINKEDIN_AUTHOR_URN`. Useful for testing or platforms without a connect flow yet.
+**Token refresh:** `resolveCredentials()` calls `ensureFresh()` (`oauth/refresh.ts`) — when a connection is within 7 days of expiry it refreshes + persists the (possibly rotated) token; never throws (degrades to the stale token and surfaces the expiry in the UI). The `/api/cron/social-drain` worker also calls `refreshExpiring()` as a backstop.
+
+**Multi-Page (Meta):** when the account manages several Pages, all are stored and the connections panel shows a "Posting as" picker (`switchPageAction`) — no re-auth needed to switch.
+
+**2. Manual token fallback** (env/SSM flat names under `/matt-grant/<NAME>`): `X_ACCESS_TOKEN`; `FACEBOOK_PAGE_TOKEN`+`FACEBOOK_PAGE_ID`; `INSTAGRAM_ACCESS_TOKEN`+`INSTAGRAM_USER_ID`; `LINKEDIN_ACCESS_TOKEN`+`LINKEDIN_AUTHOR_URN`. Useful for testing.
 
 | Channel | Connect flow | Posts | Scopes |
 |---|---|---|---|
-| Facebook | ✅ Meta OAuth | photo (media attached) / feed | `pages_manage_posts`, `pages_read_engagement`, `pages_show_list` |
+| Facebook | ✅ Meta OAuth (+ refresh, multi-Page) | photo (media attached) / feed | `pages_manage_posts`, `pages_read_engagement`, `pages_show_list` |
 | Instagram | ✅ via the Meta connect | image required (container→publish) | `instagram_basic`, `instagram_content_publish` |
-| X | manual token for now | text/link + image (v2 media) | `tweet.write` (+ `media.write`) |
-| LinkedIn | manual token for now | text/link UGC share | `w_organization_social`/`w_member_social` |
+| X | ✅ OAuth2 + PKCE (+ refresh) | text/link + image (v2 media) | `tweet.read tweet.write users.read offline.access` |
+| LinkedIn | ✅ OAuth2 (member; + image upload) | text/link + image (register-upload) | `openid profile w_member_social` |
 | TikTok / YouTube / Threads | — | not implemented (video / no adapter) | — |
+
+**IAM:** the SSR runtime role must read the new prefix. `infra/setup-aws.sh` grants `ssm:GetParameter` on **both** `…parameter/matt-grant/*` and `…parameter/mattgrant/prod/social/*` (note the hyphen difference); re-run it after loading the params.
 
 **Meta image fetch:** Instagram (and Facebook photo posts) need a **publicly reachable** image. The composer's on-brand graphic is `/api/graphics?…`, which is public; `absoluteMediaUrl()` rewrites it against `SITE_URL` so Meta can fetch it. Override the Graph version with `META_GRAPH_VERSION`.
 

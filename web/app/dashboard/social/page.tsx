@@ -11,7 +11,8 @@ import { cancelPostAction, confirmPostedAction } from "@/app/dashboard/social/ac
 import { SOCIAL_POSTS } from "@/lib/socialPosts";
 import { channelConfigured } from "@/lib/social/publish";
 import { listSnapshots } from "@/lib/social/footprint";
-import { getConnection } from "@/lib/social/connections";
+import { getConnection, type SocialConnection } from "@/lib/social/connections";
+import type { ProviderSummary } from "@/components/dashboard/SocialConnections";
 
 export const dynamic = "force-dynamic";
 
@@ -33,11 +34,28 @@ export default async function SocialPage({ searchParams }: { searchParams: Promi
   await requireCap("manageSocial");
   const { connected, error } = await searchParams;
 
-  const [posts, snapshots, metaConn] = await Promise.all([listPosts(), listSnapshots(), getConnection("facebook")]);
+  const [posts, snapshots, fbConn, xConn, liConn] = await Promise.all([
+    listPosts(),
+    listSnapshots(),
+    getConnection("facebook"),
+    getConnection("x"),
+    getConnection("linkedin"),
+  ]);
   const visible = posts.filter((p) => p.status !== "canceled");
-  const meta = metaConn?.pageToken
-    ? { connected: true, detail: [metaConn.pageName && `Page ${metaConn.pageName}`, metaConn.igUsername && `@${metaConn.igUsername}`].filter(Boolean).join(" · ") || "connected" }
-    : { connected: false };
+
+  const daysToExpiry = (iso?: string) => (iso ? Math.round((new Date(iso).getTime() - Date.now()) / 86400000) : null);
+  const providers: ProviderSummary[] = [
+    {
+      platform: "facebook",
+      label: "Facebook + Instagram",
+      connected: !!fbConn?.pageToken,
+      detail: fbConn ? [fbConn.pageName && `Page ${fbConn.pageName}`, fbConn.igUsername && `@${fbConn.igUsername}`].filter(Boolean).join(" · ") || undefined : undefined,
+      expiresInDays: daysToExpiry(fbConn?.expiresAt),
+      pages: (fbConn?.pages ?? []).map((g: NonNullable<SocialConnection["pages"]>[number]) => ({ id: g.id, name: g.name, active: g.id === fbConn?.pageId })),
+    },
+    { platform: "x", label: "X (Twitter)", connected: !!xConn?.accessToken, detail: xConn?.accountName, expiresInDays: daysToExpiry(xConn?.expiresAt) },
+    { platform: "linkedin", label: "LinkedIn", connected: !!liConn?.accessToken, detail: liConn?.accountName ?? liConn?.authorUrn, expiresInDays: daysToExpiry(liConn?.expiresAt) },
+  ];
 
   // Map the static 50-post countdown library into composer-ready templates.
   const library = SOCIAL_POSTS.map((p) => ({
@@ -98,7 +116,7 @@ export default async function SocialPage({ searchParams }: { searchParams: Promi
       </div>
 
       <div className="mb-8 grid gap-4 lg:grid-cols-2">
-        <SocialConnections meta={meta} />
+        <SocialConnections providers={providers} />
         <SocialAutoSchedule />
       </div>
 

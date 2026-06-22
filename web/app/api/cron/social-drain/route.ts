@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import crypto from "node:crypto";
 import { drainDue } from "@/lib/social/schedule";
+import { refreshExpiring } from "@/lib/social/oauth/refresh";
 import { dbConfigured } from "@/lib/db";
 import { getSecret } from "@/lib/ssm";
 
@@ -24,8 +25,10 @@ async function authorized(req: NextRequest): Promise<boolean> {
 async function handle(req: NextRequest) {
   if (!(await authorized(req))) return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   if (!dbConfigured) return NextResponse.json({ ok: true, skipped: "DB not configured" });
+  // Backstop: keep OAuth tokens fresh even without publishing traffic.
+  const refresh = await refreshExpiring().catch(() => ({ checked: 0, refreshed: 0 }));
   const result = await drainDue();
-  return NextResponse.json({ ok: true, ...result });
+  return NextResponse.json({ ok: true, ...result, refresh });
 }
 
 export const POST = handle;

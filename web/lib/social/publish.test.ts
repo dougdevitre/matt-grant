@@ -178,6 +178,22 @@ describe("LinkedIn publisher (UGC)", () => {
     const r = await publishToChannel("linkedin", { caption: "Hi", hashtags: [] });
     expect(r.ok).toBe(false);
   });
+
+  it("registers + uploads an image, then references the asset in the share", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(res(200, { value: { asset: "urn:li:digitalmediaAsset:AAA", uploadMechanism: { "com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest": { uploadUrl: "https://upload.linkedin.example/abc" } } } })) // registerUpload
+      .mockResolvedValueOnce(imgRes()) // fetch image bytes
+      .mockResolvedValueOnce(res(201, {})) // PUT bytes
+      .mockResolvedValueOnce(res(201, { id: "urn:li:share:9" })); // ugcPosts
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await publishToChannel("linkedin", { caption: "Hi", hashtags: ["#MO02"], mediaUrl: "https://cdn.example.com/x.png" });
+    expect(r).toMatchObject({ ok: true, externalId: "urn:li:share:9" });
+    expect(fetchMock.mock.calls[0][0]).toContain("registerUpload");
+    const ugcBody = String((fetchMock.mock.calls[3][1] as RequestInit).body);
+    expect(ugcBody).toContain("urn:li:digitalmediaAsset:AAA");
+    expect(ugcBody).toContain("IMAGE");
+  });
 });
 
 describe("channel staging without credentials", () => {

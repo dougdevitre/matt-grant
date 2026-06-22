@@ -21,8 +21,12 @@ export type SocialConnection = {
   // Generic (X / LinkedIn)
   accessToken?: string;
   authorUrn?: string;
+  accountName?: string; // display handle/name (e.g. X @handle, LinkedIn name)
+  // Multi-Page (Meta): other Pages this account manages, for the picker.
+  pages?: { id: string; name?: string; token: string; igUserId?: string; igUsername?: string }[];
   // Bookkeeping
-  userToken?: string; // long-lived user token (for refresh/debug)
+  userToken?: string; // long-lived user token (Meta — for refresh/debug)
+  refreshToken?: string; // OAuth2 refresh token (X / LinkedIn when issued)
   expiresAt?: string; // ISO; absent = long-lived/no expiry
   scopes?: string;
   connectedBy: string;

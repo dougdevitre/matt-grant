@@ -11,7 +11,7 @@
 import { getSecret } from "@/lib/ssm";
 import { SITE_URL } from "@/lib/site";
 import { composeText, type ChannelId } from "@/lib/social/channels";
-import { getConnection } from "@/lib/social/connections";
+import { getFreshConnection } from "@/lib/social/oauth/refresh";
 import { META_GRAPH } from "@/lib/social/credentials";
 
 export type PublishablePost = {
@@ -50,13 +50,13 @@ export async function resolveCredentials(channel: ChannelId): Promise<ResolvedCr
   // 1. Stored OAuth connection from the connect flow. Meta's "facebook" record
   //    powers both Facebook (Page) and Instagram (Page token + linked IG account).
   if (channel === "facebook" || channel === "instagram") {
-    const conn = await getConnection("facebook");
+    const conn = await getFreshConnection("facebook");
     if (conn?.pageToken) {
       if (channel === "facebook" && conn.pageId) return { token: conn.pageToken, accountId: conn.pageId };
       if (channel === "instagram" && conn.igUserId) return { token: conn.pageToken, accountId: conn.igUserId };
     }
   } else {
-    const conn = await getConnection(channel);
+    const conn = await getFreshConnection(channel);
     if (conn?.accessToken) {
       if (channel === "linkedin") return conn.authorUrn ? { token: conn.accessToken, authorUrn: conn.authorUrn } : null;
       return { token: conn.accessToken };
@@ -139,10 +139,20 @@ async function publishToLinkedIn(post: PublishablePost, creds: ResolvedCreds): P
   const author = creds.authorUrn;
   const token = creds.token;
   if (!author) return { ok: false, mode: "api", error: "LinkedIn author URN is not set." };
+
+  // With a graphic attached, register + upload the image and reference its asset.
+  let shareMedia: { shareMediaCategory: string; media?: unknown[] } = { shareMediaCategory: "NONE" };
+  const media = absoluteMediaUrl(post.mediaUrl);
+  if (media) {
+    const up = await uploadLinkedInImage(media, author, token);
+    if (!up.ok) return { ok: false, mode: "api", error: up.error };
+    shareMedia = { shareMediaCategory: "IMAGE", media: [{ status: "READY", media: up.asset }] };
+  }
+
   const payload = {
     author,
     lifecycleState: "PUBLISHED",
-    specificContent: { "com.linkedin.ugc.ShareContent": { shareCommentary: { text: copyText(post) }, shareMediaCategory: "NONE" } },
+    specificContent: { "com.linkedin.ugc.ShareContent": { shareCommentary: { text: copyText(post) }, ...shareMedia } },
     visibility: { "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC" },
   };
   let res: Response;
@@ -164,6 +174,55 @@ async function publishToLinkedIn(post: PublishablePost, creds: ResolvedCreds): P
   if (headerId) return { ok: true, mode: "api", externalId: headerId };
   const body = (await res.json().catch(() => null)) as { id?: string } | null;
   return { ok: true, mode: "api", externalId: body?.id };
+}
+
+// LinkedIn image upload: register an upload slot, PUT the graphic bytes, and
+// return the asset URN to reference in the share. Three steps, each surfacing a
+// clear error rather than silently dropping the image.
+async function uploadLinkedInImage(mediaUrl: string, author: string, token: string): Promise<{ ok: true; asset: string } | { ok: false; error: string }> {
+  // 1. register the upload
+  let reg: Response;
+  try {
+    reg = await fetch("https://api.linkedin.com/v2/assets?action=registerUpload", {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json", "x-restli-protocol-version": "2.0.0" },
+      body: JSON.stringify({
+        registerUploadRequest: {
+          recipes: ["urn:li:digitalmediaRecipe:feedshare-image"],
+          owner: author,
+          serviceRelationships: [{ relationshipType: "OWNER", identifier: "urn:li:userGeneratedContent" }],
+        },
+      }),
+    });
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "network error reaching LinkedIn" };
+  }
+  if (!reg.ok) return { ok: false, error: `LinkedIn registerUpload ${reg.status}` };
+  const regBody = (await reg.json().catch(() => null)) as
+    | { value?: { asset?: string; uploadMechanism?: { ["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"]?: { uploadUrl?: string } } } }
+    | null;
+  const asset = regBody?.value?.asset;
+  const uploadUrl = regBody?.value?.uploadMechanism?.["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"]?.uploadUrl;
+  if (!asset || !uploadUrl) return { ok: false, error: "LinkedIn did not return an upload URL." };
+
+  // 2. fetch the image bytes (the public on-brand graphic)
+  let img: Response;
+  try {
+    img = await fetch(mediaUrl);
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "could not fetch the image" };
+  }
+  if (!img.ok) return { ok: false, error: `could not fetch image (${img.status})` };
+  const bytes = await img.arrayBuffer();
+
+  // 3. PUT the bytes to the upload URL
+  try {
+    const put = await fetch(uploadUrl, { method: "POST", headers: { authorization: `Bearer ${token}` }, body: bytes });
+    if (!put.ok) return { ok: false, error: `LinkedIn media upload ${put.status}` };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "network error uploading to LinkedIn" };
+  }
+  return { ok: true, asset };
 }
 
 // Facebook Page. With an image → POST {page}/photos (url + caption); text-only →

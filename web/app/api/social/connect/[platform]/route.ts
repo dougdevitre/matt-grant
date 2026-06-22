@@ -1,11 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import crypto from "node:crypto";
 import { checkCap } from "@/lib/auth";
-import { authorizeUrl } from "@/lib/social/metaOAuth";
+import { getProvider } from "@/lib/social/oauth";
 
-// Start the in-admin OAuth connect flow. Admin-only. Currently Meta ("facebook"),
-// which also yields the linked Instagram business account. Sends the admin to the
-// platform consent screen with a CSRF state stored in an httpOnly cookie.
+// Start the in-admin OAuth connect flow for any registered provider (facebook —
+// which also yields Instagram —, x, linkedin). Admin-only. Stores a CSRF state
+// cookie, plus a PKCE verifier cookie when the provider uses one (X).
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -14,21 +14,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ plat
   if (!allowed) return NextResponse.redirect(new URL("/dashboard?denied=manageSocial", req.url));
 
   const { platform } = await params;
-  if (platform !== "facebook") {
-    return NextResponse.redirect(new URL(`/dashboard/social?error=${encodeURIComponent(`Connect not implemented for ${platform}`)}`, req.url));
-  }
+  const provider = getProvider(platform);
+  if (!provider) return NextResponse.redirect(new URL(`/dashboard/social?error=${encodeURIComponent(`Connect not available for ${platform}`)}`, req.url));
 
   const state = crypto.randomUUID();
-  const auth = await authorizeUrl(state);
+  const auth = await provider.authorizeUrl(state);
   if (!auth.ok) return NextResponse.redirect(new URL(`/dashboard/social?error=${encodeURIComponent(auth.error)}`, req.url));
 
   const res = NextResponse.redirect(auth.url);
-  res.cookies.set("social_oauth_state", `${platform}:${state}`, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 600, // 10 minutes to complete consent
-  });
+  const cookieOpts = { httpOnly: true, secure: true, sameSite: "lax" as const, path: "/", maxAge: 600 };
+  res.cookies.set("social_oauth_state", `${platform}:${state}`, cookieOpts);
+  if (auth.verifier) res.cookies.set("social_oauth_verifier", auth.verifier, cookieOpts);
   return res;
 }

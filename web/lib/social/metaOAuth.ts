@@ -1,6 +1,8 @@
 import { META_GRAPH, socialAppParam } from "@/lib/social/credentials";
 import type { SocialConnection } from "@/lib/social/connections";
 
+type MetaPage = { id: string; name?: string; token: string; igUserId?: string; igUsername?: string };
+
 // Meta (Facebook + Instagram) OAuth2 connect logic, extracted from the route
 // handlers so it's unit-testable with a mocked fetch. The flow:
 //   1. authorizeUrl()  → send the admin to Meta consent.
@@ -76,25 +78,68 @@ export async function exchangeCode(code: string): Promise<{ ok: true; conn: Omit
   const userToken = long.body.access_token ?? short.body.access_token;
   const expiresAt = long.body.expires_in ? new Date(Date.now() + long.body.expires_in * 1000).toISOString() : undefined;
 
-  // 3. resolve the Page (its token is what we post with) + linked IG account
-  const pagesUrl = `${META_GRAPH}/me/accounts?fields=id,name,access_token,instagram_business_account{id,username}&access_token=${userToken}`;
-  const pages = await getJson<MetaPages>(pagesUrl);
-  if (!pages.ok) return pages;
-  const page = pages.body.data?.[0];
-  if (!page?.id || !page.access_token) return { ok: false, error: "No manageable Facebook Page found for this account." };
+  // 3. resolve the Pages this account manages (each Page's token is what we post
+  //    with) + any linked IG account. The first is active; the rest feed the picker.
+  const pagesRes = await fetchPages(userToken);
+  if (!pagesRes.ok) return pagesRes;
+  const pages = pagesRes.pages;
+  if (pages.length === 0) return { ok: false, error: "No manageable Facebook Page found for this account." };
+  const active = pages[0];
 
   return {
     ok: true,
     conn: {
       platform: "facebook",
-      pageId: page.id,
-      pageName: page.name,
-      pageToken: page.access_token,
-      igUserId: page.instagram_business_account?.id,
-      igUsername: page.instagram_business_account?.username,
+      pageId: active.id,
+      pageName: active.name,
+      pageToken: active.token,
+      igUserId: active.igUserId,
+      igUsername: active.igUsername,
+      pages,
       userToken,
       expiresAt,
       scopes: META_SCOPES,
     },
+  };
+}
+
+// GET /me/accounts → flatten into MetaPage[]. Shared by connect + refresh.
+async function fetchPages(userToken: string): Promise<{ ok: true; pages: MetaPage[] } | { ok: false; error: string }> {
+  const url = `${META_GRAPH}/me/accounts?fields=id,name,access_token,instagram_business_account{id,username}&access_token=${userToken}`;
+  const r = await getJson<MetaPages>(url);
+  if (!r.ok) return r;
+  const pages = (r.body.data ?? [])
+    .filter((p) => p.id && p.access_token)
+    .map((p) => ({ id: p.id!, name: p.name, token: p.access_token!, igUserId: p.instagram_business_account?.id, igUsername: p.instagram_business_account?.username }));
+  return { ok: true, pages };
+}
+
+// Refresh a Meta connection: re-exchange the stored long-lived user token for a
+// fresh one and re-fetch the active Page's token. Returns updated fields, or null
+// on failure (caller keeps the stale connection and surfaces expiry).
+export async function refreshConnection(conn: SocialConnection): Promise<SocialConnection | null> {
+  const appId = await socialAppParam("facebook", "app_id");
+  const appSecret = await socialAppParam("facebook", "app_secret");
+  if (!appId || !appSecret || !conn.userToken) return null;
+  const longUrl = `${META_GRAPH}/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${conn.userToken}`;
+  const long = await getJson<MetaToken>(longUrl);
+  if (!long.ok || !long.body.access_token) return null;
+  const userToken = long.body.access_token;
+  const expiresAt = long.body.expires_in ? new Date(Date.now() + long.body.expires_in * 1000).toISOString() : undefined;
+  const pagesRes = await fetchPages(userToken);
+  if (!pagesRes.ok) return null;
+  // Keep the same active Page id if it's still present; else fall back to the first.
+  const active = pagesRes.pages.find((p) => p.id === conn.pageId) ?? pagesRes.pages[0];
+  if (!active) return null;
+  return {
+    ...conn,
+    userToken,
+    expiresAt,
+    pages: pagesRes.pages,
+    pageId: active.id,
+    pageName: active.name,
+    pageToken: active.token,
+    igUserId: active.igUserId,
+    igUsername: active.igUsername,
   };
 }
