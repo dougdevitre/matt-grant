@@ -12,11 +12,13 @@ const topicLabel: Record<string, string> = {
 export function EmailComposer({
   broadcasts,
   counts,
+  segments = [],
   canSend,
   disabled,
 }: {
   broadcasts: BroadcastMeta[];
   counts: { volunteers: number; donors: number };
+  segments?: { value: string; label: string; count: number }[];
   canSend: boolean;
   disabled: boolean;
 }) {
@@ -28,7 +30,13 @@ export function EmailComposer({
   const [pending, start] = useTransition();
 
   const tpl = broadcasts.find((b) => b.key === key);
-  const audienceCount = audience === "volunteers" ? counts.volunteers : audience === "donors" ? counts.donors : counts.volunteers + counts.donors;
+  const audienceCount = audience.startsWith("issue:")
+    ? (segments.find((s) => s.value === audience)?.count ?? 0)
+    : audience === "volunteers"
+      ? counts.volunteers
+      : audience === "donors"
+        ? counts.donors
+        : counts.volunteers + counts.donors;
   const setVar = (n: string, v: string) => setVars((p) => ({ ...p, [n]: v }));
 
   const fd = () => {
@@ -89,6 +97,15 @@ export function EmailComposer({
             <option value="all">Everyone</option>
             <option value="volunteers">Volunteers</option>
             <option value="donors">Donors</option>
+            {segments.length > 0 && (
+              <optgroup label="By interest (supporters)">
+                {segments.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label} ({s.count})
+                  </option>
+                ))}
+              </optgroup>
+            )}
           </select>
           <span className="font-mono text-xs text-slate">~{audienceCount} recipient{audienceCount === 1 ? "" : "s"} (before opt-outs)</span>
         </div>

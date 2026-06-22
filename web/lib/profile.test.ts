@@ -1,13 +1,20 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
-// Capture what saveProfile writes and stub what getProfile reads.
-const h = vi.hoisted(() => ({ sends: [] as { input: Record<string, unknown> }[], item: undefined as unknown }));
+// Capture writes; stub reads. Get → { Item }, Query (KeyConditionExpression) →
+// { Items }, Update → {}.
+const h = vi.hoisted(() => ({
+  sends: [] as { input: Record<string, unknown> }[],
+  item: undefined as unknown,
+  items: [] as Record<string, unknown>[],
+}));
 
 vi.mock("@/lib/db", () => ({
   ddb: {
     send: vi.fn(async (cmd: { input: Record<string, unknown> }) => {
       h.sends.push(cmd);
-      return "UpdateExpression" in cmd.input ? {} : { Item: h.item };
+      if ("UpdateExpression" in cmd.input) return {};
+      if ("KeyConditionExpression" in cmd.input) return { Items: h.items };
+      return { Item: h.item };
     }),
   },
   TABLE: "T",
@@ -15,11 +22,12 @@ vi.mock("@/lib/db", () => ({
   dbConfigured: true,
 }));
 
-import { getProfile, saveProfile } from "@/lib/profile";
+import { getProfile, saveProfile, segmentEmails, issueSegmentCounts } from "@/lib/profile";
 
 beforeEach(() => {
   h.sends.length = 0;
   h.item = undefined;
+  h.items = [];
 });
 
 describe("saveProfile", () => {
@@ -53,5 +61,35 @@ describe("getProfile", () => {
   it("filters stored values back through the validators on read", async () => {
     h.item = { issues: ["term-limits", "garbage"], waysToHelp: ["share", "bogus"], zip: "63101" };
     expect(await getProfile("a@b.co")).toMatchObject({ issues: ["term-limits"], waysToHelp: ["share"], zip: "63101" });
+  });
+});
+
+describe("segmentEmails (targeting)", () => {
+  it("returns lowercased emails of supporters who care about the issue", async () => {
+    h.items = [
+      { SK: "Yes@X.co", issues: ["family-courts", "term-limits"] },
+      { SK: "no@x.co", issues: ["lower-taxes"] },
+      { SK: "also@x.co", issues: ["family-courts"] },
+    ];
+    expect(await segmentEmails({ issue: "family-courts" })).toEqual(["yes@x.co", "also@x.co"]);
+  });
+
+  it("can intersect issue + way-to-help", async () => {
+    h.items = [
+      { SK: "a@x.co", issues: ["term-limits"], waysToHelp: ["volunteer"] },
+      { SK: "b@x.co", issues: ["term-limits"], waysToHelp: ["donate"] },
+    ];
+    expect(await segmentEmails({ issue: "term-limits", wayToHelp: "volunteer" })).toEqual(["a@x.co"]);
+  });
+});
+
+describe("issueSegmentCounts", () => {
+  it("tallies supporters per issue (ignoring unknown values)", async () => {
+    h.items = [
+      { issues: ["family-courts", "term-limits"] },
+      { issues: ["family-courts", "bogus"] },
+      { issues: ["lower-taxes"] },
+    ];
+    expect(await issueSegmentCounts()).toEqual({ "family-courts": 2, "term-limits": 1, "lower-taxes": 1 });
   });
 });
