@@ -14,6 +14,16 @@ export type WayToHelp = (typeof WAYS_TO_HELP)[number];
 const WAY_SET = new Set<string>(WAYS_TO_HELP);
 export const isWayToHelp = (v: unknown): v is WayToHelp => typeof v === "string" && WAY_SET.has(v);
 
+// Staff-facing labels for the email targeting picker ("Wants to volunteer (18)").
+export const WAY_TARGET_LABELS: Record<WayToHelp, string> = {
+  donate: "Said they'd give",
+  volunteer: "Wants to volunteer",
+  host: "Can host an event",
+  share: "Will share online",
+  yardSign: "Wants a yard sign",
+  writeLetters: "Will write letters",
+};
+
 export type SupporterProfile = {
   issues: IssueId[]; // the priorities they care about → personalized content / targeted email
   waysToHelp: WayToHelp[]; // how they want to help → volunteer/field matching
@@ -98,20 +108,26 @@ export async function segmentEmails(filter: { issue?: IssueId; wayToHelp?: WayTo
   }
 }
 
-// Supporter count per issue — for the targeting UI ("Family courts · 42").
-export async function issueSegmentCounts(): Promise<Record<string, number>> {
-  if (!dbConfigured) return {};
+// Supporter counts per issue AND per way-to-help, in one scan — for the targeting
+// UI ("Family courts (42)", "Wants to volunteer (18)").
+export async function segmentCounts(): Promise<{ issues: Record<string, number>; ways: Record<string, number> }> {
+  const issues: Record<string, number> = {};
+  const ways: Record<string, number> = {};
+  if (!dbConfigured) return { issues, ways };
   try {
     const r = await ddb.send(
       new QueryCommand({ TableName: TABLE, KeyConditionExpression: "PK = :p", ExpressionAttributeValues: { ":p": PK.profile } }),
     );
-    const counts: Record<string, number> = {};
     for (const it of r.Items ?? []) {
-      const issues = Array.isArray(it.issues) ? (it.issues as string[]) : [];
-      for (const iss of issues) if (isIssueId(iss)) counts[iss] = (counts[iss] ?? 0) + 1;
+      for (const iss of Array.isArray(it.issues) ? (it.issues as string[]) : []) {
+        if (isIssueId(iss)) issues[iss] = (issues[iss] ?? 0) + 1;
+      }
+      for (const w of Array.isArray(it.waysToHelp) ? (it.waysToHelp as string[]) : []) {
+        if (isWayToHelp(w)) ways[w] = (ways[w] ?? 0) + 1;
+      }
     }
-    return counts;
+    return { issues, ways };
   } catch {
-    return {};
+    return { issues, ways };
   }
 }

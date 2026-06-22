@@ -22,7 +22,7 @@ vi.mock("@/lib/db", () => ({
   dbConfigured: true,
 }));
 
-import { getProfile, saveProfile, segmentEmails, issueSegmentCounts } from "@/lib/profile";
+import { getProfile, saveProfile, segmentEmails, segmentCounts } from "@/lib/profile";
 
 beforeEach(() => {
   h.sends.length = 0;
@@ -83,13 +83,16 @@ describe("segmentEmails (targeting)", () => {
   });
 });
 
-describe("issueSegmentCounts", () => {
-  it("tallies supporters per issue (ignoring unknown values)", async () => {
+describe("segmentCounts", () => {
+  it("tallies supporters per issue AND per way-to-help (ignoring unknown values)", async () => {
     h.items = [
-      { issues: ["family-courts", "term-limits"] },
-      { issues: ["family-courts", "bogus"] },
-      { issues: ["lower-taxes"] },
+      { issues: ["family-courts", "term-limits"], waysToHelp: ["volunteer", "share"] },
+      { issues: ["family-courts", "bogus"], waysToHelp: ["volunteer"] },
+      { issues: ["lower-taxes"], waysToHelp: ["host", "nope"] },
     ];
-    expect(await issueSegmentCounts()).toEqual({ "family-courts": 2, "term-limits": 1, "lower-taxes": 1 });
+    expect(await segmentCounts()).toEqual({
+      issues: { "family-courts": 2, "term-limits": 1, "lower-taxes": 1 },
+      ways: { volunteer: 2, share: 1, host: 1 },
+    });
   });
 });
