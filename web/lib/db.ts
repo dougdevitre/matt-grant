@@ -46,6 +46,7 @@ export const PK = {
   stateLeg: (slug: string) => `STATELEG#${slug}`,
   timeline: (slug: string) => `TIMELINE#${slug}`,
   statements: (slug: string) => `STMT#${slug}`,
+  profile: "PROFILE", // supporter involvement profile (issues, ways-to-help, zip)
 } as const;
 
 export function newId(): string {
