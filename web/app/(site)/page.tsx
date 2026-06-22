@@ -29,11 +29,14 @@ export default function HomePage() {
               for Congress to do exactly that.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
+              <Link href="/sign-up" className="btn-primary">
+                Join the community
+              </Link>
+              <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-gold">
                 Donate now
               </a>
-              <Link href="/about" className="btn-gold">
-                Meet Matt &amp; the issues
+              <Link href="/about" className="btn-ghost border-paper/30 text-paper hover:border-paper">
+                Meet Matt
               </Link>
             </div>
           </div>
@@ -70,7 +73,7 @@ export default function HomePage() {
       <section className="container-page py-20 sm:py-24">
         <div className="max-w-prose">
           <p className="eyebrow text-brick">The platform</p>
-          <h2 className="mt-3 text-4xl font-semibold sm:text-5xl">Four fights worth winning.</h2>
+          <h2 className="mt-3 text-4xl font-semibold sm:text-5xl">Four priorities worth standing for.</h2>
           <p className="mt-4 text-lg text-slate">
             Not a wish list — a docket. Each one is concrete, accountable, and built for results
             across the aisle.
@@ -213,13 +216,14 @@ export default function HomePage() {
             This race is decided one neighbor at a time.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg text-paper/80">
-            Chip in, knock a door, or make a call. Every bit of help moves the clock in our favor.
+            Join the community in 30 seconds — with your email or a social account — and get the case for
+            change, ways to help, and updates from the campaign. Then chip in if you can.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
+            <Link href="/sign-up" className="btn-primary">Join the community</Link>
+            <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-gold">
               Donate now
             </a>
-            <Link href="/contact" className="btn-gold">Get involved</Link>
           </div>
         </div>
       </section>
