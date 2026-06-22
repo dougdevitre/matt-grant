@@ -25,7 +25,7 @@ on Matt's lips.
 | Distance / doesn't show up | **Neighbor, dad, shows up** | "I'll hold open town halls in every county — and answer the hard questions." |
 | Partisanship / gridlock, few results | **Across-the-aisle litigator who gets results** | "Twenty-three years winning cases by building coalitions. I deliver, then explain." |
 | Cost of living / spending | **Smaller government, lower taxes, cut waste first** | "Relief funded by efficiency, not gimmicks. Cut the waste, then the taxes." |
-| Nothing distinctive to show for the seat | **Children first / CHILD Protection Act** | "One urgent fight no one else is having: clean up the courts and put kids first." |
+| Nothing distinctive to show for the seat | **Children first / CHILD Protection Act** | "One urgent problem no one else will take on: clean up the courts and put kids first." |
 
 Note: referencing **"more than a decade"** or **"career politicians"** as a *category* is fair,
 factual, and name-free. Use sparingly and always pivot back to what Matt will do.
@@ -37,11 +37,11 @@ factual, and name-free. Use sparingly and always pivot back to what Matt will do
 - **North-star:** *A neighbor, a dad, and a problem-solver — putting Missouri's children first.*
 - **Pillar 1 — Fresh, accountable service.** Term limits, including his own. (Contrast: tenure.)
 - **Pillar 2 — Results across the aisle.** 23 years getting outcomes, not headlines. (Contrast: gridlock.)
-- **Pillar 3 — Children first.** The CHILD Protection Act — the signature fight that's uniquely his.
+- **Pillar 3 — Children first.** The CHILD Protection Act — the signature cause that's uniquely his.
 - **Pillar 4 — Affordability through discipline.** Cut fraud, waste, and headcount; then cut taxes.
 
 Each pillar is a *forward promise*, never a backward swipe. The implied comparison is structural:
-"new energy," "I'll show up," "I'll limit my own term," "the fight no one else is leading."
+"new energy," "I'll show up," "I'll limit my own term," "the work no one else is leading."
 
 ---
 

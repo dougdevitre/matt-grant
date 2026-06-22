@@ -6,12 +6,12 @@ every item oriented toward **awareness and turnout for August 4**.
 
 ## What's built (live)
 
-- **`/act` — "Take Action"** page: pick your area (free text + MO-02 quick-picks), choose the fight
+- **`/act` — "Take Action"** page: pick your area (free text + MO-02 quick-picks), choose the priority
   you'll champion (the four issues), and a **daily** or **weekly** cadence → a branded, printable plan.
 - **`web/lib/actions.ts`** — a **deterministic** generator (no random/clock, so prints are stable and
   React-pure). It mixes themed building blocks — *Be ready · Learn · Share · Talk · Recruit · Materials
   · GOTV* — and fills `{area}` / `{issue}` into each action. The issue rotates the selection so each of
-  the four fights yields a different mix.
+  the four priorities yields a different mix.
 - **`AgendaBuilder.tsx`** — the form + the printable plan (logo, checkboxes, day themes, "Vote Aug 4"
   footer + paid-for-by). A **Print / Save as PDF** button; print CSS isolates the plan (no nav/footer).
 - Linked from the main nav ("Take Action").
@@ -21,7 +21,7 @@ every item oriented toward **awareness and turnout for August 4**.
 | Input | Effect |
 |---|---|
 | **Area** (town/county) | Actions name the place: "Tell 3 neighbors in *Wildwood*…", "Put up a yard sign in *Jefferson County*." |
-| **Issue** (1 of 4) | Learn/share/talk items reference that fight + link to its `/issues/<slug>` page and graphics. |
+| **Issue** (1 of 4) | Learn/share/talk items reference that priority + link to its `/issues/<slug>` page and graphics. |
 | **Cadence** | *Daily* = one focused day (5 actions). *Weekly* = a 7-day arc: Get ready → Learn → Share → Talk → Recruit → Materials → GOTV. |
 
 Every plan ladders to the same goal: **build awareness and turn out the vote on August 4.** Faithful to

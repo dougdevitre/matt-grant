@@ -85,7 +85,7 @@ a [background] and [community connection]. I've spent [X years]
 [relevant experience]. I decided to run because [motivation]."
 
 [ISSUE #1 — 45 seconds]
-"The first thing I'll fight for is [Issue #1]. Right now, 
+"The first thing I'll stand up for is [Issue #1]. Right now, 
 [describe the problem with one specific fact or story]. 
 My plan is to [specific solution — 2-3 concrete steps]. 
 My opponent has [contrast — one sentence]."
@@ -137,7 +137,7 @@ My opponent? [Contrast — their record, vote, or position].
 We can do better."
 
 [ISSUE #2 — 60 seconds]
-"I'm also fighting for [Issue #2].
+"I'm also standing up for [Issue #2].
 [Problem → human impact → your solution → contrast].
 This isn't partisan — it's about [shared value]."
 
@@ -155,7 +155,7 @@ Every conversation matters in an election like this."
 [CLOSE — 30 seconds]
 "I got into this race because of people like [name from opening 
 story]. She deserves a [representative/council member/senator] who 
-shows up, listens, and fights. That's what I'll do every single day. 
+shows up, listens, and delivers. That's what I'll do every single day. 
 Thank you. Let's go win this."
 ```
 

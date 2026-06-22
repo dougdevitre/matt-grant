@@ -1,6 +1,6 @@
 # Gated Member Area — Inventory & Test Plan
 
-The gated area is the **campaign War Room** at `/dashboard` — staff-only operational tools and
+The gated area is the **campaign Peace Room** at `/dashboard` — staff-only operational tools and
 sensitive data that never appear on the public site. Access = Clerk sign-in **and** an allowlisted
 email (`DASHBOARD_ALLOWLIST`). Today the allowlist is `dougdevitre@gmail.com`.
 
@@ -72,7 +72,7 @@ Run on the live site (`…amplifyapp.com`). Expected results in **bold**.
 - **Dev instance:** Clerk is on `pk_test` (Development) — expect a small "development" banner; that's
   normal. Production instance + custom domain is covered in `clerk-production-plan.md`.
 - **Add staff:** give me their emails → I extend `DASHBOARD_ALLOWLIST` + redeploy.
-- **Staff vs supporter members:** this gated area is the **staff** War Room. If you also want a
+- **Staff vs supporter members:** this gated area is the **staff** Peace Room. If you also want a
   **supporter** member tier (volunteers log in for toolkits/streaks), that's a separate, open-sign-up
   experience — happy to plan it.
 
