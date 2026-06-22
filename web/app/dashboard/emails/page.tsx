@@ -8,21 +8,29 @@ import { getDonors, getVolunteers } from "@/lib/queries";
 import { sesEnabled } from "@/lib/email/send";
 import { listCampaigns } from "@/lib/campaigns";
 import { BROADCAST_META } from "@/lib/email/broadcasts";
+import { issueSegmentCounts } from "@/lib/profile";
+import { ISSUE_AXES } from "@/lib/integrations/research/issues";
 
 export const dynamic = "force-dynamic";
 
+const ISSUE_LABEL: Record<string, string> = Object.fromEntries(ISSUE_AXES.map((a) => [a.id, a.label]));
 const audienceLabel: Record<string, string> = { all: "Everyone", volunteers: "Volunteers", donors: "Donors" };
+// History label: "issue:family-courts" → "Interested: Family courts".
+const labelFor = (a: string) =>
+  a.startsWith("issue:") ? `Interested: ${ISSUE_LABEL[a.slice(6)] ?? a.slice(6)}` : (audienceLabel[a] ?? a);
 
 export default async function EmailsPage() {
   const { role } = await staffGate();
   if (!can(role, "draftEmailCampaign")) redirect("/dashboard?denied=campaign");
   const canSend = can(role, "sendEmailCampaign");
 
-  const [v, d, sent] = await Promise.all([getVolunteers(), getDonors(), listCampaigns(15)]);
+  const [v, d, sent, segCounts] = await Promise.all([getVolunteers(), getDonors(), listCampaigns(15), issueSegmentCounts()]);
   const counts = {
     volunteers: v.rows.filter((x) => x.email).length,
     donors: d.rows.filter((x) => x.email).length,
   };
+  // Interest segments for the targeting picker — one per documented priority.
+  const segments = ISSUE_AXES.map((a) => ({ value: `issue:${a.id}`, label: a.label, count: segCounts[a.id] ?? 0 }));
   const when = (iso: string) =>
     new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
@@ -55,7 +63,7 @@ export default async function EmailsPage() {
         </div>
       )}
 
-      <EmailComposer broadcasts={BROADCAST_META} counts={counts} canSend={canSend} disabled={!sesEnabled} />
+      <EmailComposer broadcasts={BROADCAST_META} counts={counts} segments={segments} canSend={canSend} disabled={!sesEnabled} />
 
       <div className="mt-8">
         <p className="eyebrow text-slate">Recent sends</p>
@@ -66,7 +74,7 @@ export default async function EmailsPage() {
                 <span className="min-w-0">
                   <span className="text-ink">{c.subjectPreview}</span>{" "}
                   <span className="text-slate">
-                    → {audienceLabel[c.audience] ?? c.audience} · {c.sentCount}/{c.total} sent
+                    → {labelFor(c.audience)} · {c.sentCount}/{c.total} sent
                     {c.sentCount > 0 ? ` · ${c.delivered} delivered · ${c.opens} opens · ${c.clicks} clicks` : ""}
                     {c.suppressedCount ? ` · ${c.suppressedCount} skipped` : ""} · by {c.createdBy}
                   </span>
