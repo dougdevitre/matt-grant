@@ -1,6 +1,7 @@
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { SocialComposer } from "@/components/dashboard/SocialComposer";
 import { SocialProfileOptimizer } from "@/components/dashboard/SocialProfileOptimizer";
+import { SocialConnections } from "@/components/dashboard/SocialConnections";
 import { CopyButton } from "@/components/dashboard/CopyButton";
 import { requireCap } from "@/lib/auth";
 import { listPosts, type ScheduledPost } from "@/lib/social/schedule";
@@ -77,6 +78,10 @@ export default async function SocialPage() {
           Add a channel&apos;s access token (e.g. <code className="font-mono text-xs">X_ACCESS_TOKEN</code>) via SSM to switch it to auto-publish — see{" "}
           <code className="font-mono text-xs">web/docs/social-command-center.md</code>.
         </p>
+      </div>
+
+      <div className="mb-8">
+        <SocialConnections />
       </div>
 
       <SocialComposer library={library} />

@@ -175,3 +175,58 @@ export function copyText(post: PublishablePost): string {
   const body = composeText(post.caption, post.hashtags);
   return post.link ? `${body}\n\n${post.link}` : body;
 }
+
+// ── Connection testing (read-only; never posts) ───────────────────────────────
+
+export type ChannelStatus = { channel: ChannelId; mode: "api" | "manual"; ok: boolean; detail: string };
+
+// Read-only GET against Meta Graph to confirm a token/id resolves to an account.
+async function metaGet(url: string, field: string): Promise<{ ok: true; value: string } | { ok: false; error: string }> {
+  let res: Response;
+  try {
+    res = await fetch(url);
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "network error reaching Meta" };
+  }
+  const text = await res.text().catch(() => "");
+  if (!res.ok) return { ok: false, error: `Meta API ${res.status}${text ? `: ${text.slice(0, 160)}` : ""}` };
+  try {
+    const body = JSON.parse(text) as Record<string, unknown>;
+    return { ok: true, value: String(body[field] ?? body.id ?? "connected") };
+  } catch {
+    return { ok: false, error: "unexpected Meta response" };
+  }
+}
+
+/**
+ * Verify a channel's credentials WITHOUT publishing. Unconfigured channels report
+ * manual mode; configured Meta channels resolve the account name/username so the
+ * admin sees exactly which account they'd post to.
+ */
+export async function verifyChannel(channel: ChannelId): Promise<ChannelStatus> {
+  if (!(await channelConfigured(channel))) {
+    return { channel, mode: "manual", ok: true, detail: "Manual mode — no API credentials. Posts are staged to push by hand." };
+  }
+  const token = (await getSecret(CHANNEL_CONFIG[channel].token))!;
+  if (channel === "facebook") {
+    const pageId = await getSecret("FACEBOOK_PAGE_ID");
+    const r = await metaGet(`${META_GRAPH}/${pageId}?fields=name&access_token=${encodeURIComponent(token)}`, "name");
+    return r.ok ? { channel, mode: "api", ok: true, detail: `Connected to Page “${r.value}”.` } : { channel, mode: "api", ok: false, detail: r.error };
+  }
+  if (channel === "instagram") {
+    const igUserId = await getSecret("INSTAGRAM_USER_ID");
+    const r = await metaGet(`${META_GRAPH}/${igUserId}?fields=username&access_token=${encodeURIComponent(token)}`, "username");
+    return r.ok ? { channel, mode: "api", ok: true, detail: `Connected to @${r.value}.` } : { channel, mode: "api", ok: false, detail: r.error };
+  }
+  if (channel === "x") {
+    try {
+      const res = await fetch("https://api.twitter.com/2/users/me", { headers: { authorization: `Bearer ${token}` } });
+      if (!res.ok) return { channel, mode: "api", ok: false, detail: `X API ${res.status}` };
+      const body = (await res.json().catch(() => null)) as { data?: { username?: string } } | null;
+      return { channel, mode: "api", ok: true, detail: body?.data?.username ? `Connected to @${body.data.username}.` : "Token accepted." };
+    } catch (err) {
+      return { channel, mode: "api", ok: false, detail: err instanceof Error ? err.message : "network error reaching X" };
+    }
+  }
+  return { channel, mode: "api", ok: true, detail: "Token present — no read-check implemented for this channel yet." };
+}

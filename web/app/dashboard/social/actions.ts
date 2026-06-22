@@ -7,6 +7,8 @@ import { createPost, cancelPost, confirmChannelPosted, drainDue } from "@/lib/so
 import { toChannelIds, isChannelId, type ChannelId } from "@/lib/social/channels";
 import { footprintScore, type ChannelMetrics, type FootprintReport } from "@/lib/social/optimize";
 import { recordSnapshot } from "@/lib/social/footprint";
+import { verifyChannel, type ChannelStatus } from "@/lib/social/publish";
+import { CHANNEL_IDS } from "@/lib/social/channels";
 
 export type ActionState = { ok: boolean; message: string };
 
@@ -133,4 +135,13 @@ export async function saveFootprintSnapshot(formData: FormData): Promise<void> {
   if (metrics.length === 0) return;
   await recordSnapshot(footprintScore(metrics), g.email ?? "system");
   revalidatePath("/dashboard/social");
+}
+
+// Verify each channel's credentials without posting — read-only Graph/X calls so
+// the admin can confirm what's wired before a real publish.
+export async function testConnectionsAction(_prev: { statuses: ChannelStatus[] }): Promise<{ statuses: ChannelStatus[] }> {
+  const g = await staffGate();
+  if (!can(g.role, "manageSocial")) return { statuses: [] };
+  const statuses = await Promise.all(CHANNEL_IDS.map((c) => verifyChannel(c)));
+  return { statuses };
 }
