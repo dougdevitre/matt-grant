@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import { PageHeader, HowTo } from "@/components/dashboard/Notice";
 import { InviteForm } from "@/components/dashboard/InviteForm";
+import { PartnerInviteForm } from "@/components/dashboard/PartnerInviteForm";
 import { STAFF_ALLOWLIST, staffGate } from "@/lib/auth";
 import { listStaff } from "@/lib/staff";
 import { listAccessChanges } from "@/lib/audit";
-import { can, ROLES, ROLE_LABELS } from "@/lib/rbac";
+import { can, INVITABLE_ROLES, ROLE_LABELS } from "@/lib/rbac";
 import { revokeStaff, setMemberRole } from "./actions";
 
 const actionLabel: Record<string, string> = {
@@ -25,7 +26,9 @@ const roleBadge: Record<string, string> = {
 export default async function TeamPage() {
   const { role } = await staffGate();
   if (!can(role, "manageTeam")) redirect("/dashboard?denied=team");
-  const invited = (await listStaff()).filter((s) => s.status === "active");
+  const active = (await listStaff()).filter((s) => s.status === "active");
+  const invited = active.filter((s) => s.role !== "partner"); // internal team
+  const partners = active.filter((s) => s.role === "partner"); // Peace Room only
   const changes = await listAccessChanges(25);
   const when = (iso: string) =>
     new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
@@ -75,7 +78,7 @@ export default async function TeamPage() {
                     aria-label={`Role for ${s.email}`}
                     className={`rounded-sm border border-line px-2 py-1 text-xs ${roleBadge[s.role] ?? ""}`}
                   >
-                    {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
+                    {INVITABLE_ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
                   </select>
                   <button type="submit" className="rounded-sm border border-line px-2.5 py-1 text-xs text-slate hover:border-ink hover:text-ink">Update</button>
                 </form>
@@ -88,6 +91,36 @@ export default async function TeamPage() {
           </ul>
         ) : (
           <p className="mt-3 text-sm text-slate">No invited teammates yet — add one above.</p>
+        )}
+      </div>
+
+      <div className="mt-12 border-t border-line pt-8">
+        <p className="eyebrow text-brick">Coalition partners</p>
+        <p className="mt-1 max-w-2xl text-sm text-slate">
+          Allied candidates and partners who join the shared Peace Room. They reach only the case-for-change
+          board — never donors, finance, compliance, or internal campaign tools.
+        </p>
+        <div className="mt-4">
+          <PartnerInviteForm />
+        </div>
+        {partners.length > 0 && (
+          <ul className="mt-3 divide-y divide-line rounded-sm border border-line">
+            {partners.map((p) => (
+              <li key={p.email} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
+                <span className="min-w-0 flex-1">
+                  <span className="text-ink">{p.name ? `${p.name} · ` : ""}{p.email}</span>
+                  {p.invitedBy && <span className="block text-[0.65rem] text-slate">invited by {p.invitedBy}</span>}
+                </span>
+                <span className={`rounded-sm px-2 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow ${roleBadge.partner}`}>
+                  Partner · Peace Room
+                </span>
+                <form action={revokeStaff}>
+                  <input type="hidden" name="email" value={p.email} />
+                  <button type="submit" className="rounded-sm border border-line px-2.5 py-1 text-xs text-brick hover:border-brick">Remove</button>
+                </form>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 

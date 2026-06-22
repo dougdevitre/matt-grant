@@ -71,6 +71,57 @@ export async function inviteStaff(_prev: InviteResult | null, formData: FormData
   return { ok: true, message };
 }
 
+// Provision a coalition PARTNER — the Peace Room invite flow. Kept separate from
+// inviteStaff so the role is hard-coded to "partner" (never picked from a form)
+// and the email uses collaborative, Peace-Room-only copy. Admin-gated like the
+// rest of access management.
+export async function invitePartner(_prev: InviteResult | null, formData: FormData): Promise<InviteResult> {
+  const inviter = await guardAdmin();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const name = String(formData.get("name") ?? "").trim();
+  if (!email || !email.includes("@")) return { ok: false, message: "Enter a valid email address." };
+
+  let clerk = { invited: false, existing: false };
+  try {
+    await addStaff(email, name || undefined, "partner", inviter || undefined);
+    clerk = await inviteToClerk(email, "partner");
+  } catch {
+    return { ok: false, message: "Couldn't save the invite. Check the database connection." };
+  }
+
+  if (!clerk.invited && sesEnabled) {
+    try {
+      const html = renderEmail({
+        eyebrow: "Peace Room",
+        title: "Join the coalition.",
+        bodyHtml: `<p>You're invited to the Matt Grant for Congress <strong>Peace Room</strong> — the shared space where allied candidates and coalition partners make one case together: the data shows it's time for a change in MO-02.</p>
+          <p>You'll see the shared case for change and nothing else — this is a collaboration space, not the campaign's internal tools.</p>
+          <p>Sign in with <strong>${email}</strong> to join.</p>`,
+        button: { label: "Enter the Peace Room", href: `${SITE_URL}/sign-in`, color: "red" },
+      });
+      await sendEmail({
+        to: email,
+        subject: "You're invited to the Matt Grant Peace Room",
+        html,
+        text: renderText({ title: "Join the coalition", lines: [`Sign in with ${email}: ${SITE_URL}/sign-in`] }),
+      });
+    } catch {
+      /* invite saved even if the email fails */
+    }
+  }
+
+  await recordAccessChange({ at: new Date().toISOString(), actor: inviter || "system", target: email, action: "invite", role: "partner" });
+  revalidatePath("/dashboard/team");
+  const message = clerk.invited
+    ? `Invited ${email} to the Peace Room — Clerk emailed them.`
+    : clerk.existing
+      ? `${email} can now enter the Peace Room.`
+      : sesEnabled
+        ? `Invited ${email} to the Peace Room — an email is on the way.`
+        : `Added ${email} as a partner. (Connect Clerk to email invitations.)`;
+  return { ok: true, message };
+}
+
 export async function revokeStaff(formData: FormData): Promise<void> {
   const actor = await guardAdmin();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
@@ -85,8 +136,11 @@ export async function revokeStaff(formData: FormData): Promise<void> {
 export async function setMemberRole(formData: FormData): Promise<void> {
   const actor = await guardAdmin();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  // Staff role-change may only move someone between internal roles. It cannot
+  // turn a staffer into a `partner` or a partner into staff — partners are
+  // managed via the Peace Room invite/revoke flow, keeping the wall one-way.
   const role = asRole(formData.get("role"));
-  if (email && role) {
+  if (email && role && INVITABLE_ROLES.includes(role)) {
     const prevRole = (await staffRole(email)) ?? undefined;
     await setStaffRole(email, role);
     await setClerkRoleByEmail(email, role);
