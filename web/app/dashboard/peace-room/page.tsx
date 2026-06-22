@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { requireCap } from "@/lib/auth";
 import { PageHeader } from "@/components/dashboard/Notice";
@@ -79,6 +80,16 @@ export default async function PeaceRoomPage() {
 
   return (
     <>
+      <div className="mb-6 flex justify-center">
+        <Image
+          src="https://d5jzyan9wboi3.cloudfront.net/public/brand/logo.png"
+          alt="Matt Grant for Congress — Missouri District 2"
+          width={220}
+          height={220}
+          priority
+          className="h-auto w-40 sm:w-48"
+        />
+      </div>
       <PageHeader kicker="Restore public trust" title="The case for change" />
 
       <p className="mt-4 max-w-3xl text-slate">
