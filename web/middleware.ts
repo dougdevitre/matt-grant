@@ -1,9 +1,16 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Dashboard + research read APIs + asset upload are staff-only. The ingest route
-// is excluded — it's secured separately by CRON_SECRET (cron has no Clerk session).
-const isProtectedRoute = createRouteMatcher(["/dashboard(.*)", "/api/research/member(.*)", "/api/assets(.*)"]);
+// Dashboard + research read APIs + asset upload are staff-only. /community is the
+// supporter hub — any signed-in user may enter (role-gating beyond sign-in happens
+// in-page). The ingest route is excluded — it's secured separately by CRON_SECRET
+// (cron has no Clerk session).
+const isProtectedRoute = createRouteMatcher([
+  "/dashboard(.*)",
+  "/community(.*)",
+  "/api/research/member(.*)",
+  "/api/assets(.*)",
+]);
 
 const clerkEnabled =
   !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&

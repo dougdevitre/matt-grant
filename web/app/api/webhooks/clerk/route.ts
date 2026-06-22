@@ -9,7 +9,9 @@ import { asRole } from "@/lib/rbac";
 // Role source of truth at first sign-in:
 //   1. env DASHBOARD_ALLOWLIST  → "admin"  (the two bootstrap admins)
 //   2. an active invited staff row (DynamoDB) → that row's role  (pending invite)
-//   3. otherwise → no role written (no dashboard access)
+//   3. otherwise → "supporter" — the public community floor, so every self-signup
+//      lands in the /community hub (Peace Room launch). Supporter has NO staff or
+//      private capabilities, so this is safe to default broadly.
 //
 // Requires CLERK_WEBHOOK_SIGNING_SECRET (Clerk dashboard → Webhooks → Signing
 // Secret). Inert without it so keyless builds/deploys still pass.
@@ -51,10 +53,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, note: "no user id / email" });
   }
 
-  const role = emailAllowed(email) && process.env.DASHBOARD_ALLOWLIST ? "admin" : await staffRole(email);
-  if (!asRole(role)) {
-    return NextResponse.json({ ok: true, note: "no role for this user" });
-  }
+  // Bootstrap admin (only when an allowlist is actually set) → invited staff row →
+  // otherwise the public "supporter" floor so a new account always lands somewhere.
+  const assigned = emailAllowed(email) && process.env.DASHBOARD_ALLOWLIST ? "admin" : await staffRole(email);
+  const role = asRole(assigned) ?? "supporter";
 
   try {
     const { clerkClient } = await import("@clerk/nextjs/server");

@@ -23,12 +23,14 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
 
 export default async function OverviewPage({ searchParams }: { searchParams: Promise<{ denied?: string }> }) {
   // The overview shows finance/donor totals, so it must gate viewOverview itself —
-  // not rely on the sidebar hiding the link. A partner (Peace Room only) has no
-  // viewOverview, so send them to their one allowed surface instead of leaking
-  // totals or bouncing them into a denied-redirect loop.
+  // not rely on the sidebar hiding the link. Non-staff roles that land here are
+  // routed to the one surface they CAN see, instead of leaking totals or bouncing
+  // into a denied-redirect loop: partner → Peace Room, supporter → community hub.
   const { role } = await staffGate();
   if (!can(role, "viewOverview")) {
-    redirect(can(role, "viewPeaceRoom") ? "/dashboard/peace-room" : "/sign-in");
+    if (can(role, "viewPeaceRoom")) redirect("/dashboard/peace-room");
+    if (can(role, "viewCommunity")) redirect("/community");
+    redirect("/sign-in");
   }
 
   const { denied } = await searchParams;

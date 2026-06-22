@@ -16,9 +16,12 @@ export default async function SignUpPage() {
     );
   }
   const { SignUp } = await import("@clerk/nextjs");
+  // Organic joins land in the supporter community hub. fallbackRedirectUrl still
+  // honors a redirect_url (e.g. a staffer bounced from /dashboard), so only direct
+  // sign-ups default to /community.
   return (
     <div className="grid min-h-screen place-items-center bg-ink px-6">
-      <SignUp />
+      <SignUp fallbackRedirectUrl="/community" />
     </div>
   );
 }
