@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { can, asRole, ROLES, type Capability, type Role } from "@/lib/rbac";
+import { can, asRole, ROLES, INVITABLE_ROLES, type Capability, type Role } from "@/lib/rbac";
 
 // Every capability in the matrix. If you add one to rbac.ts, add it here too —
 // the count assertions below will otherwise fail, which is the point: the
@@ -103,6 +103,13 @@ describe("rbac capability matrix", () => {
     expect(can("partner", "viewCompliance")).toBe(false);
     expect(can("partner", "manageTeam")).toBe(false);
     expect(can("partner", "viewResearch")).toBe(false);
+  });
+
+  // partner must never be assignable from the staff picker / role dropdown — it's
+  // provisioned only via the Peace Room invite flow. Guards the one-way wall.
+  it("partner is not an invitable staff role", () => {
+    expect(INVITABLE_ROLES).not.toContain("partner");
+    expect(INVITABLE_ROLES).toEqual(["admin", "captain", "member"]);
   });
 
   it("denies a null / unknown role", () => {
