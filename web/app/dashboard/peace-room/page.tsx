@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { requireCap } from "@/lib/auth";
 import { PageHeader } from "@/components/dashboard/Notice";
 import { CaseForChange } from "@/components/CaseForChange";
+import { StrategyLab } from "@/components/dashboard/StrategyLab";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Peace Room — the case for change" };
@@ -26,6 +27,7 @@ export default async function PeaceRoomPage() {
       </div>
       <PageHeader kicker="Restore public trust" title="The case for change" />
       <CaseForChange />
+      <StrategyLab />
       <p className="mt-8 max-w-3xl text-xs text-slate">
         Educational and informational only. Partners and supporters see this shared case and nothing
         else — donors, finance, compliance, and internal campaign data stay private to the team.
