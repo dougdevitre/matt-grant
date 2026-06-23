@@ -222,7 +222,7 @@ export function eventInvite(): Email {
       heroImage: { src: img("web/st-louis-arch.png"), alt: "Join Matt Grant" },
       bodyHtml: `<p>Join Matt Grant and neighbors across Missouri's 2nd District.</p>
         <p><strong>When:</strong> {{event_date}}<br><strong>Where:</strong> {{event_location}}</p>
-        <p>{{event_details}}</p>`,
+        {{event_details}}`,
       button: { label: "RSVP now", href: "{{rsvp_url}}", color: "red" },
       secondaryButton: { label: "Add to calendar", href: "{{calendar_url}}", color: "navy" },
       unsubscribeUrl: UNSUB,
@@ -241,7 +241,7 @@ export function announcement(): Email {
       title: "{{headline}}",
       subtitle: "{{subhead}}",
       heroImage: { src: img("brand/headshot.png"), alt: "Matt Grant" },
-      bodyHtml: `<p>{{body}}</p>`,
+      bodyHtml: `{{body}}`,
       signature: true,
       button: { label: "{{cta_label}}", href: "{{cta_url}}", color: "red" },
       unsubscribeUrl: UNSUB,
