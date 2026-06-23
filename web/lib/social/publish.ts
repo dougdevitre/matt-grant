@@ -96,17 +96,74 @@ async function metaPost(url: string, params: Record<string, string>): Promise<{ 
   return { ok: true, id: body?.id ?? body?.post_id };
 }
 
+// Register + upload an image to LinkedIn's asset store, returning the asset URN to
+// attach to a UGC IMAGE share. Two steps: registerUpload reserves an asset and
+// hands back a one-time uploadUrl, then the image bytes are POSTed to that URL.
+// Needs a token with w_organization_social/w_member_social (same as the share).
+async function uploadLinkedInImage(mediaUrl: string, token: string, author: string): Promise<{ ok: true; asset: string } | { ok: false; error: string }> {
+  let regRes: Response;
+  try {
+    regRes = await fetch("https://api.linkedin.com/v2/assets?action=registerUpload", {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json", "x-restli-protocol-version": "2.0.0" },
+      body: JSON.stringify({
+        registerUploadRequest: {
+          recipes: ["urn:li:digitalmediaRecipe:feedshare-image"],
+          owner: author,
+          serviceRelationships: [{ relationshipType: "OWNER", identifier: "urn:li:userGeneratedContent" }],
+        },
+      }),
+    });
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "network error reaching LinkedIn (register)" };
+  }
+  if (!regRes.ok) {
+    const detail = await regRes.text().catch(() => "");
+    return { ok: false, error: `LinkedIn register ${regRes.status}${detail ? `: ${detail.slice(0, 160)}` : ""}` };
+  }
+  const reg = (await regRes.json().catch(() => null)) as { value?: { asset?: string; uploadMechanism?: Record<string, { uploadUrl?: string }> } } | null;
+  const asset = reg?.value?.asset;
+  const uploadUrl = reg?.value?.uploadMechanism?.["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"]?.uploadUrl;
+  if (!asset || !uploadUrl) return { ok: false, error: "LinkedIn registerUpload returned no asset/uploadUrl" };
+
+  const img = await fetchImageBytes(mediaUrl);
+  if (!img.ok) return { ok: false, error: img.error };
+  let upRes: Response;
+  try {
+    upRes = await fetch(uploadUrl, { method: "POST", headers: { authorization: `Bearer ${token}`, "content-type": img.contentType }, body: new Blob([img.bytes], { type: img.contentType }) });
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "network error uploading to LinkedIn" };
+  }
+  if (!upRes.ok) {
+    const detail = await upRes.text().catch(() => "");
+    return { ok: false, error: `LinkedIn upload ${upRes.status}${detail ? `: ${detail.slice(0, 160)}` : ""}` };
+  }
+  return { ok: true, asset };
+}
+
 // LinkedIn. Posts a UGC share as the configured author (org or person URN) via
-// /v2/ugcPosts. Text-only (link rides in the commentary text); image sharing is a
-// separate register-upload flow left as a follow-up. Needs LINKEDIN_AUTHOR_URN
-// (e.g. urn:li:organization:123) + a token with w_organization_social/w_member_social.
+// /v2/ugcPosts. With an attached graphic it runs the register-upload flow and posts
+// an IMAGE share; otherwise a text share (link rides in the commentary text). Needs
+// LINKEDIN_AUTHOR_URN (e.g. urn:li:organization:123) + a token with
+// w_organization_social/w_member_social.
 async function publishToLinkedIn(post: PublishablePost, token: string): Promise<PublishResult> {
   const author = await getSecret("LINKEDIN_AUTHOR_URN");
   if (!author) return { ok: false, mode: "api", error: "LINKEDIN_AUTHOR_URN is not set." };
+
+  // Attach an image when one is present. A media failure surfaces as a post
+  // failure (never a silent text-only fallback), matching the X adapter.
+  const media = absoluteMediaUrl(post.mediaUrl);
+  let shareContent: Record<string, unknown> = { shareCommentary: { text: copyText(post) }, shareMediaCategory: "NONE" };
+  if (media) {
+    const up = await uploadLinkedInImage(media, token, author);
+    if (!up.ok) return { ok: false, mode: "api", error: up.error };
+    shareContent = { shareCommentary: { text: copyText(post) }, shareMediaCategory: "IMAGE", media: [{ status: "READY", media: up.asset }] };
+  }
+
   const payload = {
     author,
     lifecycleState: "PUBLISHED",
-    specificContent: { "com.linkedin.ugc.ShareContent": { shareCommentary: { text: copyText(post) }, shareMediaCategory: "NONE" } },
+    specificContent: { "com.linkedin.ugc.ShareContent": shareContent },
     visibility: { "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC" },
   };
   let res: Response;
@@ -164,11 +221,10 @@ async function publishToInstagram(post: PublishablePost, token: string): Promise
   return published.ok ? { ok: true, mode: "api", externalId: published.id } : { ok: false, mode: "api", error: published.error };
 }
 
-// Upload an image to X and return its media id, for attaching to a tweet. Targets
-// the X API v2 media upload endpoint with the same OAuth2 user-context Bearer.
-// Defensive id parsing (data.id / media_id_string / id) since the field has
-// shifted across X API versions — verify against live creds before relying on it.
-async function uploadXMedia(mediaUrl: string, token: string): Promise<{ ok: true; mediaId: string } | { ok: false; error: string }> {
+// Fetch the bytes of an attached graphic (the public /api/graphics URL or any
+// pasted image URL) so an adapter can re-upload them to a platform's media store.
+// Shared by the X and LinkedIn image flows.
+async function fetchImageBytes(mediaUrl: string): Promise<{ ok: true; bytes: ArrayBuffer; contentType: string } | { ok: false; error: string }> {
   let imgRes: Response;
   try {
     imgRes = await fetch(mediaUrl);
@@ -176,8 +232,17 @@ async function uploadXMedia(mediaUrl: string, token: string): Promise<{ ok: true
     return { ok: false, error: err instanceof Error ? err.message : "could not fetch the image" };
   }
   if (!imgRes.ok) return { ok: false, error: `could not fetch image (${imgRes.status})` };
-  const bytes = await imgRes.arrayBuffer();
-  const contentType = imgRes.headers.get("content-type") || "image/png";
+  return { ok: true, bytes: await imgRes.arrayBuffer(), contentType: imgRes.headers.get("content-type") || "image/png" };
+}
+
+// Upload an image to X and return its media id, for attaching to a tweet. Targets
+// the X API v2 media upload endpoint with the same OAuth2 user-context Bearer.
+// Defensive id parsing (data.id / media_id_string / id) since the field has
+// shifted across X API versions — verify against live creds before relying on it.
+async function uploadXMedia(mediaUrl: string, token: string): Promise<{ ok: true; mediaId: string } | { ok: false; error: string }> {
+  const img = await fetchImageBytes(mediaUrl);
+  if (!img.ok) return { ok: false, error: img.error };
+  const { bytes, contentType } = img;
 
   const form = new FormData();
   form.append("media", new Blob([bytes], { type: contentType }), "image");
