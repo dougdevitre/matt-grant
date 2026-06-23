@@ -17,10 +17,12 @@ const ALL_CAPS: Capability[] = [
   "viewPlan",
   "viewFinanceTotals",
   "draftEmailCampaign",
+  "draftSms",
   "editFinance",
   "viewDonorDetail",
   "viewCompliance",
   "sendEmailCampaign",
+  "sendSms",
   "manageSocial",
   "manageTeam",
   "viewPeaceRoom",
@@ -49,6 +51,7 @@ const GRANTS: Record<Role, Capability[]> = {
     "viewPlan",
     "viewFinanceTotals",
     "draftEmailCampaign",
+    "draftSms",
     ...PEACE_CAPS,
     "viewCommunity",
   ],
@@ -90,6 +93,17 @@ describe("rbac capability matrix", () => {
     expect(can("captain", "sendEmailCampaign")).toBe(false);
     expect(can("captain", "manageTeam")).toBe(false);
     expect(can("member", "manageTeam")).toBe(false);
+  });
+
+  it("only admin can send SMS; captains may draft, members/external cannot", () => {
+    expect(can("admin", "draftSms")).toBe(true);
+    expect(can("admin", "sendSms")).toBe(true);
+    expect(can("captain", "draftSms")).toBe(true);
+    expect(can("captain", "sendSms")).toBe(false);
+    expect(can("member", "draftSms")).toBe(false);
+    expect(can("member", "sendSms")).toBe(false);
+    expect(can("supporter", "draftSms")).toBe(false);
+    expect(can("partner", "sendSms")).toBe(false);
   });
 
   it("the social command center is admin-only", () => {

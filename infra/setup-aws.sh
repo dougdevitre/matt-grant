@@ -83,6 +83,7 @@ create_destination() { # name path
 DEST_INGEST="$(create_destination matt-grant-ingest /api/research/ingest)"
 DEST_DRAIN="$(create_destination matt-grant-email-drain /api/cron/email-drain)"
 DEST_SOCIAL="$(create_destination matt-grant-social-drain /api/cron/social-drain)"
+DEST_SMS="$(create_destination matt-grant-sms-drain /api/cron/sms-drain)"
 DEST_NEWS="$(create_destination matt-grant-research-news /api/research/news)"
 DEST_BIO="$(create_destination matt-grant-research-bio /api/research/bio)"
 
@@ -121,6 +122,8 @@ create_rule matt-grant-research-ingest "cron(0 8 ? * MON *)" "$DEST_INGEST"
 create_rule matt-grant-email-drain     "rate(1 minute)"      "$DEST_DRAIN"
 # Scheduled social posts publish at their time — same ~1-min cadence as email.
 create_rule matt-grant-social-drain    "rate(1 minute)"      "$DEST_SOCIAL"
+# Queued SMS broadcasts drain the same way; the route no-ops during quiet hours.
+create_rule matt-grant-sms-drain       "rate(1 minute)"      "$DEST_SMS"
 # Lightweight enrichments refresh on their own cadence (decoupled from the heavy
 # ingest): news daily (time-sensitive), bios weekly (rarely change).
 create_rule matt-grant-research-news   "cron(0 9 * * ? *)"   "$DEST_NEWS"
