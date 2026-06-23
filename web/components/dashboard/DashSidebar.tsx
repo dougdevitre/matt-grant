@@ -70,7 +70,9 @@ export function DashSidebar({ role = "admin" }: { role?: Role }) {
             {group.label && (
               // Section label: visible on the stacked desktop sidebar; hidden on
               // the mobile horizontal bar so links stay in one clean row.
-              <p className="mt-4 hidden px-3 pb-1 font-mono text-[0.6rem] uppercase tracking-eyebrow text-paper/40 md:block">
+              // text-paper/60 (~6:1 on the navy sidebar) clears WCAG AA contrast;
+              // /40 was 3.52:1 and failed the axe a11y check.
+              <p className="mt-4 hidden px-3 pb-1 font-mono text-[0.6rem] uppercase tracking-eyebrow text-paper/60 md:block">
                 {group.label}
               </p>
             )}
