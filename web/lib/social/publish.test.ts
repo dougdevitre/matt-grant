@@ -2,6 +2,15 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { publishToChannel, verifyChannel } from "@/lib/social/publish";
 import { _clearSecretCache } from "@/lib/ssm";
 
+// YouTube renders a Short via ffmpeg; mock the render so CI never encodes video.
+vi.mock("@/lib/social/video", () => ({ renderStillToMp4: vi.fn(async () => Buffer.from("FAKEMP4")) }));
+
+// A resumable-session init response: 200 with a Location header pointing at the
+// upload URL.
+function sessionRes(location: string): Response {
+  return { ok: true, status: 200, headers: { get: (k: string) => (k.toLowerCase() === "location" ? location : null) }, text: async () => "", json: async () => ({}) } as unknown as Response;
+}
+
 // Drive the real Facebook + Instagram adapters with a mocked fetch so the Graph
 // API contract (endpoints, params, container→publish sequence, error handling) is
 // verified without any live credentials or network. getSecret reads process.env
@@ -242,6 +251,49 @@ describe("Threads publisher (Meta Graph, graph.threads.net)", () => {
     const r = await publishToChannel("threads", { caption: "Hi", hashtags: [] });
     expect(r.ok).toBe(false);
     expect(fetchMock).toHaveBeenCalledTimes(1); // never reached threads_publish
+  });
+});
+
+describe("YouTube publisher (Shorts, resumable upload)", () => {
+  beforeEach(() => {
+    process.env.YOUTUBE_ACCESS_TOKEN = "tkn";
+    _clearSecretCache();
+  });
+  afterEach(() => {
+    delete process.env.YOUTUBE_ACCESS_TOKEN;
+    delete process.env.YOUTUBE_PRIVACY_STATUS;
+    vi.restoreAllMocks();
+  });
+
+  it("renders the Short, initiates a resumable session, and PUTs the bytes", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(sessionRes("https://upload.youtube/session-1")) // initiate
+      .mockResolvedValueOnce(res(200, { id: "vid_1" })); // PUT bytes
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await publishToChannel("youtube", { caption: "Vote Aug 4\nsecond line", hashtags: ["#MO02"], mediaUrl: "https://cdn.example.com/x.png" });
+    expect(r).toMatchObject({ ok: true, mode: "api", externalId: "vid_1" });
+    expect(fetchMock.mock.calls[0][0]).toContain("/upload/youtube/v3/videos?uploadType=resumable");
+    const meta = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
+    expect(meta.snippet.title).toContain("#Shorts");
+    expect(meta.status.privacyStatus).toBe("private"); // safe default pre-verification
+    expect(fetchMock.mock.calls[1][0]).toBe("https://upload.youtube/session-1");
+    expect((fetchMock.mock.calls[1][1] as RequestInit).method).toBe("PUT");
+  });
+
+  it("refuses to publish without a graphic and makes no API call", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await publishToChannel("youtube", { caption: "Hi", hashtags: [] });
+    expect(r.ok).toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("surfaces a resumable-init error as a failure", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(res(403, { error: { message: "not verified" } })));
+    const r = await publishToChannel("youtube", { caption: "Hi", hashtags: [], mediaUrl: "https://cdn.example.com/x.png" });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toContain("403");
   });
 });
 
