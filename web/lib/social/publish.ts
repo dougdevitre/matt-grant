@@ -120,14 +120,8 @@ async function apiPublish(channel: ChannelId, post: PublishablePost, creds: Reso
   if (channel === "threads") return publishToThreads(post, creds);
   if (channel === "tiktok") return publishToTikTok(post, creds.token);
   if (channel === "youtube") return publishToYouTube(post, creds.token);
-  // Compile-time exhaustiveness guard: the if-chain narrows `channel` to `never`
-  // only when EVERY ChannelId is dispatched above. Drop a branch (or add a channel
-  // without an adapter) and this line fails tsc → CI's build goes red, instead of
-  // the channel silently falling through to the runtime error below. (This is what
-  // would have caught the #69 merge that dropped the TikTok dispatch.)
-  const _exhaustive: never = channel;
-  void _exhaustive;
-  // Unreachable today; kept as the runtime default for a future un-dispatched channel.
+  // Every ChannelId now has an adapter, so this is unreachable — kept as a typed
+  // exhaustiveness guard so adding a future channel without an adapter fails loudly.
   return { ok: false, mode: "api", error: `Auto-publish for ${String(channel)} is not implemented yet — connect it or add its access token.` };
 }
 
