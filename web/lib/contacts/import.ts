@@ -2,6 +2,17 @@
 // import panel can run the same parser client-side for a live preview before the
 // server action writes anything.
 
+// Serialize rows to RFC-4180 CSV (CRLF line endings). Fields containing a comma,
+// quote, or newline are double-quoted with "" escaping. null/undefined → empty.
+// Round-trips with parseCsv (which normalizes CRLF → LF on the way back in).
+export function toCsv(headers: string[], rows: (string | number | null | undefined)[][]): string {
+  const esc = (v: string | number | null | undefined) => {
+    const s = v == null ? "" : String(v);
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  return [headers, ...rows].map((r) => r.map(esc).join(",")).join("\r\n");
+}
+
 // RFC-4180-ish CSV: handles quoted fields, embedded commas/newlines, "" escapes,
 // and CRLF. Returns a 2-D array of cells; fully-blank lines are dropped.
 export function parseCsv(text: string): string[][] {

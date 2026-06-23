@@ -21,9 +21,14 @@ export default async function DonorsPage() {
     <>
       <PageHeader kicker="Finance" title="Donors">
         {connected && (
-          <span className="font-mono text-sm text-slate">
-            {rows.length} donors · {dollars(total)} raised
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-sm text-slate">
+              {rows.length} donors · {dollars(total)} raised
+            </span>
+            {full && rows.length > 0 && (
+              <a href="/api/dashboard/export/donors" download className="btn-ghost text-xs">Export CSV</a>
+            )}
+          </div>
         )}
       </PageHeader>
 
