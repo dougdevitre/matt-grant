@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { addStaff, removeStaff, setStaffRole, staffRole } from "@/lib/staff";
 import { staffGate } from "@/lib/auth";
 import { can, asRole, INVITABLE_ROLES } from "@/lib/rbac";
-import { setClerkRoleByEmail, inviteToClerk } from "@/lib/clerkRoles";
+import { setClerkRoleByEmail, inviteToClerk, clearClerkRoleByEmail } from "@/lib/clerkRoles";
 import { recordAccessChange } from "@/lib/audit";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { renderEmail, renderText } from "@/lib/email/layout";
@@ -126,7 +126,8 @@ export async function revokeStaff(formData: FormData): Promise<void> {
   const actor = await guardAdmin();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   if (email) {
-    await removeStaff(email);
+    await removeStaff(email); // mark the DynamoDB row removed (fallback layer)
+    await clearClerkRoleByEmail(email); // demote in Clerk + end live sessions (runtime layer)
     await recordAccessChange({ at: new Date().toISOString(), actor: actor || "system", target: email, action: "revoke" });
     revalidatePath("/dashboard/team");
   }
