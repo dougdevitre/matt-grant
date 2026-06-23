@@ -119,6 +119,12 @@ export function EmailComposer({
             ) : (
               <input type={f.type === "number" ? "number" : "text"} value={vars[f.name] ?? ""} onChange={(e) => setVar(f.name, e.target.value)} className={`${field} mt-1`} placeholder={f.placeholder} aria-label={f.label} />
             )}
+            {f.rich && (
+              <p className="mt-1 text-[0.7rem] text-slate">
+                Formatting: <code className="font-mono">**bold**</code>, <code className="font-mono">*italic*</code>,{" "}
+                <code className="font-mono">[link](https://…)</code>, blank line = new paragraph, <code className="font-mono">-</code> = bullet. See the live preview.
+              </p>
+            )}
           </div>
         ))}
         {tpl && tpl.fields.length === 0 && <p className="text-sm text-slate">This template has no inputs — ready to send.</p>}
