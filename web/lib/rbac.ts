@@ -64,11 +64,13 @@ export type Capability =
   | "viewPlan"
   | "viewFinanceTotals" // read-only finance + donor totals
   | "draftEmailCampaign"
+  | "draftSms" // compose SMS broadcasts (captain may draft)
   // admin only
   | "editFinance"
   | "viewDonorDetail" // full donor list incl. PII / editing
   | "viewCompliance"
   | "sendEmailCampaign"
+  | "sendSms" // send SMS broadcasts to the list (admin only)
   | "manageSocial" // social command center: schedule/publish + profile optimizer
   | "manageTeam"
   // shared Peace Room (the one surface partners can reach)
@@ -94,10 +96,12 @@ const MATRIX: Record<Role, Capability[]> = {
     "viewPlan",
     "viewFinanceTotals",
     "draftEmailCampaign",
+    "draftSms",
     "editFinance",
     "viewDonorDetail",
     "viewCompliance",
     "sendEmailCampaign",
+    "sendSms",
     "manageSocial",
     "manageTeam",
     "viewPeaceRoom",
@@ -117,6 +121,7 @@ const MATRIX: Record<Role, Capability[]> = {
     "viewPlan",
     "viewFinanceTotals",
     "draftEmailCampaign",
+    "draftSms",
     "viewPeaceRoom",
     "contributePeaceRoom",
     "viewCommunity",
