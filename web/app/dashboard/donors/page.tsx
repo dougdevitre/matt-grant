@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { getDonors, getVolunteers } from "@/lib/queries";
-import { emailSet } from "@/lib/engagement";
+import { getDonors } from "@/lib/queries";
 import { dollars, FEC_INDIVIDUAL_PER_ELECTION_CENTS } from "@/lib/money";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { addDonor } from "@/app/dashboard/actions";
@@ -18,9 +17,6 @@ export default async function DonorsPage() {
   const full = can(role, "viewDonorDetail"); // captains see totals only
   const { connected, rows } = await getDonors();
   const total = rows.reduce((s, r) => s + r.totalCents, 0);
-  // Cross-reference the volunteer list to flag donors who also volunteer (only
-  // needed for the detailed table — captains don't see the list).
-  const volunteerEmails = full ? [...emailSet((await getVolunteers()).rows)] : [];
 
   return (
     <>
@@ -84,7 +80,7 @@ export default async function DonorsPage() {
         {rows.length === 0 ? (
           <div className="card p-8 text-center text-slate">No donors yet. Log your first contribution.</div>
         ) : (
-          <DonorTable rows={rows} volunteerEmails={volunteerEmails} />
+          <DonorTable rows={rows} />
         )}
       </div>
       ) : (
