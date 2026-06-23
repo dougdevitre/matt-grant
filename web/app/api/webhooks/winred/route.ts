@@ -73,14 +73,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "store not configured" }, { status: 503 });
   }
 
-  // A gift event that carries contact info but no parseable amount means the
-  // payload's amount field didn't match the normalizer — the donor would land at
-  // $0. Record the contact (so the donation isn't lost) but warn loudly so the
-  // schema mismatch is visible in logs and can be mapped in normalizeWinred.
-  if (!isRefund && !rec.amount && rec.email) {
-    console.warn("[winred] donation recorded with no parseable amount — check payload field names against normalizeWinred", { event, fieldCount: Object.keys(payload).length });
-  }
-
   try {
     // Funnel through the shared recorder so the gift lands in contributions[]
     // (counted by the dashboard) and dedupes by email; externalId makes webhook

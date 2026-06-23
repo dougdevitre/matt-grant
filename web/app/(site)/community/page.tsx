@@ -4,7 +4,7 @@ import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { CaseForChange } from "@/components/CaseForChange";
 import { CommunityOnboarding } from "@/components/CommunityOnboarding";
-import { supporterTierForEmail } from "@/lib/supporterTier";
+import { donorSummaryForEmail } from "@/lib/donorStatus";
 import { getProfile } from "@/lib/profile";
 import { dollars } from "@/lib/money";
 import { CAMPAIGN, SITE_URL } from "@/lib/site";
@@ -23,12 +23,10 @@ export default async function CommunityPage() {
   const gate = await staffGate();
   const isStaff = can(gate.role, "viewOverview"); // admin / captain / member
 
-  // Engagement tier is derived from the signed-in user's OWN records — their
-  // giving and their own volunteer signup, never anyone else's data (see
-  // supporterTier.ts). Giving or signing up to help unlocks recognition
-  // automatically; RBAC roles are unaffected.
-  const me = await supporterTierForEmail(gate.email);
-  const donor = me.donor;
+  // Donor tier is derived from the signed-in user's OWN email matching a positive
+  // contribution — never anyone else's data (see donorStatus.ts). Giving unlocks
+  // the donor view automatically.
+  const donor = await donorSummaryForEmail(gate.email);
 
   // Show the (non-blocking) onboarding card until the supporter has filled it in.
   const profile = await getProfile(gate.email);
@@ -62,7 +60,7 @@ export default async function CommunityPage() {
 
   return (
     <section className="container-page py-16 sm:py-20">
-      <p className="eyebrow text-brick">{me.isDonor ? "Donor · thank you" : me.isVolunteer ? "Volunteer · thank you" : "You’re in"}</p>
+      <p className="eyebrow text-brick">{donor.hasDonated ? "Donor · thank you" : "You’re in"}</p>
       <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">
         Welcome to the community{firstName ? `, ${firstName}` : ""}.
       </h1>
@@ -80,18 +78,6 @@ export default async function CommunityPage() {
             Your support{donor.totalCents > 0 ? ` of ${dollars(donor.totalCents)}` : ""}
             {donor.gifts > 1 ? ` across ${donor.gifts} gifts` : ""} is funding doors, calls, and mail
             across MO-02. You&apos;re part of the core making this race winnable.
-          </p>
-        </div>
-      )}
-
-      {me.isVolunteer && !me.isDonor && (
-        <div className="mt-6 max-w-2xl rounded-sm border border-field/40 bg-field/10 p-5">
-          <p className="font-display text-lg font-semibold text-ink">
-            Thank you for stepping up{firstName ? `, ${firstName}` : ""}.
-          </p>
-          <p className="mt-1 text-sm text-slate">
-            You&apos;re signed up to help — this race is won one neighbor at a time, and you&apos;re part of
-            how we get there. Pick your next action below.
           </p>
         </div>
       )}
