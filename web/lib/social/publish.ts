@@ -36,10 +36,8 @@ export type PublishResult =
   | { ok: true; mode: "manual" } // staged; awaiting a human to post it
   | { ok: false; mode: "api" | "manual"; error: string };
 
-// Secrets each channel needs for direct API publishing: an access token, and for
-// the Meta channels an account id too. A channel is "configured" (auto-publish)
-// only when ALL of its required secrets are present; otherwise it degrades to
-// manual mode. No secrets are committed; absence = manual mode.
+// Flat-name secrets for the manual token drop-in path (the fallback when the
+// in-app OAuth connect flow hasn't stored a connection).
 type ChannelConfig = { token: string; id?: string };
 const CHANNEL_CONFIG: Record<ChannelId, ChannelConfig> = {
   x: { token: "X_ACCESS_TOKEN" },
@@ -51,13 +49,56 @@ const CHANNEL_CONFIG: Record<ChannelId, ChannelConfig> = {
   threads: { token: "THREADS_ACCESS_TOKEN", id: "THREADS_USER_ID" },
 };
 
-/** True if this channel has ALL credentials wired for direct API publishing. */
-export async function channelConfigured(channel: ChannelId): Promise<boolean> {
+// The resolved credentials a publisher needs: an access token, plus the account
+// id (FB Page / IG user) or author URN (LinkedIn) where applicable.
+export type ResolvedCreds = { token: string; accountId?: string; authorUrn?: string };
+
+// Resolve a channel's posting credentials: the in-app OAuth connection (DynamoDB)
+// first, then the flat-name env/SSM fallback. Returns null when nothing is wired,
+// which the callers treat as "manual mode" (stage for a human).
+export async function resolveCredentials(channel: ChannelId): Promise<ResolvedCreds | null> {
+  // 1. Stored OAuth connection from the connect flow. Meta's "facebook" record
+  //    powers both Facebook (Page) and Instagram (Page token + linked IG account).
+  if (channel === "facebook" || channel === "instagram") {
+    const conn = await getFreshConnection("facebook");
+    if (conn?.pageToken) {
+      if (channel === "facebook" && conn.pageId) return { token: conn.pageToken, accountId: conn.pageId };
+      if (channel === "instagram" && conn.igUserId) return { token: conn.pageToken, accountId: conn.igUserId };
+    }
+  } else {
+    const conn = await getFreshConnection(channel);
+    if (conn?.accessToken) {
+      if (channel === "linkedin") return conn.authorUrn ? { token: conn.accessToken, authorUrn: conn.authorUrn } : null;
+      return { token: conn.accessToken };
+    }
+  }
+  // 2. Flat-name env/SSM fallback (manual token drop-in).
   const cfg = CHANNEL_CONFIG[channel];
+  const token = await getSecret(cfg.token).catch(() => null);
+  if (!token) return null;
+  if (channel === "facebook") {
+    const id = await getSecret("FACEBOOK_PAGE_ID");
+    return id ? { token, accountId: id } : null;
+  }
+  if (channel === "instagram") {
+    const id = await getSecret("INSTAGRAM_USER_ID");
+    return id ? { token, accountId: id } : null;
+  }
+  if (channel === "linkedin") {
+    const urn = await getSecret("LINKEDIN_AUTHOR_URN");
+    return urn ? { token, authorUrn: urn } : null;
+  }
+  if (channel === "threads") {
+    const id = await getSecret("THREADS_USER_ID");
+    return id ? { token, accountId: id } : null;
+  }
+  return { token };
+}
+
+/** True if this channel has credentials wired (OAuth connection or manual token). */
+export async function channelConfigured(channel: ChannelId): Promise<boolean> {
   try {
-    if (!(await getSecret(cfg.token))) return false;
-    if (cfg.id && !(await getSecret(cfg.id))) return false;
-    return true;
+    return !!(await resolveCredentials(channel));
   } catch {
     return false;
   }
@@ -110,16 +151,28 @@ async function metaPost(url: string, params: Record<string, string>): Promise<{ 
 }
 
 // LinkedIn. Posts a UGC share as the configured author (org or person URN) via
-// /v2/ugcPosts. Text-only (link rides in the commentary text); image sharing is a
-// separate register-upload flow left as a follow-up. Needs LINKEDIN_AUTHOR_URN
-// (e.g. urn:li:organization:123) + a token with w_organization_social/w_member_social.
-async function publishToLinkedIn(post: PublishablePost, token: string): Promise<PublishResult> {
-  const author = await getSecret("LINKEDIN_AUTHOR_URN");
-  if (!author) return { ok: false, mode: "api", error: "LINKEDIN_AUTHOR_URN is not set." };
+// /v2/ugcPosts. Text shares carry the link in the commentary text; an attached
+// graphic is sent through the register-upload flow and referenced as an IMAGE asset.
+// Needs LINKEDIN_AUTHOR_URN (e.g. urn:li:organization:123) + a token with
+// w_organization_social/w_member_social.
+async function publishToLinkedIn(post: PublishablePost, creds: ResolvedCreds): Promise<PublishResult> {
+  const author = creds.authorUrn;
+  const token = creds.token;
+  if (!author) return { ok: false, mode: "api", error: "LinkedIn author URN is not set." };
+
+  // With a graphic attached, register + upload the image and reference its asset.
+  let shareMedia: { shareMediaCategory: string; media?: unknown[] } = { shareMediaCategory: "NONE" };
+  const media = absoluteMediaUrl(post.mediaUrl);
+  if (media) {
+    const up = await uploadLinkedInImage(media, author, token);
+    if (!up.ok) return { ok: false, mode: "api", error: up.error };
+    shareMedia = { shareMediaCategory: "IMAGE", media: [{ status: "READY", media: up.asset }] };
+  }
+
   const payload = {
     author,
     lifecycleState: "PUBLISHED",
-    specificContent: { "com.linkedin.ugc.ShareContent": { shareCommentary: { text: copyText(post) }, shareMediaCategory: "NONE" } },
+    specificContent: { "com.linkedin.ugc.ShareContent": { shareCommentary: { text: copyText(post) }, ...shareMedia } },
     visibility: { "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC" },
   };
   let res: Response;
@@ -143,12 +196,62 @@ async function publishToLinkedIn(post: PublishablePost, token: string): Promise<
   return { ok: true, mode: "api", externalId: body?.id };
 }
 
+// LinkedIn image upload: register an upload slot, PUT the graphic bytes, and
+// return the asset URN to reference in the share. Three steps, each surfacing a
+// clear error rather than silently dropping the image.
+async function uploadLinkedInImage(mediaUrl: string, author: string, token: string): Promise<{ ok: true; asset: string } | { ok: false; error: string }> {
+  // 1. register the upload
+  let reg: Response;
+  try {
+    reg = await fetch("https://api.linkedin.com/v2/assets?action=registerUpload", {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json", "x-restli-protocol-version": "2.0.0" },
+      body: JSON.stringify({
+        registerUploadRequest: {
+          recipes: ["urn:li:digitalmediaRecipe:feedshare-image"],
+          owner: author,
+          serviceRelationships: [{ relationshipType: "OWNER", identifier: "urn:li:userGeneratedContent" }],
+        },
+      }),
+    });
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "network error reaching LinkedIn" };
+  }
+  if (!reg.ok) return { ok: false, error: `LinkedIn registerUpload ${reg.status}` };
+  const regBody = (await reg.json().catch(() => null)) as
+    | { value?: { asset?: string; uploadMechanism?: { ["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"]?: { uploadUrl?: string } } } }
+    | null;
+  const asset = regBody?.value?.asset;
+  const uploadUrl = regBody?.value?.uploadMechanism?.["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"]?.uploadUrl;
+  if (!asset || !uploadUrl) return { ok: false, error: "LinkedIn did not return an upload URL." };
+
+  // 2. fetch the image bytes (the public on-brand graphic)
+  let img: Response;
+  try {
+    img = await fetch(mediaUrl);
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "could not fetch the image" };
+  }
+  if (!img.ok) return { ok: false, error: `could not fetch image (${img.status})` };
+  const bytes = await img.arrayBuffer();
+
+  // 3. PUT the bytes to the upload URL
+  try {
+    const put = await fetch(uploadUrl, { method: "POST", headers: { authorization: `Bearer ${token}` }, body: bytes });
+    if (!put.ok) return { ok: false, error: `LinkedIn media upload ${put.status}` };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "network error uploading to LinkedIn" };
+  }
+  return { ok: true, asset };
+}
+
 // Facebook Page. With an image → POST {page}/photos (url + caption); text-only →
 // POST {page}/feed (message + optional link). Needs FACEBOOK_PAGE_ID + a Page
 // access token with pages_manage_posts.
-async function publishToFacebook(post: PublishablePost, token: string): Promise<PublishResult> {
-  const pageId = await getSecret("FACEBOOK_PAGE_ID");
-  if (!pageId) return { ok: false, mode: "api", error: "FACEBOOK_PAGE_ID is not set." };
+async function publishToFacebook(post: PublishablePost, creds: ResolvedCreds): Promise<PublishResult> {
+  const pageId = creds.accountId;
+  const token = creds.token;
+  if (!pageId) return { ok: false, mode: "api", error: "Facebook Page id is not set." };
   const message = copyText(post);
   const media = absoluteMediaUrl(post.mediaUrl);
   const r = media
@@ -161,9 +264,10 @@ async function publishToFacebook(post: PublishablePost, token: string): Promise<
 // from a PUBLIC image_url + caption, then publish it. IG has no text-only post, so
 // an image is required. Needs INSTAGRAM_USER_ID (IG business/creator account) + a
 // token with instagram_content_publish.
-async function publishToInstagram(post: PublishablePost, token: string): Promise<PublishResult> {
-  const igUserId = await getSecret("INSTAGRAM_USER_ID");
-  if (!igUserId) return { ok: false, mode: "api", error: "INSTAGRAM_USER_ID is not set." };
+async function publishToInstagram(post: PublishablePost, creds: ResolvedCreds): Promise<PublishResult> {
+  const igUserId = creds.accountId;
+  const token = creds.token;
+  if (!igUserId) return { ok: false, mode: "api", error: "Instagram account id is not set." };
   const media = absoluteMediaUrl(post.mediaUrl);
   if (!media) return { ok: false, mode: "api", error: "Instagram requires an image — attach a graphic before scheduling." };
 
@@ -175,6 +279,91 @@ async function publishToInstagram(post: PublishablePost, token: string): Promise
   // would need a status poll on the container before publishing.)
   const published = await metaPost(`${META_GRAPH}/${igUserId}/media_publish`, { creation_id: created.id, access_token: token });
   return published.ok ? { ok: true, mode: "api", externalId: published.id } : { ok: false, mode: "api", error: published.error };
+}
+
+// Threads (Meta's text-first network). Same two-step container → publish flow as
+// Instagram, but on graph.threads.net — and text-only is allowed (no image
+// required), so a plain caption posts as a TEXT thread and an attached graphic as
+// an IMAGE thread. Needs THREADS_USER_ID + a token with
+// threads_basic/threads_content_publish.
+async function publishToThreads(post: PublishablePost, creds: ResolvedCreds): Promise<PublishResult> {
+  const userId = creds.accountId;
+  const token = creds.token;
+  if (!userId) return { ok: false, mode: "api", error: "Threads user id is not set." };
+  const media = absoluteMediaUrl(post.mediaUrl);
+
+  const created = await metaPost(`${THREADS_GRAPH}/${userId}/threads`, {
+    media_type: media ? "IMAGE" : "TEXT",
+    text: copyText(post),
+    ...(media ? { image_url: media } : {}),
+    access_token: token,
+  });
+  if (!created.ok) return { ok: false, mode: "api", error: created.error };
+  if (!created.id) return { ok: false, mode: "api", error: "Threads did not return a media container id." };
+
+  const published = await metaPost(`${THREADS_GRAPH}/${userId}/threads_publish`, { creation_id: created.id, access_token: token });
+  return published.ok ? { ok: true, mode: "api", externalId: published.id } : { ok: false, mode: "api", error: published.error };
+}
+
+// YouTube (Shorts). YouTube has no image-post API, so the still graphic is rendered
+// to a short MP4 (lib/social/video.ts) and uploaded via the resumable videos.insert
+// flow: initiate a session (metadata + content headers) → PUT the bytes → read the
+// video id. Needs a token with `youtube.upload` (Google app verification gate). The
+// privacy defaults to "private" until the app is verified; override with
+// YOUTUBE_PRIVACY_STATUS once approved for public uploads.
+async function publishToYouTube(post: PublishablePost, token: string): Promise<PublishResult> {
+  const media = absoluteMediaUrl(post.mediaUrl);
+  if (!media) return { ok: false, mode: "api", error: "YouTube needs a graphic to render into a Short — attach one before scheduling." };
+
+  let mp4: Buffer;
+  try {
+    mp4 = await renderStillToMp4(media);
+  } catch (err) {
+    return { ok: false, mode: "api", error: err instanceof Error ? `video render failed: ${err.message}` : "video render failed" };
+  }
+
+  const firstLine = (post.caption.split("\n")[0] || "Matt Grant for Congress").slice(0, 90);
+  const metadata = {
+    snippet: { title: `${firstLine} #Shorts`.slice(0, 100), description: copyText(post), tags: post.hashtags.map((h) => h.replace(/^#/, "")) },
+    status: { privacyStatus: process.env.YOUTUBE_PRIVACY_STATUS || "private", selfDeclaredMadeForKids: false },
+  };
+
+  // 1. initiate the resumable upload session
+  let init: Response;
+  try {
+    init = await fetch("https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status", {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "content-type": "application/json; charset=UTF-8",
+        "x-upload-content-type": "video/mp4",
+        "x-upload-content-length": String(mp4.length),
+      },
+      body: JSON.stringify(metadata),
+    });
+  } catch (err) {
+    return { ok: false, mode: "api", error: err instanceof Error ? err.message : "network error reaching YouTube" };
+  }
+  if (!init.ok) {
+    const detail = await init.text().catch(() => "");
+    return { ok: false, mode: "api", error: `YouTube init ${init.status}${detail ? `: ${detail.slice(0, 160)}` : ""}` };
+  }
+  const session = init.headers.get("location");
+  if (!session) return { ok: false, mode: "api", error: "YouTube did not return an upload session URL." };
+
+  // 2. PUT the rendered MP4 bytes to the session URL
+  let up: Response;
+  try {
+    up = await fetch(session, { method: "PUT", headers: { "content-type": "video/mp4" }, body: Uint8Array.from(mp4) });
+  } catch (err) {
+    return { ok: false, mode: "api", error: err instanceof Error ? err.message : "network error uploading to YouTube" };
+  }
+  if (!up.ok) {
+    const detail = await up.text().catch(() => "");
+    return { ok: false, mode: "api", error: `YouTube upload ${up.status}${detail ? `: ${detail.slice(0, 160)}` : ""}` };
+  }
+  const body = (await up.json().catch(() => null)) as { id?: string } | null;
+  return { ok: true, mode: "api", externalId: body?.id };
 }
 
 // Upload an image to X and return its media id, for attaching to a tweet. Targets
@@ -230,7 +419,7 @@ async function publishToX(post: PublishablePost, token: string): Promise<Publish
 
   let res: Response;
   try {
-    res = await fetch("https://api.twitter.com/2/tweets", {
+    res = await fetch("https://api.x.com/2/tweets", {
       method: "POST",
       headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
       body: JSON.stringify({ text, ...(mediaIds ? { media: { media_ids: mediaIds } } : {}) }),
@@ -374,11 +563,10 @@ async function publishToYouTube(post: PublishablePost, token: string): Promise<P
  * partially-configured channel (token but no id) stages rather than erroring.
  */
 export async function publishToChannel(channel: ChannelId, post: PublishablePost): Promise<PublishResult> {
-  if (!(await channelConfigured(channel))) return { ok: true, mode: "manual" };
-  const token = await getSecret(CHANNEL_CONFIG[channel].token).catch(() => null);
-  if (!token) return { ok: true, mode: "manual" };
+  const creds = await resolveCredentials(channel);
+  if (!creds) return { ok: true, mode: "manual" };
   try {
-    return await apiPublish(channel, post, token);
+    return await apiPublish(channel, post, creds);
   } catch (err) {
     return { ok: false, mode: "api", error: err instanceof Error ? err.message : "publish failed" };
   }
@@ -418,27 +606,25 @@ async function metaGet(url: string, field: string): Promise<{ ok: true; value: s
  * admin sees exactly which account they'd post to.
  */
 export async function verifyChannel(channel: ChannelId): Promise<ChannelStatus> {
-  if (!(await channelConfigured(channel))) {
-    return { channel, mode: "manual", ok: true, detail: "Manual mode — no API credentials. Posts are staged to push by hand." };
+  const creds = await resolveCredentials(channel);
+  if (!creds) {
+    return { channel, mode: "manual", ok: true, detail: "Manual mode — not connected. Posts are staged to push by hand." };
   }
-  const token = (await getSecret(CHANNEL_CONFIG[channel].token))!;
+  const token = creds.token;
   if (channel === "facebook") {
-    const pageId = await getSecret("FACEBOOK_PAGE_ID");
-    const r = await metaGet(`${META_GRAPH}/${pageId}?fields=name&access_token=${encodeURIComponent(token)}`, "name");
+    const r = await metaGet(`${META_GRAPH}/${creds.accountId}?fields=name&access_token=${encodeURIComponent(token)}`, "name");
     return r.ok ? { channel, mode: "api", ok: true, detail: `Connected to Page “${r.value}”.` } : { channel, mode: "api", ok: false, detail: r.error };
   }
   if (channel === "instagram") {
-    const igUserId = await getSecret("INSTAGRAM_USER_ID");
-    const r = await metaGet(`${META_GRAPH}/${igUserId}?fields=username&access_token=${encodeURIComponent(token)}`, "username");
+    const r = await metaGet(`${META_GRAPH}/${creds.accountId}?fields=username&access_token=${encodeURIComponent(token)}`, "username");
     return r.ok ? { channel, mode: "api", ok: true, detail: `Connected to @${r.value}.` } : { channel, mode: "api", ok: false, detail: r.error };
   }
   if (channel === "linkedin") {
-    const author = await getSecret("LINKEDIN_AUTHOR_URN");
-    return { channel, mode: "api", ok: true, detail: `Configured — posting as ${author}.` };
+    return { channel, mode: "api", ok: true, detail: `Configured — posting as ${creds.authorUrn}.` };
   }
   if (channel === "x") {
     try {
-      const res = await fetch("https://api.twitter.com/2/users/me", { headers: { authorization: `Bearer ${token}` } });
+      const res = await fetch("https://api.x.com/2/users/me", { headers: { authorization: `Bearer ${token}` } });
       if (!res.ok) return { channel, mode: "api", ok: false, detail: `X API ${res.status}` };
       const body = (await res.json().catch(() => null)) as { data?: { username?: string } } | null;
       return { channel, mode: "api", ok: true, detail: body?.data?.username ? `Connected to @${body.data.username}.` : "Token accepted." };

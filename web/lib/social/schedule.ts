@@ -131,17 +131,26 @@ export async function cancelPost(id: string): Promise<boolean> {
   if (!dbConfigured) return false;
   const SK = await findSK(id);
   if (!SK) return false;
-  await ddb.send(
-    new UpdateCommand({
-      TableName: TABLE,
-      Key: { PK: SOCIAL_PK, SK },
-      UpdateExpression: "SET #s = :c, updatedAt = :u",
-      ConditionExpression: "#s IN (:scheduled, :draft, :awaiting)",
-      ExpressionAttributeNames: { "#s": "status" },
-      ExpressionAttributeValues: { ":c": "canceled", ":u": new Date().toISOString(), ":scheduled": "scheduled", ":draft": "draft", ":awaiting": "awaiting" },
-    }),
-  ).catch(() => {});
-  return true;
+  try {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: SOCIAL_PK, SK },
+        UpdateExpression: "SET #s = :c, updatedAt = :u",
+        ConditionExpression: "#s IN (:scheduled, :draft, :awaiting)",
+        ExpressionAttributeNames: { "#s": "status" },
+        ExpressionAttributeValues: { ":c": "canceled", ":u": new Date().toISOString(), ":scheduled": "scheduled", ":draft": "draft", ":awaiting": "awaiting" },
+      }),
+    );
+    return true;
+  } catch (e) {
+    // The condition fails when the post already left a cancelable state (e.g. the
+    // drain claimed it mid-publish) — an expected no-op. Any other error (network,
+    // permissions) must surface as a failed cancel, not a false success.
+    if ((e as { name?: string })?.name === "ConditionalCheckFailedException") return false;
+    console.error("cancelPost failed:", e);
+    return false;
+  }
 }
 
 /** Mark a manual ("ready") channel as posted after a human pushed it. */
@@ -213,17 +222,6 @@ export async function drainDue(limit = 10): Promise<{ processed: number; posts: 
       else if (res.ok && res.mode === "manual") perChannel[channel] = { status: "ready", mode: "manual" };
       else perChannel[channel] = { status: "failed", mode: res.mode, error: res.ok ? undefined : res.error };
     }
-    const status = rollUp(post.channels ?? [], perChannel);
-    await ddb.send(
-      new UpdateCommand({
-        TableName: TABLE,
-        Key: { PK: SOCIAL_PK, SK: post.SK },
-        UpdateExpression: "SET perChannel = :pc, #s = :s, updatedAt = :u" + (status === "posted" ? ", postedAt = :u" : ""),
-        ExpressionAttributeNames: { "#s": "status" },
-        ExpressionAttributeValues: { ":pc": perChannel, ":s": status, ":u": new Date().toISOString() },
-      }),
-    );
-    out.push({ id: post.id, status });
   }
   return { processed: out.length, posts: out };
 }

@@ -4,6 +4,7 @@ import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { VolunteerBoard } from "@/components/dashboard/VolunteerBoard";
+import { VolunteerImport } from "@/components/dashboard/VolunteerImport";
 
 export default async function VolunteersPage() {
   const { role } = await staffGate();
@@ -18,7 +19,14 @@ export default async function VolunteersPage() {
   return (
     <>
       <PageHeader kicker="Field" title="Volunteers">
-        {connected && <span className="font-mono text-sm text-slate">{rows.length} signed up</span>}
+        {connected && (
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-sm text-slate">{rows.length} signed up</span>
+            {rows.length > 0 && (
+              <a href="/api/dashboard/export/volunteers" download className="btn-ghost text-xs">Export CSV</a>
+            )}
+          </div>
+        )}
       </PageHeader>
 
       {!connected && <DbNotice />}
@@ -32,9 +40,11 @@ export default async function VolunteersPage() {
         ]}
       />
 
+      {connected && <VolunteerImport />}
+
       {rows.length === 0 ? (
         <div className="card p-10 text-center text-slate">
-          No volunteers yet. Leads from the public <span className="font-mono">/contact</span> form land here.
+          No volunteers yet. Leads from the public <span className="font-mono">/contact</span> form land here — or import a list above.
         </div>
       ) : (
         <VolunteerBoard rows={rows} taskCounts={taskCounts} donorEmails={donorEmails} />

@@ -5,6 +5,7 @@ import { EmailComposer } from "@/components/dashboard/EmailComposer";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { getDonors, getVolunteers } from "@/lib/queries";
+import { listStaff } from "@/lib/staff";
 import { sesEnabled } from "@/lib/email/send";
 import { listCampaigns } from "@/lib/campaigns";
 import { BROADCAST_META } from "@/lib/email/broadcasts";
@@ -28,10 +29,13 @@ export default async function EmailsPage() {
   if (!can(role, "draftEmailCampaign")) redirect("/dashboard?denied=campaign");
   const canSend = can(role, "sendEmailCampaign");
 
-  const [v, d, sent, segCounts] = await Promise.all([getVolunteers(), getDonors(), listCampaigns(15), segmentCounts()]);
+  const [v, d, staff, sent, segCounts] = await Promise.all([getVolunteers(), getDonors(), listStaff(), listCampaigns(15), segmentCounts()]);
+  const activeStaff = staff.filter((s) => s.status === "active");
   const counts = {
     volunteers: v.rows.filter((x) => x.email).length,
     donors: d.rows.filter((x) => x.email).length,
+    captains: activeStaff.filter((s) => s.role === "captain" && s.email).length,
+    team: activeStaff.filter((s) => ["admin", "captain", "member"].includes(s.role) && s.email).length,
   };
   // Profile-driven targeting: by interest (priority) and by how they want to help.
   const segments = [
@@ -52,7 +56,8 @@ export default async function EmailsPage() {
       </PageHeader>
       <HowTo
         steps={[
-          "Pick a branded template, fill any fields, choose an audience (volunteers, donors, or everyone), and send.",
+          "Pick a branded template, fill any fields, then check any or all contact groups — Volunteers, Captains, Donors, All-team — (or “Select all contacts”) and send.",
+          "Team sends (Captains / All-team only) are treated as operational: they skip topic opt-outs but still honor unsubscribes and bounces. Mixing in donors/volunteers keeps full opt-out filtering.",
           "Each template maps to a topic (news, issues, GOTV, fundraising, events). Recipients opted out of that topic — or unsubscribed/bounced — are skipped automatically.",
           "Every email auto-includes the committee address, the “Paid for by” disclaimer, and one-click unsubscribe — CAN-SPAM + FEC built in.",
           "Always “Send test to me” first to see how it looks before sending to the list.",
