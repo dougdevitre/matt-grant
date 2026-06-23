@@ -50,6 +50,7 @@ export const PK = {
   assets: "ASSET", // asset-library metadata (tags, uploader, original size) keyed by S3 key
   onboarding: "ONBOARDING", // per-user "dismissed the Start-here guide" flag, SK = email
   smsCampaigns: "SMSCAMPAIGN", // queued SMS broadcasts (drained like email campaigns)
+  inviteReminders: "INVITEREMINDER", // per-email reminder bookkeeping (SK = email; remindedAt, count)
 } as const;
 
 export function newId(): string {
