@@ -163,7 +163,17 @@ export function SocialComposer({ library }: { library: LibraryPost[] }) {
           <p className="eyebrow text-slate">When</p>
           <input type="datetime-local" name="scheduledAt" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className={`mt-3 ${input}`} />
           <div className="mt-4 flex flex-wrap gap-2">
-            <button type="submit" name="mode" value="now" disabled={pending} className="btn-primary disabled:opacity-50">
+            <button
+              type="submit"
+              name="mode"
+              value="now"
+              disabled={pending}
+              onClick={(e) => {
+                const where = channels.map((c) => CHANNELS[c].label).join(", ") || "the selected channels";
+                if (!window.confirm(`Publish now to ${where}? This posts publicly right away.`)) e.preventDefault();
+              }}
+              className="btn-primary disabled:opacity-50"
+            >
               {pending ? "Working…" : "Post now"}
             </button>
             <button type="submit" name="mode" value="schedule" disabled={pending} className="btn-ghost disabled:opacity-50">

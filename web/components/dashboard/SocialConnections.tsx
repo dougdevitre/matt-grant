@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { testConnectionsAction, disconnectAction, switchPageAction } from "@/app/dashboard/social/actions";
 import { CHANNELS } from "@/lib/social/channels";
+import { ConfirmButton } from "@/components/dashboard/ConfirmButton";
 import type { ChannelStatus } from "@/lib/social/publish";
 
 export type ProviderSummary = {
@@ -55,9 +56,15 @@ export function SocialConnections({ providers }: { providers: ProviderSummary[] 
                   {p.connected ? "Reconnect" : "Connect"}
                 </a>
                 {p.connected && (
-                  <button type="submit" formAction={disconnectAction} name="platform" value={p.platform} className="rounded-sm border border-line px-2.5 py-1 text-xs font-semibold text-slate hover:border-brick hover:text-brick">
+                  <ConfirmButton
+                    message={`Disconnect ${p.label}? Auto-posting stops until you reconnect.`}
+                    formAction={disconnectAction}
+                    name="platform"
+                    value={p.platform}
+                    className="rounded-sm border border-line px-2.5 py-1 text-xs font-semibold text-slate hover:border-brick hover:text-brick"
+                  >
                     Disconnect
-                  </button>
+                  </ConfirmButton>
                 )}
               </span>
             </div>

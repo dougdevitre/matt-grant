@@ -38,7 +38,7 @@ export function DonorTable({ rows }: { rows: DonorRow[] }) {
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search name, city, employer, occupation…"
           aria-label="Search donors"
-          className={`${select} min-w-[14rem] flex-1`}
+          className={`${select} min-w-0 flex-1`}
         />
         <select value={fec} onChange={(e) => setFec(e.target.value)} aria-label="Filter by FEC info" className={select}>
           <option value="ALL">All FEC status</option>
@@ -57,7 +57,8 @@ export function DonorTable({ rows }: { rows: DonorRow[] }) {
       {filtered.length === 0 ? (
         <p className="p-8 text-center text-slate">No donors match these filters.</p>
       ) : (
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[34rem] text-sm">
           <thead className="border-b border-line bg-paper text-left">
             <tr className="text-slate">
               <th className="px-5 py-3 font-mono text-xs uppercase tracking-eyebrow">Donor</th>
@@ -104,6 +105,7 @@ export function DonorTable({ rows }: { rows: DonorRow[] }) {
             })}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );
