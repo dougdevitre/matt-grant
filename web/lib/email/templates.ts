@@ -45,6 +45,35 @@ export function volunteerWelcome(firstName = "there"): Email {
   };
 }
 
+// Reminder to a pending invitee who hasn't accepted yet. Transactional (they were
+// explicitly invited): no unsubscribe. Points straight at the invite's accept URL.
+export function inviteReminder(o: { firstName?: string; acceptUrl: string }): Email {
+  const name = o.firstName?.trim() || "there";
+  const title = `Your invitation is waiting, ${name}.`;
+  return {
+    subject: "Your invitation to the Matt Grant campaign HQ is waiting",
+    html: renderEmail({
+      preheader: "You were invited to the Peace Room — accept to join the team.",
+      eyebrow: "Campaign HQ",
+      title,
+      subtitle: "You were invited to the Matt Grant for Congress Peace Room and haven't joined yet.",
+      heroImage: { src: img("brand/headshot.png"), alt: "Matt Grant" },
+      bodyHtml: `<p>A little while back you were invited to the Matt Grant for Congress <strong>Peace Room</strong> — the campaign's collaborative hub for restoring public trust in MO-02. Your invitation is still open.</p>
+        <p>It takes about a minute to accept and set up your sign-in. We'd love to have you with us before August 4.</p>`,
+      signature: true,
+      button: { label: "Accept your invitation", href: o.acceptUrl, color: "red" },
+    }),
+    text: renderText({
+      title,
+      lines: [
+        "You were invited to the Matt Grant for Congress Peace Room and haven't joined yet.",
+        "",
+        "Accept your invitation: " + o.acceptUrl,
+      ],
+    }),
+  };
+}
+
 export function supporterWelcome(firstName = "there"): Email {
   const title = `Welcome to the community, ${firstName}.`;
   return {

@@ -2,8 +2,10 @@ import { redirect } from "next/navigation";
 import { PageHeader, HowTo } from "@/components/dashboard/Notice";
 import { InviteForm } from "@/components/dashboard/InviteForm";
 import { PartnerInviteForm } from "@/components/dashboard/PartnerInviteForm";
-import { STAFF_ALLOWLIST, staffGate } from "@/lib/auth";
+import { RemindPendingButton } from "@/components/dashboard/RemindPendingButton";
+import { STAFF_ALLOWLIST, staffGate, clerkEnabled } from "@/lib/auth";
 import { listStaff } from "@/lib/staff";
+import { pendingInviteCount } from "@/lib/invites";
 import { listAccessChanges } from "@/lib/audit";
 import { can, INVITABLE_ROLES, ROLE_LABELS } from "@/lib/rbac";
 import { revokeStaff, setMemberRole } from "./actions";
@@ -32,6 +34,7 @@ export default async function TeamPage() {
   const invited = active.filter((s) => s.role !== "partner"); // internal team
   const partners = active.filter((s) => s.role === "partner"); // Peace Room only
   const changes = await listAccessChanges(25);
+  const pendingInvites = clerkEnabled ? await pendingInviteCount() : 0;
   const when = (iso: string) =>
     new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
@@ -49,6 +52,19 @@ export default async function TeamPage() {
       />
 
       <InviteForm />
+
+      {clerkEnabled && (
+        <div className="mt-6 card p-5">
+          <p className="eyebrow text-slate">Pending invitations</p>
+          <p className="mt-1 max-w-2xl text-sm text-slate">
+            People invited who haven&rsquo;t accepted yet. Send a branded reminder with a one-click accept link.
+            It&rsquo;s safe to click again — anyone reminded in the last 48 hours is skipped.
+          </p>
+          <div className="mt-3">
+            <RemindPendingButton pending={pendingInvites} />
+          </div>
+        </div>
+      )}
 
       <div className="mt-8">
         <p className="eyebrow text-slate">Who has access</p>
