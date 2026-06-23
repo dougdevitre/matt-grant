@@ -39,6 +39,7 @@ const GROUPS: Group[] = [
       // Photos folded into Assets — reach the photo library from the Assets page.
       { href: "/dashboard/assets", label: "Assets", icon: "assets", cap: "manageAssets" },
       { href: "/dashboard/emails", label: "Email", icon: "campaign", cap: "draftEmailCampaign" },
+      { href: "/dashboard/sms", label: "Text blasts", icon: "campaign", cap: "draftSms" },
       { href: "/dashboard/social", label: "Social", icon: "social", cap: "manageSocial" },
     ],
   },
