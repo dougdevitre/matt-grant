@@ -68,7 +68,7 @@ export async function sendCampaign(formData: FormData): Promise<SendState> {
   if (missing.length) return { ok: false, message: `Fill required fields: ${missing.join(", ")}.` };
   if (groups.length === 0 && !segment) return { ok: false, message: "Pick at least one group to send to." };
 
-  const { emails: recipients, internal } = await resolveRecipients(groups, segment);
+  const { recipients, internal } = await resolveRecipients(groups, segment);
   if (recipients.length === 0) return { ok: false, message: "No recipients for that selection." };
 
   const subjectPreview = broadcast.build(vars).subject;
