@@ -12,7 +12,14 @@ export default async function VolunteersPage() {
   return (
     <>
       <PageHeader kicker="Field" title="Volunteers">
-        {connected && <span className="font-mono text-sm text-slate">{rows.length} signed up</span>}
+        {connected && (
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-sm text-slate">{rows.length} signed up</span>
+            {rows.length > 0 && (
+              <a href="/api/dashboard/export/volunteers" download className="btn-ghost text-xs">Export CSV</a>
+            )}
+          </div>
+        )}
       </PageHeader>
 
       {!connected && <DbNotice />}

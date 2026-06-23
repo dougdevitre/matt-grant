@@ -36,6 +36,7 @@ export type DonorRow = {
   employer: string | null;
   occupation: string | null;
   totalCents: number;
+  thankedAt: string | null;
 };
 
 export type VolunteerRow = {
@@ -121,6 +122,7 @@ export async function getDonors(): Promise<{ connected: boolean; rows: DonorRow[
         employer: (d.employer as string) ?? null,
         occupation: (d.occupation as string) ?? null,
         totalCents: sumContribs(d),
+        thankedAt: (d.thankedAt as string) ?? null,
         createdAt: String(d.createdAt ?? ""),
       }))
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));

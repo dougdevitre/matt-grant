@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseCsv, mapVolunteers, mapDonors } from "@/lib/contacts/import";
+import { parseCsv, mapVolunteers, mapDonors, toCsv } from "@/lib/contacts/import";
 
 describe("parseCsv", () => {
   it("parses simple rows", () => {
@@ -34,6 +34,19 @@ describe("mapVolunteers", () => {
     const r = mapVolunteers(parseCsv("foo,bar\n1,2"));
     expect(r.valid).toHaveLength(0);
     expect(r.mappedColumns).toEqual([]);
+  });
+});
+
+describe("toCsv", () => {
+  it("quotes fields with commas, quotes, or newlines and blanks null/undefined", () => {
+    const csv = toCsv(["name", "note"], [["Doe, Jane", 'he said "hi"'], ["Sam", null], ["Lee\nbreak", undefined]]);
+    expect(csv).toBe('name,note\r\n"Doe, Jane","he said ""hi"""\r\nSam,\r\n"Lee\nbreak",');
+  });
+
+  it("round-trips through parseCsv", () => {
+    const rows = [["Jane", "j@x.com", "a,b"], ["Sam", "s@x.com", 'q"q']];
+    const back = parseCsv(toCsv(["name", "email", "tag"], rows));
+    expect(back).toEqual([["name", "email", "tag"], ...rows]);
   });
 });
 
