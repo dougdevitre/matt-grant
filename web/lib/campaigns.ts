@@ -24,16 +24,6 @@ export function finalizeUpdateExpression(done: boolean): string {
 }
 
 export type CampaignStatus = "scheduled" | "queued" | "sending" | "sent" | "failed";
-
-// A recipient carries the address plus the data we personalize on (currently the
-// first name → {{first_name}} greeting). Stored as objects, but campaigns queued
-// before personalization shipped hold bare email strings, so reads normalize both.
-export type Recipient = { email: string; firstName?: string };
-export function normalizeRecipient(r: string | Recipient): Recipient {
-  if (typeof r === "string") return { email: r };
-  return r.firstName ? { email: r.email, firstName: r.firstName } : { email: r.email };
-}
-
 type CampaignItem = {
   SK: string;
   id: string;
@@ -45,7 +35,7 @@ type CampaignItem = {
   audience: string;
   subjectPreview: string;
   status: CampaignStatus;
-  recipients: (string | Recipient)[];
+  recipients: string[];
   cursor: number;
   sentCount: number;
   suppressedCount: number;
@@ -78,7 +68,7 @@ export async function createCampaign(input: {
   topic: TopicKey;
   vars: Record<string, string>;
   audience: string;
-  recipients: Recipient[];
+  recipients: string[];
   subjectPreview: string;
   createdBy: string;
   scheduledAt?: string;
@@ -219,7 +209,7 @@ export async function drainOnce(
     return { id: active.id, sent: active.sentCount ?? 0, done: true, cursor: active.cursor ?? 0, total: active.recipients?.length ?? 0 };
   }
 
-  const recipients = (active.recipients ?? []).map(normalizeRecipient);
+  const recipients = active.recipients ?? [];
   const start = active.cursor ?? 0;
 
   // Already fully drained → finalize idempotently.
@@ -271,12 +261,14 @@ export async function drainOnce(
   const slice = recipients.slice(start, end);
   let sentDelta = 0;
   let suppressedDelta = 0;
-  for (const rcpt of slice) {
-    if (await isSuppressed(rcpt.email, active.topic)) {
+  for (const addr of slice) {
+    // Internal (team-only) sends bypass topic opt-outs — calling isSuppressed
+    // without a topic checks GLOBAL suppression only (unsubscribe/bounce/complaint).
+    if (await isSuppressed(addr, active.internal ? undefined : active.topic)) {
       suppressedDelta++;
       continue;
     }
-    const r = await sendBroadcastEmail({ to: rcpt.email, email, base, campaignId: active.id, firstName: rcpt.firstName });
+    const r = await sendBroadcastEmail({ to: addr, email, base, campaignId: active.id });
     if (r.sent) sentDelta++;
   }
 

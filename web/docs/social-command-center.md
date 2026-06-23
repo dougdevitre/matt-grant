@@ -36,9 +36,9 @@ Caption limits, hashtag norms, and image specs live in `CHANNELS`. Highlights:
 | X (Twitter) | 280 | 280 | 1–2 | ✅ implemented (text + image) |
 | Facebook | 5,000 | 250 | 0–2 | ✅ implemented (text + photo) |
 | Instagram | 2,200 | 125 | 3–5 (max 30) | ✅ implemented (image required) |
-| LinkedIn | 3,000 | 210 | 3–5 | ✅ implemented (text/link) |
-| TikTok | 4,000 | 100 | 3–5 | ✅ implemented (video, or PHOTO post from the graphic) |
-| YouTube (Shorts) | 5,000 (desc) | 100 | 2–3 | ✅ implemented (resumable video upload; image-only posts stage) |
+| LinkedIn | 3,000 | 210 | 3–5 | ✅ implemented (text/link + image) |
+| TikTok | 4,000 | 100 | 3–5 | ✅ implemented (photo post) |
+| YouTube (Shorts) | 5,000 (desc) | 100 | 2–3 | ✅ implemented (Short via still→MP4 render) |
 | Threads | 500 | 500 | 0–1 | ✅ implemented (text + image) |
 
 These move — re-verify against each platform's current docs and update `CHANNELS` (the staleness convention from `compliance-baseline.md`). Sources used: Glow Social / TypeCount / Letter Counter 2026 character-limit guides.
@@ -67,19 +67,19 @@ Like SES, Clerk, and S3 elsewhere in the app, publishing **degrades gracefully**
 
 **Multi-Page (Meta):** when the account manages several Pages, all are stored and the connections panel shows a "Posting as" picker (`switchPageAction`) — no re-auth needed to switch.
 
-| Channel | Secrets | Notes |
-|---|---|---|
-| X | `X_ACCESS_TOKEN` | OAuth2 user-context token with `tweet.write` (+ `media.write` for images). Posts text/link and uploads an attached image via the v2 media endpoint. |
-| Facebook | `FACEBOOK_PAGE_TOKEN`, `FACEBOOK_PAGE_ID` | Page token with `pages_manage_posts`. Photo post when media attached, else feed post. |
-| Instagram | `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_USER_ID` | IG business/creator account id; token with `instagram_content_publish`. **Image required** (no text-only IG posts). |
-| LinkedIn | `LINKEDIN_ACCESS_TOKEN`, `LINKEDIN_AUTHOR_URN` | Author URN (e.g. `urn:li:organization:123`); token with `w_organization_social`/`w_member_social`. Text/link share (image upload is a follow-up). |
-| Threads | `THREADS_ACCESS_TOKEN`, `THREADS_USER_ID` | Token with `threads_content_publish`. Same container→publish flow as Instagram, but Threads allows text-only — posts a TEXT thread without a graphic, an IMAGE thread with one. |
-| TikTok | `TIKTOK_ACCESS_TOKEN` | Token with the `video.publish` scope (Content Posting API, direct post). A public **video URL** posts as a video; otherwise the on-brand graphic posts as a **PHOTO** (TikTok has no text-only post). Both pull the asset by URL, so the campaign domain must be a **verified URL-prefix property** in the TikTok developer portal. |
-| YouTube (Shorts) | `YOUTUBE_ACCESS_TOKEN` | OAuth token with the `youtube.upload` scope. A Short is a **video**, so a post auto-publishes only when it carries a **video URL** (resumable `videos.insert`, privacy `public`); an image-only post honestly **stages for manual posting** rather than faking a video. |
+**2. Manual token fallback** (env/SSM flat names under `/matt-grant/<NAME>`): `X_ACCESS_TOKEN`; `FACEBOOK_PAGE_TOKEN`+`FACEBOOK_PAGE_ID`; `INSTAGRAM_ACCESS_TOKEN`+`INSTAGRAM_USER_ID`; `LINKEDIN_ACCESS_TOKEN`+`LINKEDIN_AUTHOR_URN`; `THREADS_ACCESS_TOKEN`+`THREADS_USER_ID`; `YOUTUBE_ACCESS_TOKEN`. Useful for testing. Threads has no in-app OAuth connect yet, so it uses this fallback only.
 
-**Video URL.** TikTok and YouTube consume an optional public **video URL** carried on the post (`videoUrl`, set from the composer's "Video URL" field). YouTube needs it to publish at all; TikTok prefers it but falls back to a photo post. `absoluteMediaUrl()` rewrites a relative path against `SITE_URL`, same as images.
+| Channel | Connect flow | Posts | Scopes |
+|---|---|---|---|
+| Facebook | ✅ Meta OAuth (+ refresh, multi-Page) | photo (media attached) / feed | `pages_manage_posts`, `pages_read_engagement`, `pages_show_list` |
+| Instagram | ✅ via the Meta connect | image required (container→publish) | `instagram_basic`, `instagram_content_publish` |
+| X | ✅ OAuth2 + PKCE (+ refresh) | text/link + image (v2 media) | `tweet.read tweet.write users.read offline.access` |
+| LinkedIn | ✅ OAuth2 (member; + image upload) | text/link + image (register-upload) | `openid profile w_member_social` |
+| Threads | manual token only (no OAuth yet) | text + image (container→publish) | `threads_basic`, `threads_content_publish` |
+| TikTok | ✅ OAuth2 + PKCE (+ refresh) | **photo post** (pulls the graphic by URL) | `user.info.basic,video.publish` |
+| YouTube | ✅ Google OAuth2 + PKCE (+ refresh) | **Short** (still→MP4 render, resumable upload) | `youtube.upload` (+ `openid email`) |
 
-**Meta image fetch:** Instagram (and Facebook photo posts) need a **publicly reachable** image. The composer's on-brand graphic is `/api/graphics?…`, which is public; `absoluteMediaUrl()` rewrites it against `SITE_URL` so Meta can fetch it. Override the Graph version with `META_GRAPH_VERSION` as Meta deprecates versions (`THREADS_GRAPH_VERSION` does the same for Threads).
+**TikTok gates:** public `DIRECT_POST` requires the app to pass TikTok's **content-posting audit** and the pull-URL host (the site domain) to be **URL-prefix verified** in the TikTok developer portal. Until audited, posts must be `SELF_ONLY` — the adapter defaults `privacy_level` to `SELF_ONLY`, overridable via `TIKTOK_PRIVACY_LEVEL` once approved. TikTok pulls the public `/api/graphics` image, so no media is uploaded from our side.
 
 **YouTube video pipeline:** YouTube has no image-post API, so `lib/social/video.ts` renders the composer's still graphic into a short vertical MP4 (held image, 1080×1920, H.264 + silent AAC) using a bundled static **ffmpeg** binary (`@ffmpeg-installer/ffmpeg`), then `publishToYouTube` uploads the bytes via the resumable `videos.insert` flow. `privacyStatus` defaults to `private` (override `YOUTUBE_PRIVACY_STATUS`) since public uploads need Google's `youtube.upload` **app verification** — see `docs/google-youtube-setup.md`. *Operational note:* ffmpeg adds bundle/cold-start/`/tmp` weight to the SSR Lambda (a single-still encode is ~1–3s); if bundle limits bite, move the render to a dedicated Lambda or AWS MediaConvert.
 
