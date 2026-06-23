@@ -84,7 +84,13 @@ export function DonorTable({ rows }: { rows: DonorRow[] }) {
                     )}
                   </td>
                   <td className="px-5 py-3 text-right">
-                    <span className="font-mono font-semibold text-ink">{dollars(d.totalCents)}</span>
+                    {d.totalCents === 0 ? (
+                      <span className="font-mono text-slate" title="No contribution amount on file — check the donation source (e.g. the WinRed webhook payload).">
+                        — <span className="text-[0.6rem] uppercase tracking-eyebrow">no amount</span>
+                      </span>
+                    ) : (
+                      <span className="font-mono font-semibold text-ink">{dollars(d.totalCents)}</span>
+                    )}
                     {overLimit && (
                       <span className="ml-2 rounded-sm bg-brick/10 px-1.5 py-0.5 font-mono text-[0.6rem] uppercase text-brick">
                         over limit
