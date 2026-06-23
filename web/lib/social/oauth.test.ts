@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { xProvider } from "@/lib/social/oauth/x";
 import { linkedinProvider } from "@/lib/social/oauth/linkedin";
-import { tiktokProvider } from "@/lib/social/oauth/tiktok";
+import { youtubeProvider } from "@/lib/social/oauth/youtube";
 import { ensureFresh } from "@/lib/social/oauth/refresh";
 import { _clearAppParamCache } from "@/lib/social/credentials";
 import type { SocialConnection } from "@/lib/social/connections";
@@ -97,45 +97,54 @@ describe("LinkedIn provider (OAuth2)", () => {
   });
 });
 
-describe("TikTok provider (OAuth2 + PKCE)", () => {
+describe("YouTube provider (Google OAuth2 + PKCE)", () => {
   beforeEach(() => {
-    process.env.SOCIAL_TIKTOK_CLIENT_KEY = "tkkey";
-    process.env.SOCIAL_TIKTOK_CLIENT_SECRET = "tksecret";
-    process.env.SOCIAL_TIKTOK_REDIRECT_URI = "https://mattgrantforcongress.org/api/social/callback/tiktok";
+    process.env.SOCIAL_YOUTUBE_CLIENT_ID = "yid";
+    process.env.SOCIAL_YOUTUBE_CLIENT_SECRET = "ysecret";
+    process.env.SOCIAL_YOUTUBE_REDIRECT_URI = "https://mattgrantforcongress.org/api/social/callback/youtube";
     _clearAppParamCache();
   });
   afterEach(() => {
-    delete process.env.SOCIAL_TIKTOK_CLIENT_KEY;
-    delete process.env.SOCIAL_TIKTOK_CLIENT_SECRET;
-    delete process.env.SOCIAL_TIKTOK_REDIRECT_URI;
+    delete process.env.SOCIAL_YOUTUBE_CLIENT_ID;
+    delete process.env.SOCIAL_YOUTUBE_CLIENT_SECRET;
+    delete process.env.SOCIAL_YOUTUBE_REDIRECT_URI;
     vi.restoreAllMocks();
   });
 
-  it("builds a PKCE authorize URL with client_key and video.publish scope", async () => {
-    const r = await tiktokProvider.authorizeUrl("st");
+  it("builds an offline PKCE authorize URL with the youtube.upload scope", async () => {
+    const r = await youtubeProvider.authorizeUrl("st");
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     const u = new URL(r.url);
-    expect(u.searchParams.get("client_key")).toBe("tkkey");
+    expect(u.searchParams.get("access_type")).toBe("offline");
+    expect(u.searchParams.get("prompt")).toBe("consent");
     expect(u.searchParams.get("code_challenge_method")).toBe("S256");
-    expect(u.searchParams.get("scope")).toContain("video.publish");
+    expect(u.searchParams.get("scope")).toContain("youtube.upload");
     expect(r.verifier).toBeTruthy();
   });
 
-  it("exchanges a code for tokens and the @display_name", async () => {
+  it("exchanges a code for tokens and the channel title", async () => {
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce(res(200, { access_token: "at", refresh_token: "rt", expires_in: 86400, open_id: "oid" }))
-      .mockResolvedValueOnce(res(200, { data: { user: { display_name: "MattGrant" } } }));
+      .mockResolvedValueOnce(res(200, { access_token: "at", refresh_token: "rt", expires_in: 3600 }))
+      .mockResolvedValueOnce(res(200, { items: [{ snippet: { title: "Matt Grant for Congress" } }] }));
     vi.stubGlobal("fetch", fetchMock);
-    const r = await tiktokProvider.exchangeCode("code", "verifier");
+    const r = await youtubeProvider.exchangeCode("code", "verifier");
     expect(r.ok).toBe(true);
     if (!r.ok) return;
-    expect(r.conn).toMatchObject({ platform: "tiktok", accessToken: "at", refreshToken: "rt", accountName: "@MattGrant" });
+    expect(r.conn).toMatchObject({ platform: "youtube", accessToken: "at", refreshToken: "rt", accountName: "Matt Grant for Congress" });
+  });
+
+  it("refresh keeps the original refresh token (Google does not rotate)", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(res(200, { access_token: "at2", expires_in: 3600 })));
+    const conn = { platform: "youtube", accessToken: "old", refreshToken: "rt1", connectedBy: "a", connectedAt: "x" } as SocialConnection;
+    const updated = await youtubeProvider.refresh!(conn);
+    expect(updated?.accessToken).toBe("at2");
+    expect(updated?.refreshToken).toBe("rt1");
   });
 
   it("fails the exchange without a PKCE verifier", async () => {
-    const r = await tiktokProvider.exchangeCode("code", undefined);
+    const r = await youtubeProvider.exchangeCode("code", undefined);
     expect(r.ok).toBe(false);
   });
 });

@@ -2,6 +2,15 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { publishToChannel, verifyChannel } from "@/lib/social/publish";
 import { _clearSecretCache } from "@/lib/ssm";
 
+// YouTube renders a Short via ffmpeg; mock the render so CI never encodes video.
+vi.mock("@/lib/social/video", () => ({ renderStillToMp4: vi.fn(async () => Buffer.from("FAKEMP4")) }));
+
+// A resumable-session init response: 200 with a Location header pointing at the
+// upload URL.
+function sessionRes(location: string): Response {
+  return { ok: true, status: 200, headers: { get: (k: string) => (k.toLowerCase() === "location" ? location : null) }, text: async () => "", json: async () => ({}) } as unknown as Response;
+}
+
 // Drive the real Facebook + Instagram adapters with a mocked fetch so the Graph
 // API contract (endpoints, params, container→publish sequence, error handling) is
 // verified without any live credentials or network. getSecret reads process.env
@@ -245,50 +254,46 @@ describe("Threads publisher (Meta Graph, graph.threads.net)", () => {
   });
 });
 
-describe("TikTok publisher (Content Posting API, PHOTO)", () => {
+describe("YouTube publisher (Shorts, resumable upload)", () => {
   beforeEach(() => {
-    process.env.TIKTOK_ACCESS_TOKEN = "tkn";
+    process.env.YOUTUBE_ACCESS_TOKEN = "tkn";
     _clearSecretCache();
   });
   afterEach(() => {
-    delete process.env.TIKTOK_ACCESS_TOKEN;
-    delete process.env.TIKTOK_PRIVACY_LEVEL;
+    delete process.env.YOUTUBE_ACCESS_TOKEN;
+    delete process.env.YOUTUBE_PRIVACY_STATUS;
     vi.restoreAllMocks();
   });
 
-  it("inits a DIRECT_POST photo pull and returns the publish_id", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(res(200, { data: { publish_id: "pub_1" }, error: { code: "ok" } }));
+  it("renders the Short, initiates a resumable session, and PUTs the bytes", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(sessionRes("https://upload.youtube/session-1")) // initiate
+      .mockResolvedValueOnce(res(200, { id: "vid_1" })); // PUT bytes
     vi.stubGlobal("fetch", fetchMock);
-    const r = await publishToChannel("tiktok", { caption: "Vote Aug 4", hashtags: ["#MO02"], mediaUrl: "https://cdn.example.com/x.png" });
-    expect(r).toMatchObject({ ok: true, mode: "api", externalId: "pub_1" });
-    expect(fetchMock.mock.calls[0][0]).toContain("/v2/post/publish/content/init/");
-    const body = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
-    expect(body.media_type).toBe("PHOTO");
-    expect(body.source_info.photo_images).toEqual(["https://cdn.example.com/x.png"]);
-    expect(body.post_info.privacy_level).toBe("SELF_ONLY"); // safe default pre-audit
+    const r = await publishToChannel("youtube", { caption: "Vote Aug 4\nsecond line", hashtags: ["#MO02"], mediaUrl: "https://cdn.example.com/x.png" });
+    expect(r).toMatchObject({ ok: true, mode: "api", externalId: "vid_1" });
+    expect(fetchMock.mock.calls[0][0]).toContain("/upload/youtube/v3/videos?uploadType=resumable");
+    const meta = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
+    expect(meta.snippet.title).toContain("#Shorts");
+    expect(meta.status.privacyStatus).toBe("private"); // safe default pre-verification
+    expect(fetchMock.mock.calls[1][0]).toBe("https://upload.youtube/session-1");
+    expect((fetchMock.mock.calls[1][1] as RequestInit).method).toBe("PUT");
   });
 
-  it("rewrites a relative graphic to an absolute pull URL", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(res(200, { data: { publish_id: "pub_2" }, error: { code: "ok" } }));
-    vi.stubGlobal("fetch", fetchMock);
-    await publishToChannel("tiktok", { caption: "Hi", hashtags: [], mediaUrl: "/api/graphics?format=ig_story" });
-    const body = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
-    expect(body.source_info.photo_images[0]).toBe("https://mattgrantforcongress.org/api/graphics?format=ig_story");
-  });
-
-  it("refuses to publish without an image and makes no API call", async () => {
+  it("refuses to publish without a graphic and makes no API call", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
-    const r = await publishToChannel("tiktok", { caption: "Hi", hashtags: [] });
+    const r = await publishToChannel("youtube", { caption: "Hi", hashtags: [] });
     expect(r.ok).toBe(false);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("surfaces a TikTok logical error (HTTP 200 with error.code) as a failure", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(res(200, { error: { code: "url_ownership_unverified", message: "verify the domain" } })));
-    const r = await publishToChannel("tiktok", { caption: "Hi", hashtags: [], mediaUrl: "https://cdn.example.com/x.png" });
+  it("surfaces a resumable-init error as a failure", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(res(403, { error: { message: "not verified" } })));
+    const r = await publishToChannel("youtube", { caption: "Hi", hashtags: [], mediaUrl: "https://cdn.example.com/x.png" });
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.error).toContain("verify the domain");
+    if (!r.ok) expect(r.error).toContain("403");
   });
 });
 

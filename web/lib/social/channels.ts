@@ -115,7 +115,7 @@ export const CHANNELS: Record<ChannelId, ChannelSpec> = {
     imageFormat: "ig_story",
     imageSpec: { w: 1080, h: 1920 },
     bestTimesCt: ["12:00 PM", "3:00 PM", "8:00 PM"],
-    apiPublish: false,
+    apiPublish: true,
     color: "#FF0000",
   },
   threads: {
