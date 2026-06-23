@@ -2,11 +2,15 @@
 
 import { useMemo, useState } from "react";
 import type { DonorRow } from "@/lib/queries";
+import { isIn } from "@/lib/engagement";
 import { dollars, FEC_INDIVIDUAL_PER_ELECTION_CENTS } from "@/lib/money";
 
 const select = "rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink";
 
-export function DonorTable({ rows }: { rows: DonorRow[] }) {
+// volunteerEmails: addresses present in the volunteer list, to flag donors who
+// also volunteer. Passed as an array (a Set can't cross the server→client
+// boundary) and rebuilt into a Set here for O(1) lookups.
+export function DonorTable({ rows, volunteerEmails = [] }: { rows: DonorRow[]; volunteerEmails?: string[] }) {
   const [q, setQ] = useState("");
   const [fec, setFec] = useState("ALL"); // ALL | MISSING | COMPLETE
   const [overOnly, setOverOnly] = useState(false);
@@ -28,6 +32,7 @@ export function DonorTable({ rows }: { rows: DonorRow[] }) {
 
   const shownTotal = useMemo(() => filtered.reduce((s, d) => s + d.totalCents, 0), [filtered]);
   const missingCount = useMemo(() => rows.filter((d) => !d.employer || !d.occupation).length, [rows]);
+  const volSet = useMemo(() => new Set(volunteerEmails), [volunteerEmails]);
 
   return (
     <div className="card overflow-hidden p-0">
@@ -71,7 +76,14 @@ export function DonorTable({ rows }: { rows: DonorRow[] }) {
               return (
                 <tr key={d.id} className="hover:bg-paper">
                   <td className="px-5 py-3">
-                    <p className="font-semibold text-ink">{d.name}</p>
+                    <p className="font-semibold text-ink">
+                      {d.name}
+                      {isIn(volSet, d.email) && (
+                        <span className="ml-2 rounded-sm bg-field/10 px-1.5 py-0.5 align-middle font-mono text-[0.55rem] uppercase tracking-eyebrow text-field" title="Also signed up to volunteer">
+                          + volunteer
+                        </span>
+                      )}
+                    </p>
                     {d.city && <p className="text-xs text-slate">{d.city}</p>}
                   </td>
                   <td className="px-5 py-3 text-slate">

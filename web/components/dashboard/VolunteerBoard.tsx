@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { VolunteerRow } from "@/lib/queries";
+import { isIn } from "@/lib/engagement";
 import { updateVolunteer, markVolunteerContacted } from "@/app/dashboard/actions";
 
 const STATUSES = ["NEW", "CONTACTED", "ACTIVE", "INACTIVE"] as const;
@@ -23,10 +24,13 @@ function contactedLabel(iso: string | null): string | null {
   return `Last contacted ${new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
 }
 
-export function VolunteerBoard({ rows, taskCounts }: { rows: VolunteerRow[]; taskCounts?: Record<string, number> }) {
+// donorEmails: addresses present in the donor list, to flag volunteers who have
+// also given. Array (not Set) so it can cross the server→client boundary.
+export function VolunteerBoard({ rows, taskCounts, donorEmails = [] }: { rows: VolunteerRow[]; taskCounts?: Record<string, number>; donorEmails?: string[] }) {
   const [status, setStatus] = useState("ALL");
   const [interest, setInterest] = useState("ALL");
   const [q, setQ] = useState("");
+  const donorSet = useMemo(() => new Set(donorEmails), [donorEmails]);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -100,9 +104,16 @@ export function VolunteerBoard({ rows, taskCounts }: { rows: VolunteerRow[]; tas
                       <p className="mt-0.5 font-mono text-[0.65rem] text-field">{tcount} task{tcount === 1 ? "" : "s"} assigned</p>
                     )}
                   </div>
-                  <span className={`rounded-sm px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow ${badge[v.status] ?? "bg-line text-slate"}`}>
-                    {v.status}
-                  </span>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <span className={`rounded-sm px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow ${badge[v.status] ?? "bg-line text-slate"}`}>
+                      {v.status}
+                    </span>
+                    {isIn(donorSet, v.email) && (
+                      <span className="rounded-sm bg-gold/15 px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-[#9a6f1a]" title="Has also donated">
+                        ◈ donor
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {v.interests && <p className="mt-3 text-sm text-slate">{v.interests}</p>}
                 {v.notes && (
