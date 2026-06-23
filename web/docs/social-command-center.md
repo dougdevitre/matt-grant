@@ -30,7 +30,7 @@ Caption limits, hashtag norms, and image specs live in `CHANNELS`. Highlights:
 | X (Twitter) | 280 | 280 | 1–2 | ✅ implemented (text + image) |
 | Facebook | 5,000 | 250 | 0–2 | ✅ implemented (text + photo) |
 | Instagram | 2,200 | 125 | 3–5 (max 30) | ✅ implemented (image required) |
-| LinkedIn | 3,000 | 210 | 3–5 | ✅ implemented (text/link) |
+| LinkedIn | 3,000 | 210 | 3–5 | ✅ implemented (text/link + image) |
 | TikTok | 4,000 | 100 | 3–5 | manual (stub) |
 | YouTube (Shorts) | 5,000 (desc) | 100 | 2–3 | manual (stub) |
 | Threads | 500 | 500 | 0–1 | manual (stub) |
@@ -53,7 +53,7 @@ Store each in SSM at `/matt-grant/<NAME>` (SecureString). A channel auto-publish
 | X | `X_ACCESS_TOKEN` | OAuth2 user-context token with `tweet.write` (+ `media.write` for images). Posts text/link and uploads an attached image via the v2 media endpoint. |
 | Facebook | `FACEBOOK_PAGE_TOKEN`, `FACEBOOK_PAGE_ID` | Page token with `pages_manage_posts`. Photo post when media attached, else feed post. |
 | Instagram | `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_USER_ID` | IG business/creator account id; token with `instagram_content_publish`. **Image required** (no text-only IG posts). |
-| LinkedIn | `LINKEDIN_ACCESS_TOKEN`, `LINKEDIN_AUTHOR_URN` | Author URN (e.g. `urn:li:organization:123`); token with `w_organization_social`/`w_member_social`. Text/link share (image upload is a follow-up). |
+| LinkedIn | `LINKEDIN_ACCESS_TOKEN`, `LINKEDIN_AUTHOR_URN` | Author URN (e.g. `urn:li:organization:123`); token with `w_organization_social`/`w_member_social`. Text/link share, plus image shares via the register-upload (asset) flow when a graphic is attached. |
 | TikTok / YouTube / Threads | `<PLATFORM>_ACCESS_TOKEN` | Adapter not implemented yet — stages manually until wired in `apiPublish()`. |
 
 **Meta image fetch:** Instagram (and Facebook photo posts) need a **publicly reachable** image. The composer's on-brand graphic is `/api/graphics?…`, which is public; `absoluteMediaUrl()` rewrites it against `SITE_URL` so Meta can fetch it. Override the Graph version with `META_GRAPH_VERSION` as Meta deprecates versions.
