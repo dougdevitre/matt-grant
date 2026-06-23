@@ -96,6 +96,7 @@ export function SocialComposer({ library }: { library: LibraryPost[] }) {
                   type="button"
                   key={ch}
                   onClick={() => toggle(ch)}
+                  aria-pressed={on}
                   className={`rounded-sm border px-3 py-1.5 text-xs font-semibold transition-colors ${on ? "border-ink bg-ink text-paper" : "border-line bg-white text-ink hover:border-ink"}`}
                 >
                   {CHANNELS[ch].label}

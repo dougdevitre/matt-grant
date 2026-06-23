@@ -1,26 +1,87 @@
 "use client";
 
 import { useActionState } from "react";
-import { testConnectionsAction } from "@/app/dashboard/social/actions";
+import { testConnectionsAction, disconnectAction, switchPageAction } from "@/app/dashboard/social/actions";
 import { CHANNELS } from "@/lib/social/channels";
 import type { ChannelStatus } from "@/lib/social/publish";
 
-// Read-only connection tester. Calls each platform's account-read endpoint (never
-// posts) so an admin can confirm credentials resolve to the right account before
-// scheduling a real publish.
-export function SocialConnections() {
+export type ProviderSummary = {
+  platform: "facebook" | "x" | "linkedin";
+  label: string;
+  connected: boolean;
+  detail?: string;
+  expiresInDays?: number | null;
+  pages?: { id: string; name?: string; active: boolean }[]; // Facebook multi-Page
+};
+
+const input = "rounded-sm border border-line bg-white px-2 py-1 text-xs text-ink focus:border-field";
+
+export function SocialConnections({ providers }: { providers: ProviderSummary[] }) {
   const [state, action, pending] = useActionState<{ statuses: ChannelStatus[] }, FormData>(testConnectionsAction, { statuses: [] });
   return (
     <form action={action} className="card p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="eyebrow text-slate">Channel connections</p>
-          <p className="mt-1 text-xs text-slate">Read-only check — verifies tokens &amp; IDs resolve to an account. Never posts.</p>
+          <p className="mt-1 text-xs text-slate">Connect an account once, then test it (read-only — never posts).</p>
         </div>
         <button type="submit" disabled={pending} className="btn-ghost disabled:opacity-50">
           {pending ? "Testing…" : "Test connections"}
         </button>
       </div>
+
+      <div className="mt-4 space-y-2">
+        {providers.map((p) => (
+          <div key={p.platform} className="rounded-sm border border-line bg-paper/40 px-3 py-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-sm">
+                <span className="font-semibold text-ink">{p.label}</span>{" "}
+                {p.connected ? (
+                  <span className="text-field">· {p.detail ?? "connected"}</span>
+                ) : (
+                  <span className="text-slate">· not connected</span>
+                )}
+                {p.connected && typeof p.expiresInDays === "number" && (
+                  <span className={`ml-1 ${p.expiresInDays <= 7 ? "text-brick" : "text-slate"}`}>
+                    · {p.expiresInDays <= 0 ? "expired — reconnect" : `expires in ${p.expiresInDays}d`}
+                  </span>
+                )}
+              </span>
+              <span className="flex items-center gap-2">
+                {/* Full-page nav to the API route, which 302s to the external OAuth
+                    consent — not a client-side page, so a plain anchor is correct. */}
+                {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+                <a href={`/api/social/connect/${p.platform}`} className="rounded-sm border border-ink bg-ink px-2.5 py-1 text-xs font-semibold text-paper hover:opacity-90">
+                  {p.connected ? "Reconnect" : "Connect"}
+                </a>
+                {p.connected && (
+                  <button type="submit" formAction={disconnectAction} name="platform" value={p.platform} className="rounded-sm border border-line px-2.5 py-1 text-xs font-semibold text-slate hover:border-brick hover:text-brick">
+                    Disconnect
+                  </button>
+                )}
+              </span>
+            </div>
+
+            {/* Facebook: pick which Page to post as, when the account manages several. */}
+            {p.platform === "facebook" && p.connected && p.pages && p.pages.length > 1 && (
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate">Posting as</span>
+                <select name="pageId" defaultValue={p.pages.find((g) => g.active)?.id} className={input}>
+                  {p.pages.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name ?? g.id}
+                    </option>
+                  ))}
+                </select>
+                <button type="submit" formAction={switchPageAction} className="rounded-sm border border-line px-2 py-1 text-[0.65rem] font-semibold text-field hover:border-field">
+                  Switch
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
       {state.statuses.length > 0 && (
         <ul className="mt-4 divide-y divide-line rounded-sm border border-line">
           {state.statuses.map((s) => (
