@@ -14,6 +14,10 @@ export type Issue = {
   tagline: string;
   argument: string;
   commitment: string;
+  // The kind of lawful, generic civic action that fits this issue — steers the
+  // AI/curated action plans (e.g. observe local meetings vs. write reps). Faithful
+  // to the platform; not a new policy position.
+  actionAngle?: string;
   graphic: string;
   video: string;
   signature?: { name: string; body: string; briefHref: string; press?: PressLink[] };
@@ -33,6 +37,8 @@ export const ISSUES: Issue[] = [
       "Children are too often caught in a system that protects insiders instead of kids. Matt will champion the CHILD Protection Act — Corruption Hiding Inside Legal Dockets — and push federal oversight that ties Title IV-D grant money to states that keep their family courts clean.",
     commitment:
       "Champion the CHILD Protection Act and tie federal Title IV-D grant money to states that keep their family courts clean and accountable.",
+    actionAngle:
+      "Local + transparency-focused: encourage supporters to learn how their own family courts and school boards work, attend or observe public meetings, ask candidates and officials where they stand on court transparency and accountability, and share the CHILD Protection Act with neighbors.",
     graphic: feed("D-47"),
     video: vid("family-courts"),
     signature: {
@@ -55,6 +61,8 @@ export const ISSUES: Issue[] = [
     argument:
       "Public service was never meant to be a lifelong career. Matt supports term limits for both chambers — with a grandfather clause so the rules apply going forward and reform actually passes.",
     commitment: "Support term limits for the House and Senate, with a grandfather clause so reform actually passes.",
+    actionAngle:
+      "Advocacy-focused: encourage supporters to sign and circulate a term-limits pledge, write letters to the editor and to their current representatives, and ask every candidate on the ballot to commit to term limits.",
     graphic: feed("D-45"),
     video: vid("term-limits"),
   },
@@ -67,6 +75,8 @@ export const ISSUES: Issue[] = [
     argument:
       "Washington has grown faster than the results it delivers. Matt backs a federal hiring freeze and voluntary early-retirement packages to right-size the workforce without leaving families behind.",
     commitment: "Back a federal hiring freeze and voluntary early-retirement packages to right-size the workforce — without leaving families behind.",
+    actionAngle:
+      "Accountability-focused: encourage supporters to attend public budget hearings, ask local and federal officials how they measure results for the dollars spent, and spotlight duplicative or wasteful spending in their own community.",
     graphic: feed("D-44"),
     video: vid("smaller-government"),
   },
@@ -79,6 +89,8 @@ export const ISSUES: Issue[] = [
     argument:
       "Lower taxes start with spending less. Matt will go after fraud, waste, and bloated headcount first — so relief is funded by efficiency, not gimmicks.",
     commitment: "Go after fraud, waste, and bloated headcount first — so tax relief is funded by efficiency, not gimmicks.",
+    actionAngle:
+      "Watchdog-focused: encourage supporters to track local tax and levy proposals, attend budget hearings, and ask officials to cut waste and fraud before raising taxes.",
     graphic: feed("D-43"),
     video: vid("lower-taxes"),
   },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ISSUES } from "@/lib/issues";
 import { buildAgenda, AREA_SUGGESTIONS, SCHOOL_DISTRICT_SUGGESTIONS, type Cadence, type AgendaDay } from "@/lib/actions";
@@ -16,6 +16,7 @@ const LEVEL_OPTION: Record<Level, string> = {
 
 export function AgendaBuilder() {
   const [area, setArea] = useState("");
+  const [zip, setZip] = useState("");
   const [issueSlug, setIssueSlug] = useState(ISSUES[0].slug);
   const [cadence, setCadence] = useState<Cadence>("weekly");
   const [level, setLevel] = useState<Level>("city");
@@ -25,6 +26,26 @@ export function AgendaBuilder() {
   const [ai, setAi] = useState<StrategyResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+
+  // Remember where/what a returning visitor entered, so the page feels personal
+  // without any login. Load once on mount; save on change.
+  useEffect(() => {
+    try {
+      const s = JSON.parse(localStorage.getItem("act:prefs") || "{}");
+      if (typeof s.area === "string") setArea(s.area);
+      if (typeof s.zip === "string") setZip(s.zip);
+      if (LEVELS.includes(s.level)) setLevel(s.level);
+    } catch {
+      /* ignore unreadable storage */
+    }
+  }, []);
+  useEffect(() => {
+    try {
+      localStorage.setItem("act:prefs", JSON.stringify({ area, zip, level }));
+    } catch {
+      /* ignore */
+    }
+  }, [area, zip, level]);
 
   function reset<T>(setter: (v: T) => void) {
     return (v: T) => {
@@ -51,7 +72,7 @@ export function AgendaBuilder() {
       const res = await fetch("/api/act/strategy", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ issueSlug, area, level, cadence, depth: "public" }),
+        body: JSON.stringify({ issueSlug, area, level, cadence, zip, depth: "public" }),
       });
       if (!res.ok) throw new Error("rate");
       setAi((await res.json()) as StrategyResult);
@@ -67,14 +88,16 @@ export function AgendaBuilder() {
       {/* Controls (hidden when printing) */}
       <div className="no-print card p-6">
         <div className="grid gap-5 sm:grid-cols-2">
-          <label className="block">
-            <span className="text-xs font-semibold text-ink">Where you live</span>
-            <input
-              value={area}
-              onChange={(e) => reset(setArea)(e.target.value)}
-              placeholder="Your town or county"
-              className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink"
-            />
+          <div>
+            <label className="block">
+              <span className="text-xs font-semibold text-ink">Where you live</span>
+              <input
+                value={area}
+                onChange={(e) => reset(setArea)(e.target.value)}
+                placeholder="Your town or county"
+                className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink"
+              />
+            </label>
             <span className="mt-2 flex flex-wrap gap-1.5">
               {suggestions.slice(0, 6).map((a) => (
                 <button key={a} onClick={() => reset(setArea)(a)} className="rounded-sm border border-line px-2 py-0.5 text-[0.65rem] text-slate hover:border-ink">
@@ -82,7 +105,18 @@ export function AgendaBuilder() {
                 </button>
               ))}
             </span>
-          </label>
+            <label className="mt-3 block">
+              <span className="text-xs font-semibold text-ink">ZIP code <span className="font-normal text-slate">(optional — sharpens your plan)</span></span>
+              <input
+                value={zip}
+                inputMode="numeric"
+                maxLength={5}
+                onChange={(e) => reset(setZip)(e.target.value.replace(/\D/g, "").slice(0, 5))}
+                placeholder="e.g. 63017"
+                className="mt-1 w-full max-w-[10rem] rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink"
+              />
+            </label>
+          </div>
           <label className="block">
             <span className="text-xs font-semibold text-ink">The fight you&rsquo;ll champion</span>
             <select
@@ -146,7 +180,7 @@ export function AgendaBuilder() {
         </h2>
         <p className="mt-2 text-slate">
           For <strong className="text-ink">{displayArea}</strong>{" "}
-          <span className="font-mono text-xs uppercase tracking-eyebrow text-slate">({LEVEL_OPTION[level]} focus)</span> · championing{" "}
+          <span className="font-mono text-xs uppercase tracking-eyebrow text-slate">({LEVEL_OPTION[level]} focus{zip ? ` · ${zip}` : ""})</span> · championing{" "}
           <strong className="text-ink">{issue.eyebrow}</strong> — every action builds awareness for August 4.
         </p>
 
