@@ -17,6 +17,7 @@ export function CopyButton({ text, label = "Copy text" }: { text: string; label?
           /* clipboard blocked — the text is selectable in the box below */
         }
       }}
+      aria-live="polite"
       className="rounded-sm border border-line bg-white px-2.5 py-1 text-xs font-semibold text-ink hover:border-ink"
     >
       {done ? "Copied ✓" : label}

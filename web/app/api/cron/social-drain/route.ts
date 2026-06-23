@@ -27,8 +27,16 @@ async function handle(req: NextRequest) {
   if (!dbConfigured) return NextResponse.json({ ok: true, skipped: "DB not configured" });
   // Backstop: keep OAuth tokens fresh even without publishing traffic.
   const refresh = await refreshExpiring().catch(() => ({ checked: 0, refreshed: 0 }));
-  const result = await drainDue();
-  return NextResponse.json({ ok: true, ...result, refresh });
+  try {
+    const result = await drainDue();
+    return NextResponse.json({ ok: true, ...result, refresh });
+  } catch (e) {
+    // Per-post failures are already isolated inside drainDue(); this catches a
+    // batch-level failure (e.g. the initial query) so the worker returns a clean
+    // 500 the scheduler can retry, with the cause in the logs.
+    console.error("social-drain failed:", e);
+    return NextResponse.json({ ok: false, error: "drain failed" }, { status: 500 });
+  }
 }
 
 export const POST = handle;
