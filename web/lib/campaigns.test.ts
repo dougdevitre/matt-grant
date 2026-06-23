@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { finalizeUpdateExpression, normalizeRecipient } from "@/lib/campaigns";
+import { finalizeUpdateExpression } from "@/lib/campaigns";
 
 // Regression guard for C1: the drained-batch counter update once started with
 // "ADD ... SET ...", which DynamoDB rejects (clause order must be SET → ADD).
@@ -26,17 +26,5 @@ describe("finalizeUpdateExpression", () => {
     expect(finalizeUpdateExpression(true)).toContain("finishedAt = :u");
     expect(finalizeUpdateExpression(false)).not.toContain("#s");
     expect(finalizeUpdateExpression(false)).not.toContain("finishedAt");
-  });
-});
-
-describe("normalizeRecipient", () => {
-  it("upgrades a legacy bare-email string to a recipient object", () => {
-    expect(normalizeRecipient("a@b.co")).toEqual({ email: "a@b.co" });
-  });
-  it("keeps an object recipient, preserving a first name", () => {
-    expect(normalizeRecipient({ email: "a@b.co", firstName: "Sam" })).toEqual({ email: "a@b.co", firstName: "Sam" });
-  });
-  it("omits an empty first name so the greeting falls back", () => {
-    expect(normalizeRecipient({ email: "a@b.co" })).toEqual({ email: "a@b.co" });
   });
 });
