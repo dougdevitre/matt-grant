@@ -36,7 +36,7 @@ Caption limits, hashtag norms, and image specs live in `CHANNELS`. Highlights:
 | Facebook | 5,000 | 250 | 0–2 | ✅ implemented (text + photo) |
 | Instagram | 2,200 | 125 | 3–5 (max 30) | ✅ implemented (image required) |
 | LinkedIn | 3,000 | 210 | 3–5 | ✅ implemented (text/link + image) |
-| TikTok | 4,000 | 100 | 3–5 | manual (video-first) |
+| TikTok | 4,000 | 100 | 3–5 | ✅ implemented (photo post) |
 | YouTube (Shorts) | 5,000 (desc) | 100 | 2–3 | manual (video-first) |
 | Threads | 500 | 500 | 0–1 | ✅ implemented (text + image) |
 
@@ -73,7 +73,10 @@ Like SES, Clerk, and S3 elsewhere in the app, publishing **degrades gracefully**
 | X | ✅ OAuth2 + PKCE (+ refresh) | text/link + image (v2 media) | `tweet.read tweet.write users.read offline.access` |
 | LinkedIn | ✅ OAuth2 (member; + image upload) | text/link + image (register-upload) | `openid profile w_member_social` |
 | Threads | manual token only (no OAuth yet) | text + image (container→publish) | `threads_basic`, `threads_content_publish` |
-| TikTok / YouTube | — | not implemented — **video-first**, the composer produces still graphics | — |
+| TikTok | ✅ OAuth2 + PKCE (+ refresh) | **photo post** (pulls the graphic by URL) | `user.info.basic,video.publish` |
+| YouTube | — | not implemented — **video-first**, the composer produces still graphics | — |
+
+**TikTok gates:** public `DIRECT_POST` requires the app to pass TikTok's **content-posting audit** and the pull-URL host (the site domain) to be **URL-prefix verified** in the TikTok developer portal. Until audited, posts must be `SELF_ONLY` — the adapter defaults `privacy_level` to `SELF_ONLY`, overridable via `TIKTOK_PRIVACY_LEVEL` once approved. TikTok pulls the public `/api/graphics` image, so no media is uploaded from our side.
 
 **IAM:** the SSR runtime role must read the new prefix. `infra/setup-aws.sh` grants `ssm:GetParameter` on **both** `…parameter/matt-grant/*` and `…parameter/mattgrant/prod/social/*` (note the hyphen difference); re-run it after loading the params.
 
