@@ -13,6 +13,7 @@ import { SITE_URL } from "@/lib/site";
 import { composeText, type ChannelId } from "@/lib/social/channels";
 import { getFreshConnection } from "@/lib/social/oauth/refresh";
 import { META_GRAPH } from "@/lib/social/credentials";
+import { renderStillToMp4 } from "@/lib/social/video";
 
 // Threads (Meta) has its own Graph host, versioned independently of the Facebook
 // Graph. Both publishing steps and the connection check go through it.
@@ -117,7 +118,7 @@ async function apiPublish(channel: ChannelId, post: PublishablePost, creds: Reso
   if (channel === "instagram") return publishToInstagram(post, creds);
   if (channel === "linkedin") return publishToLinkedIn(post, creds);
   if (channel === "threads") return publishToThreads(post, creds);
-  if (channel === "tiktok") return publishToTikTok(post, creds.token);
+  if (channel === "youtube") return publishToYouTube(post, creds.token);
   return { ok: false, mode: "api", error: `Auto-publish for ${channel} is not implemented yet — connect it or remove its ${CHANNEL_CONFIG[channel].token}.` };
 }
 
@@ -296,47 +297,65 @@ async function publishToThreads(post: PublishablePost, creds: ResolvedCreds): Pr
   return published.ok ? { ok: true, mode: "api", externalId: published.id } : { ok: false, mode: "api", error: published.error };
 }
 
-// TikTok (Content Posting API, PHOTO post). TikTok pulls the public on-brand graphic
-// by URL and creates a photo post in one DIRECT_POST init call. Returns a publish_id
-// (the post then processes server-side). Needs a token with `video.publish`.
-//   privacy: unaudited apps may only post SELF_ONLY and the pull-URL host must be
-//   domain-verified in the TikTok developer portal — so the level defaults to
-//   SELF_ONLY and is overridable via TIKTOK_PRIVACY_LEVEL once the app is audited.
-async function publishToTikTok(post: PublishablePost, token: string): Promise<PublishResult> {
+// YouTube (Shorts). YouTube has no image-post API, so the still graphic is rendered
+// to a short MP4 (lib/social/video.ts) and uploaded via the resumable videos.insert
+// flow: initiate a session (metadata + content headers) → PUT the bytes → read the
+// video id. Needs a token with `youtube.upload` (Google app verification gate). The
+// privacy defaults to "private" until the app is verified; override with
+// YOUTUBE_PRIVACY_STATUS once approved for public uploads.
+async function publishToYouTube(post: PublishablePost, token: string): Promise<PublishResult> {
   const media = absoluteMediaUrl(post.mediaUrl);
-  if (!media) return { ok: false, mode: "api", error: "TikTok photo posts require an image — attach a graphic before scheduling." };
-  const privacy = process.env.TIKTOK_PRIVACY_LEVEL || "SELF_ONLY";
+  if (!media) return { ok: false, mode: "api", error: "YouTube needs a graphic to render into a Short — attach one before scheduling." };
 
-  let res: Response;
+  let mp4: Buffer;
   try {
-    res = await fetch("https://open.tiktokapis.com/v2/post/publish/content/init/", {
+    mp4 = await renderStillToMp4(media);
+  } catch (err) {
+    return { ok: false, mode: "api", error: err instanceof Error ? `video render failed: ${err.message}` : "video render failed" };
+  }
+
+  const firstLine = (post.caption.split("\n")[0] || "Matt Grant for Congress").slice(0, 90);
+  const metadata = {
+    snippet: { title: `${firstLine} #Shorts`.slice(0, 100), description: copyText(post), tags: post.hashtags.map((h) => h.replace(/^#/, "")) },
+    status: { privacyStatus: process.env.YOUTUBE_PRIVACY_STATUS || "private", selfDeclaredMadeForKids: false },
+  };
+
+  // 1. initiate the resumable upload session
+  let init: Response;
+  try {
+    init = await fetch("https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status", {
       method: "POST",
-      headers: { authorization: `Bearer ${token}`, "content-type": "application/json; charset=UTF-8" },
-      body: JSON.stringify({
-        post_info: { title: copyText(post).slice(0, 2200), privacy_level: privacy },
-        source_info: { source: "PULL_FROM_URL", photo_cover_index: 0, photo_images: [media] },
-        post_mode: "DIRECT_POST",
-        media_type: "PHOTO",
-      }),
+      headers: {
+        authorization: `Bearer ${token}`,
+        "content-type": "application/json; charset=UTF-8",
+        "x-upload-content-type": "video/mp4",
+        "x-upload-content-length": String(mp4.length),
+      },
+      body: JSON.stringify(metadata),
     });
   } catch (err) {
-    return { ok: false, mode: "api", error: err instanceof Error ? err.message : "network error reaching TikTok" };
+    return { ok: false, mode: "api", error: err instanceof Error ? err.message : "network error reaching YouTube" };
   }
-  const text = await res.text().catch(() => "");
-  if (!res.ok) return { ok: false, mode: "api", error: `TikTok API ${res.status}${text ? `: ${text.slice(0, 200)}` : ""}` };
-  const body = (() => {
-    try {
-      return JSON.parse(text) as { data?: { publish_id?: string }; error?: { code?: string; message?: string } };
-    } catch {
-      return null;
-    }
-  })();
-  // TikTok returns HTTP 200 with an error object on logical failures; error.code is
-  // "ok" on success.
-  if (body?.error && body.error.code && body.error.code !== "ok") {
-    return { ok: false, mode: "api", error: `TikTok: ${body.error.message ?? body.error.code}` };
+  if (!init.ok) {
+    const detail = await init.text().catch(() => "");
+    return { ok: false, mode: "api", error: `YouTube init ${init.status}${detail ? `: ${detail.slice(0, 160)}` : ""}` };
   }
-  return { ok: true, mode: "api", externalId: body?.data?.publish_id };
+  const session = init.headers.get("location");
+  if (!session) return { ok: false, mode: "api", error: "YouTube did not return an upload session URL." };
+
+  // 2. PUT the rendered MP4 bytes to the session URL
+  let up: Response;
+  try {
+    up = await fetch(session, { method: "PUT", headers: { "content-type": "video/mp4" }, body: Uint8Array.from(mp4) });
+  } catch (err) {
+    return { ok: false, mode: "api", error: err instanceof Error ? err.message : "network error uploading to YouTube" };
+  }
+  if (!up.ok) {
+    const detail = await up.text().catch(() => "");
+    return { ok: false, mode: "api", error: `YouTube upload ${up.status}${detail ? `: ${detail.slice(0, 160)}` : ""}` };
+  }
+  const body = (await up.json().catch(() => null)) as { id?: string } | null;
+  return { ok: true, mode: "api", externalId: body?.id };
 }
 
 // Upload an image to X and return its media id, for attaching to a tweet. Targets
@@ -487,15 +506,15 @@ export async function verifyChannel(channel: ChannelId): Promise<ChannelStatus> 
     const r = await metaGet(`${THREADS_GRAPH}/${creds.accountId}?fields=username&access_token=${encodeURIComponent(token)}`, "username");
     return r.ok ? { channel, mode: "api", ok: true, detail: `Connected to @${r.value}.` } : { channel, mode: "api", ok: false, detail: r.error };
   }
-  if (channel === "tiktok") {
+  if (channel === "youtube") {
     try {
-      const res = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=display_name", { headers: { authorization: `Bearer ${token}` } });
-      if (!res.ok) return { channel, mode: "api", ok: false, detail: `TikTok API ${res.status}` };
-      const body = (await res.json().catch(() => null)) as { data?: { user?: { display_name?: string } } } | null;
-      const name = body?.data?.user?.display_name;
-      return { channel, mode: "api", ok: true, detail: name ? `Connected to @${name}.` : "Token accepted." };
+      const res = await fetch("https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true", { headers: { authorization: `Bearer ${token}` } });
+      if (!res.ok) return { channel, mode: "api", ok: false, detail: `YouTube API ${res.status}` };
+      const body = (await res.json().catch(() => null)) as { items?: { snippet?: { title?: string } }[] } | null;
+      const title = body?.items?.[0]?.snippet?.title;
+      return { channel, mode: "api", ok: true, detail: title ? `Connected to “${title}”.` : "Token accepted." };
     } catch (err) {
-      return { channel, mode: "api", ok: false, detail: err instanceof Error ? err.message : "network error reaching TikTok" };
+      return { channel, mode: "api", ok: false, detail: err instanceof Error ? err.message : "network error reaching YouTube" };
     }
   }
   return { channel, mode: "api", ok: true, detail: "Token present — no read-check implemented for this channel yet." };
