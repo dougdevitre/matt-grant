@@ -45,7 +45,7 @@ export const ROLE_BLURBS: Record<Role, string> = {
   admin: "Full access — finance, compliance, donors, email sends, and team management.",
   captain: "Field leader — organizing, content, and research, plus read-only finance & donor totals.",
   member: "Field & content — volunteers, tasks, graphics, and the map.",
-  supporter: "Community supporter — the community hub + the case-for-change board. No internal campaign data.",
+  supporter: "Community supporter — the community hub + the shared Peace Room case-for-change board. No internal campaign data.",
   partner: "Coalition partner — the shared Peace Room only. No donors, finance, compliance, or internal campaign data.",
 };
 
@@ -134,10 +134,11 @@ const MATRIX: Record<Role, Capability[]> = {
     "contributePeaceRoom",
     "viewCommunity",
   ],
-  // HARD WALL — public community hub only. The default for self-signups. Do NOT
-  // add private/staff capabilities here; the supporter-isolation test in
-  // rbac.test.ts asserts this list stays minimal.
-  supporter: ["viewCommunity"],
+  // The default for self-signups. Reaches the public community hub AND the shared
+  // Peace Room board — both render the same public-safe case-for-change content
+  // and expose NOTHING private. Do NOT add private/staff capabilities here; the
+  // supporter-isolation test in rbac.test.ts asserts this list stays minimal.
+  supporter: ["viewCommunity", "viewPeaceRoom"],
   // HARD WALL — Peace Room only. Do NOT add private capabilities here; the
   // partner-isolation test in rbac.test.ts asserts this list stays minimal.
   partner: ["viewPeaceRoom", "contributePeaceRoom"],

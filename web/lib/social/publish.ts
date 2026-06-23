@@ -217,7 +217,7 @@ async function publishToX(post: PublishablePost, token: string): Promise<Publish
 
   let res: Response;
   try {
-    res = await fetch("https://api.twitter.com/2/tweets", {
+    res = await fetch("https://api.x.com/2/tweets", {
       method: "POST",
       headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
       body: JSON.stringify({ text, ...(mediaIds ? { media: { media_ids: mediaIds } } : {}) }),
@@ -303,7 +303,7 @@ export async function verifyChannel(channel: ChannelId): Promise<ChannelStatus> 
   }
   if (channel === "x") {
     try {
-      const res = await fetch("https://api.twitter.com/2/users/me", { headers: { authorization: `Bearer ${token}` } });
+      const res = await fetch("https://api.x.com/2/users/me", { headers: { authorization: `Bearer ${token}` } });
       if (!res.ok) return { channel, mode: "api", ok: false, detail: `X API ${res.status}` };
       const body = (await res.json().catch(() => null)) as { data?: { username?: string } } | null;
       return { channel, mode: "api", ok: true, detail: body?.data?.username ? `Connected to @${body.data.username}.` : "Token accepted." };

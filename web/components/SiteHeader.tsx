@@ -9,8 +9,10 @@ import { CAMPAIGN, NAV } from "@/lib/site";
 
 // Role-aware "your dashboard" link. Reads publicMetadata.role (exposed to the
 // client by design) and points each tier at their own home — staff → /dashboard,
-// partner → Peace Room, supporter/donor/new → /community. Only rendered inside
-// <SignedIn> when Clerk is on, so useUser() always has a provider.
+// partner & supporter → "Our Community" in the shared Peace Room. A brand-new
+// signup whose role hasn't stamped yet (can't enter the dashboard) falls through
+// to the /community floor. Only rendered inside <SignedIn> when Clerk is on, so
+// useUser() always has a provider.
 function AccountLink({ className, onNavigate }: { className: string; onNavigate?: () => void }) {
   const { user } = useUser();
   const role = (user?.publicMetadata as { role?: string } | undefined)?.role;
@@ -19,7 +21,9 @@ function AccountLink({ className, onNavigate }: { className: string; onNavigate?
       ? { href: "/dashboard", label: "Dashboard" }
       : role === "partner"
         ? { href: "/dashboard/peace-room", label: "Peace Room" }
-        : { href: "/community", label: "My community" };
+        : role === "supporter"
+          ? { href: "/dashboard/peace-room", label: "Our Community" }
+          : { href: "/community", label: "Our Community" }; // not-yet-stamped floor
   return (
     <Link href={dest.href} onClick={onNavigate} className={className}>
       {dest.label}
