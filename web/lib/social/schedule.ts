@@ -39,6 +39,7 @@ export type ScheduledPost = {
   link?: string;
   mediaKey?: string;
   mediaUrl?: string;
+  videoUrl?: string;
   pillar?: string;
   cta?: string;
   scheduledAt?: string; // absent = draft
@@ -57,6 +58,7 @@ export async function createPost(input: {
   link?: string;
   mediaKey?: string;
   mediaUrl?: string;
+  videoUrl?: string;
   pillar?: string;
   cta?: string;
   scheduledAt?: string; // ISO; absent or empty → draft
@@ -82,6 +84,7 @@ export async function createPost(input: {
         ...(input.link ? { link: input.link } : {}),
         ...(input.mediaKey ? { mediaKey: input.mediaKey } : {}),
         ...(input.mediaUrl ? { mediaUrl: input.mediaUrl } : {}),
+        ...(input.videoUrl ? { videoUrl: input.videoUrl } : {}),
         ...(input.pillar ? { pillar: input.pillar } : {}),
         ...(input.cta ? { cta: input.cta } : {}),
         ...(scheduled ? { scheduledAt: input.scheduledAt } : {}),
@@ -210,35 +213,14 @@ export async function drainDue(limit = 10): Promise<{ processed: number; posts: 
       throw e;
     }
 
-    // Publish + record this post in isolation: a transient failure on one post
-    // (a channel adapter throwing, or its result write erroring) must not abort the
-    // whole drain and strand the remaining due posts in "scheduled".
-    try {
-      const payload: PublishablePost = { caption: post.caption, hashtags: post.hashtags ?? [], link: post.link, mediaUrl: post.mediaUrl };
-      const perChannel: Partial<Record<ChannelId, ChannelState>> = { ...post.perChannel };
-      for (const channel of post.channels ?? []) {
-        if (!CHANNELS[channel]) continue;
-        const res = await publishToChannel(channel, payload);
-        if (res.ok && res.mode === "api") perChannel[channel] = { status: "posted", mode: "api", externalId: res.externalId, postedAt: new Date().toISOString() };
-        else if (res.ok && res.mode === "manual") perChannel[channel] = { status: "ready", mode: "manual" };
-        else perChannel[channel] = { status: "failed", mode: res.mode, error: res.ok ? undefined : res.error };
-      }
-      const status = rollUp(post.channels ?? [], perChannel);
-      await ddb.send(
-        new UpdateCommand({
-          TableName: TABLE,
-          Key: { PK: SOCIAL_PK, SK: post.SK },
-          UpdateExpression: "SET perChannel = :pc, #s = :s, updatedAt = :u" + (status === "posted" ? ", postedAt = :u" : ""),
-          ExpressionAttributeNames: { "#s": "status" },
-          ExpressionAttributeValues: { ":pc": perChannel, ":s": status, ":u": new Date().toISOString() },
-        }),
-      );
-      out.push({ id: post.id, status });
-    } catch (e) {
-      // Leave the post claimed as "posting"; the admin sees it stuck rather than the
-      // batch dying. The next drain skips it (claim requires "scheduled"), so it
-      // won't double-post. Surface the error for the cron logs.
-      console.error(`drainDue: failed to process post ${post.id}:`, e);
+    const payload: PublishablePost = { caption: post.caption, hashtags: post.hashtags ?? [], link: post.link, mediaUrl: post.mediaUrl, videoUrl: post.videoUrl };
+    const perChannel: Partial<Record<ChannelId, ChannelState>> = { ...post.perChannel };
+    for (const channel of post.channels ?? []) {
+      if (!CHANNELS[channel]) continue;
+      const res = await publishToChannel(channel, payload);
+      if (res.ok && res.mode === "api") perChannel[channel] = { status: "posted", mode: "api", externalId: res.externalId, postedAt: new Date().toISOString() };
+      else if (res.ok && res.mode === "manual") perChannel[channel] = { status: "ready", mode: "manual" };
+      else perChannel[channel] = { status: "failed", mode: res.mode, error: res.ok ? undefined : res.error };
     }
   }
   return { processed: out.length, posts: out };

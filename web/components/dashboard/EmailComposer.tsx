@@ -1,8 +1,7 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
-import { sendTestCampaign, sendCampaign, type SendState } from "@/app/dashboard/emails/actions";
-import { CONTACT_GROUPS, GROUP_LABELS, TEAM_GROUPS, type ContactGroup } from "@/lib/email/audienceGroups";
+import { useEffect, useState, useTransition } from "react";
+import { sendTestCampaign, sendCampaign, type SendState, type Audience } from "@/app/dashboard/emails/actions";
 import type { BroadcastMeta } from "@/lib/email/broadcasts";
 
 const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-field";
@@ -32,6 +31,36 @@ export function EmailComposer({
   const [scheduledAt, setScheduledAt] = useState("");
   const [res, setRes] = useState<SendState | null>(null);
   const [pending, start] = useTransition();
+  const [preview, setPreview] = useState<{ subject: string; html: string } | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+  // Live preview: render the selected template with the entered variables, the
+  // way a recipient would see it. Debounced so each keystroke doesn't refetch,
+  // and aborted on change so a slow response can't overwrite a newer one.
+  useEffect(() => {
+    if (!key) return;
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      setPreviewLoading(true);
+      try {
+        const r = await fetch("/api/email/preview", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ templateKey: key, vars }),
+          signal: ctrl.signal,
+        });
+        if (r.ok) setPreview(await r.json());
+      } catch {
+        /* aborted or offline — keep the last good preview */
+      } finally {
+        if (!ctrl.signal.aborted) setPreviewLoading(false);
+      }
+    }, 350);
+    return () => {
+      clearTimeout(t);
+      ctrl.abort();
+    };
+  }, [key, vars]);
 
   const tpl = broadcasts.find((b) => b.key === key);
   const toggle = (g: ContactGroup) => setGroups((cur) => (cur.includes(g) ? cur.filter((x) => x !== g) : [...cur, g]));
@@ -63,7 +92,8 @@ export function EmailComposer({
   const run = (action: (f: FormData) => Promise<SendState>) => start(async () => setRes(await action(fd())));
 
   return (
-    <div className="card p-6">
+    <div className="grid items-start gap-6 lg:grid-cols-2">
+      <div className="card p-6">
       <p className="eyebrow text-brick">Compose a broadcast</p>
 
       <div className="mt-4 space-y-4">
@@ -100,6 +130,12 @@ export function EmailComposer({
               </select>
             ) : (
               <input type={f.type === "number" ? "number" : "text"} value={vars[f.name] ?? ""} onChange={(e) => setVar(f.name, e.target.value)} className={`${field} mt-1`} placeholder={f.placeholder} aria-label={f.label} />
+            )}
+            {f.rich && (
+              <p className="mt-1 text-[0.7rem] text-slate">
+                Formatting: <code className="font-mono">**bold**</code>, <code className="font-mono">*italic*</code>,{" "}
+                <code className="font-mono">[link](https://…)</code>, blank line = new paragraph, <code className="font-mono">-</code> = bullet. See the live preview.
+              </p>
             )}
           </div>
         ))}
@@ -190,6 +226,34 @@ export function EmailComposer({
         <p className={`mt-3 rounded-sm border px-3 py-2 text-sm ${res.ok ? "border-field/40 bg-field/10 text-field" : "border-brick/40 bg-brick/10 text-brick"}`}>{res.message}</p>
       )}
       {!canSend && <p className="mt-3 text-xs text-slate">You can draft and send tests. Sending to the list is limited to admins.</p>}
+      </div>
+
+      <div className="card overflow-hidden p-0 lg:sticky lg:top-6">
+        <div className="flex items-center justify-between border-b border-line px-5 py-3">
+          <div className="min-w-0">
+            <p className="eyebrow text-slate">Live preview</p>
+            <p className="mt-0.5 truncate text-sm font-semibold text-ink" title={preview?.subject}>
+              {preview?.subject || "—"}
+            </p>
+          </div>
+          {previewLoading && <span className="shrink-0 font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate">Rendering…</span>}
+        </div>
+        {preview ? (
+          <iframe
+            title="Email preview"
+            srcDoc={preview.html}
+            className="h-[560px] w-full border-0 bg-white"
+            sandbox=""
+          />
+        ) : (
+          <div className="flex h-[560px] items-center justify-center px-6 text-center text-sm text-slate">
+            Pick a template to see a live preview here.
+          </div>
+        )}
+        <p className="border-t border-line px-5 py-2 text-[0.7rem] text-slate">
+          Sample preview — personalization and the unsubscribe link are filled per recipient at send time.
+        </p>
+      </div>
     </div>
   );
 }
