@@ -20,7 +20,8 @@ Admin-only via the RBAC capability `manageSocial` (`lib/rbac.ts`). Captains, mem
 | `lib/social/credentials.ts` | Reads the OAuth *app* credentials from `/mattgrant/prod/social/<platform>/<field>`. |
 | `lib/social/connections.ts` | DynamoDB store (`SOCIALAUTH`) for per-account OAuth tokens from the connect flow. |
 | `lib/social/metaOAuth.ts` | Meta (FB+IG) OAuth: authorize URL + code→long-lived-token→Page/IG exchange + refresh + multi-Page. |
-| `lib/social/oauth/` | Provider registry (`index.ts`) + per-provider modules (`facebook.ts`, `x.ts`, `linkedin.ts`), shared `types.ts`, and `refresh.ts` (refresh-on-read + cron backstop). |
+| `lib/social/oauth/` | Provider registry (`index.ts`) + per-provider modules (`facebook.ts`, `x.ts`, `linkedin.ts`, `youtube.ts`), shared `types.ts`, and `refresh.ts` (refresh-on-read + cron backstop). |
+| `lib/social/video.ts` | Renders the still graphic → a short vertical MP4 (static ffmpeg) for the YouTube Shorts upload. |
 | `app/api/social/{connect,callback}/[platform]` | Platform-agnostic OAuth routes (admin-only; CSRF state + PKCE verifier cookies). |
 | `app/api/cron/social-drain/route.ts` | Background worker that publishes scheduled posts at their time. Same `CRON_SECRET` + cadence as the email drain. |
 | `app/dashboard/social/{page,actions}.tsx` | The UI + server actions (schedule / post now / cancel / confirm-posted / analyze profile). |
@@ -36,8 +37,8 @@ Caption limits, hashtag norms, and image specs live in `CHANNELS`. Highlights:
 | Facebook | 5,000 | 250 | 0–2 | ✅ implemented (text + photo) |
 | Instagram | 2,200 | 125 | 3–5 (max 30) | ✅ implemented (image required) |
 | LinkedIn | 3,000 | 210 | 3–5 | ✅ implemented (text/link + image) |
-| TikTok | 4,000 | 100 | 3–5 | ✅ implemented (photo post) |
-| YouTube (Shorts) | 5,000 (desc) | 100 | 2–3 | manual (video-first) |
+| TikTok | 4,000 | 100 | 3–5 | manual (video-first) |
+| YouTube (Shorts) | 5,000 (desc) | 100 | 2–3 | ✅ implemented (Short via still→MP4 render) |
 | Threads | 500 | 500 | 0–1 | ✅ implemented (text + image) |
 
 These move — re-verify against each platform's current docs and update `CHANNELS` (the staleness convention from `compliance-baseline.md`). Sources used: Glow Social / TypeCount / Letter Counter 2026 character-limit guides.
@@ -66,7 +67,7 @@ Like SES, Clerk, and S3 elsewhere in the app, publishing **degrades gracefully**
 
 **Multi-Page (Meta):** when the account manages several Pages, all are stored and the connections panel shows a "Posting as" picker (`switchPageAction`) — no re-auth needed to switch.
 
-**2. Manual token fallback** (env/SSM flat names under `/matt-grant/<NAME>`): `X_ACCESS_TOKEN`; `FACEBOOK_PAGE_TOKEN`+`FACEBOOK_PAGE_ID`; `INSTAGRAM_ACCESS_TOKEN`+`INSTAGRAM_USER_ID`; `LINKEDIN_ACCESS_TOKEN`+`LINKEDIN_AUTHOR_URN`; `THREADS_ACCESS_TOKEN`+`THREADS_USER_ID`. Useful for testing. Threads has no in-app OAuth connect yet, so it uses this fallback only.
+**2. Manual token fallback** (env/SSM flat names under `/matt-grant/<NAME>`): `X_ACCESS_TOKEN`; `FACEBOOK_PAGE_TOKEN`+`FACEBOOK_PAGE_ID`; `INSTAGRAM_ACCESS_TOKEN`+`INSTAGRAM_USER_ID`; `LINKEDIN_ACCESS_TOKEN`+`LINKEDIN_AUTHOR_URN`; `THREADS_ACCESS_TOKEN`+`THREADS_USER_ID`; `YOUTUBE_ACCESS_TOKEN`. Useful for testing. Threads has no in-app OAuth connect yet, so it uses this fallback only.
 
 | Channel | Connect flow | Posts | Scopes |
 |---|---|---|---|
@@ -75,10 +76,10 @@ Like SES, Clerk, and S3 elsewhere in the app, publishing **degrades gracefully**
 | X | ✅ OAuth2 + PKCE (+ refresh) | text/link + image (v2 media) | `tweet.read tweet.write users.read offline.access` |
 | LinkedIn | ✅ OAuth2 (member; + image upload) | text/link + image (register-upload) | `openid profile w_member_social` |
 | Threads | manual token only (no OAuth yet) | text + image (container→publish) | `threads_basic`, `threads_content_publish` |
-| TikTok | ✅ OAuth2 + PKCE (+ refresh) | **photo post** (pulls the graphic by URL) | `user.info.basic,video.publish` |
-| YouTube | — | not implemented — **video-first**, the composer produces still graphics | — |
+| YouTube | ✅ Google OAuth2 + PKCE (+ refresh) | **Short** (still→MP4 render, resumable upload) | `youtube.upload` (+ `openid email`) |
+| TikTok | — | not implemented — **video-first**, the composer produces still graphics | — |
 
-**TikTok gates:** public `DIRECT_POST` requires the app to pass TikTok's **content-posting audit** and the pull-URL host (the site domain) to be **URL-prefix verified** in the TikTok developer portal. Until audited, posts must be `SELF_ONLY` — the adapter defaults `privacy_level` to `SELF_ONLY`, overridable via `TIKTOK_PRIVACY_LEVEL` once approved. TikTok pulls the public `/api/graphics` image, so no media is uploaded from our side.
+**YouTube video pipeline:** YouTube has no image-post API, so `lib/social/video.ts` renders the composer's still graphic into a short vertical MP4 (held image, 1080×1920, H.264 + silent AAC) using a bundled static **ffmpeg** binary (`@ffmpeg-installer/ffmpeg`), then `publishToYouTube` uploads the bytes via the resumable `videos.insert` flow. `privacyStatus` defaults to `private` (override `YOUTUBE_PRIVACY_STATUS`) since public uploads need Google's `youtube.upload` **app verification** — see `docs/google-youtube-setup.md`. *Operational note:* ffmpeg adds bundle/cold-start/`/tmp` weight to the SSR Lambda (a single-still encode is ~1–3s); if bundle limits bite, move the render to a dedicated Lambda or AWS MediaConvert.
 
 **IAM:** the SSR runtime role must read the new prefix. `infra/setup-aws.sh` grants `ssm:GetParameter` on **both** `…parameter/matt-grant/*` and `…parameter/mattgrant/prod/social/*` (note the hyphen difference); re-run it after loading the params.
 

@@ -80,6 +80,6 @@ export function connectionCovers(conn: SocialConnection): ChannelId[] {
   }
   if (conn.platform === "x" && conn.accessToken) out.push("x");
   if (conn.platform === "linkedin" && conn.accessToken && conn.authorUrn) out.push("linkedin");
-  if (conn.platform === "tiktok" && conn.accessToken) out.push("tiktok");
+  if (conn.platform === "youtube" && conn.accessToken) out.push("youtube");
   return out;
 }
