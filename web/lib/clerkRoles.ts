@@ -17,6 +17,33 @@ export async function setClerkRoleByEmail(email: string, role: Role): Promise<vo
   }
 }
 
+// Revoke a teammate's access in Clerk: demote them to "supporter" (the public
+// floor — no staff/private capabilities) AND revoke their active sessions so the
+// change takes effect immediately, not just on their next sign-in. Best-effort:
+// no-op without Clerk or if the user never signed up (the removed DynamoDB row is
+// the durable record either way). Demoting (vs. deleting) keeps any community-hub
+// access and is reversible by re-inviting.
+export async function clearClerkRoleByEmail(email: string): Promise<void> {
+  if (!process.env.CLERK_SECRET_KEY) return;
+  try {
+    const { clerkClient } = await import("@clerk/nextjs/server");
+    const client = await clerkClient();
+    const { data } = await client.users.getUserList({ emailAddress: [email], limit: 1 });
+    const user = data[0];
+    if (!user) return;
+    await client.users.updateUserMetadata(user.id, { publicMetadata: { role: "supporter" } });
+    // End any live sessions so a currently-signed-in user loses access now.
+    try {
+      const { data: sessions } = await client.sessions.getSessionList({ userId: user.id, status: "active" });
+      await Promise.all(sessions.map((s) => client.sessions.revokeSession(s.id)));
+    } catch {
+      /* metadata demotion already took effect; session revoke is a bonus */
+    }
+  } catch {
+    /* best-effort; the removed DynamoDB row + allowlist still govern access */
+  }
+}
+
 // Invite a teammate through Clerk so they can sign up even when the instance is
 // in invitation-only ("restricted") mode. The role rides along in the
 // invitation's publicMetadata and is applied to the new user on accept. If the
