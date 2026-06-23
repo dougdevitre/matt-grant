@@ -48,13 +48,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
             </p>
           </div>
         </div>
-        <DashSidebar role={activeRole} />
-        <div className="hidden border-t border-paper/10 px-5 py-5 md:block">
+        {/* Countdown sits at the top of the menu, above the nav, on every
+            breakpoint (it used to be hidden md:block at the bottom). */}
+        <div className="border-b border-paper/10 px-5 py-4">
           <p className="eyebrow text-paper/50">Days to election</p>
           <div className="mt-3">
             <Countdown iso={CAMPAIGN.electionDate} compact />
           </div>
         </div>
+        <DashSidebar role={activeRole} />
       </aside>
 
       {/* Main */}
