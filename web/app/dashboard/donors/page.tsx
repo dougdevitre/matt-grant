@@ -53,14 +53,14 @@ export default async function DonorsPage() {
         <form action={addDonor} className="card h-fit p-6">
           <p className="eyebrow text-slate">Log a contribution</p>
           <div className="mt-4 space-y-3">
-            <input name="name" required placeholder="Donor name" className={input} />
-            <input name="email" placeholder="Email" className={input} />
+            <input name="name" required placeholder="Donor name" aria-label="Donor name" className={input} />
+            <input name="email" placeholder="Email" aria-label="Email" className={input} />
             <div className="grid grid-cols-2 gap-3">
-              <input name="city" placeholder="City" className={input} />
-              <input name="amount" type="number" step="0.01" min="0" placeholder="Amount $" className={input} />
+              <input name="city" placeholder="City" aria-label="City" className={input} />
+              <input name="amount" type="number" step="0.01" min="0" placeholder="Amount $" aria-label="Amount in dollars" className={input} />
             </div>
-            <input name="employer" placeholder="Employer (FEC)" className={input} />
-            <input name="occupation" placeholder="Occupation (FEC)" className={input} />
+            <input name="employer" placeholder="Employer (FEC)" aria-label="Employer (required by the FEC over $200/cycle)" className={input} />
+            <input name="occupation" placeholder="Occupation (FEC)" aria-label="Occupation (required by the FEC over $200/cycle)" className={input} />
             <select name="method" aria-label="Contribution method" className={input} defaultValue="WinRed">
               <option>WinRed</option>
               <option>check</option>
