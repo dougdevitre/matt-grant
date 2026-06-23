@@ -5,7 +5,7 @@ import { sendTestCampaign, sendCampaign, type SendState } from "@/app/dashboard/
 import { CONTACT_GROUPS, GROUP_LABELS, TEAM_GROUPS, type ContactGroup } from "@/lib/email/audienceGroups";
 import type { BroadcastMeta } from "@/lib/email/broadcasts";
 
-const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink";
+const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-field";
 const topicLabel: Record<string, string> = {
   news: "News", issues: "Issues", gotv: "GOTV", fundraising: "Fundraising", events: "Events",
 };

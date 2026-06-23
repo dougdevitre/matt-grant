@@ -55,7 +55,7 @@ export default async function DonorsPage() {
           <div className="mt-4 space-y-3">
             <input name="name" required placeholder="Donor name" aria-label="Donor name" className={input} />
             <input name="email" placeholder="Email" aria-label="Email" className={input} />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <input name="city" placeholder="City" aria-label="City" className={input} />
               <input name="amount" type="number" step="0.01" min="0" placeholder="Amount $" aria-label="Amount in dollars" className={input} />
             </div>

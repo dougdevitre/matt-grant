@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { invitePartner, type InviteResult } from "@/app/dashboard/team/actions";
 
-const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink";
+const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-field";
 
 // Coalition-partner invite — the Peace Room flow. No role picker: every invite
 // here is a `partner`, who can reach ONLY the shared Peace Room (no donors,
