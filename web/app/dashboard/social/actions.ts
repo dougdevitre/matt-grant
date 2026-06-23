@@ -10,6 +10,7 @@ import { recordSnapshot } from "@/lib/social/footprint";
 import { verifyChannel, type ChannelStatus } from "@/lib/social/publish";
 import { CHANNEL_IDS } from "@/lib/social/channels";
 import { planSlots } from "@/lib/social/scheduler";
+import { sanitizeHttpUrl, sanitizeMediaUrl } from "@/lib/social/validate";
 import { SOCIAL_POSTS } from "@/lib/socialPosts";
 
 export type ActionState = { ok: boolean; message: string };
@@ -34,8 +35,12 @@ export async function schedulePost(_prev: ActionState, formData: FormData): Prom
   if (channels.length === 0) return { ok: false, message: "Pick at least one channel." };
 
   const hashtags = parseHashtags(String(formData.get("hashtags") ?? ""));
-  const link = String(formData.get("link") ?? "").trim() || undefined;
-  const mediaUrl = String(formData.get("mediaUrl") ?? "").trim() || undefined;
+  // Reject anything that isn't a real http(s) URL before it's stored or posted —
+  // a bad link is surfaced to the user; the machine-set mediaUrl is silently dropped.
+  const rawLink = String(formData.get("link") ?? "").trim();
+  const link = rawLink ? sanitizeHttpUrl(rawLink) : undefined;
+  if (rawLink && !link) return { ok: false, message: "That link isn't a valid http(s) URL." };
+  const mediaUrl = sanitizeMediaUrl(formData.get("mediaUrl") as string | null);
   const mediaKey = String(formData.get("mediaKey") ?? "").trim() || undefined;
   const pillar = String(formData.get("pillar") ?? "").trim() || undefined;
   const cta = String(formData.get("cta") ?? "").trim() || undefined;

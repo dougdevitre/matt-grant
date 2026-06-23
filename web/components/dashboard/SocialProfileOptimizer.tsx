@@ -33,7 +33,7 @@ export function SocialProfileOptimizer({ history = [] }: { history?: FootprintSn
           {CHANNEL_IDS.map((ch) => {
             const on = active.includes(ch);
             return (
-              <button type="button" key={ch} onClick={() => toggle(ch)} className={`rounded-sm border px-3 py-1.5 text-xs font-semibold ${on ? "border-ink bg-ink text-paper" : "border-line bg-white text-ink hover:border-ink"}`}>
+              <button type="button" key={ch} onClick={() => toggle(ch)} aria-pressed={on} className={`rounded-sm border px-3 py-1.5 text-xs font-semibold ${on ? "border-ink bg-ink text-paper" : "border-line bg-white text-ink hover:border-ink"}`}>
                 {CHANNELS[ch].label}
               </button>
             );
@@ -43,6 +43,7 @@ export function SocialProfileOptimizer({ history = [] }: { history?: FootprintSn
 
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-left text-sm">
+            <caption className="sr-only">Per-channel analytics metrics from the last 30 days. Enter followers, posts, impressions, engagements, profile visits, link clicks, and conversions for each selected channel.</caption>
             <thead>
               <tr className="text-slate">
                 <th className="py-1 pr-3 font-mono text-[0.6rem] uppercase tracking-eyebrow">Channel</th>
