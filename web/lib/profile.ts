@@ -36,7 +36,8 @@ const norm = (e: string) => e.trim().toLowerCase();
 const EMPTY: SupporterProfile = { issues: [], waysToHelp: [] };
 
 // US 5-digit zip only; anything else is dropped (we never store malformed input).
-const cleanZip = (z?: string | null): string | undefined => {
+// Exported so the strategy engine + contact form share one validator.
+export const cleanZip = (z?: string | null): string | undefined => {
   const m = (z ?? "").trim().match(/^\d{5}/);
   return m ? m[0] : undefined;
 };
