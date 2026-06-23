@@ -39,6 +39,19 @@ export type ContributionInput = {
   type?: string; // "refund" tags a reversal entry
 };
 
+// Stamp a donor as thanked (admin-sent thank-you). Keyed by the donor row's SK.
+export async function markThanked(id: string): Promise<void> {
+  if (!dbConfigured || !id) return;
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: PK.donors, SK: id },
+      UpdateExpression: "SET thankedAt = :t",
+      ExpressionAttributeValues: { ":t": new Date().toISOString() },
+    }),
+  );
+}
+
 export async function recordContribution(c: ContributionInput): Promise<void> {
   if (!dbConfigured) return;
   const now = c.receivedAt ?? new Date().toISOString();
