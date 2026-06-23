@@ -44,6 +44,9 @@ export function OnboardingChecklist({ hasData, teamInvited }: { hasData: boolean
           </li>
         ))}
       </ul>
+      <Link href="/dashboard/setup" className="mt-4 inline-block font-mono text-xs font-bold text-brick hover:underline">
+        See all integrations &amp; status →
+      </Link>
     </div>
   );
 }
