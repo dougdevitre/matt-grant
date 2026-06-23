@@ -24,7 +24,7 @@ export async function GET(req: Request) {
   if (key) {
     const t = EMAIL_TEMPLATES.find((x) => x.key === key);
     if (!t) return new NextResponse("Unknown template", { status: 404 });
-    return new NextResponse(t.build().html, { headers: { "content-type": "text/html; charset=utf-8" } });
+    return new NextResponse(fillPreviewTokens(t.build().html), { headers: { "content-type": "text/html; charset=utf-8" } });
   }
   const rows = EMAIL_TEMPLATES.map(
     (t) => `<li style="margin:8px 0;"><span style="display:inline-block;width:120px;font-size:12px;color:#6B7280;text-transform:uppercase;">${t.kind}</span> <a href="?key=${t.key}" style="color:#2563EB;font-weight:bold;">${t.key}</a> — <em style="color:#374151;">${t.build().subject}</em></li>`,
