@@ -35,12 +35,14 @@ export default async function SocialPage({ searchParams }: { searchParams: Promi
   await requireCap("manageSocial");
   const { connected, error } = await searchParams;
 
-  const [posts, snapshots, fbConn, xConn, liConn] = await Promise.all([
+  const [posts, snapshots, fbConn, xConn, liConn, ttConn, ytConn] = await Promise.all([
     listPosts(),
     listSnapshots(),
     getConnection("facebook"),
     getConnection("x"),
     getConnection("linkedin"),
+    getConnection("tiktok"),
+    getConnection("youtube"),
   ]);
   const visible = posts.filter((p) => p.status !== "canceled");
 
@@ -56,6 +58,8 @@ export default async function SocialPage({ searchParams }: { searchParams: Promi
     },
     { platform: "x", label: "X (Twitter)", connected: !!xConn?.accessToken, detail: xConn?.accountName, expiresInDays: daysToExpiry(xConn?.expiresAt) },
     { platform: "linkedin", label: "LinkedIn", connected: !!liConn?.accessToken, detail: liConn?.accountName ?? liConn?.authorUrn, expiresInDays: daysToExpiry(liConn?.expiresAt) },
+    { platform: "tiktok", label: "TikTok", connected: !!ttConn?.accessToken, detail: ttConn?.accountName, expiresInDays: daysToExpiry(ttConn?.expiresAt) },
+    { platform: "youtube", label: "YouTube", connected: !!ytConn?.accessToken, detail: ytConn?.accountName, expiresInDays: daysToExpiry(ytConn?.expiresAt) },
   ];
 
   // Map the static 50-post countdown library into composer-ready templates.

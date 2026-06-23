@@ -18,6 +18,30 @@ defaults:
     working-directory: web
 
 jobs:
+  # Fail any PR whose branch is behind its base. CI type-checks/tests/builds the
+  # PR-merged-into-base result, but GitHub only regenerates that merge preview when
+  # the PR is pushed — NOT when main advances afterward. So a branch cut from an old
+  # main can keep a green check that no longer reflects main, and merging it silently
+  # drops/duplicates code from PRs that landed in between. This makes "behind base"
+  # a red check (a backstop for the "Require branches to be up to date" rule).
+  up-to-date:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }} # the real branch tip, not the merge commit
+      - name: Require branch up to date with base
+        run: |
+          git fetch --no-tags origin "${{ github.base_ref }}"
+          if git merge-base --is-ancestor FETCH_HEAD HEAD; then
+            echo "Branch is up to date with ${{ github.base_ref }}."
+          else
+            echo "::error::This branch is behind ${{ github.base_ref }}. Rebase first: git fetch origin && git rebase origin/${{ github.base_ref }} && git push --force-with-lease — then CI tests the real merge result."
+            exit 1
+          fi
+
   build-test:
     runs-on: ubuntu-latest
     steps:
