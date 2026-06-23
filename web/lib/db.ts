@@ -47,6 +47,7 @@ export const PK = {
   timeline: (slug: string) => `TIMELINE#${slug}`,
   statements: (slug: string) => `STMT#${slug}`,
   profile: "PROFILE", // supporter involvement profile (issues, ways-to-help, zip)
+  assets: "ASSET", // asset-library metadata (tags, uploader, original size) keyed by S3 key
 } as const;
 
 export function newId(): string {
