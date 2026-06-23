@@ -29,7 +29,6 @@ export function SocialComposer({ library }: { library: LibraryPost[] }) {
   const [cta, setCta] = useState("Learn more");
   const [pillar, setPillar] = useState("");
   const [link, setLink] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
   const [attachGraphic, setAttachGraphic] = useState(true);
   const [disclaimerInCopy, setDisclaimerInCopy] = useState(false);
   const [scheduledAt, setScheduledAt] = useState("");
@@ -158,13 +157,6 @@ export function SocialComposer({ library }: { library: LibraryPost[] }) {
               <img src={graphicUrl} alt="Generated graphic preview" className="w-full" />
             </div>
           )}
-          <label className="mt-4 block">
-            <span className="mb-1 block text-xs font-semibold text-ink">Video URL (optional — TikTok / YouTube Shorts)</span>
-            <input name="videoUrl" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} className={input} placeholder="https://…/short.mp4 (public)" />
-            <span className="mt-1 block text-[0.7rem] text-slate">
-              A public video uploads as a YouTube Short and posts to TikTok as a video. Without one, YouTube stages for manual posting and TikTok posts the graphic above.
-            </span>
-          </label>
         </div>
 
         <div className="card p-5">
