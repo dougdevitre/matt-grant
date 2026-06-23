@@ -35,10 +35,10 @@ Caption limits, hashtag norms, and image specs live in `CHANNELS`. Highlights:
 | X (Twitter) | 280 | 280 | 1–2 | ✅ implemented (text + image) |
 | Facebook | 5,000 | 250 | 0–2 | ✅ implemented (text + photo) |
 | Instagram | 2,200 | 125 | 3–5 (max 30) | ✅ implemented (image required) |
-| LinkedIn | 3,000 | 210 | 3–5 | ✅ implemented (text/link) |
-| TikTok | 4,000 | 100 | 3–5 | manual (stub) |
-| YouTube (Shorts) | 5,000 (desc) | 100 | 2–3 | manual (stub) |
-| Threads | 500 | 500 | 0–1 | manual (stub) |
+| LinkedIn | 3,000 | 210 | 3–5 | ✅ implemented (text/link + image) |
+| TikTok | 4,000 | 100 | 3–5 | manual (video-first) |
+| YouTube (Shorts) | 5,000 (desc) | 100 | 2–3 | manual (video-first) |
+| Threads | 500 | 500 | 0–1 | ✅ implemented (text + image) |
 
 These move — re-verify against each platform's current docs and update `CHANNELS` (the staleness convention from `compliance-baseline.md`). Sources used: Glow Social / TypeCount / Letter Counter 2026 character-limit guides.
 
@@ -64,7 +64,7 @@ Like SES, Clerk, and S3 elsewhere in the app, publishing **degrades gracefully**
 
 **Multi-Page (Meta):** when the account manages several Pages, all are stored and the connections panel shows a "Posting as" picker (`switchPageAction`) — no re-auth needed to switch.
 
-**2. Manual token fallback** (env/SSM flat names under `/matt-grant/<NAME>`): `X_ACCESS_TOKEN`; `FACEBOOK_PAGE_TOKEN`+`FACEBOOK_PAGE_ID`; `INSTAGRAM_ACCESS_TOKEN`+`INSTAGRAM_USER_ID`; `LINKEDIN_ACCESS_TOKEN`+`LINKEDIN_AUTHOR_URN`. Useful for testing.
+**2. Manual token fallback** (env/SSM flat names under `/matt-grant/<NAME>`): `X_ACCESS_TOKEN`; `FACEBOOK_PAGE_TOKEN`+`FACEBOOK_PAGE_ID`; `INSTAGRAM_ACCESS_TOKEN`+`INSTAGRAM_USER_ID`; `LINKEDIN_ACCESS_TOKEN`+`LINKEDIN_AUTHOR_URN`; `THREADS_ACCESS_TOKEN`+`THREADS_USER_ID`. Useful for testing. Threads has no in-app OAuth connect yet, so it uses this fallback only.
 
 | Channel | Connect flow | Posts | Scopes |
 |---|---|---|---|
@@ -72,7 +72,8 @@ Like SES, Clerk, and S3 elsewhere in the app, publishing **degrades gracefully**
 | Instagram | ✅ via the Meta connect | image required (container→publish) | `instagram_basic`, `instagram_content_publish` |
 | X | ✅ OAuth2 + PKCE (+ refresh) | text/link + image (v2 media) | `tweet.read tweet.write users.read offline.access` |
 | LinkedIn | ✅ OAuth2 (member; + image upload) | text/link + image (register-upload) | `openid profile w_member_social` |
-| TikTok / YouTube / Threads | — | not implemented (video / no adapter) | — |
+| Threads | manual token only (no OAuth yet) | text + image (container→publish) | `threads_basic`, `threads_content_publish` |
+| TikTok / YouTube | — | not implemented — **video-first**, the composer produces still graphics | — |
 
 **IAM:** the SSR runtime role must read the new prefix. `infra/setup-aws.sh` grants `ssm:GetParameter` on **both** `…parameter/matt-grant/*` and `…parameter/mattgrant/prod/social/*` (note the hyphen difference); re-run it after loading the params.
 
