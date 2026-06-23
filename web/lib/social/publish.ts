@@ -120,8 +120,12 @@ async function apiPublish(channel: ChannelId, post: PublishablePost, creds: Reso
   if (channel === "threads") return publishToThreads(post, creds);
   if (channel === "tiktok") return publishToTikTok(post, creds.token);
   if (channel === "youtube") return publishToYouTube(post, creds.token);
-  // Every ChannelId now has an adapter, so this is unreachable — kept as a typed
-  // exhaustiveness guard so adding a future channel without an adapter fails loudly.
+  // Exhaustiveness guard: the if-chain above narrows `channel` to `never` only when
+  // EVERY ChannelId is dispatched. If a channel is added to ChannelId (or a dispatch
+  // branch is dropped, as the #69 merge did to tiktok) this assignment fails tsc — so
+  // the build goes red instead of silently shipping a channel with no adapter.
+  const _exhaustive: never = channel;
+  void _exhaustive;
   return { ok: false, mode: "api", error: `Auto-publish for ${String(channel)} is not implemented yet — connect it or add its access token.` };
 }
 
