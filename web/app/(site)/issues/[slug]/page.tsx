@@ -5,6 +5,7 @@ import { ISSUES, issueSlugs, getIssue } from "@/lib/issues";
 import { CAMPAIGN, SITE_URL } from "@/lib/site";
 import { IssueCommit } from "@/components/IssueCommit";
 import { IssueActionPlan } from "@/components/IssueActionPlan";
+import { IssueChecklist } from "@/components/IssueChecklist";
 
 export function generateStaticParams() {
   return issueSlugs.map((slug) => ({ slug }));
@@ -113,8 +114,19 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
         </section>
       )}
 
+      {/* Curated, always-on checklist (no AI) */}
+      {issue.checklist && issue.checklist.length > 0 && (
+        <section className="border-t border-line bg-paper">
+          <div className="container-page py-16 sm:py-20">
+            <div className="mx-auto max-w-2xl">
+              <IssueChecklist issue={issue} />
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Make your plan for this issue */}
-      <section className="container-page py-16 sm:py-20">
+      <section id="make-your-plan" className="container-page py-16 sm:py-20">
         <div className="mx-auto max-w-2xl">
           <IssueActionPlan issueSlug={issue.slug} issueLabel={issue.eyebrow} />
         </div>
