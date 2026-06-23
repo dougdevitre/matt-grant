@@ -11,7 +11,8 @@ type Group = { label?: string; items: Item[] };
 
 // Grouped by task. Each item still carries the capability that gates it, so a
 // whole section disappears when the role can't see any of its items (e.g. a
-// supporter sees only Collaboration). Daily/overview first; admin last.
+// supporter/partner sees only the Peace Room). Daily/overview first; admin last.
+// Labels are short and plain (e.g. "Map", "Research") so the menu scans fast.
 const GROUPS: Group[] = [
   { items: [{ href: "/dashboard", label: "Overview", icon: "overview", cap: "viewOverview" }] },
   {
@@ -25,36 +26,36 @@ const GROUPS: Group[] = [
   {
     label: "Field",
     items: [
-      { href: "/dashboard/map", label: "3D field map", icon: "map", cap: "viewMap" },
-      { href: "/dashboard/targets", label: "Precinct targets", icon: "targets", cap: "viewTargets" },
+      { href: "/dashboard/map", label: "Map", icon: "map", cap: "viewMap" },
+      { href: "/dashboard/targets", label: "Targets", icon: "targets", cap: "viewTargets" },
       { href: "/dashboard/volunteers", label: "Volunteers", icon: "volunteers", cap: "manageVolunteers" },
       { href: "/dashboard/tasks", label: "Task board", icon: "tasks", cap: "manageTasks" },
     ],
   },
   {
-    label: "Content & comms",
+    label: "Comms",
     items: [
-      { href: "/dashboard/studio", label: "Graphics studio", icon: "studio", cap: "useStudio" },
-      { href: "/dashboard/assets", label: "Asset library", icon: "assets", cap: "manageAssets" },
-      { href: "/dashboard/photos", label: "Photo library", icon: "photos", cap: "viewPhotos" },
-      { href: "/dashboard/emails", label: "Email campaigns", icon: "campaign", cap: "draftEmailCampaign" },
-      { href: "/dashboard/social", label: "Social command", icon: "social", cap: "manageSocial" },
+      { href: "/dashboard/studio", label: "Graphics", icon: "studio", cap: "useStudio" },
+      // Photos folded into Assets — reach the photo library from the Assets page.
+      { href: "/dashboard/assets", label: "Assets", icon: "assets", cap: "manageAssets" },
+      { href: "/dashboard/emails", label: "Email", icon: "campaign", cap: "draftEmailCampaign" },
+      { href: "/dashboard/social", label: "Social", icon: "social", cap: "manageSocial" },
     ],
   },
   {
-    label: "Research & strategy",
+    label: "Strategy",
     items: [
-      { href: "/dashboard/research", label: "Opp. research", icon: "research", cap: "viewResearch" },
+      { href: "/dashboard/research", label: "Research", icon: "research", cap: "viewResearch" },
       { href: "/dashboard/plan", label: "Strategic plan", icon: "plan", cap: "viewPlan" },
     ],
   },
+  // Peace Room + Team share an unlabeled trailing group: a supporter/partner
+  // sees only Peace Room (no confusing "Admin" header), while staff also see Team.
   {
-    label: "Collaboration",
-    items: [{ href: "/dashboard/peace-room", label: "Peace Room", icon: "plan", cap: "viewPeaceRoom" }],
-  },
-  {
-    label: "Admin",
-    items: [{ href: "/dashboard/team", label: "Team & access", icon: "team", cap: "manageTeam" }],
+    items: [
+      { href: "/dashboard/peace-room", label: "Peace Room", icon: "plan", cap: "viewPeaceRoom" },
+      { href: "/dashboard/team", label: "Team & access", icon: "team", cap: "manageTeam" },
+    ],
   },
 ];
 
