@@ -18,6 +18,7 @@ export type StrategyInput = {
   level?: string;
   cadence?: string;
   depth?: string;
+  zip?: string;
 };
 
 export type StrategyResult = {
@@ -26,6 +27,7 @@ export type StrategyResult = {
   issueTitle: string;
   issueEyebrow: string;
   area: string;
+  zip?: string;
   level: Level;
   cadence: Cadence;
   depth: Depth;
@@ -34,6 +36,10 @@ export type StrategyResult = {
   disclaimer: string;
 };
 
+// US 5-digit zip only; anything else → undefined (local copy to keep the engine
+// decoupled from the DB-backed profile module; same rule as profile.cleanZip).
+const toZip = (z?: string): string | undefined => (String(z ?? "").trim().match(/^\d{5}/) ?? [])[0];
+
 // Coerce untrusted input to safe, known values.
 export function normalize(input: StrategyInput) {
   const issue = getIssue(String(input.issueSlug ?? "")) ?? ISSUES[0];
@@ -41,7 +47,8 @@ export function normalize(input: StrategyInput) {
   const level: Level = LEVELS.includes(input.level as Level) ? (input.level as Level) : "city";
   const cadence: Cadence = input.cadence === "daily" ? "daily" : "weekly";
   const depth: Depth = input.depth === "full" ? "full" : "public";
-  return { issue, area, level, cadence, depth };
+  const zip = toZip(input.zip);
+  return { issue, area, level, cadence, depth, zip };
 }
 
 // Only allow internal paths or the campaign's own https origin for AI-supplied
@@ -86,11 +93,12 @@ export function parseStrategy(text: string): { brief: string[]; actions: AgendaD
   }
 }
 
-function curatedBrief(issue: Issue, level: Level, depth: Depth): string[] {
+function curatedBrief(issue: Issue, level: Level, depth: Depth, area: string, zip?: string): string[] {
   if (depth === "public") return [issue.argument];
+  const where = zip ? `${area} (ZIP ${zip})` : area;
   const paras = [issue.argument, issue.signature?.body ?? issue.commitment];
   paras.push(
-    `At the ${LEVEL_LABEL[level]} level, the most responsible step is to inform your neighbors, show up to public meetings, and turn out the vote on ${CAMPAIGN.electionLabel}.`,
+    `In ${where}, at the ${LEVEL_LABEL[level]} level, the most responsible step is to inform your neighbors, show up to public meetings, and turn out the vote on ${CAMPAIGN.electionLabel}.`,
   );
   return paras;
 }
@@ -102,24 +110,25 @@ function curatedActions(area: string, slug: string, cadence: Cadence, depth: Dep
 
 // The platform-faithful fallback — also the no-key path. Pure (no network).
 export function buildCurated(input: StrategyInput): StrategyResult {
-  const { issue, area, level, cadence, depth } = normalize(input);
+  const { issue, area, level, cadence, depth, zip } = normalize(input);
   return {
     source: "curated",
     issueSlug: issue.slug,
     issueTitle: issue.title,
     issueEyebrow: issue.eyebrow,
     area,
+    zip,
     level,
     cadence,
     depth,
-    brief: curatedBrief(issue, level, depth),
+    brief: curatedBrief(issue, level, depth, area, zip),
     actions: curatedActions(area, issue.slug, cadence, depth),
     disclaimer: STRATEGY_DISCLAIMER,
   };
 }
 
 export async function generateStrategy(input: StrategyInput): Promise<StrategyResult> {
-  const { issue, area, level, cadence, depth } = normalize(input);
+  const { issue, area, level, cadence, depth, zip } = normalize(input);
   const curated = buildCurated(input);
 
   const KEY = (await getSecret("ANTHROPIC_API_KEY")) || process.env.MATT_GRANT_ANTHROPIC_API_KEY || "";
@@ -137,7 +146,7 @@ export async function generateStrategy(input: StrategyInput): Promise<StrategyRe
         model: MODEL,
         max_tokens: depth === "full" ? 1600 : 700,
         system: SYSTEM,
-        messages: [{ role: "user", content: userMessage({ issue, area, level, cadence, depth }) }],
+        messages: [{ role: "user", content: userMessage({ issue, area, level, cadence, depth, zip }) }],
       }),
       signal: AbortSignal.timeout(20_000),
     });

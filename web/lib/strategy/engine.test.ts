@@ -23,6 +23,13 @@ describe("normalize", () => {
   it("defaults empty area to a safe placeholder", () => {
     expect(normalize({ area: "   " }).area).toBe("your area");
   });
+
+  it("cleans zip to 5 digits, dropping ZIP+4 tail and junk", () => {
+    expect(normalize({ zip: "63017" }).zip).toBe("63017");
+    expect(normalize({ zip: "63017-1234" }).zip).toBe("63017");
+    expect(normalize({ zip: "abc" }).zip).toBeUndefined();
+    expect(normalize({}).zip).toBeUndefined();
+  });
 });
 
 describe("safeHref", () => {
@@ -68,9 +75,18 @@ describe("buildCurated", () => {
     expect(r.disclaimer).toContain("Paid for by");
   });
 
-  it("full depth: multi-paragraph brief mentioning the level", () => {
-    const r = buildCurated({ issueSlug: "family-courts", area: "Jefferson County", level: "county", cadence: "weekly", depth: "full" });
+  it("full depth: multi-paragraph brief mentioning the level + zip when given", () => {
+    const r = buildCurated({ issueSlug: "family-courts", area: "Wildwood", level: "county", cadence: "weekly", depth: "full", zip: "63040" });
     expect(r.brief.length).toBeGreaterThanOrEqual(2);
-    expect(r.brief.join(" ")).toContain("county");
+    const joined = r.brief.join(" ");
+    expect(joined).toContain("county");
+    expect(joined).toContain("63040");
+    expect(r.zip).toBe("63040");
+  });
+
+  it("differs per issue (each issue's own argument drives the plan)", () => {
+    const a = buildCurated({ issueSlug: "family-courts", depth: "public" });
+    const b = buildCurated({ issueSlug: "term-limits", depth: "public" });
+    expect(a.brief.join(" ")).not.toBe(b.brief.join(" "));
   });
 });
