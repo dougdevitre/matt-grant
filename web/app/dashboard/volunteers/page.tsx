@@ -1,6 +1,7 @@
 import { getVolunteers, getTasks } from "@/lib/queries";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { VolunteerBoard } from "@/components/dashboard/VolunteerBoard";
+import { VolunteerImport } from "@/components/dashboard/VolunteerImport";
 
 export default async function VolunteersPage() {
   const [{ connected, rows }, tasks] = await Promise.all([getVolunteers(), getTasks()]);
@@ -25,9 +26,11 @@ export default async function VolunteersPage() {
         ]}
       />
 
+      {connected && <VolunteerImport />}
+
       {rows.length === 0 ? (
         <div className="card p-10 text-center text-slate">
-          No volunteers yet. Leads from the public <span className="font-mono">/contact</span> form land here.
+          No volunteers yet. Leads from the public <span className="font-mono">/contact</span> form land here — or import a list above.
         </div>
       ) : (
         <VolunteerBoard rows={rows} taskCounts={taskCounts} />
