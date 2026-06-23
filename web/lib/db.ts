@@ -48,6 +48,7 @@ export const PK = {
   statements: (slug: string) => `STMT#${slug}`,
   profile: "PROFILE", // supporter involvement profile (issues, ways-to-help, zip)
   assets: "ASSET", // asset-library metadata (tags, uploader, original size) keyed by S3 key
+  onboarding: "ONBOARDING", // per-user "dismissed the Start-here guide" flag, SK = email
 } as const;
 
 export function newId(): string {
