@@ -5,6 +5,7 @@ import { listStaff } from "@/lib/staff";
 import { dollars } from "@/lib/money";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
+import { onboardingDismissed } from "@/lib/onboarding";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 
@@ -26,7 +27,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
   // not rely on the sidebar hiding the link. Non-staff roles that land here are
   // routed to the one surface they CAN see, instead of leaking totals or bouncing
   // into a denied-redirect loop: partner → Peace Room, supporter → community hub.
-  const { role } = await staffGate();
+  const { role, email } = await staffGate();
   if (!can(role, "viewOverview")) {
     if (can(role, "viewPeaceRoom")) redirect("/dashboard/peace-room");
     if (can(role, "viewCommunity")) redirect("/community");
@@ -55,6 +56,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
   const taskTotal = o.tasksTodo + o.tasksDoing + o.tasksDone;
   const doneMiles = o.milestones.filter((m) => m.done).length;
   const teamInvited = (await listStaff()).filter((s) => s.status === "active").length;
+  const showOnboarding = !(await onboardingDismissed(email));
 
   return (
     <>
@@ -66,7 +68,9 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
         </div>
       )}
 
-      <OnboardingChecklist hasData={o.donorCount > 0 || o.volunteerTotal > 0} teamInvited={teamInvited} />
+      {showOnboarding && (
+        <OnboardingChecklist hasData={o.donorCount > 0 || o.volunteerTotal > 0} teamInvited={teamInvited} />
+      )}
 
       <HowTo
         steps={[
