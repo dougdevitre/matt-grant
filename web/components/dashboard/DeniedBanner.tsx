@@ -37,7 +37,7 @@ export function DeniedBanner() {
       <button
         type="button"
         onClick={() => setDismissed(true)}
-        className="shrink-0 rounded-sm border border-line px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-eyebrow text-slate hover:border-ink hover:text-ink"
+        className="shrink-0 rounded-sm border border-line px-3 py-1.5 font-mono text-[0.65rem] uppercase tracking-eyebrow text-slate hover:border-ink hover:text-ink"
         aria-label="Dismiss"
       >
         Dismiss

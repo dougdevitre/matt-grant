@@ -31,6 +31,7 @@ export function VolunteerImport() {
         </p>
         <textarea
           name="csv"
+          aria-label="Volunteer CSV to import"
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={7}
