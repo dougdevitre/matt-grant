@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ISSUES, issueSlugs, getIssue } from "@/lib/issues";
 import { CAMPAIGN, SITE_URL } from "@/lib/site";
 import { IssueCommit } from "@/components/IssueCommit";
+import { IssueActionPlan } from "@/components/IssueActionPlan";
 
 export function generateStaticParams() {
   return issueSlugs.map((slug) => ({ slug }));
@@ -111,6 +112,13 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
           </div>
         </section>
       )}
+
+      {/* Make your plan for this issue */}
+      <section className="container-page py-16 sm:py-20">
+        <div className="mx-auto max-w-2xl">
+          <IssueActionPlan issueSlug={issue.slug} issueLabel={issue.eyebrow} />
+        </div>
+      </section>
 
       {/* Commit to this issue */}
       <section className="border-t border-line bg-paper">
