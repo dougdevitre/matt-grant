@@ -78,3 +78,57 @@ export function mapVolunteers(rows: string[][]): VolunteerMapResult {
   }
   return { valid, skipped, total: body.length, mappedColumns: Object.keys(idx) as (keyof VolunteerImportRow)[] };
 }
+
+export type DonorImportRow = { name: string; email?: string; city?: string; state?: string; zip?: string; employer?: string; occupation?: string; amountCents?: number };
+
+// Header → donor field. "amount" is special (parsed to cents).
+const DONOR_HEADER_ALIASES: Record<string, string> = {
+  name: "name", "full name": "name", fullname: "name", donor: "name", "donor name": "name", contact: "name",
+  email: "email", "email address": "email", "e-mail": "email", emailaddress: "email",
+  city: "city", town: "city",
+  state: "state", st: "state", province: "state",
+  zip: "zip", zipcode: "zip", "zip code": "zip", postal: "zip", "postal code": "zip",
+  employer: "employer", company: "employer", organization: "employer",
+  occupation: "occupation", job: "occupation", title: "occupation", profession: "occupation",
+  amount: "amount", "amount $": "amount", contribution: "amount", gift: "amount", donation: "amount", total: "amount",
+};
+
+export type DonorMapResult = { valid: DonorImportRow[]; skipped: number; total: number; mappedColumns: string[] };
+
+// Map parsed CSV rows (first row = header) into donor rows. Requires a name; an
+// amount is optional (lets you import a donor contact list without gifts). FEC
+// employer/occupation are carried through when present.
+export function mapDonors(rows: string[][]): DonorMapResult {
+  if (rows.length === 0) return { valid: [], skipped: 0, total: 0, mappedColumns: [] };
+  const header = rows[0].map((h) => h.trim().toLowerCase());
+  const idx: Record<string, number> = {};
+  header.forEach((h, i) => {
+    const f = DONOR_HEADER_ALIASES[h];
+    if (f && idx[f] === undefined) idx[f] = i;
+  });
+
+  const body = rows.slice(1);
+  const valid: DonorImportRow[] = [];
+  let skipped = 0;
+  for (const r of body) {
+    const get = (f: string) => (idx[f] !== undefined ? (r[idx[f]] ?? "").trim() : "");
+    const name = get("name");
+    if (!name) {
+      skipped++;
+      continue;
+    }
+    const amt = Number(get("amount").replace(/[$,\s]/g, ""));
+    const amountCents = isFinite(amt) && amt > 0 ? Math.round(amt * 100) : undefined;
+    valid.push({
+      name,
+      email: get("email").toLowerCase() || undefined,
+      city: get("city") || undefined,
+      state: get("state") || undefined,
+      zip: get("zip") || undefined,
+      employer: get("employer") || undefined,
+      occupation: get("occupation") || undefined,
+      amountCents,
+    });
+  }
+  return { valid, skipped, total: body.length, mappedColumns: Object.keys(idx) };
+}

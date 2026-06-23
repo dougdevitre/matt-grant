@@ -4,6 +4,7 @@ import { dollars, FEC_INDIVIDUAL_PER_ELECTION_CENTS } from "@/lib/money";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { addDonor } from "@/app/dashboard/actions";
 import { DonorTable } from "@/components/dashboard/DonorTable";
+import { DonorImport } from "@/components/dashboard/DonorImport";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 
@@ -37,6 +38,8 @@ export default async function DonorsPage() {
           "Educational tooling, not legal advice; reconcile against your committee records.",
         ]}
       />
+
+      {full && connected && <DonorImport />}
 
       {full ? (
       <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
