@@ -1,13 +1,20 @@
-import { getVolunteers, getTasks } from "@/lib/queries";
+import { getVolunteers, getTasks, getDonors } from "@/lib/queries";
+import { emailSet } from "@/lib/engagement";
+import { staffGate } from "@/lib/auth";
+import { can } from "@/lib/rbac";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { VolunteerBoard } from "@/components/dashboard/VolunteerBoard";
 import { VolunteerImport } from "@/components/dashboard/VolunteerImport";
 
 export default async function VolunteersPage() {
+  const { role } = await staffGate();
   const [{ connected, rows }, tasks] = await Promise.all([getVolunteers(), getTasks()]);
   // How many tasks each volunteer is assigned (for the card badge + detail link).
   const taskCounts: Record<string, number> = {};
   for (const t of tasks.rows) if (t.volunteerId) taskCounts[t.volunteerId] = (taskCounts[t.volunteerId] ?? 0) + 1;
+  // Flag volunteers who have also given — only for staff allowed to see donor
+  // totals (captains+admins); members never learn donor identities here.
+  const donorEmails = can(role, "viewFinanceTotals") ? [...emailSet((await getDonors()).rows)] : [];
 
   return (
     <>
@@ -40,7 +47,7 @@ export default async function VolunteersPage() {
           No volunteers yet. Leads from the public <span className="font-mono">/contact</span> form land here — or import a list above.
         </div>
       ) : (
-        <VolunteerBoard rows={rows} taskCounts={taskCounts} />
+        <VolunteerBoard rows={rows} taskCounts={taskCounts} donorEmails={donorEmails} />
       )}
     </>
   );
