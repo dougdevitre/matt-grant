@@ -8,7 +8,7 @@ import { getDonors, getVolunteers } from "@/lib/queries";
 import { sesEnabled } from "@/lib/email/send";
 import { sendBroadcastEmail } from "@/lib/campaignSend";
 import { getBroadcast } from "@/lib/email/broadcasts";
-import { createCampaign, drainOnce } from "@/lib/campaigns";
+import { createCampaign, drainOnce, type Recipient } from "@/lib/campaigns";
 import { segmentEmails, isWayToHelp } from "@/lib/profile";
 import { isIssueId } from "@/lib/integrations/research/issues";
 
@@ -25,28 +25,40 @@ async function baseUrl(): Promise<string> {
   return host ? `${proto}://${host}` : "";
 }
 
-async function recipientsFor(audience: Audience): Promise<string[]> {
-  const out = new Set<string>();
+// First token of a stored full name → the {{first_name}} merge value. Profile
+// segments store no name, so those recipients fall back to a neutral greeting.
+const firstNameOf = (name?: string | null): string | undefined => (name ?? "").trim().split(/\s+/)[0] || undefined;
+
+async function recipientsFor(audience: Audience): Promise<Recipient[]> {
+  const byEmail = new Map<string, Recipient>();
+  const add = (email?: string | null, firstName?: string) => {
+    if (!email) return;
+    const e = email.toLowerCase();
+    const existing = byEmail.get(e);
+    if (!existing) byEmail.set(e, firstName ? { email: e, firstName } : { email: e });
+    else if (!existing.firstName && firstName) existing.firstName = firstName; // keep the first name we learn for this address
+  };
+
   // Profile segments (supporter-driven). Interest, or way-they-want-to-help.
   if (audience.startsWith("issue:")) {
     const issue = audience.slice("issue:".length);
-    if (isIssueId(issue)) (await segmentEmails({ issue })).forEach((e) => out.add(e));
-    return [...out];
+    if (isIssueId(issue)) (await segmentEmails({ issue })).forEach((e) => add(e));
+    return [...byEmail.values()];
   }
   if (audience.startsWith("way:")) {
     const wayToHelp = audience.slice("way:".length);
-    if (isWayToHelp(wayToHelp)) (await segmentEmails({ wayToHelp })).forEach((e) => out.add(e));
-    return [...out];
+    if (isWayToHelp(wayToHelp)) (await segmentEmails({ wayToHelp })).forEach((e) => add(e));
+    return [...byEmail.values()];
   }
   if (audience === "volunteers" || audience === "all") {
     const { rows } = await getVolunteers();
-    rows.forEach((v) => v.email && out.add(v.email.toLowerCase()));
+    rows.forEach((v) => add(v.email, firstNameOf(v.name)));
   }
   if (audience === "donors" || audience === "all") {
     const { rows } = await getDonors();
-    rows.forEach((d) => d.email && out.add(d.email.toLowerCase()));
+    rows.forEach((d) => add(d.email, firstNameOf(d.name)));
   }
-  return [...out];
+  return [...byEmail.values()];
 }
 
 function parse(formData: FormData) {

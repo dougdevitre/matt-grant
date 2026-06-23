@@ -24,6 +24,16 @@ export function finalizeUpdateExpression(done: boolean): string {
 }
 
 export type CampaignStatus = "scheduled" | "queued" | "sending" | "sent" | "failed";
+
+// A recipient carries the address plus the data we personalize on (currently the
+// first name → {{first_name}} greeting). Stored as objects, but campaigns queued
+// before personalization shipped hold bare email strings, so reads normalize both.
+export type Recipient = { email: string; firstName?: string };
+export function normalizeRecipient(r: string | Recipient): Recipient {
+  if (typeof r === "string") return { email: r };
+  return r.firstName ? { email: r.email, firstName: r.firstName } : { email: r.email };
+}
+
 type CampaignItem = {
   SK: string;
   id: string;
@@ -35,7 +45,7 @@ type CampaignItem = {
   audience: string;
   subjectPreview: string;
   status: CampaignStatus;
-  recipients: string[];
+  recipients: (string | Recipient)[];
   cursor: number;
   sentCount: number;
   suppressedCount: number;
@@ -66,7 +76,7 @@ export async function createCampaign(input: {
   topic: TopicKey;
   vars: Record<string, string>;
   audience: string;
-  recipients: string[];
+  recipients: Recipient[];
   subjectPreview: string;
   createdBy: string;
   scheduledAt?: string;
@@ -204,7 +214,7 @@ export async function drainOnce(
     return { id: active.id, sent: active.sentCount ?? 0, done: true, cursor: active.cursor ?? 0, total: active.recipients?.length ?? 0 };
   }
 
-  const recipients = active.recipients ?? [];
+  const recipients = (active.recipients ?? []).map(normalizeRecipient);
   const start = active.cursor ?? 0;
 
   // Already fully drained → finalize idempotently.
@@ -256,12 +266,12 @@ export async function drainOnce(
   const slice = recipients.slice(start, end);
   let sentDelta = 0;
   let suppressedDelta = 0;
-  for (const addr of slice) {
-    if (await isSuppressed(addr, active.topic)) {
+  for (const rcpt of slice) {
+    if (await isSuppressed(rcpt.email, active.topic)) {
       suppressedDelta++;
       continue;
     }
-    const r = await sendBroadcastEmail({ to: addr, email, base, campaignId: active.id });
+    const r = await sendBroadcastEmail({ to: rcpt.email, email, base, campaignId: active.id, firstName: rcpt.firstName });
     if (r.sent) sentDelta++;
   }
 

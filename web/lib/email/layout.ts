@@ -33,6 +33,7 @@ export type EmailOpts = {
   subtitle?: string;
   heroImage?: { src: string; alt: string };
   bodyHtml: string;
+  greeting?: boolean; // prepend "Hi {{first_name}}," to the body (broadcast personalization)
   signature?: boolean;
   cards?: EmailCard[];
   button?: EmailButton;
@@ -125,7 +126,7 @@ ${preheader}
         ${eyebrow}
         <h1 style="margin:0 0 ${o.subtitle ? "14" : "22"}px;font-family:${DISPLAY};font-size:32px;font-weight:600;line-height:1.18;letter-spacing:-0.3px;color:${C.navy};">${o.title}</h1>
         ${subtitle}
-        <div style="font-family:${SANS};font-size:16px;line-height:1.7;color:${C.ink};">${o.bodyHtml}</div>
+        <div style="font-family:${SANS};font-size:16px;line-height:1.7;color:${C.ink};">${o.greeting ? `<p style="margin:0 0 16px;">Hi {{first_name}},</p>` : ""}${o.bodyHtml}</div>
         ${signature}
         ${buttons}
       </td></tr>
@@ -147,8 +148,8 @@ ${preheader}
 }
 
 // Plain-text alternative (multipart).
-export function renderText(opts: { title: string; lines: string[]; buttonUrl?: string; unsubscribeUrl?: string }): string {
-  const parts = [opts.title, "", ...opts.lines];
+export function renderText(opts: { title: string; lines: string[]; buttonUrl?: string; unsubscribeUrl?: string; greeting?: boolean }): string {
+  const parts = [opts.title, "", ...(opts.greeting ? ["Hi {{first_name}},", ""] : []), ...opts.lines];
   if (opts.buttonUrl) parts.push("", opts.buttonUrl);
   parts.push("", "—", `${CAMPAIGN.candidate} for Congress`, CAMPAIGN.address, CAMPAIGN.paidForBy);
   if (opts.unsubscribeUrl) parts.push(`Unsubscribe: ${opts.unsubscribeUrl}`);
