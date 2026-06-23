@@ -5,6 +5,8 @@ import { ddb, TABLE, PK, newId, dbConfigured } from "@/lib/db";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { volunteerWelcome, contactReceipt } from "@/lib/email/templates";
 import { CAMPAIGN } from "@/lib/site";
+import { toE164 } from "@/lib/sms/send";
+import { recordConsent } from "@/lib/sms/consent";
 
 export type ContactResult = { ok: boolean; message: string };
 
@@ -46,6 +48,7 @@ export async function submitContact(_prev: ContactResult | null, formData: FormD
   const interestTags = formData.getAll("interests").map(String).filter(Boolean);
   const interests = interestTags.join(", ");
   const message = String(formData.get("message") ?? "").trim();
+  const smsOptIn = !!String(formData.get("smsOptIn") ?? "").trim();
 
   // Honeypot: a hidden field real users never see or fill. If it has a value,
   // it's almost certainly a bot — return a success message without saving or
@@ -100,6 +103,19 @@ export async function submitContact(_prev: ContactResult | null, formData: FormD
         },
       }),
     );
+    // Explicit SMS opt-in (TCPA): record consent only when the box was checked
+    // and the phone normalizes to a valid US number. Best-effort — never fail the
+    // form on it, and never opt in a number that wasn't explicitly consented.
+    if (smsOptIn) {
+      const e164 = toE164(phone);
+      if (e164) {
+        try {
+          await recordConsent(e164, "web-form");
+        } catch {
+          /* best-effort */
+        }
+      }
+    }
     await notify({ name, email, phone, city, interests, message });
     return { ok: true, message: "Thank you! The campaign will be in touch soon. Onward to August 4." };
   } catch {
