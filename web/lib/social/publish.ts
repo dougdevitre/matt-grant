@@ -14,6 +14,10 @@ import { composeText, type ChannelId } from "@/lib/social/channels";
 import { getFreshConnection } from "@/lib/social/oauth/refresh";
 import { META_GRAPH } from "@/lib/social/credentials";
 
+// Threads (Meta) has its own Graph host, versioned independently of the Facebook
+// Graph. Both publishing steps and the connection check go through it.
+const THREADS_GRAPH = "https://graph.threads.net/v1.0";
+
 export type PublishablePost = {
   caption: string;
   hashtags: string[];
@@ -36,7 +40,7 @@ const CHANNEL_CONFIG: Record<ChannelId, ChannelConfig> = {
   linkedin: { token: "LINKEDIN_ACCESS_TOKEN", id: "LINKEDIN_AUTHOR_URN" },
   tiktok: { token: "TIKTOK_ACCESS_TOKEN" },
   youtube: { token: "YOUTUBE_ACCESS_TOKEN" },
-  threads: { token: "THREADS_ACCESS_TOKEN" },
+  threads: { token: "THREADS_ACCESS_TOKEN", id: "THREADS_USER_ID" },
 };
 
 // The resolved credentials a publisher needs: an access token, plus the account
@@ -78,6 +82,10 @@ export async function resolveCredentials(channel: ChannelId): Promise<ResolvedCr
     const urn = await getSecret("LINKEDIN_AUTHOR_URN");
     return urn ? { token, authorUrn: urn } : null;
   }
+  if (channel === "threads") {
+    const id = await getSecret("THREADS_USER_ID");
+    return id ? { token, accountId: id } : null;
+  }
   return { token };
 }
 
@@ -108,6 +116,7 @@ async function apiPublish(channel: ChannelId, post: PublishablePost, creds: Reso
   if (channel === "facebook") return publishToFacebook(post, creds);
   if (channel === "instagram") return publishToInstagram(post, creds);
   if (channel === "linkedin") return publishToLinkedIn(post, creds);
+  if (channel === "threads") return publishToThreads(post, creds);
   return { ok: false, mode: "api", error: `Auto-publish for ${channel} is not implemented yet — connect it or remove its ${CHANNEL_CONFIG[channel].token}.` };
 }
 
@@ -132,9 +141,10 @@ async function metaPost(url: string, params: Record<string, string>): Promise<{ 
 }
 
 // LinkedIn. Posts a UGC share as the configured author (org or person URN) via
-// /v2/ugcPosts. Text-only (link rides in the commentary text); image sharing is a
-// separate register-upload flow left as a follow-up. Needs LINKEDIN_AUTHOR_URN
-// (e.g. urn:li:organization:123) + a token with w_organization_social/w_member_social.
+// /v2/ugcPosts. Text shares carry the link in the commentary text; an attached
+// graphic is sent through the register-upload flow and referenced as an IMAGE asset.
+// Needs LINKEDIN_AUTHOR_URN (e.g. urn:li:organization:123) + a token with
+// w_organization_social/w_member_social.
 async function publishToLinkedIn(post: PublishablePost, creds: ResolvedCreds): Promise<PublishResult> {
   const author = creds.authorUrn;
   const token = creds.token;
@@ -258,6 +268,30 @@ async function publishToInstagram(post: PublishablePost, creds: ResolvedCreds): 
   // Images are processed near-instantly, so publish straight away. (Video/Reels
   // would need a status poll on the container before publishing.)
   const published = await metaPost(`${META_GRAPH}/${igUserId}/media_publish`, { creation_id: created.id, access_token: token });
+  return published.ok ? { ok: true, mode: "api", externalId: published.id } : { ok: false, mode: "api", error: published.error };
+}
+
+// Threads (Meta's text-first network). Same two-step container → publish flow as
+// Instagram, but on graph.threads.net — and text-only is allowed (no image
+// required), so a plain caption posts as a TEXT thread and an attached graphic as
+// an IMAGE thread. Needs THREADS_USER_ID + a token with
+// threads_basic/threads_content_publish.
+async function publishToThreads(post: PublishablePost, creds: ResolvedCreds): Promise<PublishResult> {
+  const userId = creds.accountId;
+  const token = creds.token;
+  if (!userId) return { ok: false, mode: "api", error: "Threads user id is not set." };
+  const media = absoluteMediaUrl(post.mediaUrl);
+
+  const created = await metaPost(`${THREADS_GRAPH}/${userId}/threads`, {
+    media_type: media ? "IMAGE" : "TEXT",
+    text: copyText(post),
+    ...(media ? { image_url: media } : {}),
+    access_token: token,
+  });
+  if (!created.ok) return { ok: false, mode: "api", error: created.error };
+  if (!created.id) return { ok: false, mode: "api", error: "Threads did not return a media container id." };
+
+  const published = await metaPost(`${THREADS_GRAPH}/${userId}/threads_publish`, { creation_id: created.id, access_token: token });
   return published.ok ? { ok: true, mode: "api", externalId: published.id } : { ok: false, mode: "api", error: published.error };
 }
 
@@ -404,6 +438,10 @@ export async function verifyChannel(channel: ChannelId): Promise<ChannelStatus> 
     } catch (err) {
       return { channel, mode: "api", ok: false, detail: err instanceof Error ? err.message : "network error reaching X" };
     }
+  }
+  if (channel === "threads") {
+    const r = await metaGet(`${THREADS_GRAPH}/${creds.accountId}?fields=username&access_token=${encodeURIComponent(token)}`, "username");
+    return r.ok ? { channel, mode: "api", ok: true, detail: `Connected to @${r.value}.` } : { channel, mode: "api", ok: false, detail: r.error };
   }
   return { channel, mode: "api", ok: true, detail: "Token present — no read-check implemented for this channel yet." };
 }
