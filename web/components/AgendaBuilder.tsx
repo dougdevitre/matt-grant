@@ -1,17 +1,63 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { ISSUES } from "@/lib/issues";
-import { buildAgenda, AREA_SUGGESTIONS, type Cadence } from "@/lib/actions";
+import { buildAgenda, AREA_SUGGESTIONS, type Cadence, type AgendaDay } from "@/lib/actions";
 import { CAMPAIGN, ASSETS_CDN } from "@/lib/site";
+import { LEVELS, type Level } from "@/lib/strategy/prompt";
+import type { StrategyResult } from "@/lib/strategy/engine";
+
+const LEVEL_OPTION: Record<Level, string> = {
+  county: "County",
+  city: "City / town",
+  "school-district": "School district",
+};
 
 export function AgendaBuilder() {
   const [area, setArea] = useState("");
   const [issueSlug, setIssueSlug] = useState(ISSUES[0].slug);
   const [cadence, setCadence] = useState<Cadence>("weekly");
+  const [level, setLevel] = useState<Level>("city");
+
+  // AI result (when generated); cleared whenever an input changes so we never
+  // show a plan that no longer matches the controls.
+  const [ai, setAi] = useState<StrategyResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+
+  function reset<T>(setter: (v: T) => void) {
+    return (v: T) => {
+      setter(v);
+      setAi(null);
+      setErr("");
+    };
+  }
 
   const agenda = useMemo(() => buildAgenda(area, issueSlug, cadence), [area, issueSlug, cadence]);
   const issue = ISSUES.find((i) => i.slug === issueSlug)!;
+
+  const days: AgendaDay[] = ai?.actions ?? agenda.days;
+  const brief: string[] = ai?.brief ?? [];
+  const displayArea = (area || "your area").trim();
+
+  async function generate() {
+    setLoading(true);
+    setErr("");
+    try {
+      const res = await fetch("/api/act/strategy", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ issueSlug, area, level, cadence, depth: "public" }),
+      });
+      if (!res.ok) throw new Error("rate");
+      setAi((await res.json()) as StrategyResult);
+    } catch {
+      setErr("Couldn't build the smart plan just now — your checklist below still works.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="mt-8">
@@ -22,13 +68,13 @@ export function AgendaBuilder() {
             <span className="text-xs font-semibold text-ink">Where you live</span>
             <input
               value={area}
-              onChange={(e) => setArea(e.target.value)}
+              onChange={(e) => reset(setArea)(e.target.value)}
               placeholder="Your town or county"
               className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink"
             />
             <span className="mt-2 flex flex-wrap gap-1.5">
               {AREA_SUGGESTIONS.slice(0, 6).map((a) => (
-                <button key={a} onClick={() => setArea(a)} className="rounded-sm border border-line px-2 py-0.5 text-[0.65rem] text-slate hover:border-ink">
+                <button key={a} onClick={() => reset(setArea)(a)} className="rounded-sm border border-line px-2 py-0.5 text-[0.65rem] text-slate hover:border-ink">
                   {a}
                 </button>
               ))}
@@ -38,7 +84,7 @@ export function AgendaBuilder() {
             <span className="text-xs font-semibold text-ink">The fight you&rsquo;ll champion</span>
             <select
               value={issueSlug}
-              onChange={(e) => setIssueSlug(e.target.value)}
+              onChange={(e) => reset(setIssueSlug)(e.target.value)}
               className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink"
             >
               {ISSUES.map((i) => (
@@ -48,18 +94,39 @@ export function AgendaBuilder() {
           </label>
         </div>
         <div className="mt-5 flex flex-wrap items-center gap-3">
+          <span className="text-xs font-semibold text-ink">Focus level</span>
+          {LEVELS.map((lv) => (
+            <button
+              key={lv}
+              onClick={() => reset(setLevel)(lv)}
+              className={`rounded-sm border px-3 py-1.5 text-xs font-semibold transition-colors ${level === lv ? "border-ink bg-ink text-paper" : "border-line text-slate hover:border-ink"}`}
+            >
+              {LEVEL_OPTION[lv]}
+            </button>
+          ))}
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <span className="text-xs font-semibold text-ink">Plan length</span>
           {(["daily", "weekly"] as Cadence[]).map((c) => (
             <button
               key={c}
-              onClick={() => setCadence(c)}
+              onClick={() => reset(setCadence)(c)}
               className={`rounded-sm border px-3 py-1.5 text-xs font-semibold capitalize transition-colors ${cadence === c ? "border-ink bg-ink text-paper" : "border-line text-slate hover:border-ink"}`}
             >
               {c}
             </button>
           ))}
-          <button onClick={() => window.print()} className="btn-primary ml-auto">Print / Save as PDF</button>
+          <button onClick={generate} disabled={loading} className="btn-ink ml-auto disabled:opacity-50">
+            {loading ? "Building…" : "Generate smart plan"}
+          </button>
+          <button onClick={() => window.print()} className="btn-primary">Print / Save as PDF</button>
         </div>
+        {err && <p className="mt-3 text-xs text-brick">{err}</p>}
+        <p className="mt-3 text-xs text-slate">
+          The smart plan tailors a short brief + actions to your {LEVEL_OPTION[level].toLowerCase()} using AI, grounded in
+          Matt&rsquo;s four priorities. Want the deeper county / city / school-district strategy?{" "}
+          <Link href="/dashboard/peace-room" className="underline hover:text-ink">Open the Peace Room →</Link>
+        </p>
       </div>
 
       {/* The printable plan */}
@@ -75,12 +142,20 @@ export function AgendaBuilder() {
           {cadence === "daily" ? "Today's actions" : "This week's actions"}
         </h2>
         <p className="mt-2 text-slate">
-          For <strong className="text-ink">{agenda.area}</strong> · championing{" "}
+          For <strong className="text-ink">{displayArea}</strong> · championing{" "}
           <strong className="text-ink">{issue.eyebrow}</strong> — every action builds awareness for August 4.
         </p>
 
+        {brief.length > 0 && (
+          <div className="mt-6 space-y-3 border-l-2 border-gold/60 pl-4">
+            {brief.map((p, i) => (
+              <p key={i} className="text-sm leading-relaxed text-ink">{p}</p>
+            ))}
+          </div>
+        )}
+
         <div className="mt-8 space-y-7">
-          {agenda.days.map((d) => (
+          {days.map((d) => (
             <section key={d.label}>
               <div className="flex items-baseline gap-3">
                 <span className="font-mono text-xs font-bold uppercase tracking-eyebrow text-field">{d.label}</span>
@@ -114,7 +189,9 @@ export function AgendaBuilder() {
 
         <footer className="mt-9 border-t border-line pt-5">
           <p className="font-display text-base font-semibold text-ink">Vote Matt Grant · August 4, 2026</p>
-          <p className="mt-1 text-xs text-slate">mattgrantforcongress.org · {CAMPAIGN.paidForBy}</p>
+          <p className="mt-1 text-xs text-slate">
+            {ai ? `${ai.disclaimer} · ` : ""}mattgrantforcongress.org · {CAMPAIGN.paidForBy}
+          </p>
         </footer>
       </article>
     </div>
