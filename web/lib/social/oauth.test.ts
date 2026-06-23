@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { xProvider } from "@/lib/social/oauth/x";
 import { linkedinProvider } from "@/lib/social/oauth/linkedin";
+import { tiktokProvider } from "@/lib/social/oauth/tiktok";
 import { ensureFresh } from "@/lib/social/oauth/refresh";
 import { _clearAppParamCache } from "@/lib/social/credentials";
 import type { SocialConnection } from "@/lib/social/connections";
@@ -93,6 +94,49 @@ describe("LinkedIn provider (OAuth2)", () => {
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.conn).toMatchObject({ platform: "linkedin", accessToken: "at", authorUrn: "urn:li:person:ABC123", accountName: "Matt Grant" });
+  });
+});
+
+describe("TikTok provider (OAuth2 + PKCE)", () => {
+  beforeEach(() => {
+    process.env.SOCIAL_TIKTOK_CLIENT_KEY = "tkkey";
+    process.env.SOCIAL_TIKTOK_CLIENT_SECRET = "tksecret";
+    process.env.SOCIAL_TIKTOK_REDIRECT_URI = "https://mattgrantforcongress.org/api/social/callback/tiktok";
+    _clearAppParamCache();
+  });
+  afterEach(() => {
+    delete process.env.SOCIAL_TIKTOK_CLIENT_KEY;
+    delete process.env.SOCIAL_TIKTOK_CLIENT_SECRET;
+    delete process.env.SOCIAL_TIKTOK_REDIRECT_URI;
+    vi.restoreAllMocks();
+  });
+
+  it("builds a PKCE authorize URL with client_key and video.publish scope", async () => {
+    const r = await tiktokProvider.authorizeUrl("st");
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    const u = new URL(r.url);
+    expect(u.searchParams.get("client_key")).toBe("tkkey");
+    expect(u.searchParams.get("code_challenge_method")).toBe("S256");
+    expect(u.searchParams.get("scope")).toContain("video.publish");
+    expect(r.verifier).toBeTruthy();
+  });
+
+  it("exchanges a code for tokens and the @display_name", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(res(200, { access_token: "at", refresh_token: "rt", expires_in: 86400, open_id: "oid" }))
+      .mockResolvedValueOnce(res(200, { data: { user: { display_name: "MattGrant" } } }));
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await tiktokProvider.exchangeCode("code", "verifier");
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.conn).toMatchObject({ platform: "tiktok", accessToken: "at", refreshToken: "rt", accountName: "@MattGrant" });
+  });
+
+  it("fails the exchange without a PKCE verifier", async () => {
+    const r = await tiktokProvider.exchangeCode("code", undefined);
+    expect(r.ok).toBe(false);
   });
 });
 
