@@ -12,7 +12,11 @@ const nextConfig = {
   // ships a native binary — keep it a runtime require from node_modules (not
   // webpack-bundled) so resolution works and the binary is traced into the
   // serverless function. Used by lib/social/video.ts for the YouTube Short render.
-  serverExternalPackages: ["@ffmpeg-installer/ffmpeg"],
+  // sharp ships native binaries (used at runtime by the asset-library upload route to
+  // compress images, and at build time by scripts/*.mjs). Keep it external so the
+  // platform binary resolves and is traced into the serverless function rather than
+  // webpack-bundled — same reasoning as ffmpeg above.
+  serverExternalPackages: ["@ffmpeg-installer/ffmpeg", "sharp"],
   eslint: {
     // Lint is run separately; don't fail production builds on lint.
     ignoreDuringBuilds: true,
