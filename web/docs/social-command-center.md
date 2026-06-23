@@ -97,6 +97,13 @@ the email drain — Amplify has no native cron.) It claims each due post
 overlapping runs can't double-post. "Post now" in the UI publishes the first item
 inline so it goes out immediately.
 
+**Auth (both cron routes):** `POST`-only behind the shared, timing-safe,
+fail-closed `cronAuthorized()` gate (`lib/cron-auth.ts`) — the bearer is compared
+against `CRON_SECRET`. The `GET` handler was removed to shrink the trigger surface;
+EventBridge already invokes via POST (`setup-aws.sh` `--http-method POST`). Per-request
+signing/replay nonces aren't used because the EventBridge Connection can only inject a
+**static** `Authorization` header, so there's nothing to sign over per request.
+
 ## Media / S3
 
 Attaching an **on-brand graphic** uses the existing `/api/graphics` generator (which already bakes the FEC "Paid for by" line) and the same S3 + CloudFront path the Graphics Studio uses. Admins can also paste any public image URL (e.g. an Asset-library CloudFront link). The graphic's `mediaUrl` rides along with the scheduled post and is what API publishers attach / manual posters download.
