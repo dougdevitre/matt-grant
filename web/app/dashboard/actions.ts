@@ -6,6 +6,15 @@ import { ddb, TABLE, PK, newId, dbConfigured } from "@/lib/db";
 import { staffGate } from "@/lib/auth";
 import { can, type Capability } from "@/lib/rbac";
 import { recordContribution } from "@/lib/donors";
+import { dismissOnboarding } from "@/lib/onboarding";
+
+// Hide the "Start here" guide for the signed-in staffer (a per-user UI
+// preference — no capability needed beyond being signed in).
+export async function dismissOnboardingAction() {
+  const { email } = await staffGate();
+  await dismissOnboarding(email);
+  revalidatePath("/dashboard");
+}
 
 function requireDb() {
   if (!dbConfigured) throw new Error("Database not connected. Set DYNAMODB_TABLE.");
