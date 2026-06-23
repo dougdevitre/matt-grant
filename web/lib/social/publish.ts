@@ -10,20 +10,25 @@
 
 import { getSecret } from "@/lib/ssm";
 import { SITE_URL } from "@/lib/site";
-import { composeText, type ChannelId } from "@/lib/social/channels";
-import { getFreshConnection } from "@/lib/social/oauth/refresh";
-import { META_GRAPH } from "@/lib/social/credentials";
-import { renderStillToMp4 } from "@/lib/social/video";
+import { composeText, CHANNELS, type ChannelId } from "@/lib/social/channels";
 
-// Threads (Meta) has its own Graph host, versioned independently of the Facebook
-// Graph. Both publishing steps and the connection check go through it.
-const THREADS_GRAPH = "https://graph.threads.net/v1.0";
+// Meta Graph API version. Override with META_GRAPH_VERSION as Meta deprecates
+// versions (~2yr cadence). Both Facebook Page + Instagram publishing go through it.
+const META_GRAPH = `https://graph.facebook.com/${process.env.META_GRAPH_VERSION || "v21.0"}`;
+// Threads has its own Graph host but the same container→publish shape as Instagram.
+const THREADS_GRAPH = `https://graph.threads.net/${process.env.THREADS_GRAPH_VERSION || "v1.0"}`;
+// TikTok Content Posting API (direct post) + creator-info read.
+const TIKTOK_API = "https://open.tiktokapis.com/v2";
+// YouTube Data API v3 — resumable upload host + the read host for verifyChannel.
+const YOUTUBE_UPLOAD = "https://www.googleapis.com/upload/youtube/v3/videos";
+const YOUTUBE_API = "https://www.googleapis.com/youtube/v3";
 
 export type PublishablePost = {
   caption: string;
   hashtags: string[];
   link?: string;
   mediaUrl?: string; // public CloudFront URL of the attached image
+  videoUrl?: string; // public URL of an attached video (TikTok / YouTube Shorts)
 };
 
 export type PublishResult =
@@ -112,17 +117,17 @@ export function absoluteMediaUrl(url?: string): string | undefined {
 // Per-channel API senders. Only reached when the channel is fully configured, so
 // the default deployment never calls them. Channels without an adapter fail loudly
 // rather than silently dropping a post the admin believes went out via API.
-async function apiPublish(channel: ChannelId, post: PublishablePost, creds: ResolvedCreds): Promise<PublishResult> {
-  if (channel === "x") return publishToX(post, creds.token);
-  if (channel === "facebook") return publishToFacebook(post, creds);
-  if (channel === "instagram") return publishToInstagram(post, creds);
-  if (channel === "linkedin") return publishToLinkedIn(post, creds);
-  if (channel === "threads") return publishToThreads(post, creds);
-  if (channel === "tiktok") return publishToTikTok(post, creds.token);
-  if (channel === "youtube") return publishToYouTube(post, creds.token);
-  // Every ChannelId now has an adapter, so this is unreachable — kept as a typed
-  // exhaustiveness guard so adding a future channel without an adapter fails loudly.
-  return { ok: false, mode: "api", error: `Auto-publish for ${String(channel)} is not implemented yet — connect it or add its access token.` };
+async function apiPublish(channel: ChannelId, post: PublishablePost, token: string): Promise<PublishResult> {
+  if (channel === "x") return publishToX(post, token);
+  if (channel === "facebook") return publishToFacebook(post, token);
+  if (channel === "instagram") return publishToInstagram(post, token);
+  if (channel === "linkedin") return publishToLinkedIn(post, token);
+  if (channel === "threads") return publishToThreads(post, token);
+  if (channel === "tiktok") return publishToTikTok(post, token);
+  if (channel === "youtube") return publishToYouTube(post, token);
+  // Defensive: every ChannelId has an adapter above, so this is only reachable if a
+  // new channel is added without one — fail loudly rather than silently dropping it.
+  return { ok: false, mode: "api", error: `Auto-publish for ${channel as string} is not implemented yet — post it manually or remove its access token.` };
 }
 
 // Shared POST + error handling for Meta Graph endpoints. Returns the created id
@@ -473,6 +478,128 @@ async function publishToX(post: PublishablePost, token: string): Promise<Publish
   return { ok: true, mode: "api", externalId: body?.data?.id };
 }
 
+// Threads (Meta's Graph, separate host). Same two-step container→publish flow as
+// Instagram, but Threads DOES allow text-only posts (media_type TEXT), so an image
+// is optional: with a graphic it's an IMAGE post, without one a TEXT post. Needs
+// THREADS_USER_ID + a token with threads_content_publish. Reuses metaPost — the
+// Threads Graph returns the same {id} envelope.
+async function publishToThreads(post: PublishablePost, token: string): Promise<PublishResult> {
+  const userId = await getSecret("THREADS_USER_ID");
+  if (!userId) return { ok: false, mode: "api", error: "THREADS_USER_ID is not set." };
+  const text = copyText(post);
+  const media = absoluteMediaUrl(post.mediaUrl);
+  const container = await metaPost(`${THREADS_GRAPH}/${userId}/threads`, {
+    ...(media ? { media_type: "IMAGE", image_url: media } : { media_type: "TEXT" }),
+    text,
+    access_token: token,
+  });
+  if (!container.ok) return { ok: false, mode: "api", error: container.error };
+  if (!container.id) return { ok: false, mode: "api", error: "Threads did not return a media container id." };
+
+  const published = await metaPost(`${THREADS_GRAPH}/${userId}/threads_publish`, { creation_id: container.id, access_token: token });
+  return published.ok ? { ok: true, mode: "api", externalId: published.id } : { ok: false, mode: "api", error: published.error };
+}
+
+// Shared POST for the TikTok / YouTube JSON APIs (Bearer auth). Returns the parsed
+// body or a client-safe error. TikTok signals success in an `error.code` of "ok"
+// even on a 200, so callers must check that field, not just the HTTP status.
+async function bearerPostJson(url: string, token: string, payload: unknown): Promise<{ ok: true; body: Record<string, unknown> } | { ok: false; error: string }> {
+  let res: Response;
+  try {
+    res = await fetch(url, { method: "POST", headers: { authorization: `Bearer ${token}`, "content-type": "application/json" }, body: JSON.stringify(payload) });
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "network error" };
+  }
+  const text = await res.text().catch(() => "");
+  if (!res.ok) return { ok: false, error: `API ${res.status}${text ? `: ${text.slice(0, 200)}` : ""}` };
+  try {
+    return { ok: true, body: (JSON.parse(text) as Record<string, unknown>) ?? {} };
+  } catch {
+    return { ok: true, body: {} };
+  }
+}
+
+// TikTok (Content Posting API, direct post). TikTok has no text-only post, so it
+// needs media: a public video → a VIDEO post; otherwise the on-brand graphic → a
+// PHOTO post. Both pull the asset by URL (the campaign domain must be a verified
+// URL-prefix property in the TikTok developer portal). Needs a token with the
+// video.publish scope. Success is signalled by error.code == "ok" + a publish_id.
+async function publishToTikTok(post: PublishablePost, token: string): Promise<PublishResult> {
+  const description = copyText(post).slice(0, CHANNELS.tiktok.maxChars);
+  const video = absoluteMediaUrl(post.videoUrl);
+  const image = absoluteMediaUrl(post.mediaUrl);
+  if (!video && !image) return { ok: false, mode: "api", error: "TikTok needs a video or an image — attach a graphic before scheduling." };
+
+  const postInfo = { title: description.slice(0, 90), description, privacy_level: "PUBLIC_TO_EVERYONE", disable_comment: false };
+  const { url, payload } = video
+    ? { url: `${TIKTOK_API}/post/publish/video/init/`, payload: { post_info: postInfo, source_info: { source: "PULL_FROM_URL", video_url: video } } }
+    : { url: `${TIKTOK_API}/post/publish/content/init/`, payload: { post_info: postInfo, source_info: { source: "PULL_FROM_URL", photo_cover_index: 0, photo_images: [image!] }, post_mode: "DIRECT_POST", media_type: "PHOTO" } };
+
+  const r = await bearerPostJson(url, token, payload);
+  if (!r.ok) return { ok: false, mode: "api", error: r.error };
+  const err = r.body.error as { code?: string; message?: string } | undefined;
+  if (err && err.code && err.code !== "ok") return { ok: false, mode: "api", error: `TikTok: ${err.message || err.code}` };
+  const data = r.body.data as { publish_id?: string } | undefined;
+  return { ok: true, mode: "api", externalId: data?.publish_id };
+}
+
+// YouTube (Data API v3, resumable upload). A Short is a *video* — there is no path
+// to publish a still image as a Short — so this only auto-publishes when the post
+// carries a video URL; an image-only post honestly stages for manual posting
+// instead of faking a video. With a video: open a resumable session (snippet +
+// status metadata), fetch the bytes, and PUT them. Needs a token with the
+// youtube.upload scope.
+async function publishToYouTube(post: PublishablePost, token: string): Promise<PublishResult> {
+  const video = absoluteMediaUrl(post.videoUrl);
+  if (!video) return { ok: true, mode: "manual" }; // no video asset — stage for a human to upload the Short
+
+  // Fetch the video bytes first so we can declare the content type to the session.
+  let vidRes: Response;
+  try {
+    vidRes = await fetch(video);
+  } catch (err) {
+    return { ok: false, mode: "api", error: err instanceof Error ? err.message : "could not fetch the video" };
+  }
+  if (!vidRes.ok) return { ok: false, mode: "api", error: `could not fetch video (${vidRes.status})` };
+  const bytes = await vidRes.arrayBuffer();
+  const contentType = vidRes.headers.get("content-type") || "video/mp4";
+
+  const title = (post.caption.split("\n")[0] || "Matt Grant for Congress").slice(0, 100);
+  const metadata = { snippet: { title, description: copyText(post), tags: post.hashtags.map((h) => h.replace(/^#/, "")) }, status: { privacyStatus: "public", selfDeclaredMadeForKids: false } };
+
+  // 1) Open a resumable upload session; the upload URL comes back in `location`.
+  let init: Response;
+  try {
+    init = await fetch(`${YOUTUBE_UPLOAD}?uploadType=resumable&part=snippet,status`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json", "x-upload-content-type": contentType },
+      body: JSON.stringify(metadata),
+    });
+  } catch (err) {
+    return { ok: false, mode: "api", error: err instanceof Error ? err.message : "network error reaching YouTube" };
+  }
+  if (!init.ok) {
+    const detail = await init.text().catch(() => "");
+    return { ok: false, mode: "api", error: `YouTube API ${init.status}${detail ? `: ${detail.slice(0, 160)}` : ""}` };
+  }
+  const uploadUrl = init.headers.get("location");
+  if (!uploadUrl) return { ok: false, mode: "api", error: "YouTube did not return a resumable upload URL." };
+
+  // 2) Upload the bytes to the session URL.
+  let up: Response;
+  try {
+    up = await fetch(uploadUrl, { method: "PUT", headers: { "content-type": contentType }, body: bytes });
+  } catch (err) {
+    return { ok: false, mode: "api", error: err instanceof Error ? err.message : "network error uploading to YouTube" };
+  }
+  if (!up.ok) {
+    const detail = await up.text().catch(() => "");
+    return { ok: false, mode: "api", error: `YouTube upload ${up.status}${detail ? `: ${detail.slice(0, 160)}` : ""}` };
+  }
+  const body = (await up.json().catch(() => null)) as { id?: string } | null;
+  return { ok: true, mode: "api", externalId: body?.id };
+}
+
 /**
  * Publish one channel. Returns mode:"manual" (caller stages it for a human) when
  * the channel isn't fully configured — that is the normal, non-error path, so a
@@ -549,27 +676,27 @@ export async function verifyChannel(channel: ChannelId): Promise<ChannelStatus> 
     }
   }
   if (channel === "threads") {
-    const r = await metaGet(`${THREADS_GRAPH}/${creds.accountId}?fields=username&access_token=${encodeURIComponent(token)}`, "username");
+    const userId = await getSecret("THREADS_USER_ID");
+    const r = await metaGet(`${THREADS_GRAPH}/${userId}?fields=username&access_token=${encodeURIComponent(token)}`, "username");
     return r.ok ? { channel, mode: "api", ok: true, detail: `Connected to @${r.value}.` } : { channel, mode: "api", ok: false, detail: r.error };
   }
   if (channel === "tiktok") {
-    try {
-      const res = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=display_name", { headers: { authorization: `Bearer ${token}` } });
-      if (!res.ok) return { channel, mode: "api", ok: false, detail: `TikTok API ${res.status}` };
-      const body = (await res.json().catch(() => null)) as { data?: { user?: { display_name?: string } } } | null;
-      const name = body?.data?.user?.display_name;
-      return { channel, mode: "api", ok: true, detail: name ? `Connected to @${name}.` : "Token accepted." };
-    } catch (err) {
-      return { channel, mode: "api", ok: false, detail: err instanceof Error ? err.message : "network error reaching TikTok" };
-    }
+    // Read-only creator-info query — confirms the token resolves to an account
+    // and that it's cleared for direct posting, without publishing anything.
+    const r = await bearerPostJson(`${TIKTOK_API}/post/publish/creator_info/query/`, token, {});
+    if (!r.ok) return { channel, mode: "api", ok: false, detail: r.error };
+    const err = r.body.error as { code?: string; message?: string } | undefined;
+    if (err && err.code && err.code !== "ok") return { channel, mode: "api", ok: false, detail: `TikTok: ${err.message || err.code}` };
+    const data = r.body.data as { creator_nickname?: string } | undefined;
+    return { channel, mode: "api", ok: true, detail: data?.creator_nickname ? `Connected to ${data.creator_nickname}.` : "Token accepted." };
   }
   if (channel === "youtube") {
     try {
-      const res = await fetch("https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true", { headers: { authorization: `Bearer ${token}` } });
+      const res = await fetch(`${YOUTUBE_API}/channels?part=snippet&mine=true`, { headers: { authorization: `Bearer ${token}` } });
       if (!res.ok) return { channel, mode: "api", ok: false, detail: `YouTube API ${res.status}` };
       const body = (await res.json().catch(() => null)) as { items?: { snippet?: { title?: string } }[] } | null;
       const title = body?.items?.[0]?.snippet?.title;
-      return { channel, mode: "api", ok: true, detail: title ? `Connected to “${title}”.` : "Token accepted." };
+      return { channel, mode: "api", ok: true, detail: title ? `Connected to “${title}”. Posts with a video upload as Shorts; image posts stage for manual posting.` : "Token accepted." };
     } catch (err) {
       return { channel, mode: "api", ok: false, detail: err instanceof Error ? err.message : "network error reaching YouTube" };
     }
