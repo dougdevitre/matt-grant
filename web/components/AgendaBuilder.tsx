@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ISSUES } from "@/lib/issues";
-import { buildAgenda, AREA_SUGGESTIONS, type Cadence, type AgendaDay } from "@/lib/actions";
+import { buildAgenda, AREA_SUGGESTIONS, SCHOOL_DISTRICT_SUGGESTIONS, type Cadence, type AgendaDay } from "@/lib/actions";
 import { CAMPAIGN, ASSETS_CDN } from "@/lib/site";
 import { LEVELS, type Level } from "@/lib/strategy/prompt";
 import type { StrategyResult } from "@/lib/strategy/engine";
@@ -40,6 +40,9 @@ export function AgendaBuilder() {
   const days: AgendaDay[] = ai?.actions ?? agenda.days;
   const brief: string[] = ai?.brief ?? [];
   const displayArea = (area || "your area").trim();
+  // Quick-picks follow the focus level: districts when "school district" is
+  // chosen, otherwise the common MO-02 municipalities.
+  const suggestions = level === "school-district" ? SCHOOL_DISTRICT_SUGGESTIONS : AREA_SUGGESTIONS;
 
   async function generate() {
     setLoading(true);
@@ -73,7 +76,7 @@ export function AgendaBuilder() {
               className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink"
             />
             <span className="mt-2 flex flex-wrap gap-1.5">
-              {AREA_SUGGESTIONS.slice(0, 6).map((a) => (
+              {suggestions.slice(0, 6).map((a) => (
                 <button key={a} onClick={() => reset(setArea)(a)} className="rounded-sm border border-line px-2 py-0.5 text-[0.65rem] text-slate hover:border-ink">
                   {a}
                 </button>
@@ -142,7 +145,8 @@ export function AgendaBuilder() {
           {cadence === "daily" ? "Today's actions" : "This week's actions"}
         </h2>
         <p className="mt-2 text-slate">
-          For <strong className="text-ink">{displayArea}</strong> · championing{" "}
+          For <strong className="text-ink">{displayArea}</strong>{" "}
+          <span className="font-mono text-xs uppercase tracking-eyebrow text-slate">({LEVEL_OPTION[level]} focus)</span> · championing{" "}
           <strong className="text-ink">{issue.eyebrow}</strong> — every action builds awareness for August 4.
         </p>
 
