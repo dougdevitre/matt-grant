@@ -128,7 +128,7 @@ export const CHANNELS: Record<ChannelId, ChannelSpec> = {
     imageFormat: "ig_square",
     imageSpec: { w: 1080, h: 1080 },
     bestTimesCt: ["8:00 AM", "1:00 PM", "8:00 PM"],
-    apiPublish: false,
+    apiPublish: true,
     color: "#000000",
   },
 };
