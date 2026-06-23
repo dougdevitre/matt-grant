@@ -44,6 +44,8 @@ These move — re-verify against each platform's current docs and update `CHANNE
 
 ## Publishing: API mode vs. manual mode
 
+> **Turning on live auto-posting?** See the step-by-step [go-live runbook](./social-go-live.md) — platform app setup, the exact Parameter Store commands, IAM, and the connect/verify walkthrough.
+
 Like SES, Clerk, and S3 elsewhere in the app, publishing **degrades gracefully**:
 
 - **API mode** — when a channel has credentials (an OAuth connection, or a manual token fallback), `drainDue()` posts it automatically through that platform's API at the scheduled time.

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { DonorRow } from "@/lib/queries";
 import { dollars, FEC_INDIVIDUAL_PER_ELECTION_CENTS } from "@/lib/money";
+import { DonorThankButton } from "@/components/dashboard/DonorThankButton";
 
 const select = "rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink";
 
@@ -62,6 +63,7 @@ export function DonorTable({ rows }: { rows: DonorRow[] }) {
               <th className="px-5 py-3 font-mono text-xs uppercase tracking-eyebrow">Donor</th>
               <th className="px-5 py-3 font-mono text-xs uppercase tracking-eyebrow">Employer / Occ.</th>
               <th className="px-5 py-3 text-right font-mono text-xs uppercase tracking-eyebrow">Total</th>
+              <th className="px-5 py-3 text-right font-mono text-xs uppercase tracking-eyebrow">Thank-you</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
@@ -93,6 +95,9 @@ export function DonorTable({ rows }: { rows: DonorRow[] }) {
                     {!overLimit && missingFec && d.totalCents > 20000 && (
                       <span className="ml-2 font-mono text-[0.6rem] text-brick">check FEC</span>
                     )}
+                  </td>
+                  <td className="px-5 py-3 text-right">
+                    <DonorThankButton id={d.id} name={d.name} email={d.email} thankedAt={d.thankedAt} />
                   </td>
                 </tr>
               );
