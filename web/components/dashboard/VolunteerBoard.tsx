@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { VolunteerRow } from "@/lib/queries";
 import { updateVolunteer, markVolunteerContacted } from "@/app/dashboard/actions";
+import { SubmitButton } from "@/components/dashboard/SubmitButton";
 
 const STATUSES = ["NEW", "CONTACTED", "ACTIVE", "INACTIVE"] as const;
 // The fixed set offered on the public contact form — used for the interest filter.
@@ -129,7 +130,7 @@ export function VolunteerBoard({ rows, taskCounts }: { rows: VolunteerRow[]; tas
                         <option key={s} value={s}>{s}</option>
                       ))}
                     </select>
-                    <button type="submit" className="btn-ghost px-3 py-1.5 text-xs">Save</button>
+                    <SubmitButton pendingText="Saving…" className="btn-ghost px-3 py-1.5 text-xs disabled:opacity-50">Save</SubmitButton>
                   </div>
                   <input
                     name="assignedTo"
@@ -144,9 +145,9 @@ export function VolunteerBoard({ rows, taskCounts }: { rows: VolunteerRow[]; tas
                 <form action={markVolunteerContacted} className="mt-2">
                   <input type="hidden" name="id" value={v.id} />
                   <input type="hidden" name="current" value={v.status} />
-                  <button type="submit" className="text-xs font-semibold text-field hover:underline">
+                  <SubmitButton pendingText="Saving…" className="text-xs font-semibold text-field hover:underline disabled:opacity-50">
                     ✓ Mark contacted today
-                  </button>
+                  </SubmitButton>
                 </form>
               </div>
             );

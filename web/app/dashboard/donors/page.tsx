@@ -5,6 +5,7 @@ import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { addDonor } from "@/app/dashboard/actions";
 import { DonorTable } from "@/components/dashboard/DonorTable";
 import { DonorImport } from "@/components/dashboard/DonorImport";
+import { SubmitButton } from "@/components/dashboard/SubmitButton";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 
@@ -67,9 +68,9 @@ export default async function DonorsPage() {
               <option>in-kind</option>
             </select>
           </div>
-          <button type="submit" disabled={!connected} className="btn-ink mt-4 w-full disabled:opacity-50">
+          <SubmitButton disabled={!connected} pendingText="Adding…" className="btn-ink mt-4 w-full disabled:opacity-50">
             Add donor
-          </button>
+          </SubmitButton>
           <p className="mt-3 text-xs text-slate">
             Employer &amp; occupation are required by the FEC for individuals over $200/cycle.
           </p>
