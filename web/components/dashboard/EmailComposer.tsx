@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { sendTestCampaign, sendCampaign, type SendState, type Audience } from "@/app/dashboard/emails/actions";
 import type { BroadcastMeta } from "@/lib/email/broadcasts";
 
-const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink";
+const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-field";
 const topicLabel: Record<string, string> = {
   news: "News", issues: "Issues", gotv: "GOTV", fundraising: "Fundraising", events: "Events",
 };

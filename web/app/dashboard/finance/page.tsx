@@ -3,6 +3,7 @@ import { getFinance } from "@/lib/queries";
 import { dollars } from "@/lib/money";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { addExpenditure } from "@/app/dashboard/actions";
+import { SubmitButton } from "@/components/dashboard/SubmitButton";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 
@@ -94,9 +95,9 @@ export default async function FinancePage() {
               </div>
               <input name="memo" placeholder="Memo (optional)" className={`${input} w-full`} />
             </div>
-            <button type="submit" disabled={!f.connected} className="btn-ink mt-4 w-full disabled:opacity-50">
+            <SubmitButton disabled={!f.connected} pendingText="Adding…" className="btn-ink mt-4 w-full disabled:opacity-50">
               Add expenditure
-            </button>
+            </SubmitButton>
           </form>
           )}
         </div>

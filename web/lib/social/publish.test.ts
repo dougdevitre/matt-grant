@@ -254,6 +254,53 @@ describe("Threads publisher (Meta Graph, graph.threads.net)", () => {
   });
 });
 
+describe("TikTok publisher (Content Posting API, PHOTO)", () => {
+  beforeEach(() => {
+    process.env.TIKTOK_ACCESS_TOKEN = "tkn";
+    _clearSecretCache();
+  });
+  afterEach(() => {
+    delete process.env.TIKTOK_ACCESS_TOKEN;
+    delete process.env.TIKTOK_PRIVACY_LEVEL;
+    vi.restoreAllMocks();
+  });
+
+  it("inits a DIRECT_POST photo pull and returns the publish_id", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(res(200, { data: { publish_id: "pub_1" }, error: { code: "ok" } }));
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await publishToChannel("tiktok", { caption: "Vote Aug 4", hashtags: ["#MO02"], mediaUrl: "https://cdn.example.com/x.png" });
+    expect(r).toMatchObject({ ok: true, mode: "api", externalId: "pub_1" });
+    expect(fetchMock.mock.calls[0][0]).toContain("/v2/post/publish/content/init/");
+    const body = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
+    expect(body.media_type).toBe("PHOTO");
+    expect(body.source_info.photo_images).toEqual(["https://cdn.example.com/x.png"]);
+    expect(body.post_info.privacy_level).toBe("SELF_ONLY"); // safe default pre-audit
+  });
+
+  it("rewrites a relative graphic to an absolute pull URL", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(res(200, { data: { publish_id: "pub_2" }, error: { code: "ok" } }));
+    vi.stubGlobal("fetch", fetchMock);
+    await publishToChannel("tiktok", { caption: "Hi", hashtags: [], mediaUrl: "/api/graphics?format=ig_story" });
+    const body = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
+    expect(body.source_info.photo_images[0]).toBe("https://mattgrantforcongress.org/api/graphics?format=ig_story");
+  });
+
+  it("refuses to publish without an image and makes no API call", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await publishToChannel("tiktok", { caption: "Hi", hashtags: [] });
+    expect(r.ok).toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("surfaces a TikTok logical error (HTTP 200 with error.code) as a failure", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(res(200, { error: { code: "url_ownership_unverified", message: "verify the domain" } })));
+    const r = await publishToChannel("tiktok", { caption: "Hi", hashtags: [], mediaUrl: "https://cdn.example.com/x.png" });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toContain("verify the domain");
+  });
+});
+
 describe("YouTube publisher (Shorts, resumable upload)", () => {
   beforeEach(() => {
     process.env.YOUTUBE_ACCESS_TOKEN = "tkn";
