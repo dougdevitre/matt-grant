@@ -2,6 +2,7 @@ import type { OAuthProvider } from "@/lib/social/oauth/types";
 import { facebookProvider } from "@/lib/social/oauth/facebook";
 import { xProvider } from "@/lib/social/oauth/x";
 import { linkedinProvider } from "@/lib/social/oauth/linkedin";
+import { tiktokProvider } from "@/lib/social/oauth/tiktok";
 import { youtubeProvider } from "@/lib/social/oauth/youtube";
 
 // Connectable OAuth providers, keyed by platform. The connect/callback routes and
@@ -10,6 +11,7 @@ const PROVIDERS: Record<string, OAuthProvider> = {
   facebook: facebookProvider,
   x: xProvider,
   linkedin: linkedinProvider,
+  tiktok: tiktokProvider,
   youtube: youtubeProvider,
 };
 

@@ -37,7 +37,7 @@ Caption limits, hashtag norms, and image specs live in `CHANNELS`. Highlights:
 | Facebook | 5,000 | 250 | 0–2 | ✅ implemented (text + photo) |
 | Instagram | 2,200 | 125 | 3–5 (max 30) | ✅ implemented (image required) |
 | LinkedIn | 3,000 | 210 | 3–5 | ✅ implemented (text/link + image) |
-| TikTok | 4,000 | 100 | 3–5 | manual (video-first) |
+| TikTok | 4,000 | 100 | 3–5 | ✅ implemented (photo post) |
 | YouTube (Shorts) | 5,000 (desc) | 100 | 2–3 | ✅ implemented (Short via still→MP4 render) |
 | Threads | 500 | 500 | 0–1 | ✅ implemented (text + image) |
 
@@ -76,8 +76,10 @@ Like SES, Clerk, and S3 elsewhere in the app, publishing **degrades gracefully**
 | X | ✅ OAuth2 + PKCE (+ refresh) | text/link + image (v2 media) | `tweet.read tweet.write users.read offline.access` |
 | LinkedIn | ✅ OAuth2 (member; + image upload) | text/link + image (register-upload) | `openid profile w_member_social` |
 | Threads | manual token only (no OAuth yet) | text + image (container→publish) | `threads_basic`, `threads_content_publish` |
+| TikTok | ✅ OAuth2 + PKCE (+ refresh) | **photo post** (pulls the graphic by URL) | `user.info.basic,video.publish` |
 | YouTube | ✅ Google OAuth2 + PKCE (+ refresh) | **Short** (still→MP4 render, resumable upload) | `youtube.upload` (+ `openid email`) |
-| TikTok | — | not implemented — **video-first**, the composer produces still graphics | — |
+
+**TikTok gates:** public `DIRECT_POST` requires the app to pass TikTok's **content-posting audit** and the pull-URL host (the site domain) to be **URL-prefix verified** in the TikTok developer portal. Until audited, posts must be `SELF_ONLY` — the adapter defaults `privacy_level` to `SELF_ONLY`, overridable via `TIKTOK_PRIVACY_LEVEL` once approved. TikTok pulls the public `/api/graphics` image, so no media is uploaded from our side.
 
 **YouTube video pipeline:** YouTube has no image-post API, so `lib/social/video.ts` renders the composer's still graphic into a short vertical MP4 (held image, 1080×1920, H.264 + silent AAC) using a bundled static **ffmpeg** binary (`@ffmpeg-installer/ffmpeg`), then `publishToYouTube` uploads the bytes via the resumable `videos.insert` flow. `privacyStatus` defaults to `private` (override `YOUTUBE_PRIVACY_STATUS`) since public uploads need Google's `youtube.upload` **app verification** — see `docs/google-youtube-setup.md`. *Operational note:* ffmpeg adds bundle/cold-start/`/tmp` weight to the SSR Lambda (a single-still encode is ~1–3s); if bundle limits bite, move the render to a dedicated Lambda or AWS MediaConvert.
 
