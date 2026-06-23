@@ -7,6 +7,8 @@ import { listStaff } from "@/lib/staff";
 import { listAccessChanges } from "@/lib/audit";
 import { can, INVITABLE_ROLES, ROLE_LABELS } from "@/lib/rbac";
 import { revokeStaff, setMemberRole } from "./actions";
+import { ConfirmButton } from "@/components/dashboard/ConfirmButton";
+import { SubmitButton } from "@/components/dashboard/SubmitButton";
 
 const actionLabel: Record<string, string> = {
   invite: "invited",
@@ -80,11 +82,11 @@ export default async function TeamPage() {
                   >
                     {INVITABLE_ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
                   </select>
-                  <button type="submit" className="rounded-sm border border-line px-2.5 py-1 text-xs text-slate hover:border-ink hover:text-ink">Update</button>
+                  <SubmitButton pendingText="Saving…" className="rounded-sm border border-line px-2.5 py-1 text-xs text-slate hover:border-ink hover:text-ink disabled:opacity-50">Update</SubmitButton>
                 </form>
                 <form action={revokeStaff}>
                   <input type="hidden" name="email" value={s.email} />
-                  <button type="submit" className="rounded-sm border border-line px-2.5 py-1 text-xs text-brick hover:border-brick">Remove</button>
+                  <ConfirmButton message={`Revoke access for ${s.email}? They'll be signed out immediately.`} className="rounded-sm border border-line px-3 py-1.5 text-xs text-brick hover:border-brick">Remove</ConfirmButton>
                 </form>
               </li>
             ))}
@@ -116,7 +118,7 @@ export default async function TeamPage() {
                 </span>
                 <form action={revokeStaff}>
                   <input type="hidden" name="email" value={p.email} />
-                  <button type="submit" className="rounded-sm border border-line px-2.5 py-1 text-xs text-brick hover:border-brick">Remove</button>
+                  <ConfirmButton message={`Remove ${p.email} from the Peace Room? They'll lose access immediately.`} className="rounded-sm border border-line px-3 py-1.5 text-xs text-brick hover:border-brick">Remove</ConfirmButton>
                 </form>
               </li>
             ))}

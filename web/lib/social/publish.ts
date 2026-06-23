@@ -305,6 +305,49 @@ async function publishToThreads(post: PublishablePost, creds: ResolvedCreds): Pr
   return published.ok ? { ok: true, mode: "api", externalId: published.id } : { ok: false, mode: "api", error: published.error };
 }
 
+// TikTok (Content Posting API, PHOTO post). TikTok pulls the public on-brand graphic
+// by URL and creates a photo post in one DIRECT_POST init call. Returns a publish_id
+// (the post then processes server-side). Needs a token with `video.publish`.
+//   privacy: unaudited apps may only post SELF_ONLY and the pull-URL host must be
+//   domain-verified in the TikTok developer portal — so the level defaults to
+//   SELF_ONLY and is overridable via TIKTOK_PRIVACY_LEVEL once the app is audited.
+async function publishToTikTok(post: PublishablePost, token: string): Promise<PublishResult> {
+  const media = absoluteMediaUrl(post.mediaUrl);
+  if (!media) return { ok: false, mode: "api", error: "TikTok photo posts require an image — attach a graphic before scheduling." };
+  const privacy = process.env.TIKTOK_PRIVACY_LEVEL || "SELF_ONLY";
+
+  let res: Response;
+  try {
+    res = await fetch("https://open.tiktokapis.com/v2/post/publish/content/init/", {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json; charset=UTF-8" },
+      body: JSON.stringify({
+        post_info: { title: copyText(post).slice(0, 2200), privacy_level: privacy },
+        source_info: { source: "PULL_FROM_URL", photo_cover_index: 0, photo_images: [media] },
+        post_mode: "DIRECT_POST",
+        media_type: "PHOTO",
+      }),
+    });
+  } catch (err) {
+    return { ok: false, mode: "api", error: err instanceof Error ? err.message : "network error reaching TikTok" };
+  }
+  const text = await res.text().catch(() => "");
+  if (!res.ok) return { ok: false, mode: "api", error: `TikTok API ${res.status}${text ? `: ${text.slice(0, 200)}` : ""}` };
+  const body = (() => {
+    try {
+      return JSON.parse(text) as { data?: { publish_id?: string }; error?: { code?: string; message?: string } };
+    } catch {
+      return null;
+    }
+  })();
+  // TikTok returns HTTP 200 with an error object on logical failures; error.code is
+  // "ok" on success.
+  if (body?.error && body.error.code && body.error.code !== "ok") {
+    return { ok: false, mode: "api", error: `TikTok: ${body.error.message ?? body.error.code}` };
+  }
+  return { ok: true, mode: "api", externalId: body?.data?.publish_id };
+}
+
 // YouTube (Shorts). YouTube has no image-post API, so the still graphic is rendered
 // to a short MP4 (lib/social/video.ts) and uploaded via the resumable videos.insert
 // flow: initiate a session (metadata + content headers) → PUT the bytes → read the

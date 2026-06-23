@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { inviteStaff, type InviteResult } from "@/app/dashboard/team/actions";
 
-const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink";
+const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-field";
 
 export function InviteForm() {
   const [state, action, pending] = useActionState<InviteResult | null, FormData>(inviteStaff, null);

@@ -8,6 +8,7 @@ import { requireCap } from "@/lib/auth";
 import { listPosts, type ScheduledPost } from "@/lib/social/schedule";
 import { CHANNELS, composeText, toChannelIds, type ChannelId } from "@/lib/social/channels";
 import { cancelPostAction, confirmPostedAction } from "@/app/dashboard/social/actions";
+import { ConfirmButton } from "@/components/dashboard/ConfirmButton";
 import { SOCIAL_POSTS } from "@/lib/socialPosts";
 import { channelConfigured } from "@/lib/social/publish";
 import { listSnapshots } from "@/lib/social/footprint";
@@ -156,7 +157,7 @@ export default async function SocialPage({ searchParams }: { searchParams: Promi
                   <StatusChip status={p.status} />
                   <form action={cancelPostAction}>
                     <input type="hidden" name="id" value={p.id} />
-                    <button className="font-mono text-xs text-slate hover:text-brick">cancel</button>
+                    <ConfirmButton message="Cancel this scheduled post? It won't be published." className="font-mono text-xs text-slate hover:text-brick">cancel</ConfirmButton>
                   </form>
                 </span>
               </li>
@@ -177,7 +178,7 @@ export default async function SocialPage({ searchParams }: { searchParams: Promi
                 <span className="truncate text-ink">{p.caption.slice(0, 90)}</span>
                 <form action={cancelPostAction}>
                   <input type="hidden" name="id" value={p.id} />
-                  <button className="font-mono text-xs text-slate hover:text-brick">discard</button>
+                  <ConfirmButton message="Discard this draft? This can't be undone." className="font-mono text-xs text-slate hover:text-brick">discard</ConfirmButton>
                 </form>
               </li>
             ))}

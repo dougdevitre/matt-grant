@@ -80,8 +80,9 @@ export function PhotoLibrary() {
                     <span className="truncate text-[0.65rem] text-slate" title={p.name}>{p.name}</span>
                     <button
                       onClick={() => copy(p.key, p.name)}
-                      className="shrink-0 rounded-sm border border-line px-1.5 py-0.5 text-[0.6rem] font-semibold text-field hover:border-ink"
+                      className="shrink-0 rounded-sm border border-line px-2.5 py-1 text-[0.6rem] font-semibold text-field hover:border-ink"
                       title="Copy the promote-photo command"
+                      aria-label={`Copy the promote command for ${p.name}`}
                     >
                       {copied === p.key ? "✓" : "Promote"}
                     </button>

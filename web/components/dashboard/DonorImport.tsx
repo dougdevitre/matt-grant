@@ -33,6 +33,7 @@ export function DonorImport() {
         </p>
         <textarea
           name="csv"
+          aria-label="Donor CSV to import"
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={7}
