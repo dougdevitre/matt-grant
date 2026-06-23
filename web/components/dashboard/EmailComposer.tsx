@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { sendTestCampaign, sendCampaign, type SendState } from "@/app/dashboard/emails/actions";
 import { CONTACT_GROUPS, GROUP_LABELS, TEAM_GROUPS, type ContactGroup } from "@/lib/email/audienceGroups";
 import type { BroadcastMeta } from "@/lib/email/broadcasts";
+import { InfoTip } from "./InfoTip";
 
 const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-field";
 const topicLabel: Record<string, string> = {
@@ -164,8 +165,8 @@ export function EmailComposer({
 
           {segments.length > 0 && (
             <div className="mt-2">
-              <select value={segment} onChange={(e) => setSegment(e.target.value)} className={`${field} w-auto`} aria-label="Advanced supporter segment">
-                <option value="">Advanced: also target supporters…</option>
+              <select value={segment} onChange={(e) => setSegment(e.target.value)} className={`${field} w-auto`} aria-label="Add a filter by interest or role">
+                <option value="">Add filters (by interest or role)…</option>
                 {[...new Set(segments.map((s) => s.group))].map((group) => (
                   <optgroup key={group} label={group}>
                     {segments.filter((s) => s.group === group).map((s) => (
@@ -179,7 +180,15 @@ export function EmailComposer({
 
           <p className="mt-2 font-mono text-xs text-slate">
             ~{approxCount} recipient{approxCount === 1 ? "" : "s"} (before de-dupe &amp; opt-outs)
-            {isInternal && <span className="ml-1 text-field">· team send — bypasses topic opt-outs</span>}
+            {isInternal && (
+              <span className="ml-1 text-field">
+                · team send
+                <InfoTip label="What is a team send?">
+                  A team send goes to staff and captains. It skips per-topic opt-outs (so operational
+                  notices get through) but still honors anyone who fully unsubscribed.
+                </InfoTip>
+              </span>
+            )}
           </p>
         </div>
 
