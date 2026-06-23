@@ -55,6 +55,7 @@ const GROUPS: Group[] = [
     items: [
       { href: "/dashboard/peace-room", label: "Peace Room", icon: "plan", cap: "viewPeaceRoom" },
       { href: "/dashboard/team", label: "Team & access", icon: "team", cap: "manageTeam" },
+      { href: "/dashboard/setup", label: "Setup & status", icon: "compliance", cap: "manageTeam" },
     ],
   },
 ];
