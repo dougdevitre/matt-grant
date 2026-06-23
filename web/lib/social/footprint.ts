@@ -42,8 +42,11 @@ export async function recordSnapshot(report: FootprintReport, takenBy: string): 
         },
       }),
     );
-  } catch {
-    /* snapshot history is non-critical */
+  } catch (e) {
+    // Snapshot history is non-critical (the analysis already returned to the
+    // admin), so never block on it — but log instead of swallowing silently so a
+    // persistent write failure is at least visible in the logs.
+    console.error("recordSnapshot failed:", e);
   }
 }
 

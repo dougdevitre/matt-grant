@@ -24,8 +24,16 @@ async function authorized(req: NextRequest): Promise<boolean> {
 async function handle(req: NextRequest) {
   if (!(await authorized(req))) return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   if (!dbConfigured) return NextResponse.json({ ok: true, skipped: "DB not configured" });
-  const result = await drainDue();
-  return NextResponse.json({ ok: true, ...result });
+  try {
+    const result = await drainDue();
+    return NextResponse.json({ ok: true, ...result });
+  } catch (e) {
+    // Per-post failures are already isolated inside drainDue(); this catches a
+    // batch-level failure (e.g. the initial query) so the worker returns a clean
+    // 500 the scheduler can retry, with the cause in the logs.
+    console.error("social-drain failed:", e);
+    return NextResponse.json({ ok: false, error: "drain failed" }, { status: 500 });
+  }
 }
 
 export const POST = handle;
