@@ -13,6 +13,7 @@ import { SITE_URL } from "@/lib/site";
 import { composeText, type ChannelId } from "@/lib/social/channels";
 import { getFreshConnection } from "@/lib/social/oauth/refresh";
 import { META_GRAPH } from "@/lib/social/credentials";
+import { renderStillToMp4 } from "@/lib/social/video";
 
 // Threads (Meta) has its own Graph host, versioned independently of the Facebook
 // Graph. Both publishing steps and the connection check go through it.
@@ -117,6 +118,7 @@ async function apiPublish(channel: ChannelId, post: PublishablePost, creds: Reso
   if (channel === "instagram") return publishToInstagram(post, creds);
   if (channel === "linkedin") return publishToLinkedIn(post, creds);
   if (channel === "threads") return publishToThreads(post, creds);
+  if (channel === "youtube") return publishToYouTube(post, creds.token);
   return { ok: false, mode: "api", error: `Auto-publish for ${channel} is not implemented yet — connect it or remove its ${CHANNEL_CONFIG[channel].token}.` };
 }
 
@@ -295,6 +297,67 @@ async function publishToThreads(post: PublishablePost, creds: ResolvedCreds): Pr
   return published.ok ? { ok: true, mode: "api", externalId: published.id } : { ok: false, mode: "api", error: published.error };
 }
 
+// YouTube (Shorts). YouTube has no image-post API, so the still graphic is rendered
+// to a short MP4 (lib/social/video.ts) and uploaded via the resumable videos.insert
+// flow: initiate a session (metadata + content headers) → PUT the bytes → read the
+// video id. Needs a token with `youtube.upload` (Google app verification gate). The
+// privacy defaults to "private" until the app is verified; override with
+// YOUTUBE_PRIVACY_STATUS once approved for public uploads.
+async function publishToYouTube(post: PublishablePost, token: string): Promise<PublishResult> {
+  const media = absoluteMediaUrl(post.mediaUrl);
+  if (!media) return { ok: false, mode: "api", error: "YouTube needs a graphic to render into a Short — attach one before scheduling." };
+
+  let mp4: Buffer;
+  try {
+    mp4 = await renderStillToMp4(media);
+  } catch (err) {
+    return { ok: false, mode: "api", error: err instanceof Error ? `video render failed: ${err.message}` : "video render failed" };
+  }
+
+  const firstLine = (post.caption.split("\n")[0] || "Matt Grant for Congress").slice(0, 90);
+  const metadata = {
+    snippet: { title: `${firstLine} #Shorts`.slice(0, 100), description: copyText(post), tags: post.hashtags.map((h) => h.replace(/^#/, "")) },
+    status: { privacyStatus: process.env.YOUTUBE_PRIVACY_STATUS || "private", selfDeclaredMadeForKids: false },
+  };
+
+  // 1. initiate the resumable upload session
+  let init: Response;
+  try {
+    init = await fetch("https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status", {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "content-type": "application/json; charset=UTF-8",
+        "x-upload-content-type": "video/mp4",
+        "x-upload-content-length": String(mp4.length),
+      },
+      body: JSON.stringify(metadata),
+    });
+  } catch (err) {
+    return { ok: false, mode: "api", error: err instanceof Error ? err.message : "network error reaching YouTube" };
+  }
+  if (!init.ok) {
+    const detail = await init.text().catch(() => "");
+    return { ok: false, mode: "api", error: `YouTube init ${init.status}${detail ? `: ${detail.slice(0, 160)}` : ""}` };
+  }
+  const session = init.headers.get("location");
+  if (!session) return { ok: false, mode: "api", error: "YouTube did not return an upload session URL." };
+
+  // 2. PUT the rendered MP4 bytes to the session URL
+  let up: Response;
+  try {
+    up = await fetch(session, { method: "PUT", headers: { "content-type": "video/mp4" }, body: Uint8Array.from(mp4) });
+  } catch (err) {
+    return { ok: false, mode: "api", error: err instanceof Error ? err.message : "network error uploading to YouTube" };
+  }
+  if (!up.ok) {
+    const detail = await up.text().catch(() => "");
+    return { ok: false, mode: "api", error: `YouTube upload ${up.status}${detail ? `: ${detail.slice(0, 160)}` : ""}` };
+  }
+  const body = (await up.json().catch(() => null)) as { id?: string } | null;
+  return { ok: true, mode: "api", externalId: body?.id };
+}
+
 // Upload an image to X and return its media id, for attaching to a tweet. Targets
 // the X API v2 media upload endpoint with the same OAuth2 user-context Bearer.
 // Defensive id parsing (data.id / media_id_string / id) since the field has
@@ -442,6 +505,17 @@ export async function verifyChannel(channel: ChannelId): Promise<ChannelStatus> 
   if (channel === "threads") {
     const r = await metaGet(`${THREADS_GRAPH}/${creds.accountId}?fields=username&access_token=${encodeURIComponent(token)}`, "username");
     return r.ok ? { channel, mode: "api", ok: true, detail: `Connected to @${r.value}.` } : { channel, mode: "api", ok: false, detail: r.error };
+  }
+  if (channel === "youtube") {
+    try {
+      const res = await fetch("https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true", { headers: { authorization: `Bearer ${token}` } });
+      if (!res.ok) return { channel, mode: "api", ok: false, detail: `YouTube API ${res.status}` };
+      const body = (await res.json().catch(() => null)) as { items?: { snippet?: { title?: string } }[] } | null;
+      const title = body?.items?.[0]?.snippet?.title;
+      return { channel, mode: "api", ok: true, detail: title ? `Connected to “${title}”.` : "Token accepted." };
+    } catch (err) {
+      return { channel, mode: "api", ok: false, detail: err instanceof Error ? err.message : "network error reaching YouTube" };
+    }
   }
   return { channel, mode: "api", ok: true, detail: "Token present — no read-check implemented for this channel yet." };
 }
