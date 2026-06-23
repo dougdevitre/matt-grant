@@ -40,6 +40,7 @@ type CampaignItem = {
   sentCount: number;
   suppressedCount: number;
   createdBy: string;
+  internal?: boolean; // team-only send → bypasses topic opt-outs (global suppression still applies)
   updatedAt?: string;
   finishedAt?: string;
 };
@@ -59,6 +60,7 @@ export type CampaignSummary = {
   opens: number;
   clicks: number;
   createdBy: string;
+  internal: boolean;
 };
 
 export async function createCampaign(input: {
@@ -70,6 +72,7 @@ export async function createCampaign(input: {
   subjectPreview: string;
   createdBy: string;
   scheduledAt?: string;
+  internal?: boolean;
 }): Promise<string> {
   const id = newId();
   const createdAt = new Date().toISOString();
@@ -94,6 +97,7 @@ export async function createCampaign(input: {
         sentCount: 0,
         suppressedCount: 0,
         createdBy: input.createdBy,
+        internal: !!input.internal,
       },
     }),
   );
@@ -147,6 +151,7 @@ export async function listCampaigns(limit = 15): Promise<CampaignSummary[]> {
       opens: stats[c.id]?.opens ?? 0,
       clicks: stats[c.id]?.clicks ?? 0,
       createdBy: c.createdBy,
+      internal: !!c.internal,
     }));
   } catch {
     return [];
@@ -257,7 +262,9 @@ export async function drainOnce(
   let sentDelta = 0;
   let suppressedDelta = 0;
   for (const addr of slice) {
-    if (await isSuppressed(addr, active.topic)) {
+    // Internal (team-only) sends bypass topic opt-outs — calling isSuppressed
+    // without a topic checks GLOBAL suppression only (unsubscribe/bounce/complaint).
+    if (await isSuppressed(addr, active.internal ? undefined : active.topic)) {
       suppressedDelta++;
       continue;
     }

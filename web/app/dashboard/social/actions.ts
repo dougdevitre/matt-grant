@@ -8,6 +8,7 @@ import { toChannelIds, isChannelId, type ChannelId } from "@/lib/social/channels
 import { footprintScore, type ChannelMetrics, type FootprintReport } from "@/lib/social/optimize";
 import { recordSnapshot } from "@/lib/social/footprint";
 import { verifyChannel, type ChannelStatus } from "@/lib/social/publish";
+import { deleteConnection, getConnection, saveConnection } from "@/lib/social/connections";
 import { CHANNEL_IDS } from "@/lib/social/channels";
 import { planSlots } from "@/lib/social/scheduler";
 import { sanitizeHttpUrl, sanitizeMediaUrl } from "@/lib/social/validate";
@@ -177,6 +178,29 @@ export async function fillWeekAction(_prev: ActionState, formData: FormData): Pr
   revalidatePath("/dashboard/social");
   const first = new Date(slots[0]).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
   return { ok: true, message: `Scheduled ${scheduled} posts at best-time slots, starting ${first}. Review them in the calendar below.` };
+}
+
+// Disconnect a stored OAuth connection (e.g. "facebook" — drops the Page + IG).
+export async function disconnectAction(formData: FormData): Promise<void> {
+  const g = await staffGate();
+  if (!can(g.role, "manageSocial")) return;
+  const platform = String(formData.get("platform") ?? "");
+  if (platform) await deleteConnection(platform);
+  revalidatePath("/dashboard/social");
+}
+
+// Switch the active Facebook Page (when the connected account manages several).
+// Re-points pageId/pageToken/IG to the chosen Page from the stored list — no re-auth.
+export async function switchPageAction(formData: FormData): Promise<void> {
+  const g = await staffGate();
+  if (!can(g.role, "manageSocial")) return;
+  const pageId = String(formData.get("pageId") ?? "");
+  const conn = await getConnection("facebook");
+  const page = conn?.pages?.find((p) => p.id === pageId);
+  if (conn && page) {
+    await saveConnection({ ...conn, pageId: page.id, pageName: page.name, pageToken: page.token, igUserId: page.igUserId, igUsername: page.igUsername });
+  }
+  revalidatePath("/dashboard/social");
 }
 
 // Verify each channel's credentials without posting — read-only Graph/X calls so

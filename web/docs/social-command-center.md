@@ -16,7 +16,12 @@ Admin-only via the RBAC capability `manageSocial` (`lib/rbac.ts`). Captains, mem
 | `lib/social/optimize.ts` | Pure engine: `scoreContent()` grades a draft against a channel; `analyzeChannel()` / `footprintScore()` turn analytics into insights + a dominance index. Unit-tested, no I/O. |
 | `lib/social/schedule.ts` | DynamoDB store (partition `SOCIALPOST`) + `drainDue()` worker. Claim-before-publish so overlapping cron runs never double-post. |
 | `lib/social/scheduler.ts` | Best-time auto-scheduler — timezone-correct (America/Chicago) planner that lays N posts onto each channel's optimal windows. Powers the "Fill the week" panel. |
-| `lib/social/publish.ts` | Per-channel publishing adapters with graceful degradation (API mode vs. manual mode). |
+| `lib/social/publish.ts` | Per-channel publishing adapters + `resolveCredentials()` (OAuth connection → manual token fallback) with graceful degradation. |
+| `lib/social/credentials.ts` | Reads the OAuth *app* credentials from `/mattgrant/prod/social/<platform>/<field>`. |
+| `lib/social/connections.ts` | DynamoDB store (`SOCIALAUTH`) for per-account OAuth tokens from the connect flow. |
+| `lib/social/metaOAuth.ts` | Meta (FB+IG) OAuth: authorize URL + code→long-lived-token→Page/IG exchange + refresh + multi-Page. |
+| `lib/social/oauth/` | Provider registry (`index.ts`) + per-provider modules (`facebook.ts`, `x.ts`, `linkedin.ts`), shared `types.ts`, and `refresh.ts` (refresh-on-read + cron backstop). |
+| `app/api/social/{connect,callback}/[platform]` | Platform-agnostic OAuth routes (admin-only; CSRF state + PKCE verifier cookies). |
 | `app/api/cron/social-drain/route.ts` | Background worker that publishes scheduled posts at their time. Same `CRON_SECRET` + cadence as the email drain. |
 | `app/dashboard/social/{page,actions}.tsx` | The UI + server actions (schedule / post now / cancel / confirm-posted / analyze profile). |
 | `components/dashboard/Social*.tsx` | Composer (live per-channel scoring), Profile Optimizer, copy button. |
@@ -30,7 +35,7 @@ Caption limits, hashtag norms, and image specs live in `CHANNELS`. Highlights:
 | X (Twitter) | 280 | 280 | 1–2 | ✅ implemented (text + image) |
 | Facebook | 5,000 | 250 | 0–2 | ✅ implemented (text + photo) |
 | Instagram | 2,200 | 125 | 3–5 (max 30) | ✅ implemented (image required) |
-| LinkedIn | 3,000 | 210 | 3–5 | ✅ implemented (text/link + image) |
+| LinkedIn | 3,000 | 210 | 3–5 | ✅ implemented (text/link) |
 | TikTok | 4,000 | 100 | 3–5 | manual (stub) |
 | YouTube (Shorts) | 5,000 (desc) | 100 | 2–3 | manual (stub) |
 | Threads | 500 | 500 | 0–1 | manual (stub) |
@@ -41,24 +46,39 @@ These move — re-verify against each platform's current docs and update `CHANNE
 
 Like SES, Clerk, and S3 elsewhere in the app, publishing **degrades gracefully**:
 
-- **API mode** — when a channel is **fully configured** (all its required secrets present, read via `getSecret`), `drainDue()` posts it automatically through that platform's API at the scheduled time.
-- **Manual mode** — otherwise the post is **staged** at its scheduled time and surfaces in the "Ready to post" queue with copy-ready text + the attached image, exactly like Buffer's "reminder" posts for platforms without a publish API. An admin pushes it and clicks **Mark posted**. A channel with a token but a missing id stages (not errors).
+- **API mode** — when a channel has credentials (an OAuth connection, or a manual token fallback), `drainDue()` posts it automatically through that platform's API at the scheduled time.
+- **Manual mode** — otherwise the post is **staged** at its scheduled time and surfaces in the "Ready to post" queue with copy-ready text + the attached image, exactly like Buffer's "reminder" posts for platforms without a publish API. An admin pushes it and clicks **Mark posted**.
 
-### Required secrets per channel
+### Getting credentials: two ways
 
-Store each in SSM at `/matt-grant/<NAME>` (SecureString). A channel auto-publishes only when **all** of its secrets are present.
+`resolveCredentials(channel)` (in `publish.ts`) checks, in order: (1) a stored **OAuth connection**, then (2) a **manual token** fallback in env/SSM.
 
-| Channel | Secrets | Notes |
-|---|---|---|
-| X | `X_ACCESS_TOKEN` | OAuth2 user-context token with `tweet.write` (+ `media.write` for images). Posts text/link and uploads an attached image via the v2 media endpoint. |
-| Facebook | `FACEBOOK_PAGE_TOKEN`, `FACEBOOK_PAGE_ID` | Page token with `pages_manage_posts`. Photo post when media attached, else feed post. |
-| Instagram | `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_USER_ID` | IG business/creator account id; token with `instagram_content_publish`. **Image required** (no text-only IG posts). |
-| LinkedIn | `LINKEDIN_ACCESS_TOKEN`, `LINKEDIN_AUTHOR_URN` | Author URN (e.g. `urn:li:organization:123`); token with `w_organization_social`/`w_member_social`. Text/link share, plus image shares via the register-upload (asset) flow when a graphic is attached. |
-| TikTok / YouTube / Threads | `<PLATFORM>_ACCESS_TOKEN` | Adapter not implemented yet — stages manually until wired in `apiPublish()`. |
+**1. In-app OAuth connect (recommended — "auth established through the app").** The admin clicks **Connect** on the Channel connections panel. The flow uses the OAuth *app* credentials the campaign loaded into Parameter Store under `/mattgrant/prod/social/<platform>/<field>` (read by `lib/social/credentials.ts`). Providers live in `lib/social/oauth/<provider>.ts` behind a registry (`oauth/index.ts`); the routes `GET /api/social/{connect,callback}/[platform]` are platform-agnostic dispatchers.
 
-**Meta image fetch:** Instagram (and Facebook photo posts) need a **publicly reachable** image. The composer's on-brand graphic is `/api/graphics?…`, which is public; `absoluteMediaUrl()` rewrites it against `SITE_URL` so Meta can fetch it. Override the Graph version with `META_GRAPH_VERSION` as Meta deprecates versions.
+- **Facebook (+ Instagram):** Meta OAuth → long-lived user token → the **Page** (its token is what we post with) and the linked **Instagram business account**. One connect powers both channels.
+- **X:** OAuth2 **Authorization Code + PKCE** (verifier in a second cookie) → access + refresh token. `offline.access` scope is required for the refresh token.
+- **LinkedIn:** OAuth2 (`openid profile w_member_social`) → access token; the author URN is resolved from OpenID `userinfo` (`urn:li:person:{sub}`).
+- Connections are stored in DynamoDB (`SOCIALAUTH` partition, `lib/social/connections.ts`). Each platform's registered `redirect_uri` must point at `…/api/social/callback/<platform>`.
 
-Channels flip to API mode automatically once their secrets land — no redeploy needed (SSM TTL is ~5 min). No tokens are committed; the feature is fully usable day one without any platform credentials.
+**Token refresh:** `resolveCredentials()` calls `ensureFresh()` (`oauth/refresh.ts`) — when a connection is within 7 days of expiry it refreshes + persists the (possibly rotated) token; never throws (degrades to the stale token and surfaces the expiry in the UI). The `/api/cron/social-drain` worker also calls `refreshExpiring()` as a backstop.
+
+**Multi-Page (Meta):** when the account manages several Pages, all are stored and the connections panel shows a "Posting as" picker (`switchPageAction`) — no re-auth needed to switch.
+
+**2. Manual token fallback** (env/SSM flat names under `/matt-grant/<NAME>`): `X_ACCESS_TOKEN`; `FACEBOOK_PAGE_TOKEN`+`FACEBOOK_PAGE_ID`; `INSTAGRAM_ACCESS_TOKEN`+`INSTAGRAM_USER_ID`; `LINKEDIN_ACCESS_TOKEN`+`LINKEDIN_AUTHOR_URN`. Useful for testing.
+
+| Channel | Connect flow | Posts | Scopes |
+|---|---|---|---|
+| Facebook | ✅ Meta OAuth (+ refresh, multi-Page) | photo (media attached) / feed | `pages_manage_posts`, `pages_read_engagement`, `pages_show_list` |
+| Instagram | ✅ via the Meta connect | image required (container→publish) | `instagram_basic`, `instagram_content_publish` |
+| X | ✅ OAuth2 + PKCE (+ refresh) | text/link + image (v2 media) | `tweet.read tweet.write users.read offline.access` |
+| LinkedIn | ✅ OAuth2 (member; + image upload) | text/link + image (register-upload) | `openid profile w_member_social` |
+| TikTok / YouTube / Threads | — | not implemented (video / no adapter) | — |
+
+**IAM:** the SSR runtime role must read the new prefix. `infra/setup-aws.sh` grants `ssm:GetParameter` on **both** `…parameter/matt-grant/*` and `…parameter/mattgrant/prod/social/*` (note the hyphen difference); re-run it after loading the params.
+
+**Meta image fetch:** Instagram (and Facebook photo posts) need a **publicly reachable** image. The composer's on-brand graphic is `/api/graphics?…`, which is public; `absoluteMediaUrl()` rewrites it against `SITE_URL` so Meta can fetch it. Override the Graph version with `META_GRAPH_VERSION`.
+
+Channels flip to API mode automatically once connected — no redeploy needed. No tokens are committed; the feature is fully usable day one without any platform credentials.
 
 ## Scheduling worker
 

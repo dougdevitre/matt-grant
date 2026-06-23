@@ -215,7 +215,10 @@ else
       "Sid": "ReadMattGrantParams",
       "Effect": "Allow",
       "Action": ["ssm:GetParameter", "ssm:GetParameters"],
-      "Resource": "arn:aws:ssm:${REGION}:${ACCT}:parameter/matt-grant/*"
+      "Resource": [
+        "arn:aws:ssm:${REGION}:${ACCT}:parameter/matt-grant/*",
+        "arn:aws:ssm:${REGION}:${ACCT}:parameter/mattgrant/prod/social/*"
+      ]
     },
     {
       "Sid": "DecryptViaSsmOnly",

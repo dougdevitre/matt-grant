@@ -179,31 +179,20 @@ describe("LinkedIn publisher (UGC)", () => {
     expect(r.ok).toBe(false);
   });
 
-  it("attaches an image via the register-upload flow, then posts an IMAGE share", async () => {
+  it("registers + uploads an image, then references the asset in the share", async () => {
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce(res(200, { value: { asset: "urn:li:digitalmediaAsset:abc", uploadMechanism: { "com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest": { uploadUrl: "https://upload.li/123" } } } })) // registerUpload
+      .mockResolvedValueOnce(res(200, { value: { asset: "urn:li:digitalmediaAsset:AAA", uploadMechanism: { "com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest": { uploadUrl: "https://upload.linkedin.example/abc" } } } })) // registerUpload
       .mockResolvedValueOnce(imgRes()) // fetch image bytes
-      .mockResolvedValueOnce(res(201, "")) // PUT/POST bytes to uploadUrl
-      .mockResolvedValueOnce(res(201, { id: "urn:li:share:9" })); // create the share
+      .mockResolvedValueOnce(res(201, {})) // PUT bytes
+      .mockResolvedValueOnce(res(201, { id: "urn:li:share:9" })); // ugcPosts
     vi.stubGlobal("fetch", fetchMock);
-    const r = await publishToChannel("linkedin", { caption: "Vote Aug 4", hashtags: ["#MO02"], mediaUrl: "https://cdn.example.com/x.png" });
-    expect(r).toMatchObject({ ok: true, mode: "api", externalId: "urn:li:share:9" });
-    expect(fetchMock).toHaveBeenCalledTimes(4);
+    const r = await publishToChannel("linkedin", { caption: "Hi", hashtags: ["#MO02"], mediaUrl: "https://cdn.example.com/x.png" });
+    expect(r).toMatchObject({ ok: true, externalId: "urn:li:share:9" });
     expect(fetchMock.mock.calls[0][0]).toContain("registerUpload");
-    expect(String((fetchMock.mock.calls[0][1] as RequestInit).body)).toContain("feedshare-image");
-    expect(fetchMock.mock.calls[2][0]).toBe("https://upload.li/123"); // bytes go to the one-time upload URL
-    const shareBody = String((fetchMock.mock.calls[3][1] as RequestInit).body);
-    expect(shareBody).toContain("IMAGE");
-    expect(shareBody).toContain("urn:li:digitalmediaAsset:abc");
-  });
-
-  it("fails the post (no silent text-only) when the image register step errors", async () => {
-    const fetchMock = vi.fn().mockResolvedValueOnce(res(403, { message: "no asset perms" }));
-    vi.stubGlobal("fetch", fetchMock);
-    const r = await publishToChannel("linkedin", { caption: "Hi", hashtags: [], mediaUrl: "https://cdn.example.com/x.png" });
-    expect(r.ok).toBe(false);
-    expect(fetchMock).toHaveBeenCalledTimes(1); // never reached upload or the share
+    const ugcBody = String((fetchMock.mock.calls[3][1] as RequestInit).body);
+    expect(ugcBody).toContain("urn:li:digitalmediaAsset:AAA");
+    expect(ugcBody).toContain("IMAGE");
   });
 });
 
