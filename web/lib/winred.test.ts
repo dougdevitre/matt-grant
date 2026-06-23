@@ -57,17 +57,17 @@ describe("extractWinredToken", () => {
 });
 
 describe("normalizeWinred", () => {
-  it("parses the documented nested-donor shape (amount in cents → dollars)", () => {
+  it("parses the documented nested-donor shape (plain `amount` is dollars)", () => {
     const r = normalizeWinred({
       id: "wr_abc",
-      amount: 3500,
+      amount: 35,
       recurring: true,
       created_at: "2026-06-19T00:00:00Z",
       donor: { first_name: "Jane", last_name: "Doe", email: "jane@example.com", employer: "Acme", occupation: "Engineer", city: "STL", state: "MO", zip: "63101" },
     });
     expect(r).toMatchObject({
       externalId: "wr_abc",
-      amount: 35, // 3500 cents → $35
+      amount: 35, // plain `amount` → dollars (not 1/100 of the gift)
       name: "Jane Doe",
       email: "jane@example.com",
       employer: "Acme",
@@ -77,10 +77,21 @@ describe("normalizeWinred", () => {
     });
   });
 
-  it("unwraps a { data: {...} } envelope and reads flat billing fields", () => {
+  it("reads an explicitly cents-named field as integer cents", () => {
+    expect(normalizeWinred({ amount_cents: 3500, email: "a@b.co" }).amount).toBe(35);
+    expect(normalizeWinred({ amount_in_cents: 5000, email: "a@b.co" }).amount).toBe(50);
+  });
+
+  it("parses string and $-formatted dollar amounts (no 100× shrink)", () => {
+    expect(normalizeWinred({ amount: "25.00", email: "a@b.co" }).amount).toBe(25);
+    expect(normalizeWinred({ amount: "250", email: "a@b.co" }).amount).toBe(250);
+    expect(normalizeWinred({ amount: "$1,250.00", email: "a@b.co" }).amount).toBe(1250);
+  });
+
+  it("unwraps a { data: {...} } envelope and reads flat billing fields (total_amount in dollars)", () => {
     const r = normalizeWinred({ data: { transaction_id: "t1", total_amount: 1000, billing: { first_name: "Sam", email: "sam@x.co" } } });
     expect(r.externalId).toBe("t1");
-    expect(r.amount).toBe(10);
+    expect(r.amount).toBe(1000);
     expect(r.name).toBe("Sam");
     expect(r.email).toBe("sam@x.co");
   });
