@@ -6,18 +6,6 @@ type Json = Record<string, unknown>;
 
 const str = (v: unknown): string | undefined => (typeof v === "string" && v.trim() ? v.trim() : undefined);
 
-// Parse a money value that may arrive as a number or a string like "25",
-// "25.00", or "$1,250.00". Returns a finite number (in the field's own unit) or
-// undefined — never NaN.
-function money(v: unknown): number | undefined {
-  if (typeof v === "number") return Number.isFinite(v) ? v : undefined;
-  if (typeof v === "string") {
-    const n = Number(v.replace(/[$,\s]/g, ""));
-    return Number.isFinite(n) ? n : undefined;
-  }
-  return undefined;
-}
-
 // First present value across candidate dot-paths.
 function pick(obj: Json, ...paths: string[]): unknown {
   for (const p of paths) {
@@ -85,21 +73,8 @@ export function normalizeWinred(payload: Json): NormalizedDonation {
   // Some webhook configs wrap the donation as { data: {...} }.
   const d = (payload.data && typeof payload.data === "object" ? (payload.data as Json) : payload) as Json;
 
-  // Resolve the gift amount by FIELD NAME so we never misscale by 100×: fields
-  // explicitly named in cents are integer cents; the plain amount fields are
-  // dollars. (Previously EVERY `amount` was assumed to be cents, so a
-  // dollars-denominated WinRed payload displayed at 1/100 — a $250 gift showed as
-  // $2.50 — and an unmatched field name left the donor at $0. The route then
-  // multiplies the dollars back to cents for storage.) Confirm your account's
-  // actual field against a real sample; this maps the common shapes defensively.
-  const fromCents = money(pick(d, "amount_cents", "amount_in_cents", "total_amount_cents"));
-  const fromDollars = money(pick(d, "amount", "donation.amount", "total_amount", "amount_dollars"));
-  const amountDollars =
-    fromDollars != null && fromDollars > 0
-      ? fromDollars
-      : fromCents != null && fromCents > 0
-        ? Math.round(fromCents) / 100
-        : undefined;
+  const cents = Number(pick(d, "amount", "amount_cents", "donation.amount", "total_amount"));
+  const amountDollars = Number.isFinite(cents) && cents > 0 ? Math.round(cents) / 100 : undefined;
 
   const first = str(pick(d, "donor.first_name", "first_name", "billing.first_name"));
   const last = str(pick(d, "donor.last_name", "last_name", "billing.last_name"));

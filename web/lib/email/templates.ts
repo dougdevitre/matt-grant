@@ -126,7 +126,6 @@ export function issueSpotlight(slug: string): Email {
     subject: `Where Matt stands: ${issue.title}`,
     html: renderEmail({
       preheader: issue.tagline,
-      greeting: true,
       eyebrow: issue.eyebrow,
       title: issue.title,
       subtitle: issue.tagline,
@@ -152,7 +151,6 @@ export function campaignNewsletter(): Email {
     subject: "The four priorities — and how you can help",
     html: renderEmail({
       preheader: "Where Matt stands, and your plan to help.",
-      greeting: true,
       eyebrow: "Campaign update",
       title,
       subtitle: "Where Matt stands — and how you can move this race forward.",
@@ -174,7 +172,6 @@ export function gotvReminder(daysOut = 7): Email {
     subject: daysOut <= 1 ? "Vote tomorrow for Matt Grant" : `${daysOut} days left — here's your plan to vote`,
     html: renderEmail({
       preheader: `Primary election: ${CAMPAIGN.electionLabel}.`,
-      greeting: true,
       eyebrow: "Get out the vote",
       title,
       subtitle: `The primary is ${CAMPAIGN.electionLabel}. Make your plan to vote.`,
@@ -200,7 +197,6 @@ export function fundraisingAppeal(): Email {
     subject: "Chip in before the deadline — Matt Grant for Congress",
     html: renderEmail({
       preheader: "Every dollar funds doors, calls, and mail.",
-      greeting: true,
       eyebrow: "Chip in",
       title,
       subtitle: "Grassroots support — not Washington insiders — carries this campaign.",
@@ -221,13 +217,12 @@ export function eventInvite(): Email {
     subject: "You're invited: {{event_title}}",
     html: renderEmail({
       preheader: "{{event_date}} · {{event_location}}",
-      greeting: true,
       eyebrow: "You're invited",
       title: "{{event_title}}",
       heroImage: { src: img("web/st-louis-arch.png"), alt: "Join Matt Grant" },
       bodyHtml: `<p>Join Matt Grant and neighbors across Missouri's 2nd District.</p>
         <p><strong>When:</strong> {{event_date}}<br><strong>Where:</strong> {{event_location}}</p>
-        {{event_details}}`,
+        <p>{{event_details}}</p>`,
       button: { label: "RSVP now", href: "{{rsvp_url}}", color: "red" },
       secondaryButton: { label: "Add to calendar", href: "{{calendar_url}}", color: "navy" },
       unsubscribeUrl: UNSUB,
@@ -242,12 +237,11 @@ export function announcement(): Email {
     subject: "{{subject}}",
     html: renderEmail({
       preheader: "{{preheader}}",
-      greeting: true,
       eyebrow: "{{eyebrow}}",
       title: "{{headline}}",
       subtitle: "{{subhead}}",
       heroImage: { src: img("brand/headshot.png"), alt: "Matt Grant" },
-      bodyHtml: `{{body}}`,
+      bodyHtml: `<p>{{body}}</p>`,
       signature: true,
       button: { label: "{{cta_label}}", href: "{{cta_url}}", color: "red" },
       unsubscribeUrl: UNSUB,

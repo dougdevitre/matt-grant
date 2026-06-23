@@ -7,8 +7,9 @@ import { can } from "@/lib/rbac";
 import { sesEnabled } from "@/lib/email/send";
 import { sendBroadcastEmail } from "@/lib/campaignSend";
 import { getBroadcast } from "@/lib/email/broadcasts";
-import { createCampaign, drainOnce, type Recipient } from "@/lib/campaigns";
-import { segmentEmails, isWayToHelp } from "@/lib/profile";
+import { createCampaign, drainOnce } from "@/lib/campaigns";
+import { resolveRecipients } from "@/lib/email/audiences";
+import { isContactGroup, audienceLabel, type ContactGroup } from "@/lib/email/audienceGroups";
 import { isIssueId } from "@/lib/integrations/research/issues";
 import { isWayToHelp } from "@/lib/profile";
 
@@ -21,42 +22,8 @@ async function baseUrl(): Promise<string> {
   return host ? `${proto}://${host}` : "";
 }
 
-// First token of a stored full name → the {{first_name}} merge value. Profile
-// segments store no name, so those recipients fall back to a neutral greeting.
-const firstNameOf = (name?: string | null): string | undefined => (name ?? "").trim().split(/\s+/)[0] || undefined;
-
-async function recipientsFor(audience: Audience): Promise<Recipient[]> {
-  const byEmail = new Map<string, Recipient>();
-  const add = (email?: string | null, firstName?: string) => {
-    if (!email) return;
-    const e = email.toLowerCase();
-    const existing = byEmail.get(e);
-    if (!existing) byEmail.set(e, firstName ? { email: e, firstName } : { email: e });
-    else if (!existing.firstName && firstName) existing.firstName = firstName; // keep the first name we learn for this address
-  };
-
-  // Profile segments (supporter-driven). Interest, or way-they-want-to-help.
-  if (audience.startsWith("issue:")) {
-    const issue = audience.slice("issue:".length);
-    if (isIssueId(issue)) (await segmentEmails({ issue })).forEach((e) => add(e));
-    return [...byEmail.values()];
-  }
-  if (audience.startsWith("way:")) {
-    const wayToHelp = audience.slice("way:".length);
-    if (isWayToHelp(wayToHelp)) (await segmentEmails({ wayToHelp })).forEach((e) => add(e));
-    return [...byEmail.values()];
-  }
-  if (audience === "volunteers" || audience === "all") {
-    const { rows } = await getVolunteers();
-    rows.forEach((v) => add(v.email, firstNameOf(v.name)));
-  }
-  if (audience === "donors" || audience === "all") {
-    const { rows } = await getDonors();
-    rows.forEach((d) => add(d.email, firstNameOf(d.name)));
-  }
-  return [...byEmail.values()];
-}
-
+// Parse the composer form: a template, any number of contact groups, an optional
+// supporter segment, and the template's variable fields.
 function parse(formData: FormData) {
   const broadcast = getBroadcast(String(formData.get("templateKey") ?? ""));
   const groups = formData.getAll("groups").map(String).filter(isContactGroup) as ContactGroup[];
