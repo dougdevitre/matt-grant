@@ -5,9 +5,10 @@ import { testConnectionsAction, disconnectAction, switchPageAction } from "@/app
 import { CHANNELS } from "@/lib/social/channels";
 import { ConfirmButton } from "@/components/dashboard/ConfirmButton";
 import type { ChannelStatus } from "@/lib/social/publish";
+import type { ConnectPlatform } from "@/lib/social/connect-platforms";
 
 export type ProviderSummary = {
-  platform: "facebook" | "x" | "linkedin";
+  platform: ConnectPlatform;
   label: string;
   connected: boolean;
   detail?: string;
