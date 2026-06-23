@@ -43,6 +43,10 @@ export function ContactForm() {
           <span className="mb-1 block text-sm font-semibold text-ink">Phone</span>
           <input name="phone" className={field} placeholder="(314) 555-0123" />
         </label>
+        <label className="block">
+          <span className="mb-1 block text-sm font-semibold text-ink">ZIP code</span>
+          <input name="zip" inputMode="numeric" maxLength={5} className={field} placeholder="63017" />
+        </label>
       </div>
 
       <fieldset className="mt-5">
