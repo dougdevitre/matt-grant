@@ -1,30 +1,20 @@
 import { NextResponse, type NextRequest } from "next/server";
-import crypto from "node:crypto";
 import { drainOnce } from "@/lib/campaigns";
 import { sesEnabled } from "@/lib/email/send";
 import { SITE_URL } from "@/lib/site";
-import { getSecret } from "@/lib/ssm";
+import { cronAuthorized } from "@/lib/cron-auth";
 
-// Background worker for queued email campaigns. Point an EventBridge Scheduler
-// (every ~1 min) at this route with `Authorization: Bearer <CRON_SECRET>`. Each
-// invocation drains a few bounded batches, so delivery progresses steadily
-// without any single request approaching the timeout.
+// Background worker for queued email campaigns. EventBridge calls this route via
+// POST (only) with `Authorization: Bearer <CRON_SECRET>`. Each invocation drains a
+// few bounded batches, so delivery progresses steadily without any single request
+// approaching the timeout.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const MAX_BATCHES_PER_RUN = 4; // 4 × 25 = up to 100 sends/invocation
 
-async function authorized(req: NextRequest): Promise<boolean> {
-  const secret = await getSecret("CRON_SECRET"); // env-first; SSM once un-baked
-  if (!secret) return false; // fail closed
-  const got = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
-  const a = Buffer.from(got);
-  const b = Buffer.from(secret);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
-}
-
 async function handle(req: NextRequest) {
-  if (!(await authorized(req))) return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
+  if (!(await cronAuthorized(req))) return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   if (!sesEnabled) return NextResponse.json({ ok: true, skipped: "SES not configured" });
 
   const host = req.headers.get("host");
@@ -41,4 +31,3 @@ async function handle(req: NextRequest) {
 }
 
 export const POST = handle;
-export const GET = handle;
