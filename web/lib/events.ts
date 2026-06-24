@@ -3,7 +3,7 @@ import { ddb, TABLE, PK, newId, dbConfigured } from "@/lib/db";
 import { resolveDistrict } from "@/lib/events/districts";
 import {
   isEventType, isEventStatus,
-  type EventType, type EventStatus, type EventLocation, type Signup, type EventRow, type PublicEvent, type EventInput, type EventNotifyResult,
+  type EventType, type EventStatus, type EventLocation, type Signup, type EventStaffer, type EventRow, type PublicEvent, type EventInput, type EventNotifyResult,
 } from "@/lib/events/types";
 
 // Campaign events / appearances. One DynamoDB partition (PK="EVENT") with
@@ -48,6 +48,8 @@ function rawToRow(it: Record<string, unknown>): EventRow {
     status: isEventStatus(it.status) ? it.status : "DRAFT",
     capacity: it.capacity == null ? null : Number(it.capacity),
     signups: Array.isArray(it.signups) ? (it.signups as Signup[]) : [],
+    captain: (it.captain as EventStaffer) ?? null,
+    volunteers: Array.isArray(it.volunteers) ? (it.volunteers as EventStaffer[]) : [],
     source: it.source === "email" ? "email" : "manual",
     parseConfidence: it.parseConfidence == null ? null : Number(it.parseConfidence),
     notifiedEmailAt: (it.notifiedEmailAt as string) ?? null,
@@ -99,6 +101,8 @@ function buildItem(id: string, input: EventInput, now: string, prior?: Partial<E
     status: input.status ?? prior?.status ?? "DRAFT",
     capacity: input.capacity ?? undefined,
     signups: prior?.signups ?? [],
+    captain: input.captain !== undefined ? input.captain ?? undefined : prior?.captain ?? undefined,
+    volunteers: input.volunteers ?? prior?.volunteers ?? undefined,
     source: input.source ?? prior?.source ?? "manual",
     parseConfidence: input.parseConfidence ?? prior?.parseConfidence ?? undefined,
     notifiedEmailAt: prior?.notifiedEmailAt ?? undefined,
@@ -183,6 +187,8 @@ export async function updateEvent(id: string, patch: Partial<EventInput> & { sta
     lng: patch.lng !== undefined ? patch.lng : cur.lng,
     description: patch.description ?? cur.description,
     capacity: patch.capacity !== undefined ? patch.capacity : cur.capacity,
+    captain: patch.captain !== undefined ? patch.captain : cur.captain,
+    volunteers: patch.volunteers !== undefined ? patch.volunteers : cur.volunteers,
     status: patch.status ?? cur.status,
     createdBy: cur.createdBy,
   };
