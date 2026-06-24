@@ -62,6 +62,8 @@ Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026
 
 - [tactics/captain-archetypes.md](tactics/captain-archetypes.md) -- Six team-captain leader types by strength and weakness, plus the seven captain roles
 - [workflows/team-pairing.md](workflows/team-pairing.md) -- Pair captains with volunteers, and move volunteers up to supporters, sponsors, and donors
+- [tools/captain-roster.md](tools/captain-roster.md) -- CSV/JSON schema to store and maintain the captain roster (archetypes, roles, co-captains, volunteers, pipeline targets)
+- [candidate/captain-field-plan.md](candidate/captain-field-plan.md) -- Applies the captain framework to Matt Grant's real MO-02 field program (counts illustrative)
 - [workflows/volunteer-management.md](workflows/volunteer-management.md) -- Recruiting, training, and retaining the volunteers your captains lead
 
 ## "I need compliance help"

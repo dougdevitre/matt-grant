@@ -26,6 +26,40 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-06-24 -- v1.x -- Captain Roster Schema + MO-02 Field Plan + Artifact Spec
+
+**Changes:**
+- [added] tools/captain-roster.md -- CSV/JSON data schema for the field-leadership roster (captains, archetypes, roles, co-captains, volunteers, supporter-pipeline targets); the storable form of the team-pairing worksheet. Closes the "no tools schema" gap noted in the prior entry. Mirrors contribution-tracker.md.
+- [added] candidate/captain-field-plan.md -- applies the captain framework to Matt Grant's real MO-02 field program (5-county 2025 map, Aug 4 2026 primary, family-court signature cause, 5 messaging pillars, GOTV timeline). Every quantitative figure is a labeled illustrative placeholder per strategic-plan.md.
+- [updated] artifacts/campaign-documents.md -- new "Field Leadership Roster (Captain Pairing)" entry under Strategy Documents (the `/captainmatch` output spec)
+- [updated] commands/commands.md -- added `/captainroster` (→ tools/captain-roster.md)
+- [updated] SKILL.md -- new rows in the Tool and Candidate-files reference tables
+- [updated] INDEX.md -- added the roster and field plan to the "volunteer leadership team" use case
+- [updated] tools/README.md -- file-list bullet for captain-roster.md
+- [updated] references/glossary.md -- added "Donor Ambassador" and "Regional Coordinator"
+
+**Verifications Performed:**
+- Confirmed cross-references resolve (captain-roster ↔ team-pairing, captain-archetypes, donation-intake, donor-limit-checker, ethics-and-guardrails; captain-field-plan ↔ strategic-plan, data-and-map-plan, gotv-plan, ballot-chase-program)
+- Roster schema enums (archetypes, roles) and worksheet columns match the merged captain files exactly; pipeline rungs match team-pairing Part C
+- MO-02 field plan uses only documented facts (district map, date, priorities, pillars); all counts/names are labeled illustrative placeholders; no invented policy, endorsements, or poll numbers; no SSN/bank/PII fields
+
+**Known Gaps:**
+- Captain assignments in the roster and field plan are illustrative; replace with the campaign's real recruitment before deployment
+- Rural-county (Washington/Crawford/Gasconade) precinct-level turnout is not available from live feeds (see data-and-map-plan.md)
+
+**Files Modified:**
+- tools/captain-roster.md
+- candidate/captain-field-plan.md
+- artifacts/campaign-documents.md
+- commands/commands.md
+- SKILL.md
+- INDEX.md
+- tools/README.md
+- references/glossary.md
+- references/update-log.md
+
+---
+
 ## 2026-06-24 -- v1.x -- Team Captain Archetypes + Pairing Workflow
 
 **Changes:**
