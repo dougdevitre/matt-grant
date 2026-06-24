@@ -30,6 +30,14 @@ export const isEventStatus = (v: unknown): v is EventStatus =>
 
 export type EventLocation = { name: string; address: string; city: string; county: string };
 
+// Outcome of the publish-time email + SMS broadcast, persisted on the event so the
+// dashboard can show whether notifications actually went out (vs. a false "Published").
+export type EventNotifyResult = {
+  at: string;
+  email: { queued: boolean; reason?: string };
+  sms: { queued: boolean; reason?: string };
+};
+
 export type Signup = {
   id: string;
   name: string;
@@ -46,6 +54,7 @@ export type EventRow = {
   type: EventType;
   start: string; // ISO 8601
   end: string | null;
+  allDay: boolean;
   location: EventLocation;
   districtKey: string;
   description: string;
@@ -56,6 +65,7 @@ export type EventRow = {
   parseConfidence: number | null;
   notifiedEmailAt: string | null;
   notifiedSmsAt: string | null;
+  notifyResult: EventNotifyResult | null;
   createdBy: string;
   createdAt: string;
   updatedAt: string | null;
@@ -68,6 +78,7 @@ export type PublicEvent = {
   type: EventType;
   start: string;
   end: string | null;
+  allDay: boolean;
   location: EventLocation;
   districtKey: string;
   description: string;
@@ -82,6 +93,7 @@ export type EventInput = {
   type: EventType;
   start: string;
   end?: string | null;
+  allDay?: boolean;
   location: EventLocation;
   description: string;
   capacity?: number | null;

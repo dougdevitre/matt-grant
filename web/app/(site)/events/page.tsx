@@ -29,6 +29,12 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
         sign up to help knock doors, make calls, or staff a table.
       </p>
 
+      {all.length > 0 && (
+        <a href="/api/events/calendar.ics" className="mt-5 inline-flex items-center gap-2 font-mono text-xs font-bold text-brick hover:underline">
+          📅 Subscribe to all events
+        </a>
+      )}
+
       {presentTypes.length > 1 && (
         <div className="mt-8 flex flex-wrap gap-2">
           <Link href="/events" className={`rounded-full border px-3 py-1 text-sm ${active ? "border-line text-slate hover:border-ink" : "border-ink bg-ink text-paper"}`}>
