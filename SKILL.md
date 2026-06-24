@@ -215,6 +215,7 @@ Load only what is needed for the current task:
 | `workflows/opposition-research.md` | User needs to research opponent or prepare for attacks on themselves |
 | `workflows/coordination-rules.md` | User asks about working with PACs, Super PACs, party committees, or outside groups |
 | `workflows/volunteer-management.md` | User needs to recruit, organize, or manage volunteers; legal boundaries on volunteering |
+| `workflows/team-pairing.md` | User wants to pair captains with volunteers and move volunteers up to supporters, sponsors, and donors — matching matrices, complementary co-captains, and the volunteer→donor ladder |
 | `workflows/gotv-plan.md` | User is planning Get Out The Vote operations, election day logistics, or early vote strategy |
 | `workflows/post-election.md` | User needs guidance on post-election obligations — win, lose, recount, debt, surplus, termination |
 | `workflows/accessibility-inclusion.md` | User asks about ADA compliance, multilingual outreach, or reaching underserved communities |
@@ -279,6 +280,7 @@ Load only what is needed for the current task:
 | `tactics/ballot-chase-program.md` | User asks about early vote tracking, absentee ballot chasing, ballot curing, or election day chase operations. The operational heart of GOTV. |
 | `tactics/scheduling-advance.md` | User asks about candidate time management, event logistics, briefing memos, or advance work. Includes optimal weekly time allocation. |
 | `tactics/voter-personas.md` | User needs to understand WHO they're talking to. Generates 4–6 psychographic voter profiles with tailored messages, channels, and asks per persona. |
+| `tactics/captain-archetypes.md` | User asks about types of team captains / volunteer leaders, their strengths and weaknesses, or which captain fits which role. Six archetypes + seven captain roles; pairs with `workflows/team-pairing.md`. |
 | `tactics/primary-general-strategy.md` | User needs primary strategy, general election pivot plan, or is deciding how to message differently for primary vs. general electorates. |
 | `tactics/candidate-performance.md` | User needs delivery coaching (voice, body language, camera presence), media training, candidate wellness/burnout prevention, or family resilience planning. |
 | `tactics/election-protection.md` | User needs election lawyer guidance, poll watcher program, recount preparation, provisional ballot strategy, or election day boiler room operations. |

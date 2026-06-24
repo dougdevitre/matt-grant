@@ -58,6 +58,12 @@ Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026
 - [tactics/ballot-chase-program.md](tactics/ballot-chase-program.md) -- Tracking and chasing ballots
 - [candidate/absentee-voting-guide.md](candidate/absentee-voting-guide.md) -- Supporter/voter guide to voting early or absentee in MO-02: the three options, deadlines, notary rules, application walkthrough, and county election authorities (mirrors the `/vote/absentee` page)
 
+## "I need to build a volunteer leadership team"
+
+- [tactics/captain-archetypes.md](tactics/captain-archetypes.md) -- Six team-captain leader types by strength and weakness, plus the seven captain roles
+- [workflows/team-pairing.md](workflows/team-pairing.md) -- Pair captains with volunteers, and move volunteers up to supporters, sponsors, and donors
+- [workflows/volunteer-management.md](workflows/volunteer-management.md) -- Recruiting, training, and retaining the volunteers your captains lead
+
 ## "I need compliance help"
 
 - [federal/](federal/) -- 6 files covering FEC rules, contribution limits, disclosure, digital ads, prohibited contributions, and compliance calendar
