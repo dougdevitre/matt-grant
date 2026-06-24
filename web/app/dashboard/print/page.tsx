@@ -1,24 +1,9 @@
 import Link from "next/link";
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
-import tracker from "@/lib/printTracker.json";
+import { DegradedNotice, Empty, ErrorState, ProvenanceChip } from "@/components/data/ResourceState";
+import { loadPrintTracker, type PrintItem } from "@/lib/data/printTracker";
 
 export const dynamic = "force-dynamic";
-
-type PrintItem = {
-  item: string;
-  category: string;
-  template: string;
-  sheet_size: string;
-  disclaimer_required: string;
-  solicitation_tax_line: string;
-  internal_only: string;
-  quantity: string;
-  vendor: string;
-  unit_cost: string;
-  order_by_date: string;
-  in_hand_date: string;
-  status: string;
-};
 
 // Fixed category order so the queue reads top-to-bottom the way the team works
 // it; anything unrecognized falls to the end.
@@ -29,8 +14,6 @@ const CATEGORY_ORDER = [
   "Candidate & press",
   "Administrative",
 ];
-
-const items = tracker.items as PrintItem[];
 
 function groupByCategory(rows: PrintItem[]) {
   const groups = new Map<string, PrintItem[]>();
@@ -66,7 +49,10 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function PrintTrackerPage() {
-  const grouped = groupByCategory(items);
+  // Reference slice for the shared data layer: a validated Resource from the
+  // committed CSV manifest (see lib/data/printTracker.ts + docs/data-architecture.md).
+  const res = loadPrintTracker();
+  const grouped = res.ok ? groupByCategory(res.data) : [];
   return (
     <>
       <PageHeader kicker="Comms" title="Print tracker">
@@ -74,6 +60,19 @@ export default function PrintTrackerPage() {
           Public Print Studio →
         </Link>
       </PageHeader>
+      <div className="mb-4">
+        <ProvenanceChip meta={res.meta} />
+      </div>
+      {res.ok && res.meta.degraded && (
+        <DegradedNotice reason={res.meta.degraded.reason} source={res.meta.source} />
+      )}
+      {!res.ok && <ErrorState error={res.error} />}
+      {res.ok && res.data.length === 0 && (
+        <Empty title="No printables yet">
+          Add rows to <span className="font-mono">candidate/letters/print-tracker.csv</span> and run{" "}
+          <span className="font-mono">npm run print-tracker</span>.
+        </Empty>
+      )}
       <p className="mb-6 max-w-prose text-sm text-slate">
         Every letter-sized (8.5 × 11) printable the campaign produces, tied to the template that
         generates it, with the compliance flags and production status for each. This is the staff
