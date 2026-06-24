@@ -1,4 +1,28 @@
-import type { Role } from "@/lib/rbac";
+import { asRole, type Role } from "@/lib/rbac";
+
+// Promote a contributor to the `donor` role on donation — but ONLY from the public
+// floor (a `supporter`, or a signed-up account whose role isn't set yet). It never
+// touches staff (admin/captain/volunteer) or `partner`: a teammate or coalition
+// partner who chips in keeps their existing role. Best-effort + idempotent (an
+// existing donor is left as-is), and a no-op if the giver has no account yet — the
+// donor tier still surfaces from their giving regardless. Never throws.
+export async function upgradeToDonorByEmail(email?: string | null): Promise<void> {
+  if (!process.env.CLERK_SECRET_KEY || !email) return;
+  try {
+    const { clerkClient } = await import("@clerk/nextjs/server");
+    const client = await clerkClient();
+    const { data } = await client.users.getUserList({ emailAddress: [email], limit: 1 });
+    const user = data[0];
+    if (!user) return; // not a signed-up account — nothing to upgrade
+    const current = asRole((user.publicMetadata as { role?: unknown } | undefined)?.role);
+    // Only the public tiers are upgraded; staff/partner/existing-donor are untouched.
+    if (current === null || current === "supporter") {
+      await client.users.updateUserMetadata(user.id, { publicMetadata: { role: "donor" } });
+    }
+  } catch {
+    /* best-effort; the donor view still shows via their giving (donorStatus.ts) */
+  }
+}
 
 // Best-effort write of an RBAC role to a Clerk user's publicMetadata, by email.
 // No-op if Clerk isn't configured or the user hasn't signed up yet — in that

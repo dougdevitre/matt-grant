@@ -18,6 +18,33 @@ export type DonorSummary = { hasDonated: boolean; totalCents: number; gifts: num
 
 const NONE: DonorSummary = { hasDonated: false, totalCents: 0, gifts: 0 };
 
+// One gift line for the donor portal (negative amount = a refund/reversal).
+export type GiftLine = { amountCents: number; method?: string; election?: string; receivedAt?: string; type?: string };
+export type MyGiving = { hasDonated: boolean; totalCents: number; gifts: number; lines: GiftLine[] };
+
+const NO_GIVING: MyGiving = { hasDonated: false, totalCents: 0, gifts: 0, lines: [] };
+
+// SELF-SCOPED full giving history for the donor portal (/my-giving). Same single-
+// row-by-primary-key read as donorSummaryForEmail — it reads ONLY the caller's own
+// donor row and never lists or exposes anyone else's data, which is what makes it
+// safe to show a `donor`. SECURITY: pass the AUTHENTICATED user's own email
+// (gate.email) only — never an email taken from the client.
+export async function myGiving(email?: string | null): Promise<MyGiving> {
+  if (!dbConfigured || !email) return NO_GIVING;
+  try {
+    const r = await ddb.send(
+      new GetCommand({ TableName: TABLE, Key: { PK: PK.donors, SK: `e:${email.toLowerCase()}` } }),
+    );
+    const raw = (r.Item?.contributions as GiftLine[] | undefined) ?? [];
+    const lines = [...raw].sort((a, b) => String(b.receivedAt ?? "").localeCompare(String(a.receivedAt ?? "")));
+    const totalCents = lines.reduce((sum, c) => sum + (Number(c.amountCents) || 0), 0);
+    const gifts = lines.filter((c) => (Number(c.amountCents) || 0) > 0).length;
+    return { hasDonated: totalCents > 0, totalCents, gifts, lines };
+  } catch {
+    return NO_GIVING;
+  }
+}
+
 export async function donorSummaryForEmail(email?: string | null): Promise<DonorSummary> {
   if (!dbConfigured || !email) return NONE;
   try {
