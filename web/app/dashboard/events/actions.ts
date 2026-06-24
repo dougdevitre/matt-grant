@@ -12,6 +12,7 @@ import { geocodeAddress } from "@/lib/events/geocode";
 import { publishEventNotifications } from "@/lib/events/notify";
 import { parseForwardedEmail, type EventDraft } from "@/lib/events/parseEmail";
 import { refreshDistrictInsight } from "@/lib/events/insights";
+import { getOpportunity, opportunityToEventInput } from "@/lib/events/opportunities";
 
 export type EventState = { ok: boolean; message: string; id?: string };
 export type ParseState = { ok: boolean; message: string; draft?: EventDraft };
@@ -215,6 +216,21 @@ export async function removeEventVolunteer(formData: FormData): Promise<void> {
   if (!ev) return;
   await updateEvent(id, { volunteers: ev.volunteers.filter((v) => v.id !== volunteerId) });
   refresh(id);
+}
+
+// Create a DRAFT event from a curated appearance opportunity, then open it for
+// editing. The start is a placeholder (+30 days) the admin must replace — we
+// never fabricate the real date; the source + verify reminder are in the body.
+export async function createEventFromOpportunity(formData: FormData): Promise<void> {
+  const g = await gate();
+  if (!g) return;
+  const opp = getOpportunity(String(formData.get("slug") ?? "").trim());
+  if (!opp) return;
+  const start = new Date(Date.now() + 30 * 86_400_000).toISOString();
+  const id = await createEvent(opportunityToEventInput(opp, { createdBy: g.email ?? "system", start }));
+  refresh(id);
+  const { redirect } = await import("next/navigation");
+  redirect(`/dashboard/events/${id}`);
 }
 
 // Regenerate one district's cached insight on demand (the cron does this nightly).
