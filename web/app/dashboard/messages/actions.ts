@@ -6,7 +6,7 @@ import { ddb, TABLE, PK } from "@/lib/db";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { smsEnabled, toE164 } from "@/lib/sms/send";
-import { sendDirectMessage, linkConversationEmail } from "@/lib/sms/conversations";
+import { sendDirectMessage, linkConversationEmail, archiveConversation, markRead } from "@/lib/sms/conversations";
 import { blockNumber, unblockNumber } from "@/lib/sms/moderation";
 import { inviteToClerk } from "@/lib/clerkRoles";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
@@ -68,6 +68,27 @@ export async function unblockNumberAction(formData: FormData): Promise<void> {
   if (!phone) return;
   await unblockNumber(phone);
   refresh(phone);
+}
+
+// Bulk inbox triage — apply one operation across the conversations the staffer
+// selected in the list. Each op reuses the existing single-conversation helper,
+// so behavior matches the per-thread controls. Numbers are normalized + deduped
+// and invalid ones dropped, so a malformed selection can't write junk.
+export type BulkOp = "archive" | "markRead" | "block";
+
+export async function bulkConversationAction(phones: string[], op: BulkOp): Promise<MsgState> {
+  const g = await gate();
+  if (!g) return { ok: false, message: "Not allowed." };
+  const valid = Array.from(new Set(phones.map((p) => toE164(p)).filter((p): p is string => !!p)));
+  if (valid.length === 0) return { ok: false, message: "Select at least one conversation." };
+  for (const phone of valid) {
+    if (op === "archive") await archiveConversation(phone, true);
+    else if (op === "markRead") await markRead(phone);
+    else await blockNumber({ phone, by: g.email ?? "system", reason: "Bulk block from inbox" });
+  }
+  revalidatePath("/dashboard/messages");
+  const verb = op === "archive" ? "archived" : op === "markRead" ? "marked read" : "blocked";
+  return { ok: true, message: `${valid.length} ${valid.length === 1 ? "conversation" : "conversations"} ${verb}.` };
 }
 
 // Conversion path A — text the person a self-signup link. They register

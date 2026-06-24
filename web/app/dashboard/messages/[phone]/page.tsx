@@ -84,6 +84,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ phone: 
         messages={messages}
         canSend={decision.allowed}
         blockReason={decision.reason}
+        optedOut={status === "opted_out"}
         registeredEmail={convo?.linkedEmail}
         prefillEmail={vol?.email ?? undefined}
         prefillName={name}
