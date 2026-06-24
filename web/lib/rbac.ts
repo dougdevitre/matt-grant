@@ -1,42 +1,60 @@
-// Single source of truth for what each role may do in the Peace Room.
+// Single source of truth for what each role may do in the campaign app.
 //
 // Roles are stored on the Clerk user as `publicMetadata.role` (with the two
 // env-allowlisted bootstrap admins always treated as "admin"). Pages, features,
 // and API routes should check a *capability* via can() — never hardcode a role —
-// so access rules live in exactly one place.
+// so access rules live in exactly one place. Where a tier genuinely needs its own
+// branch (e.g. which home page a role lands on), use the helpers here (homeFor,
+// isStaffRole) rather than re-deriving role lists in components.
 //
 // Decisions baked in:
-//   • 5 roles: admin / captain / member / supporter / partner
+//   • 6 roles: admin / captain / volunteer / donor / supporter / partner
 //   • captain = field leader + READ-ONLY finance & donor totals (no editing,
 //     no compliance, no role assignment)
-//   • member = field & content (was "organizer" — legacy value still accepted)
+//   • volunteer = field & content (was "member"/"organizer" — legacy values still
+//     accepted via the aliases below; no data migration needed)
+//   • donor = a supporter who has given. Sees the public community hub + the shared
+//     Peace Room AND a PRIVATE page of their OWN giving history & receipts
+//     (viewDonorPortal) — and NOTHING else internal. Auto-assigned when a known
+//     account donates (WinRed webhook); never the full donor list / anyone's PII.
 //   • supporter = the PUBLIC community tier. The default stamped on anyone who
 //     self-signs-up at launch. Sees the community hub + the case-for-change board
-//     and NOTHING private — no donors, finance, compliance, internal research,
-//     plan, or team. A hard wall, like partner: supporters are the public.
+//     and NOTHING private. A hard wall, like partner: supporters are the public.
 //   • partner = the shared Peace Room ONLY. A coalition partner / allied campaign
 //     joins to collaborate on the public "time for change" case and can see
-//     NOTHING private — no donors, finance, compliance, internal research, plan,
-//     or team management. This is a hard wall: partners are external.
+//     NOTHING private. This is a hard wall: partners are external.
 //   • sending email campaigns is admins-only (captains may draft)
 
-export type Role = "admin" | "captain" | "member" | "supporter" | "partner";
+export type Role = "admin" | "captain" | "volunteer" | "donor" | "supporter" | "partner";
 
-export const ROLES: Role[] = ["admin", "captain", "member", "supporter", "partner"];
+export const ROLES: Role[] = ["admin", "captain", "volunteer", "donor", "supporter", "partner"];
 
-// Roles an admin may assign from the team page. `supporter` is self-assigned at
-// signup and `partner` is provisioned through the Peace Room invite flow — neither
-// is handed out from the internal staff picker.
-export const INVITABLE_ROLES: Role[] = ["admin", "captain", "member"];
+// Internal staff roles — the people with a campaign dashboard login. These are also
+// exactly the roles an admin may assign from the team page (INVITABLE_ROLES below).
+// External tiers (donor / supporter / partner) are provisioned by their own flows.
+export const STAFF_ROLES: Role[] = ["admin", "captain", "volunteer"];
+
+/** True for the internal staff tiers (admin/captain/volunteer). */
+export function isStaffRole(role: Role | null | undefined): boolean {
+  return !!role && (STAFF_ROLES as string[]).includes(role);
+}
+
+// Roles an admin may assign from the team page. Same set as STAFF_ROLES: `donor` is
+// auto-assigned on donation, `supporter` is self-assigned at signup, and `partner`
+// is provisioned through the Peace Room invite flow — none is handed out from the
+// internal staff picker.
+export const INVITABLE_ROLES: Role[] = STAFF_ROLES;
 
 // Legacy role values that map onto a current role, so existing Clerk metadata /
-// DynamoDB staff rows keep working without a migration. "organizer" → "member".
-const ROLE_ALIASES: Record<string, Role> = { organizer: "member" };
+// DynamoDB staff rows keep working without a migration. "member" and the older
+// "organizer" both resolve to "volunteer".
+const ROLE_ALIASES: Record<string, Role> = { member: "volunteer", organizer: "volunteer" };
 
 export const ROLE_LABELS: Record<Role, string> = {
   admin: "Admin",
   captain: "Captain",
-  member: "Member",
+  volunteer: "Volunteer",
+  donor: "Donor",
   supporter: "Supporter",
   partner: "Partner",
 };
@@ -44,9 +62,21 @@ export const ROLE_LABELS: Record<Role, string> = {
 export const ROLE_BLURBS: Record<Role, string> = {
   admin: "Full access — finance, compliance, donors, email sends, and team management.",
   captain: "Field leader — organizing, content, and research, plus read-only finance & donor totals.",
-  member: "Field & content — volunteers, tasks, graphics, and the map.",
+  volunteer: "Field & content — volunteers, tasks, graphics, and the map.",
+  donor: "Donor — the community hub, the shared Peace Room, and a private page of your own giving history & receipts. No internal campaign data.",
   supporter: "Community supporter — the community hub + the shared Peace Room case-for-change board. No internal campaign data.",
   partner: "Coalition partner — the shared Peace Room only. No donors, finance, compliance, or internal campaign data.",
+};
+
+// Badge styles for the team page / role chips — one entry per role so no surface
+// hand-maintains its own partial color map (the rbac.test invariant enforces this).
+export const ROLE_BADGE: Record<Role, string> = {
+  admin: "bg-brick/10 text-brick",
+  captain: "bg-gold/15 text-[#9a6f1a]",
+  volunteer: "bg-field/10 text-field",
+  donor: "bg-field/15 text-[#1f6f54]",
+  supporter: "bg-line text-slate",
+  partner: "bg-ink/5 text-slate",
 };
 
 export type Capability =
@@ -56,7 +86,6 @@ export type Capability =
   | "manageTasks"
   | "useStudio"
   | "manageAssets"
-  | "viewPhotos"
   | "viewMap"
   | "viewTargets"
   // captain + admin
@@ -75,6 +104,8 @@ export type Capability =
   | "sendSms" // send SMS broadcasts to the list (admin only)
   | "manageSocial" // social command center: schedule/publish + profile optimizer
   | "manageTeam"
+  // donor (the one private surface a donor can reach — their OWN giving only)
+  | "viewDonorPortal"
   // shared Peace Room (the one surface partners can reach)
   | "viewPeaceRoom"
   | "contributePeaceRoom"
@@ -83,7 +114,7 @@ export type Capability =
 
 // Capabilities granted to each role. Each role is listed explicitly (rather than
 // "all") so adding a new capability forces a conscious decision about who gets
-// it — especially `partner`, whose list must stay minimal.
+// it — especially the external tiers, whose lists must stay minimal.
 const MATRIX: Record<Role, Capability[]> = {
   admin: [
     "viewOverview",
@@ -91,7 +122,6 @@ const MATRIX: Record<Role, Capability[]> = {
     "manageTasks",
     "useStudio",
     "manageAssets",
-    "viewPhotos",
     "viewMap",
     "viewTargets",
     "viewResearch",
@@ -108,6 +138,7 @@ const MATRIX: Record<Role, Capability[]> = {
     "sendSms",
     "manageSocial",
     "manageTeam",
+    "viewDonorPortal",
     "viewPeaceRoom",
     "contributePeaceRoom",
     "viewCommunity",
@@ -118,7 +149,6 @@ const MATRIX: Record<Role, Capability[]> = {
     "manageTasks",
     "useStudio",
     "manageAssets",
-    "viewPhotos",
     "viewMap",
     "viewTargets",
     "viewResearch",
@@ -132,19 +162,23 @@ const MATRIX: Record<Role, Capability[]> = {
     "contributePeaceRoom",
     "viewCommunity",
   ],
-  member: [
+  volunteer: [
     "viewOverview",
     "manageVolunteers",
     "manageTasks",
     "useStudio",
     "manageAssets",
-    "viewPhotos",
     "viewMap",
     "viewTargets",
     "viewPeaceRoom",
     "contributePeaceRoom",
     "viewCommunity",
   ],
+  // A donor: the public surfaces a supporter sees PLUS the private "my giving"
+  // portal scoped to their OWN records (viewDonorPortal). Do NOT add staff/finance
+  // capabilities here — the donor-isolation test in rbac.test.ts asserts a donor
+  // can never reach the internal donor list or anyone else's data.
+  donor: ["viewCommunity", "viewPeaceRoom", "viewDonorPortal"],
   // The default for self-signups. Reaches the public community hub AND the shared
   // Peace Room board — both render the same public-safe case-for-change content
   // and expose NOTHING private. Do NOT add private/staff capabilities here; the
@@ -158,7 +192,8 @@ const MATRIX: Record<Role, Capability[]> = {
 const CAP_SETS: Record<Role, Set<Capability>> = {
   admin: new Set(MATRIX.admin),
   captain: new Set(MATRIX.captain),
-  member: new Set(MATRIX.member),
+  volunteer: new Set(MATRIX.volunteer),
+  donor: new Set(MATRIX.donor),
   supporter: new Set(MATRIX.supporter),
   partner: new Set(MATRIX.partner),
 };
@@ -170,9 +205,22 @@ export function can(role: Role | null | undefined, capability: Capability): bool
 }
 
 /** Coerce an arbitrary metadata value into a known Role (resolving legacy
- *  aliases like "organizer" → "member"), or null. */
+ *  aliases like "member"/"organizer" → "volunteer"), or null. */
 export function asRole(value: unknown): Role | null {
   if (typeof value !== "string") return null;
   if ((ROLES as string[]).includes(value)) return value as Role;
   return ROLE_ALIASES[value] ?? null;
+}
+
+// Where a signed-in user's "your account" link should land, by tier. The one
+// canonical place that maps a role to its home — components call this instead of
+// re-deriving role-string branches. Staff land in the dashboard; a donor lands on
+// their private giving page; partner/supporter land in the shared Peace Room; a
+// brand-new signup whose role hasn't stamped yet falls through to the public floor.
+export function homeFor(role: Role | null | undefined): { href: string; label: string } {
+  if (isStaffRole(role)) return { href: "/dashboard", label: "Dashboard" };
+  if (role === "donor") return { href: "/my-giving", label: "My giving" };
+  if (role === "partner") return { href: "/dashboard/peace-room", label: "Peace Room" };
+  if (role === "supporter") return { href: "/dashboard/peace-room", label: "Our Community" };
+  return { href: "/community", label: "Our Community" }; // not-yet-stamped floor
 }

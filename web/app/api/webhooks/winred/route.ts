@@ -120,6 +120,18 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // On a new gift, promote a public supporter to the `donor` role so they get the
+  // private "my giving" portal. Guarded (never downgrades staff/partner) and
+  // best-effort — refunds and not-yet-signed-up givers are skipped.
+  if (!isRefund && rec.email) {
+    try {
+      const { upgradeToDonorByEmail } = await import("@/lib/clerkRoles");
+      await upgradeToDonorByEmail(rec.email);
+    } catch {
+      /* role upgrade is best-effort; the gift is already recorded */
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     recorded: true,
