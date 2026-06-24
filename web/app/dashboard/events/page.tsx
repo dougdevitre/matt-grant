@@ -55,7 +55,8 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
   return (
     <>
       <PageHeader kicker="Field" title="Events">
-        {connected && <span className="font-mono text-sm text-slate">{rows.length} total</span>}
+        <Link href="/dashboard/events/opportunities" className="text-sm text-field underline">Appearance opportunities →</Link>
+        {connected && <span className="ml-3 font-mono text-sm text-slate">{rows.length} total</span>}
       </PageHeader>
 
       {!connected && <DbNotice />}
