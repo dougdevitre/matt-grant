@@ -17,6 +17,8 @@ const base: EventRow = {
   status: "PUBLISHED",
   capacity: null,
   signups: [],
+  captain: null,
+  volunteers: [],
   source: "manual",
   parseConfidence: null,
   notifiedEmailAt: null,

@@ -169,6 +169,54 @@ export async function parsePastedEmail(formData: FormData): Promise<ParseState> 
   return { ok: true, message: `Parsed (confidence ${(draft.confidence * 100).toFixed(0)}%). Review and save.`, draft };
 }
 
+// Decode the "id|name" value the staff/volunteer selects submit (mirrors the
+// task board). Returns null for a blank value (used to clear the captain).
+function parseStaffer(raw: string): { id: string; name: string } | null {
+  const v = raw.trim();
+  if (!v) return null;
+  const i = v.indexOf("|");
+  const id = (i >= 0 ? v.slice(0, i) : v).trim();
+  const name = (i >= 0 ? v.slice(i + 1) : "").trim();
+  return id ? { id, name } : null;
+}
+
+// Assign (or clear) the event's team captain. value = "email|name" or "".
+export async function setEventCaptain(formData: FormData): Promise<void> {
+  const g = await gate();
+  if (!g) return;
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) return;
+  await updateEvent(id, { captain: parseStaffer(String(formData.get("captain") ?? "")) });
+  refresh(id);
+}
+
+// Add a volunteer to the event's roster (dedupe by id). value = "id|name".
+export async function addEventVolunteer(formData: FormData): Promise<void> {
+  const g = await gate();
+  if (!g) return;
+  const id = String(formData.get("id") ?? "").trim();
+  const who = parseStaffer(String(formData.get("volunteer") ?? ""));
+  if (!id || !who) return;
+  const ev = await getEvent(id);
+  if (!ev) return;
+  if (ev.volunteers.some((v) => v.id === who.id)) return; // already on the roster
+  await updateEvent(id, { volunteers: [...ev.volunteers, who] });
+  refresh(id);
+}
+
+// Remove a volunteer from the event's roster by id.
+export async function removeEventVolunteer(formData: FormData): Promise<void> {
+  const g = await gate();
+  if (!g) return;
+  const id = String(formData.get("id") ?? "").trim();
+  const volunteerId = String(formData.get("volunteerId") ?? "").trim();
+  if (!id || !volunteerId) return;
+  const ev = await getEvent(id);
+  if (!ev) return;
+  await updateEvent(id, { volunteers: ev.volunteers.filter((v) => v.id !== volunteerId) });
+  refresh(id);
+}
+
 // Regenerate one district's cached insight on demand (the cron does this nightly).
 export async function generateInsight(formData: FormData): Promise<void> {
   const g = await gate();
