@@ -19,8 +19,10 @@ type FetchJsonOpts = {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+const MAX_BACKOFF_MS = 8000; // ceiling for both exponential backoff and a server Retry-After
+
 function backoffMs(attempt: number): number {
-  const base = Math.min(8000, 500 * 2 ** (attempt - 1));
+  const base = Math.min(MAX_BACKOFF_MS, 500 * 2 ** (attempt - 1));
   return base + Math.floor(Math.random() * 250); // jitter
 }
 
@@ -69,8 +71,13 @@ export async function requestWithRetry(url: string | URL, opts: FetchJsonOpts = 
       throw new Error(`${label}: ${(err as Error)?.name ?? "fetch failed"} after ${retries} retries`);
     }
     if ((res.status === 429 || res.status >= 500) && attempt++ < retries) {
+      // Honor a numeric Retry-After, but CAP it at MAX_BACKOFF_MS — an upstream
+      // (or a bad gateway) sending "Retry-After: 3600" must not block the request
+      // for an hour and ride the route's maxDuration to a 502, the very hang this
+      // transport exists to prevent. (HTTP-date Retry-After → NaN → backoff.)
       const ra = Number(res.headers.get("retry-after"));
-      await sleep(Number.isFinite(ra) && ra > 0 ? ra * 1000 : backoffMs(attempt));
+      const wait = Number.isFinite(ra) && ra > 0 ? Math.min(ra * 1000, MAX_BACKOFF_MS) : backoffMs(attempt);
+      await sleep(wait);
       continue;
     }
     return res;

@@ -159,6 +159,15 @@ export const SOURCES: SourceEntry[] = [
     cache: "ISR 604800",
     note: "Washington, Crawford, Gasconade boundaries (Census 2020 VTDs).",
   },
+  {
+    id: "geo-events",
+    label: "Campaign events",
+    kind: "geo",
+    owner: "DynamoDB (geocoded events)",
+    endpoint: "/api/geo/events",
+    cache: "no-store",
+    note: "Located campaign appearances plotted on the map (published; drafts for event managers). Auth-gated.",
+  },
 ];
 
 export const SOURCES_BY_KIND: Record<SourceKind, SourceEntry[]> = {

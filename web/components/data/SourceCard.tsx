@@ -46,13 +46,13 @@ export type SourceCardProps = {
   /** Bumped by the hub's "Check all" to trigger every checkable card at once. */
   checkNonce?: number;
   /** Report this card's resolved status up to the hub header. */
-  onStatus?: (id: string, kind: HubKind, checkedAt: number | null) => void;
+  onStatus?: (id: string, kind: HubKind) => void;
 };
 
 export function SourceCard({ entry, enabled, liveCount, sample, checkNonce = 0, onStatus }: SourceCardProps) {
   // Geo routes are always safe GETs; other kinds opt in via `checkable` in the registry.
   const canCheck = !!entry.endpoint && (entry.kind === "geo" || !!entry.checkable);
-  const { state, data, meta, error, lastFetchedAt, reload } = useResource(entry.endpoint ?? "", { manual: true });
+  const { state, data, meta, error, reload } = useResource(entry.endpoint ?? "", { manual: true });
   const triggered = useRef(0);
 
   // Fire the live check when the hub's "Check all" nonce advances.
@@ -77,8 +77,8 @@ export function SourceCard({ entry, enabled, liveCount, sample, checkNonce = 0, 
   })();
 
   useEffect(() => {
-    onStatus?.(entry.id, kind, canCheck ? lastFetchedAt : null);
-  }, [onStatus, entry.id, kind, canCheck, lastFetchedAt]);
+    onStatus?.(entry.id, kind);
+  }, [onStatus, entry.id, kind]);
 
   const remedy = remedyFor(entry, kind);
   const checkedData = canCheck && (state === "ready" || state === "degraded") ? data : null;

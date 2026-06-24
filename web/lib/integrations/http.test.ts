@@ -55,6 +55,29 @@ describe("requestWithRetry", () => {
     expect(res.status).toBe(404);
   });
 
+  it("caps a huge Retry-After at the backoff ceiling (won't block past ~8s)", async () => {
+    vi.useFakeTimers();
+    try {
+      let n = 0;
+      vi.stubGlobal("fetch", async () => {
+        n++;
+        return n === 1
+          ? new Response("slow down", { status: 503, headers: { "retry-after": "3600" } })
+          : new Response("{}", { status: 200 });
+      });
+      const p = requestWithRetry("http://x", { retries: 2 });
+      // Advancing only the 8s ceiling — NOT the 3600s the header asked for — must be
+      // enough to fire the retry. If the wait weren't capped, the second fetch never
+      // runs and this hangs.
+      await vi.advanceTimersByTimeAsync(8000);
+      const res = await p;
+      expect(n).toBe(2);
+      expect(res.status).toBe(200);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("sends an object body as JSON with a content-type", async () => {
     let init: RequestInit | undefined;
     vi.stubGlobal("fetch", async (_url: unknown, i: RequestInit) => {
