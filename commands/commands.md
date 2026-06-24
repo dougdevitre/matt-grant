@@ -97,6 +97,8 @@ Instant-generation triggers. When a user types any of these commands, generate t
 | `/endorseask [name]` | Endorsement request letter to a specific person or organization |
 | `/eventinvite [event]` | Event invitation (email + text message versions) |
 | `/volunteerask [name]` | Personalized volunteer recruitment message |
+| `/captaintypes` | The six team-captain archetypes with strengths, weaknesses, and best-fit roles (from `tactics/captain-archetypes.md`) |
+| `/captainmatch` | Captain↔volunteer↔supporter pairing matrices and roster worksheet (from `workflows/team-pairing.md`) |
 | `/communityintro [group]` | Introduction letter to a community organization |
 | `/mediakit` | Complete media kit (bio, headshot specs, issue summary, endorsement list, contact info) |
 | `/questionnaire [org]` | Candidate questionnaire response framework for an endorsing organization |

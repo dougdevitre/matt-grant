@@ -6,6 +6,7 @@ Strategic playbooks and frameworks for specific campaign challenges. Each file p
 
 - [ballot-chase-program.md](ballot-chase-program.md) -- Systematic tracking and follow-up to ensure every supporter actually votes
 - [candidate-performance.md](candidate-performance.md) -- Delivery skills, media training, and candidate wellness
+- [captain-archetypes.md](captain-archetypes.md) -- Six team-captain leader types by strength and weakness, plus the seven captain roles
 - [coalition-building.md](coalition-building.md) -- Engaging twelve key voter groups to assemble a winning coalition
 - [crisis-management.md](crisis-management.md) -- The RESPOND framework with crisis-specific playbooks and templates
 - [election-protection.md](election-protection.md) -- Poll watcher programs, recount prep, provisional ballot tracking, and Election Day operations

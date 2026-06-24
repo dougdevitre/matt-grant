@@ -26,6 +26,39 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-06-24 -- v1.x -- Team Captain Archetypes + Pairing Workflow
+
+**Changes:**
+- [added] tactics/captain-archetypes.md -- six team-captain leader types (Organizer, Connector, Workhorse, Mentor, Closer, Strategist) with strengths/weaknesses/best-fit roles, plus a seven-role captain table; mirrors the voter-personas framework
+- [added] workflows/team-pairing.md -- three-part pairing workflow (archetype→role, captain→volunteers + complementary co-captain, volunteer→supporter/sponsor/donor ladder) with matrices, a roster worksheet, and a compliance/ethics disclaimer
+- [updated] SKILL.md -- new rows in the Tactics and Workflow reference tables
+- [updated] INDEX.md -- new "I need to build a volunteer leadership team" use-case section
+- [updated] tactics/README.md, workflows/README.md -- file-list bullets for the two new files
+- [updated] commands/commands.md -- added `/captaintypes` and `/captainmatch`
+- [updated] references/glossary.md -- added "Captain Archetype" and "Team Captain"
+
+**Verifications Performed:**
+- Confirmed all internal cross-references resolve to real files (captain-archetypes ↔ team-pairing ↔ volunteer-management, fundraising-plan, surrogate-program, donor-limit-checker, donation-intake, ethics-and-guardrails)
+- Reused existing frameworks (voter-personas layout, surrogate deployment matrix, fundraising Ask Ladder + cultivation) rather than introducing new structure
+- Content is nonpartisan/general toolkit guidance; no invented statutes, contribution limits, policy positions, or endorsements
+
+**Known Gaps:**
+- Captain archetypes are an organizing heuristic, not a validated typology; coach to the real people on the team
+- No `tools/` data schema for the pairing roster yet (worksheet is described inline in team-pairing.md)
+
+**Files Modified:**
+- tactics/captain-archetypes.md
+- workflows/team-pairing.md
+- SKILL.md
+- INDEX.md
+- tactics/README.md
+- workflows/README.md
+- commands/commands.md
+- references/glossary.md
+- references/update-log.md
+
+---
+
 ## 2026-06-24 -- Absentee: printable request form + library printing
 
 **Changes:**
