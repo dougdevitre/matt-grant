@@ -3,7 +3,12 @@
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { CATEGORIES, MAP_CENTER, MAP_ZOOM, type Category } from "@/lib/mapData";
+import { CATEGORIES, EVENT_COLOR, MAP_CENTER, MAP_ZOOM, type Category } from "@/lib/mapData";
+
+const EVENT_TYPE_LABEL: Record<string, string> = {
+  rally: "Rally", "town-hall": "Town hall", fundraiser: "Fundraiser", canvass: "Canvass",
+  parade: "Parade", "meet-greet": "Meet & greet", debate: "Debate / forum", "volunteer-shift": "Volunteer shift", other: "Event",
+};
 
 // Free, no-API-key vector basemap (OpenStreetMap-based). Swap the style for
 // OpenFreeMap "liberty"/"bright" or a MapTiler key if you want a different look.
@@ -19,9 +24,11 @@ type Props = {
   showJefferson: boolean;
   extraCounties: GeoJSON.FeatureCollection;
   showExtra: boolean;
+  events: GeoJSON.FeatureCollection;
+  showEvents: boolean;
 };
 
-export default function RegionMap3D({ visible, buildings, turnout, pois, precincts, jefferson, showJefferson, extraCounties, showExtra }: Props) {
+export default function RegionMap3D({ visible, buildings, turnout, pois, precincts, jefferson, showJefferson, extraCounties, showExtra, events, showEvents }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const ready = useRef(false);
@@ -33,6 +40,8 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
   jeffersonRef.current = jefferson;
   const extraRef = useRef(extraCounties);
   extraRef.current = extraCounties;
+  const eventsRef = useRef(events);
+  eventsRef.current = events;
 
   // Init once.
   useEffect(() => {
@@ -219,6 +228,43 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
           .addTo(m);
       });
 
+      // Events layer — campaign appearances geocoded from their address. Diamond-ish
+      // markers in field green, distinct from the POI circles; click → dashboard event.
+      m.addSource("events", { type: "geojson", data: eventsRef.current });
+      m.addLayer({
+        id: "event-circles",
+        source: "events",
+        type: "circle",
+        layout: { visibility: showEvents ? "visible" : "none" },
+        paint: {
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 6, 13, 11],
+          // Draft events read lighter (gold) than published (green).
+          "circle-color": ["case", ["==", ["get", "status"], "PUBLISHED"], EVENT_COLOR, "#E0A53B"],
+          "circle-stroke-width": 2.5,
+          "circle-stroke-color": "#ffffff",
+          "circle-opacity": 0.9,
+        },
+      });
+      m.on("mouseenter", "event-circles", () => (m.getCanvas().style.cursor = "pointer"));
+      m.on("mouseleave", "event-circles", () => (m.getCanvas().style.cursor = ""));
+      m.on("click", "event-circles", (e) => {
+        const f = e.features?.[0];
+        if (!f) return;
+        const p = f.properties as { id: string; title: string; type: string; status: string; start: string; locationName?: string };
+        const when = p.start ? new Date(p.start).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "";
+        const lines = [
+          `<strong>${p.title}</strong>`,
+          `<span style="color:${EVENT_COLOR}">${EVENT_TYPE_LABEL[p.type] ?? "Event"}</span>${p.status !== "PUBLISHED" ? ` · <span style="color:#9a6f1a">${p.status.toLowerCase()}</span>` : ""}`,
+          when,
+          p.locationName ? p.locationName : "",
+          `<a href="/dashboard/events/${encodeURIComponent(p.id)}" style="display:inline-block;margin-top:6px;color:#B5343B;font-weight:700;text-decoration:none">Open event →</a>`,
+        ].filter(Boolean);
+        new maplibregl.Popup({ closeButton: false, offset: 12 })
+          .setLngLat((f.geometry as GeoJSON.Point).coordinates as [number, number])
+          .setHTML(lines.join("<br/>"))
+          .addTo(m);
+      });
+
       ready.current = true;
       // Apply initial prop-driven visibility.
       syncVisibility();
@@ -290,6 +336,18 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
       if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", showExtra ? "visible" : "none");
     }
   }, [showExtra]);
+
+  // Events data + visibility.
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !ready.current) return;
+    (m.getSource("events") as maplibregl.GeoJSONSource | undefined)?.setData(events);
+  }, [events]);
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !ready.current) return;
+    if (m.getLayer("event-circles")) m.setLayoutProperty("event-circles", "visibility", showEvents ? "visible" : "none");
+  }, [showEvents]);
 
   return <div ref={container} className="h-full w-full" />;
 }

@@ -56,6 +56,8 @@ export type EventRow = {
   end: string | null;
   allDay: boolean;
   location: EventLocation;
+  lat: number | null;
+  lng: number | null;
   districtKey: string;
   description: string;
   status: EventStatus;
@@ -95,6 +97,8 @@ export type EventInput = {
   end?: string | null;
   allDay?: boolean;
   location: EventLocation;
+  lat?: number | null;
+  lng?: number | null;
   description: string;
   capacity?: number | null;
   status?: EventStatus;
