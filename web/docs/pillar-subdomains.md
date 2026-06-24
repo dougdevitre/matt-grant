@@ -44,6 +44,10 @@ counsel sign off on committee-hosted resource subdomains before launch.
 
 ## DNS + Amplify (ops, post-merge)
 
+> Copy-pasteable step-by-step: **`docs/pillar-dns-checklist.md`**. Content auto-refresh
+> in CI: the **`sync-pillars`** GitHub Action (`.github/workflows/sync-pillars.yml`).
+
+
 1. In the Amplify app → **Domain management**, add the subdomains pointing at this
    same app. Use a wildcard `*.mattgrantforcongress.org` if supported (covers the 8
    resource hubs AND the 4 vanity issue subdomains at once); otherwise add each of
