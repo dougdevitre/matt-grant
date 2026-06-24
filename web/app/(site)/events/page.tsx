@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { listUpcomingEvents } from "@/lib/events";
-import { EVENT_TYPE_LABELS } from "@/lib/events/types";
+import { EVENT_TYPE_LABELS, isEventType } from "@/lib/events/types";
 import { formatEventRange } from "@/lib/events/time";
 import { CAMPAIGN } from "@/lib/site";
 
@@ -12,8 +12,13 @@ export const metadata: Metadata = {
   description: `Join ${CAMPAIGN.candidate} at campaign events across Missouri's 2nd District — town halls, rallies, canvasses, and more. RSVP and sign up to help.`,
 };
 
-export default async function EventsPage() {
-  const events = await listUpcomingEvents({ publishedOnly: true });
+export default async function EventsPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
+  const { type } = await searchParams;
+  const all = await listUpcomingEvents({ publishedOnly: true });
+  const active = isEventType(type) ? type : null;
+  const events = active ? all.filter((e) => e.type === active) : all;
+  // Only offer filters for types that actually have upcoming events.
+  const presentTypes = [...new Set(all.map((e) => e.type))];
 
   return (
     <section className="container-page py-16 sm:py-24">
@@ -23,6 +28,23 @@ export default async function EventsPage() {
         Come meet {CAMPAIGN.candidate} across Missouri&apos;s 2nd District. RSVP for an event, add it to your calendar, and
         sign up to help knock doors, make calls, or staff a table.
       </p>
+
+      {presentTypes.length > 1 && (
+        <div className="mt-8 flex flex-wrap gap-2">
+          <Link href="/events" className={`rounded-full border px-3 py-1 text-sm ${active ? "border-line text-slate hover:border-ink" : "border-ink bg-ink text-paper"}`}>
+            All
+          </Link>
+          {presentTypes.map((t) => (
+            <Link
+              key={t}
+              href={`/events?type=${t}`}
+              className={`rounded-full border px-3 py-1 text-sm ${active === t ? "border-ink bg-ink text-paper" : "border-line text-slate hover:border-ink"}`}
+            >
+              {EVENT_TYPE_LABELS[t]}
+            </Link>
+          ))}
+        </div>
+      )}
 
       {events.length === 0 ? (
         <div className="mt-12 rounded-lg border border-line bg-paper p-10 text-center text-slate">

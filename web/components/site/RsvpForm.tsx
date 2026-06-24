@@ -5,7 +5,7 @@ import { rsvp, type RsvpState } from "@/app/(site)/events/actions";
 
 const input = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink";
 
-export function RsvpForm({ eventId }: { eventId: string }) {
+export function RsvpForm({ eventId, full = false, spotsLeft = null }: { eventId: string; full?: boolean; spotsLeft?: number | null }) {
   const [state, setState] = useState<RsvpState | null>(null);
   const [pending, start] = useTransition();
 
@@ -14,6 +14,15 @@ export function RsvpForm({ eventId }: { eventId: string }) {
       const res = await rsvp(formData);
       setState(res);
     });
+
+  if (full) {
+    return (
+      <div className="rounded-lg border border-line bg-paper p-5 text-sm text-ink">
+        <p className="font-display text-lg font-semibold">This event is at capacity</p>
+        <p className="mt-1 text-slate">Thanks for your interest — check the calendar for other ways to get involved.</p>
+      </div>
+    );
+  }
 
   if (state?.ok) {
     return (
@@ -27,6 +36,9 @@ export function RsvpForm({ eventId }: { eventId: string }) {
     <form action={onSubmit} className="rounded-lg border border-line bg-paper p-5">
       <input type="hidden" name="eventId" value={eventId} />
       <p className="font-display text-lg font-semibold text-ink">RSVP &amp; sign up to help</p>
+      {spotsLeft != null && spotsLeft <= 10 && (
+        <p className="mt-1 text-xs font-semibold text-brick">Only {spotsLeft} spot{spotsLeft === 1 ? "" : "s"} left</p>
+      )}
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <input name="name" required placeholder="Your name" className={`${input} sm:col-span-2`} />
         <input name="email" type="email" placeholder="Email (optional)" className={input} />
