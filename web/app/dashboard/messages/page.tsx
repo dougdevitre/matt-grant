@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { PageHeader, HowTo } from "@/components/dashboard/Notice";
@@ -9,6 +8,7 @@ import { listConsent } from "@/lib/sms/consent";
 import { listBlocked } from "@/lib/sms/moderation";
 import { getVolunteers } from "@/lib/queries";
 import { NewMessageForm } from "@/components/dashboard/NewMessageForm";
+import { InboxList, type InboxItem } from "@/components/dashboard/InboxList";
 
 export const dynamic = "force-dynamic";
 
@@ -37,8 +37,18 @@ export default async function MessagesPage() {
     .map((v) => ({ name: v.name, phone: toE164(v.phone) }))
     .filter((c): c is { name: string; phone: string } => !!c.phone && statusByPhone.get(c.phone) === "opted_in" && !blockedSet.has(c.phone));
 
-  const when = (iso: string) =>
-    iso ? new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "";
+  // Serializable rows for the client list (multi-select triage lives there).
+  const items: InboxItem[] = convos.map((c) => ({
+    phone: c.phone,
+    name: nameByPhone.get(c.phone),
+    lastBody: c.lastBody,
+    lastDirection: c.lastDirection,
+    lastAt: c.lastAt,
+    unread: c.unread,
+    flaggedCount: c.flaggedCount,
+    blocked: blockedSet.has(c.phone),
+    optedOut: statusByPhone.get(c.phone) === "opted_out",
+  }));
 
   return (
     <>
@@ -63,46 +73,7 @@ export default async function MessagesPage() {
 
       <div className="mt-8">
         <p className="eyebrow text-slate">Conversations</p>
-        {convos.length > 0 ? (
-          <ul className="mt-3 divide-y divide-line rounded-sm border border-line">
-            {convos.map((c) => {
-              const isBlocked = blockedSet.has(c.phone);
-              const status = statusByPhone.get(c.phone);
-              return (
-                <li key={c.phone}>
-                  <Link
-                    href={`/dashboard/messages/${encodeURIComponent(c.phone)}`}
-                    className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm hover:bg-paper"
-                  >
-                    <span className="min-w-0">
-                      <span className="font-semibold text-ink">{nameByPhone.get(c.phone) ?? c.phone}</span>
-                      {nameByPhone.has(c.phone) && <span className="ml-2 font-mono text-xs text-slate">{c.phone}</span>}
-                      <span className="mt-0.5 block truncate text-slate">
-                        {c.lastDirection === "out" ? "↳ " : ""}
-                        {c.lastBody || "—"}
-                      </span>
-                    </span>
-                    <span className="flex shrink-0 items-center gap-2">
-                      {c.unread > 0 && (
-                        <span className="rounded-full bg-brick px-1.5 py-0.5 font-mono text-[0.6rem] font-bold text-paper">{c.unread}</span>
-                      )}
-                      {c.flaggedCount > 0 && <span title="Flagged language">⚠️</span>}
-                      {isBlocked && (
-                        <span className="rounded-sm bg-brick/10 px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-brick">blocked</span>
-                      )}
-                      {status === "opted_out" && !isBlocked && (
-                        <span className="rounded-sm bg-gold/15 px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-[#9a6f1a]">opted out</span>
-                      )}
-                      <span className="font-mono text-[0.65rem] text-slate">{when(c.lastAt)}</span>
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p className="mt-3 text-sm text-slate">No conversations yet. Inbound texts and 1:1 messages you send will show up here.</p>
-        )}
+        <InboxList items={items} />
       </div>
     </>
   );

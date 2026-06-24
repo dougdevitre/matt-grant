@@ -1,7 +1,9 @@
 "use server";
 
+import { headers } from "next/headers";
 import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, newId, dbConfigured } from "@/lib/db";
+import { rateLimit } from "@/lib/ratelimit";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { volunteerWelcome, contactReceipt } from "@/lib/email/templates";
 import { CAMPAIGN } from "@/lib/site";
@@ -68,6 +70,17 @@ export async function submitContact(_prev: ContactResult | null, formData: FormD
       ok: false,
       message: "Our intake isn't connected yet. Please email mattgrantforcongress@gmail.com and we'll follow up.",
     };
+  }
+
+  // Rate-limit per client IP before the DB write so the public intake can't be
+  // flooded with junk leads. Fails open (see lib/ratelimit) so a DynamoDB hiccup
+  // never blocks a real supporter. Honeypot + validation already ran above, so
+  // only real-looking submissions count against the window.
+  const h = await headers();
+  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+  const rl = await rateLimit(`contact:${ip}`, { limit: 10, windowSec: 3600 });
+  if (!rl.allowed) {
+    return { ok: false, message: "Too many submissions from this connection — please try again in a little while." };
   }
 
   const source = String(formData.get("source") ?? "").trim() || "contact-form";

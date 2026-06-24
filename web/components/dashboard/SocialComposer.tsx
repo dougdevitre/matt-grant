@@ -96,7 +96,12 @@ export function SocialComposer({ library }: { library: LibraryPost[] }) {
             <p className="eyebrow text-slate">Pull from the content calendar</p>
             <span className="font-mono text-[0.6rem] text-slate">{library.length} ready posts</span>
           </div>
-          <select className={`mt-3 ${input}`} defaultValue="" onChange={(e) => loadFromLibrary(e.target.value)}>
+          <select
+            aria-label="Pull from the content calendar"
+            className={`mt-3 ${input}`}
+            defaultValue=""
+            onChange={(e) => loadFromLibrary(e.target.value)}
+          >
             <option value="">Start from scratch…</option>
             {library.map((p) => (
               <option key={p.id} value={p.id}>
@@ -201,8 +206,8 @@ export function SocialComposer({ library }: { library: LibraryPost[] }) {
         </div>
 
         <div className="card p-5">
-          <p className="eyebrow text-slate">When</p>
-          <input type="datetime-local" name="scheduledAt" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className={`mt-3 ${input}`} />
+          <label htmlFor="social-scheduledAt" className="eyebrow text-slate">When</label>
+          <input id="social-scheduledAt" aria-label="Scheduled date and time" type="datetime-local" name="scheduledAt" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className={`mt-3 ${input}`} />
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="submit"
