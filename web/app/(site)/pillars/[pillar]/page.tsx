@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PILLARS, pillarSlugs, getPillar } from "@/lib/pillars";
 import { getIssue } from "@/lib/issues";
 import { getManifest } from "@/lib/pillars-content";
 import { CAMPAIGN, MAIN_SITE_URL } from "@/lib/site";
+import { PillarLink } from "@/components/PillarLink";
 
 // Pillar resource hub — served on its subdomain (e.g. education.mattgrant…org) via
 // the host rewrite in middleware.ts, so it inherits the shared SiteHeader/Footer/
@@ -92,28 +92,30 @@ export default async function PillarPage({ params }: { params: Promise<{ pillar:
           {manifest && (manifest.docs.length > 0 || manifest.tools.length > 0) ? (
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
               {manifest.docs.map((doc) => (
-                <Link
+                <PillarLink
                   key={doc.slug}
-                  href={`/pillars/${pillar.slug}/${doc.slug}`}
+                  slug={pillar.slug}
+                  path={`/${doc.slug}`}
                   className="card group bg-white p-6 hover:border-ink"
                 >
                   <span className="font-mono text-xs uppercase tracking-eyebrow text-slate">Guide</span>
                   <span className="mt-1 block font-display text-lg font-semibold text-ink group-hover:text-brick">
                     {doc.title}
                   </span>
-                </Link>
+                </PillarLink>
               ))}
               {manifest.tools.map((tool) => (
-                <Link
+                <PillarLink
                   key={tool.slug}
-                  href={`/pillars/${pillar.slug}/tools/${tool.slug}`}
+                  slug={pillar.slug}
+                  path={`/tools/${tool.slug}`}
                   className="card group bg-white p-6 hover:border-ink"
                 >
                   <span className="font-mono text-xs uppercase tracking-eyebrow text-slate">Tool</span>
                   <span className="mt-1 block font-display text-lg font-semibold text-ink group-hover:text-brick">
                     {tool.label}
                   </span>
-                </Link>
+                </PillarLink>
               ))}
             </div>
           ) : (

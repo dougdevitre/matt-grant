@@ -27,6 +27,9 @@ export type Pillar = {
   blurb: string;
   // Optional cross-link to a documented priority page at /issues/<slug>.
   relatedIssue?: string;
+  // Two-line headline for the per-pillar social card (lib/og.tsx). Resource
+  // language only — never a policy claim. Falls back to a split of `title`.
+  ogHeadline?: { line1: string; line2: string };
 };
 
 const repo = (name: string) => `dougdevitre/${name}`;
@@ -45,6 +48,7 @@ export const PILLARS: Pillar[] = [
     blurb:
       "A nonpartisan navigator for families in Missouri's 2nd District working through special-education support — understanding IEPs, communicating with schools, and finding advocacy resources. These are informational tools, not legal advice.",
     relatedIssue: "family-courts",
+    ogHeadline: { line1: "Navigate special", line2: "education." },
   },
   {
     slug: "jobs",
@@ -57,6 +61,7 @@ export const PILLARS: Pillar[] = [
     tagline: "Job matching, resume tools, and WIOA workforce navigation.",
     blurb:
       "A nonpartisan Missouri workforce navigator — job-matching, resume help, and guidance on WIOA-funded programs for neighbors in MO-02. Informational resource navigation, not a guarantee of services.",
+    ogHeadline: { line1: "Find work,", line2: "build skills." },
   },
   {
     slug: "housing",
@@ -69,6 +74,7 @@ export const PILLARS: Pillar[] = [
     tagline: "Tenant resources, fair-housing guides, and screening tools.",
     blurb:
       "A nonpartisan guide to housing access in MO-02 — tenant resources, fair-housing information, and advocacy tools. Informational only; not legal advice.",
+    ogHeadline: { line1: "Tenant &", line2: "housing help." },
   },
   {
     slug: "food",
@@ -81,6 +87,7 @@ export const PILLARS: Pillar[] = [
     tagline: "Food-bank locators and SNAP/WIC navigation.",
     blurb:
       "A nonpartisan navigator for food access in MO-02 — finding food banks and understanding SNAP/WIC and community nutrition resources. Informational resource navigation only.",
+    ogHeadline: { line1: "Food &", line2: "nutrition help." },
   },
   {
     slug: "health",
@@ -93,6 +100,7 @@ export const PILLARS: Pillar[] = [
     tagline: "Standards-grounded guidance for practitioners and families.",
     blurb:
       "A nonpartisan public-health resource hub — role-based guidance grounded in published standards. Informational only; not medical advice.",
+    ogHeadline: { line1: "Public-health", line2: "resources." },
   },
   {
     slug: "justice",
@@ -106,6 +114,7 @@ export const PILLARS: Pillar[] = [
     blurb:
       "A nonpartisan navigator for legal aid in MO-02 — self-representation guides and help finding legal resources. Informational only; not legal advice.",
     relatedIssue: "family-courts",
+    ogHeadline: { line1: "Legal-aid", line2: "navigation." },
   },
   {
     slug: "business",
@@ -119,6 +128,7 @@ export const PILLARS: Pillar[] = [
     blurb:
       "A nonpartisan resource navigator for MO-02 entrepreneurs — licensing, funding, and startup guidance. Informational resource navigation only.",
     relatedIssue: "lower-taxes",
+    ogHeadline: { line1: "Start & grow", line2: "your business." },
   },
   {
     slug: "services",
@@ -131,6 +141,7 @@ export const PILLARS: Pillar[] = [
     tagline: "Social-determinants-of-health intake and service navigation.",
     blurb:
       "A nonpartisan hub for connecting MO-02 neighbors to community services and social supports. Informational resource navigation only.",
+    ogHeadline: { line1: "Community", line2: "services." },
   },
 ];
 
