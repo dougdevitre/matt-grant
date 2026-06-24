@@ -137,8 +137,9 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                   <dd className="text-ink">Parsed from email{event.parseConfidence != null ? ` (confidence ${(event.parseConfidence * 100).toFixed(0)}%)` : ""}</dd>
                 </>
               )}
-              <dt className="font-semibold text-slate">Add to calendar</dt>
-              <dd>
+              <dt className="font-semibold text-slate">Field kit</dt>
+              <dd className="flex flex-wrap gap-x-4 gap-y-1">
+                <Link href={`/dashboard/events/${event.id}/run-of-show`} className="text-field underline">Print run-of-show →</Link>
                 <a href={`${SITE_URL}/api/events/${event.id}/calendar.ics`} className="text-field underline">Download .ics</a>
               </dd>
             </dl>
