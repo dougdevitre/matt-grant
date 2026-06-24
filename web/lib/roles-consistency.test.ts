@@ -65,17 +65,23 @@ describe("role consistency — static guards", () => {
     expect(offenders, `legacy role literal outside rbac.ts:\n${offenders.join("\n")}`).toEqual([]);
   });
 
-  it("the audit script's mirrored role lists stay in sync with rbac.ts", () => {
-    // scripts/audit-roles.mjs is plain node ESM and re-declares ROLES/STAFF_ROLES
-    // (it cannot import the TS source). This guard makes that mirror authoritative:
-    // change a role in rbac.ts and the script must follow, or the build fails.
-    const script = readFileSync(join(WEB_ROOT, "scripts", "audit-roles.mjs"), "utf8");
-    const parseArray = (name: string): string[] => {
+  it("the maintenance scripts' mirrored role lists stay in sync with rbac.ts", () => {
+    // The scripts/*.mjs are plain node ESM and re-declare ROLES/STAFF_ROLES (they
+    // cannot import the TS source). This guard makes those mirrors authoritative:
+    // change a role in rbac.ts and every script must follow, or the build fails.
+    const SCRIPTS = ["audit-roles.mjs", "staff-list.mjs", "normalize-roles.mjs"];
+    const parseArray = (script: string, name: string): string[] => {
       const m = script.match(new RegExp(`const ${name} = (\\[[^\\]]*\\])`));
-      if (!m) throw new Error(`could not find 'const ${name} = [...]' in audit-roles.mjs`);
+      if (!m) throw new Error(`could not find 'const ${name} = [...]'`);
       return (JSON.parse(m[1].replace(/'/g, '"')) as string[]).map(String);
     };
-    expect(parseArray("ROLES")).toEqual([...ROLES]);
-    expect(parseArray("STAFF_ROLES")).toEqual([...STAFF_ROLES]);
+    for (const file of SCRIPTS) {
+      const src = readFileSync(join(WEB_ROOT, "scripts", file), "utf8");
+      expect(parseArray(src, "ROLES"), `${file} ROLES`).toEqual([...ROLES]);
+      // STAFF_ROLES only where the script declares it (audit-roles uses it).
+      if (/const STAFF_ROLES = /.test(src)) {
+        expect(parseArray(src, "STAFF_ROLES"), `${file} STAFF_ROLES`).toEqual([...STAFF_ROLES]);
+      }
+    }
   });
 });
