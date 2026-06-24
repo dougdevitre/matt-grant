@@ -2,6 +2,7 @@ import { PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, newId, dbConfigured } from "@/lib/db";
 import { sendSms } from "@/lib/sms/send";
 import { isOptedIn } from "@/lib/sms/consent";
+import { isBlocked } from "@/lib/sms/moderation";
 
 // Queued SMS broadcasts, drained in bounded batches by drainSmsOnce() (first batch
 // inline + the /api/cron/sms-drain worker) — the same claim-before-send pattern as
@@ -189,8 +190,8 @@ export async function drainSmsOnce(
   let sentDelta = 0;
   let skippedDelta = 0;
   for (const phone of recipients.slice(start, end)) {
-    if (!(await isOptedIn(phone))) {
-      skippedDelta++; // opted out since queueing
+    if (!(await isOptedIn(phone)) || (await isBlocked(phone))) {
+      skippedDelta++; // opted out or blocked since queueing
       continue;
     }
     const r = await sendSms({ to: phone, body: active.body });

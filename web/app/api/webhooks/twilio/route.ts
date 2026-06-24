@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { validateTwilioSignature } from "@/lib/sms/send";
 import { recordConsent, recordOptOut } from "@/lib/sms/consent";
+import { isBlocked } from "@/lib/sms/moderation";
+import { logInbound } from "@/lib/sms/conversations";
 import { CAMPAIGN } from "@/lib/site";
 
 // Inbound Twilio webhook for the Messaging Service. Verifies the X-Twilio-Signature,
@@ -40,19 +42,34 @@ export async function POST(req: NextRequest) {
   }
 
   const from = params.From ?? "";
-  const keyword = (params.Body ?? "").trim().toUpperCase().replace(/[^A-Z]/g, "");
+  const bodyText = params.Body ?? "";
+
+  // Blocked numbers are fully inert: don't record consent, don't log to a thread,
+  // don't reply. Silently ack so Twilio doesn't retry.
+  if (await isBlocked(from)) return twiml();
+
+  const keyword = bodyText.trim().toUpperCase().replace(/[^A-Z]/g, "");
   const optIn = (process.env.SMS_OPTIN_KEYWORD ?? "MATT").toUpperCase().replace(/[^A-Z]/g, "");
 
+  // Keyword side effects + the reply, exactly as before — then log EVERY inbound
+  // message into the person's thread (after the consent mutation, so a fresh read
+  // reflects STOP/START).
+  let reply: string | undefined;
   if (STOP_WORDS.has(keyword)) {
-    await recordOptOut(from);
-    return twiml(); // carrier auto-replies; don't double-send
-  }
-  if (START_WORDS.has(keyword) || keyword === optIn) {
+    await recordOptOut(from); // carrier auto-replies to STOP; don't double-send
+  } else if (START_WORDS.has(keyword) || keyword === optIn) {
     await recordConsent(from, keyword === optIn ? "sms-keyword" : "sms-start");
-    return twiml(`You're subscribed to ${CAMPAIGN.candidate} for Congress updates. Msg & data rates may apply. Reply STOP to opt out, HELP for help.`);
+    reply = `You're subscribed to ${CAMPAIGN.candidate} for Congress updates. Msg & data rates may apply. Reply STOP to opt out, HELP for help.`;
+  } else if (keyword === "HELP") {
+    reply = `${CAMPAIGN.candidate} for Congress — campaign updates. Reply STOP to opt out. ${CAMPAIGN.email}`;
   }
-  if (keyword === "HELP") {
-    return twiml(`${CAMPAIGN.candidate} for Congress — campaign updates. Reply STOP to opt out. ${CAMPAIGN.email}`);
+
+  // Best-effort: never hold the 200 ack on a logging failure.
+  try {
+    await logInbound({ from, body: bodyText, sid: params.MessageSid });
+  } catch {
+    /* consent already recorded; a logging miss shouldn't trigger Twilio retries */
   }
-  return twiml();
+
+  return twiml(reply);
 }
