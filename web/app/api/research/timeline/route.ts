@@ -3,6 +3,7 @@ import { dbConfigured } from "@/lib/db";
 import { getCandidate } from "@/lib/integrations/research/candidates";
 import { getTimeline } from "@/lib/integrations/research/store";
 import { buildTimeline } from "@/lib/integrations/research/timeline";
+import { type Provenance, ok, fail } from "@/lib/data/resource";
 
 // Verifiable tenure timeline for one candidate — per-Congress terms + bills +
 // per-cycle fundraising/independent-expenditures, each with a source_url.
@@ -19,11 +20,14 @@ export async function GET(req: Request) {
   const c = getCandidate(slug);
   if (!c) return NextResponse.json({ error: `unknown candidate: ${slug}` }, { status: 404 });
 
+  const meta: Provenance = { source: `Timeline — ${c.name}`, kind: "api", live: true };
+  const cache = { "cache-control": "public, max-age=3600" };
+
   // Prefer the stored series; build live if it isn't there yet.
   if (dbConfigured) {
     try {
       const stored = await getTimeline(slug);
-      if (stored) return NextResponse.json(stored, { headers: { "cache-control": "public, max-age=3600" } });
+      if (stored) return NextResponse.json(ok(stored, { ...meta, note: "stored" }), { headers: cache });
     } catch {
       /* fall through to live build */
     }
@@ -31,9 +35,9 @@ export async function GET(req: Request) {
 
   try {
     const timeline = await buildTimeline(c);
-    return NextResponse.json(timeline, { headers: { "cache-control": "public, max-age=3600" } });
+    return NextResponse.json(ok(timeline, { ...meta, note: "live build" }), { headers: cache });
   } catch (err) {
     console.error("[research/timeline]", err);
-    return NextResponse.json({ error: "Timeline build failed" }, { status: 502 });
+    return NextResponse.json(fail("Timeline build failed", meta), { status: 502 });
   }
 }

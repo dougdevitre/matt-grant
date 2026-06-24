@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getBills } from "@/lib/integrations/legislative/store";
 import { staffGate } from "@/lib/auth";
+import { dbConfigured } from "@/lib/db";
+import { type Provenance, ok, fail, degraded } from "@/lib/data/resource";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,10 +13,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ bioguide
   const sp = new URL(req.url).searchParams;
   const relation = sp.get("relation") ?? undefined;
   const policyArea = sp.get("policyArea") ?? undefined;
+  const meta: Provenance = { source: `Bills ${bioguideId}`, kind: "api", live: true };
+  if (!dbConfigured) return NextResponse.json(degraded([], "research store not connected", meta));
   try {
     const bills = await getBills(bioguideId, { relation, policyArea });
-    return NextResponse.json({ count: bills.length, bills });
+    return NextResponse.json(ok(bills, { ...meta, count: bills.length }));
   } catch {
-    return NextResponse.json({ error: "research store unavailable" }, { status: 502 });
+    return NextResponse.json(fail("research store unavailable", meta), { status: 502 });
   }
 }

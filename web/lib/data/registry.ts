@@ -73,7 +73,18 @@ export const SOURCES: SourceEntry[] = [
     endpoint: "/api/research/alignment",
     enabledEnv: ["FEC_API_KEY"],
     cache: "force-dynamic",
-    note: "Candidate finance; DEMO_KEY fallback throttles quickly.",
+    checkable: true, // alignment is a param-free GET that returns a Resource (field analysis)
+    note: "Candidate finance; DEMO_KEY fallback throttles quickly. Alignment read is on the Resource layer.",
+  },
+  {
+    id: "child-act",
+    label: "CHILD Act bills",
+    kind: "api",
+    owner: "Congress.gov (ingested)",
+    endpoint: "/api/research/child-act",
+    cache: "force-dynamic",
+    checkable: true, // param-free GET on the Resource layer; degrades when the store is unset
+    note: "Family-court-relevant bills from the ingested federal record. Degrades when the store isn't connected.",
   },
   {
     id: "congress",
