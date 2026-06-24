@@ -1,6 +1,8 @@
 // U.S. Census ACS 5-year client (api.census.gov). Public demographic data for
 // MO-02 targeting. Free key at https://api.census.gov/data/key_signup.html —
 // works without a key at low volume too. State FIPS for Missouri = 29.
+import { fetchJsonWithRetry } from "@/lib/integrations/http";
+
 export const censusEnabled = !!process.env.CENSUS_API_KEY;
 
 const YEAR = process.env.CENSUS_ACS_YEAR ?? "2023";
@@ -53,9 +55,8 @@ export async function fetchMo02Acs(): Promise<CountyAcs[]> {
   u.searchParams.set("in", "state:29");
   if (process.env.CENSUS_API_KEY) u.searchParams.set("key", process.env.CENSUS_API_KEY);
 
-  const res = await fetch(u, { headers: { accept: "application/json" } });
-  if (!res.ok) throw new Error(`census ${res.status}`);
-  const rows = (await res.json()) as unknown;
+  // Shared transport: adds the hard timeout + bounded retry this raw fetch lacked.
+  const rows = await fetchJsonWithRetry<unknown>(u, { headers: { accept: "application/json" }, label: "census" });
   // Census returns a 2-D array; a bad variable/geo can yield HTML or {} instead.
   if (!Array.isArray(rows) || !Array.isArray(rows[0])) {
     throw new Error("census: unexpected response shape");
