@@ -3,6 +3,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ROLES, STAFF_ROLES } from "./rbac";
+import { EXTERNAL_DOMAINS, EXTERNAL_LOCALPARTS } from "./externalEmail";
 
 // Static guards that lock in the role de-drift across the FRONT-END and BACK-END
 // source (a complement to the in-memory invariants in rbac.test.ts). These read the
@@ -83,5 +84,18 @@ describe("role consistency — static guards", () => {
         expect(parseArray(src, "STAFF_ROLES"), `${file} STAFF_ROLES`).toEqual([...STAFF_ROLES]);
       }
     }
+  });
+
+  it("staff-list.mjs's external-email heuristic matches lib/externalEmail.ts", () => {
+    // staff-list.mjs re-declares the heuristic inline (plain node ESM); this keeps it
+    // identical to the shared module the app's invite guardrail uses.
+    const src = readFileSync(join(WEB_ROOT, "scripts", "staff-list.mjs"), "utf8");
+    const grab = (re: RegExp, name: string): string[] => {
+      const m = src.match(re);
+      if (!m) throw new Error(`could not find ${name} in staff-list.mjs`);
+      return JSON.parse(m[1].replace(/,(\s*\])/g, "$1")) as string[]; // tolerate trailing comma
+    };
+    expect(grab(/const EXTERNAL_DOMAINS = (\[[\s\S]*?\]);/, "EXTERNAL_DOMAINS")).toEqual(EXTERNAL_DOMAINS);
+    expect(grab(/const EXTERNAL_LOCALPARTS = new Set\((\[[\s\S]*?\])\);/, "EXTERNAL_LOCALPARTS")).toEqual(EXTERNAL_LOCALPARTS);
   });
 });
