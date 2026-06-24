@@ -95,19 +95,26 @@ Two drift risks that resolve-on-read hides:
 - **Donors are Clerk-only by design.** A `donor` has a `publicMetadata.role` but **no `STAFF` row**
   (their tier is computed from contributions). That is expected, not drift — the audit must not flag it.
 
-**To audit (read-only — neither script writes):**
-- `node scripts/audit-roles.mjs` (`CLERK_SECRET_KEY` + `DYNAMODB_TABLE` + AWS creds) — reconciles **per
-  email** across Clerk + `STAFF` + `DONOR`, flagging Clerk↔staff mismatches, stale raw literals, orphan
-  rows, and donor-tier anomalies, and prints the last few audit-log entries as history (FYI only).
-- `node scripts/list-clerk-roles.mjs` — tallies `publicMetadata.role` across all Clerk users.
+**Maintenance scripts** (`web/scripts/*.mjs` — run in AWS CloudShell; they mirror the canonical role
+list, which `roles-consistency.test.ts` keeps in sync). Read-only unless a write flag is passed:
+- `audit-roles.mjs` (`CLERK_SECRET_KEY` + `DYNAMODB_TABLE` + AWS creds) — reconciles **per email** across
+  Clerk + `STAFF` + `DONOR`, flagging Clerk↔staff mismatches, stale raw literals, orphan rows, and
+  donor-tier anomalies; prints recent audit-log entries as history (FYI). **No writes.**
+- `list-clerk-roles.mjs` — tallies `publicMetadata.role` across all Clerk users. **No writes.**
+- `staff-list.mjs` — dumps the `STAFF` invite list grouped by role (elevated first) with
+  `invitedBy`/`createdAt`, signed-up vs pending, and an external-domain flag (press/gov/role-addr) so
+  outside parties stand out. Read-only; `--remove a@b,c@d` soft-removes those rows (`status="removed"`)
+  and demotes their Clerk role to `supporter` (the only write path).
+- `normalize-roles.mjs` — rewrites legacy raw values (`member`/`organizer`) → canonical in Clerk
+  `publicMetadata` + `STAFF` rows. **Dry-run by default; `--apply` writes.** Idempotent and cosmetic
+  (reads already coerce) — run it if you want clean raw values; after `--apply`, `audit-roles.mjs` should
+  report 0 legacy values.
 
 **Guardrails that keep it from re-drifting** (fail the build):
 - `lib/roles-consistency.test.ts` — legacy names (`member`/`organizer`) as string literals exist only in
-  `rbac.ts`, and `audit-roles.mjs`'s mirrored role lists stay in sync with `rbac.ts`.
+  `rbac.ts`, and every maintenance script's mirrored role lists stay in sync with `rbac.ts`.
 - `lib/rbac.test.ts` — every role has a label/blurb/badge, the role subsets are correct, and the
   capability matrix + isolation walls hold.
 
-If the audit surfaces stale raw values or a Clerk↔staff mismatch, the fix is a one-off **normalization**
-(re-stamp the canonical string into Clerk + `STAFF`; safe because reads already coerce) and/or surfacing
-the best-effort Clerk-write failure in the team actions — neither is needed until the audit shows a real
-discrepancy.
+A Clerk↔staff *mismatch* would be real drift (re-stamp the stale store). Stale raw values are cosmetic —
+`normalize-roles.mjs` cleans them, but the alias map in `rbac.ts` resolves them correctly regardless.
