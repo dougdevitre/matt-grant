@@ -41,6 +41,20 @@ If you've identified a gap, open an issue first to discuss scope, then submit a 
 5. Update `states/_state-index.md` if you added state coverage
 6. Submit a PR with a clear description of what changed and why
 
+## Merge policy
+
+CI (`.github/workflows/ci.yml`) type-checks, tests, and builds the result of **merging your PR into `main`** — but GitHub only rebuilds that merge preview when the PR branch is pushed, **not** when `main` advances afterward. A branch cut from an old `main` can therefore show a green check that no longer reflects reality, and merging it can silently drop or duplicate code from PRs that landed in between (this has bitten us more than once).
+
+Before merging, always bring your branch up to date with `main`:
+
+```bash
+git fetch origin
+git rebase origin/main
+git push --force-with-lease
+```
+
+Wait for CI to pass **after** the rebase, then merge. Branch protection enforces *"Require branches to be up to date before merging,"* and the `up-to-date` CI job fails any PR that is behind `main` as a backstop.
+
 ## Code of Conduct
 
 This project exists to support democracy. Contributors are expected to engage respectfully regardless of political affiliation. Partisan advocacy, personal attacks, and misinformation are not welcome.

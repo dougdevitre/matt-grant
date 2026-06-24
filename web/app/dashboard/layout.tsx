@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { Countdown } from "@/components/Countdown";
 import { DashSidebar } from "@/components/dashboard/DashSidebar";
 import { DeniedBanner } from "@/components/dashboard/DeniedBanner";
+import { RoleSwitcher } from "@/components/dashboard/RoleSwitcher";
+import { ViewAsBanner } from "@/components/dashboard/ViewAsBanner";
 import { clerkEnabled, staffGate } from "@/lib/auth";
 import { ROLE_LABELS } from "@/lib/rbac";
 import { CAMPAIGN } from "@/lib/site";
@@ -20,7 +22,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     </span>
   );
   // Backstop: only allowlisted/invited staff get in; role drives what they see.
-  const { ok, role } = await staffGate();
+  const { ok, role, actualRole, viewingAs } = await staffGate();
   if (clerkEnabled) {
     if (!ok) redirect("/?staff=denied");
     const { UserButton } = await import("@clerk/nextjs");
@@ -48,13 +50,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
             </p>
           </div>
         </div>
-        <DashSidebar role={activeRole} />
-        <div className="hidden border-t border-paper/10 px-5 py-5 md:block">
+        {/* Countdown sits at the top of the menu, above the nav, on every
+            breakpoint (it used to be hidden md:block at the bottom). */}
+        <div className="border-b border-paper/10 px-5 py-4">
           <p className="eyebrow text-paper/50">Days to election</p>
           <div className="mt-3">
             <Countdown iso={CAMPAIGN.electionDate} compact />
           </div>
         </div>
+        <DashSidebar role={activeRole} />
       </aside>
 
       {/* Main */}
@@ -68,13 +72,18 @@ export default async function DashboardLayout({ children }: { children: React.Re
               <Image src="/brand/icon-192.png" alt="" width={20} height={20} className="rounded-[3px]" />
               {CAMPAIGN.candidate} for Congress
             </span>
-            <span className="rounded-sm bg-ink/5 px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate">
-              {ROLE_LABELS[activeRole]}
-            </span>
+            {actualRole === "admin" ? (
+              <RoleSwitcher current={activeRole} />
+            ) : (
+              <span className="rounded-sm bg-ink/5 px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate">
+                {ROLE_LABELS[activeRole]}
+              </span>
+            )}
             {AuthControl}
           </div>
         </header>
         <div className="flex-1 px-5 py-8 sm:px-8">
+          {viewingAs && <ViewAsBanner role={viewingAs} />}
           <Suspense fallback={null}>
             <DeniedBanner />
           </Suspense>

@@ -29,17 +29,30 @@ export function emailAllowed(email?: string | null): boolean {
 // verdict. In demo mode (no Clerk) it's a no-op pass. Callers should already be
 // behind middleware auth.protect(), so currentUser() is present when Clerk is on.
 import type { StaffRole } from "@/lib/staff";
-import { asRole, can, type Capability } from "@/lib/rbac";
+import { asRole, can, type Capability, type Role } from "@/lib/rbac";
 
-export type Gate = { ok: boolean; email: string | null; role: StaffRole | null };
+// `role` is the EFFECTIVE role used for all gating. When an admin is "viewing as"
+// a lower role, `role` is that preview while `actualRole` stays "admin" and
+// `viewingAs` names the preview. For everyone else, role === actualRole and
+// viewingAs is null.
+export type Gate = {
+  ok: boolean;
+  email: string | null;
+  role: StaffRole | null;
+  actualRole: StaffRole | null;
+  viewingAs: Role | null;
+};
 
-// Role resolution order:
+// Admin-only "view as role" preview cookie (set by the dashboard role switcher).
+export const VIEW_AS_COOKIE = "mg_view_as";
+
+// Real role resolution, ignoring any view-as preview. Order:
 //   1. demo mode (no Clerk) → admin (open dashboard)
 //   2. env allowlist → admin (the bootstrap super-admins; also fail-open when
 //      DASHBOARD_ALLOWLIST is unset so the app never locks everyone out)
 //   3. Clerk publicMetadata.role → the runtime source of truth
 //   4. DynamoDB staff row → fallback for invites not yet stamped into Clerk
-export async function staffGate(): Promise<Gate> {
+async function resolveRealGate(): Promise<{ ok: boolean; email: string | null; role: StaffRole | null }> {
   if (!clerkEnabled) return { ok: true, email: null, role: "admin" };
   const { currentUser } = await import("@clerk/nextjs/server");
   const user = await currentUser();
@@ -53,6 +66,32 @@ export async function staffGate(): Promise<Gate> {
   // resolves to a current role rather than slipping through as an unknown one.
   const role = asRole(await staffRole(email));
   return { ok: !!role, email, role };
+}
+
+// Read the admin's "view as" preview cookie. Returns a valid LOWER role, or null
+// (admin/invalid/absent). Cookie reads can throw outside a request scope, so we
+// degrade to null rather than letting a preview break unrelated callers.
+async function readViewAs(): Promise<Role | null> {
+  try {
+    const { cookies } = await import("next/headers");
+    const raw = (await cookies()).get(VIEW_AS_COOKIE)?.value;
+    const role = asRole(raw);
+    return role && role !== "admin" ? role : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function staffGate(): Promise<Gate> {
+  const real = await resolveRealGate();
+  // Only a real admin may preview a lower role. The override can ONLY reduce
+  // capability (admin → a lesser role), never escalate — a non-admin's cookie is
+  // ignored entirely, so this can't be used to gain access.
+  if (real.role === "admin") {
+    const viewingAs = await readViewAs();
+    if (viewingAs) return { ...real, role: viewingAs, actualRole: "admin", viewingAs };
+  }
+  return { ...real, actualRole: real.role, viewingAs: null };
 }
 
 // ── Capability guards (the contract feature lanes use to gate surfaces) ──────────

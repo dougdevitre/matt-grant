@@ -9,8 +9,23 @@ import { recordAccessChange } from "@/lib/audit";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { renderEmail, renderText } from "@/lib/email/layout";
 import { SITE_URL } from "@/lib/site";
+import { remindPendingInvites } from "@/lib/invites";
 
 export type InviteResult = { ok: boolean; message: string };
+
+// Send a branded reminder to a bounded batch of still-pending Clerk invitees.
+// Safe to click repeatedly: de-duped (won't re-remind within 48h) and bounded so
+// one click stays under the function timeout. Admin-only.
+export async function remindPendingInvitesAction(_prev: InviteResult | null): Promise<InviteResult> {
+  await guardAdmin();
+  if (!sesEnabled) return { ok: false, message: "Email isn't configured yet (set SES_FROM)." };
+  const r = await remindPendingInvites({ limit: 40, minHoursSinceReminder: 48 });
+  revalidatePath("/dashboard/team");
+  if (r.pending === 0) return { ok: true, message: "No pending invitations to remind." };
+  const skipped = r.skipped ? ` · skipped ${r.skipped} (recently reminded)` : "";
+  const tail = r.remaining > 0 ? ` · ${r.remaining} left — click again to send the rest.` : "";
+  return { ok: true, message: `Reminded ${r.reminded} pending invitee${r.reminded === 1 ? "" : "s"}${skipped}${tail}` };
+}
 
 // Only those with the manageTeam capability (admins) may manage access.
 async function guardAdmin(): Promise<string | null> {

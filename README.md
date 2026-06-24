@@ -74,23 +74,34 @@ out-organize a bigger budget with discipline and real data.
 **For voters — the public campaign site**
 - A fast, modern campaign website: Matt's story, the issues, press, and contact.
 - One-click **donate** through WinRed and a live **countdown** to Election Day.
+- **Your action plan** (`/act`) — a personalized, printable to-do list to help, with an optional
+  AI-tailored brief by county, city, or school district (grounded in the platform).
+- A **community hub** + shared "Peace Room" case-for-change board for supporters and coalition partners.
 - Shareable, on-brand graphics and a clear ask on every page.
 
 **For the team — the "War Room" dashboard** *(staff-only)*
+- **Overview + guided setup** — a daily pulse and a "Setup & status" page showing what's wired up
+  (email, texting, social, donations, research) at a glance.
 - **Finance** — donor ledger with FEC employer/occupation tracking and contribution-limit flags,
-  expenditures, and live cash-on-hand.
-- **Compliance** — an FEC filing-deadline calendar so nothing slips.
-- **3D field map of MO-02** — real St. Louis County precinct turnout, every polling place, and all
-  of the district's counties, drawn from live county GIS.
-- **Precinct targets** — an auto-ranked field plan that turns turnout data into printable walk lists.
-- **Graphics studio** — generate campaign social posts, yard signs, and banners from Matt's photo.
-- **Asset library** — logo and brand files on a fast CDN.
-- **Opposition research** — the opponent's *public* legislative record (votes + bills) pulled
-  straight from Congress.gov and the House Clerk, so every contrast is fact-checkable and sourced —
-  never a fabricated claim.
-- **Strategic plan + task board** to run the final stretch to August 4.
+  expenditures, live cash-on-hand, and an FEC filing-deadline **compliance** calendar.
+- **3D field map of MO-02** — real St. Louis County precinct turnout and polling places from live
+  county GIS — plus **precinct targets** that turn turnout into printable walk lists.
+- **Volunteers + task board** — leads from the public form, statuses, and the final-stretch kanban.
+- **Email campaigns** — branded templates, audience segments, scheduling, and built-in CAN-SPAM/FEC
+  compliance with one-click unsubscribe.
+- **Text blasts (SMS)** — opt-in-gated broadcasts with a segment counter, quiet hours, and automatic
+  STOP/HELP handling (TCPA-compliant).
+- **Social command center** — compose once and publish/schedule to every channel, with a profile optimizer.
+- **AI strategy lab** (Peace Room) — responsible-governance briefs + action plans per issue, localized
+  by county/city/school district and faithful to the documented platform.
+- **Opposition research** — the opponent's *public* legislative record (votes + bills) from Congress.gov
+  and the House Clerk, so every contrast is fact-checkable and sourced — never a fabricated claim.
+- **Graphics studio + asset library** — generate posts, yard signs, and banners from Matt's photo;
+  brand files on a fast CDN.
+- **Strategic plan** to run the final stretch to August 4.
 
-**Under the hood:** Next.js · AWS DynamoDB · S3 + CloudFront · Clerk auth · deployed on AWS Amplify.
+**Under the hood:** Next.js · AWS DynamoDB · S3 + CloudFront · Clerk auth · Amazon SES (email) ·
+Twilio (SMS) · Anthropic Claude (AI) · deployed on AWS Amplify.
 Setup and deploy: [web/README.md](web/README.md) · [docs/RUNBOOK.md](docs/RUNBOOK.md) ·
 [docs/DEPLOY-AWS.md](docs/DEPLOY-AWS.md).
 
@@ -111,13 +122,17 @@ This race is decided one neighbor at a time.
 
 | Path | What it is |
 |---|---|
-| [`web/`](web/) | The campaign website + War Room dashboard (the live app) |
+| [`web/`](web/) | The campaign website + War Room dashboard — the live Next.js app |
 | [`candidate/`](candidate/) | Matt's profile, platform, strategic plan, and contrast positioning |
-| [`docs/`](docs/) | Deploy + operations runbooks (AWS Amplify, DynamoDB, S3) |
-| `workflows/` · `tactics/` · `messaging/` · `federal/` · `states/` | The **get-elected** campaign engine — a nonpartisan toolkit for running a legally compliant, strategically sound race |
+| [`docs/`](docs/) · [`infra/`](infra/) · [`scripts/`](scripts/) | Deploy + ops: AWS Amplify/DynamoDB/S3 runbooks, EventBridge/SSM setup scripts |
+| [`SKILL.md`](SKILL.md) · [`INDEX.md`](INDEX.md) · [`commands/`](commands/) | The Claude AI Skill entry point, file index, and 80+ slash-command triggers |
+| [`workflows/`](workflows/) · [`tactics/`](tactics/) | Step-by-step campaign processes and operational playbooks |
+| [`messaging/`](messaging/) · [`outreach/`](outreach/) · [`artifacts/`](artifacts/) | Positioning, speeches, press, social, email, and document-generation templates |
+| [`federal/`](federal/) · [`states/`](states/) · [`tools/`](tools/) · [`references/`](references/) | FEC + state election-law references, compliance trackers, glossary, and agency directory |
 
-The campaign engine is built on a general-purpose toolkit that retains full capability for any U.S.
-race, school board to Congress.
+Beneath the Grant-specific files, this is a general-purpose, nonpartisan **get-elected** toolkit —
+it retains full capability for running a legally compliant, strategically sound race for any U.S.
+office, school board to Congress.
 
 ## Guardrails
 

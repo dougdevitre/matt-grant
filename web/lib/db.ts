@@ -47,6 +47,16 @@ export const PK = {
   timeline: (slug: string) => `TIMELINE#${slug}`,
   statements: (slug: string) => `STMT#${slug}`,
   profile: "PROFILE", // supporter involvement profile (issues, ways-to-help, zip)
+  assets: "ASSET", // asset-library metadata (tags, uploader, original size) keyed by S3 key
+  onboarding: "ONBOARDING", // per-user "dismissed the Start-here guide" flag, SK = email
+  smsCampaigns: "SMSCAMPAIGN", // queued SMS broadcasts (drained like email campaigns)
+  smsConvos: "SMSCONVO", // 1:1 conversation index (one row per person; SK = E.164)
+  smsThread: (e164: string) => `SMSTHREAD#${e164}`, // per-person message thread (SK = `${iso}#${id}`)
+  smsBlocks: "SMSBLOCK", // blocked/banned numbers (SK = E.164; inbound dropped, outbound refused)
+  inviteReminders: "INVITEREMINDER", // per-email reminder bookkeeping (SK = email; remindedAt, count)
+  events: "EVENT", // campaign events/appearances (SK = `${startISO}#${id}`; chronological)
+  eventIngest: "EVENTINGEST", // inbound-email → event dedupe keys (idempotency, SK = sha256)
+  districtInsights: "DISTRICTINSIGHT", // cached per-district demographics + AI blurb (SK = districtKey)
 } as const;
 
 export function newId(): string {

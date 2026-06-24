@@ -17,6 +17,15 @@ export const AREA_SUGGESTIONS = [
   "Kirkwood", "Des Peres", "Manchester", "Jefferson County", "your neighborhood",
 ];
 
+// Major public school districts serving the MO-02 area (the St. Louis County
+// communities above + Franklin County). Quick-picks only — free text is allowed,
+// and district lines don't follow congressional lines, so confirm your own
+// district officially. Not an exhaustive or authoritative MO-02 list.
+export const SCHOOL_DISTRICT_SUGGESTIONS = [
+  "Rockwood School District", "Parkway School District", "Kirkwood School District",
+  "Lindbergh Schools", "Mehlville School District", "Washington School District",
+];
+
 // Fill {area}/{issue}/{tag}/{n} in an action template.
 function fill(t: string, ctx: { area: string; issue: string; tag: string; n: number }) {
   return t
