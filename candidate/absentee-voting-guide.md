@@ -219,5 +219,10 @@ St. Louis County and St. Charles County election authorities. Rules can
 change — always confirm with your election authority. The voting process
 applies to all voters regardless of candidate preference.*
 
-*Paid for by Matt Grant for Congress. [Confirm exact FEC disclaimer with
-your committee/treasurer before distribution.]*
+*Paid for by the Matt Grant for Congress Committee.*
+
+> **Note for printed copies:** Per FEC rules (11 CFR 110.11), this "Paid for
+> by" line must appear in a printed box set apart from the rest of the content,
+> in clearly readable type (12-point black-on-white is the FEC safe harbor for
+> pieces up to 24"×36"). Have the committee treasurer confirm placement before
+> distribution.
