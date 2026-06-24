@@ -52,7 +52,15 @@ export default async function PillarToolPage({ params }: { params: Promise<{ pil
           src={src}
           title={tool.label}
           className="h-[80vh] w-full bg-white"
-          sandbox="allow-scripts allow-forms allow-popups allow-same-origin"
+          referrerPolicy="no-referrer"
+          // The tool HTML is synced from an external access-to-* repo, so treat it as
+          // untrusted. NO `allow-same-origin`: with `allow-scripts` that pair would let
+          // the framed doc escape the sandbox and script the app's own origin (cookies,
+          // localStorage, same-origin fetch). Omitting it gives the tool a unique opaque
+          // origin — scripts still run, but it can't touch the app. A restrictive CSP on
+          // /pillar-tools/* (next.config.mjs: connect-src 'none', frame-ancestors 'self')
+          // blocks exfiltration and external embedding as defense in depth.
+          sandbox="allow-scripts allow-forms allow-popups"
         />
       </div>
 

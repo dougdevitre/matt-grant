@@ -1,6 +1,7 @@
-import { pillarForHost } from "./pillars";
+import { pillarForHost, pillarSlugs } from "./pillars";
 
 const MAIN = "https://mattgrantforcongress.org";
+const APEX_DOMAIN = "mattgrantforcongress.org";
 
 // Vanity subdomains for the four documented priorities. Each is a short marketing
 // alias that 308-redirects to the canonical /issues/<slug> page on the apex — one
@@ -22,6 +23,22 @@ export function issueVanityRedirect(host: string | null | undefined): string | n
   const label = host.split(":")[0].split(".")[0].toLowerCase();
   const slug = ISSUE_VANITY[label];
   return slug ? `${MAIN}/issues/${slug}` : null;
+}
+
+// A single-level subdomain of the campaign apex that the app doesn't recognize —
+// i.e. not www, not a known pillar, not a vanity issue alias. Returns the label so
+// the middleware can log it (wildcard DNS sends every label here, so an unknown one
+// means catalog/DNS drift or a typo). Returns null for the apex, www, multi-level
+// hosts, foreign domains, and every known label. Pure + edge-safe.
+export function unknownPillarSubdomain(host: string | null | undefined): string | null {
+  if (!host) return null;
+  const hostname = host.split(":")[0].toLowerCase();
+  const suffix = `.${APEX_DOMAIN}`;
+  if (!hostname.endsWith(suffix)) return null; // apex itself or a foreign domain
+  const label = hostname.slice(0, -suffix.length);
+  if (!label || label === "www" || label.includes(".")) return null; // apex/www/multi-level
+  if (pillarSlugs.includes(label) || label in ISSUE_VANITY) return null; // known
+  return label;
 }
 
 // Pure host→path mapping for the pillar-subdomain rewrite, factored out of
