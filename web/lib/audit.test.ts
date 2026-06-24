@@ -8,7 +8,7 @@ vi.mock("@/lib/db", () => ({
   dbConfigured: true,
 }));
 
-import { recordAccessChange, listAccessChanges } from "./audit";
+import { recordAccessChange, listAccessChanges, recordPreviewSwitch, listPreviewSwitches } from "./audit";
 
 const entry = {
   at: "2026-06-24T05:00:00.000Z",
@@ -57,5 +57,36 @@ describe("listAccessChanges", () => {
   it("returns [] on a query failure rather than throwing", async () => {
     send.mockRejectedValue(new Error("boom"));
     expect(await listAccessChanges()).toEqual([]);
+  });
+});
+
+describe("preview switch stream (separate partition)", () => {
+  it("recordPreviewSwitch writes under AUDIT#preview with a sortable key", async () => {
+    const at = "2026-06-24T06:00:00.000Z";
+    await recordPreviewSwitch({ at, actor: "admin@x.org", target: "admin@x.org", action: "preview_enter", role: "member" });
+    const item = send.mock.calls[0][0].input.Item;
+    expect(item.PK).toBe("AUDIT#preview"); // NOT the access partition
+    expect(item.SK).toBe(`${at}#fixed-id`);
+    expect(item.action).toBe("preview_enter");
+    expect(item.role).toBe("member");
+  });
+
+  it("listPreviewSwitches queries the preview partition newest-first", async () => {
+    send.mockResolvedValue({
+      Items: [{ at: "2026-06-24T06:00:00.000Z", actor: "admin@x.org", target: "admin@x.org", action: "preview_exit", role: "supporter" }],
+    });
+    const rows = await listPreviewSwitches(10);
+    const q = send.mock.calls[0][0].input;
+    expect(q.ScanIndexForward).toBe(false);
+    expect(q.Limit).toBe(10);
+    expect(q.ExpressionAttributeValues).toEqual({ ":p": "AUDIT#preview" });
+    expect(rows[0]).toMatchObject({ action: "preview_exit", role: "supporter" });
+  });
+
+  it("is best-effort: a write failure never throws", async () => {
+    send.mockRejectedValue(new Error("ddb down"));
+    await expect(
+      recordPreviewSwitch({ at: "2026-06-24T06:00:00.000Z", actor: "a", target: "a", action: "preview_enter", role: "member" }),
+    ).resolves.toBeUndefined();
   });
 });
