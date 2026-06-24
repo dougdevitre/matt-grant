@@ -6,10 +6,19 @@ import type { OAuthProvider, AuthorizeResult, ExchangeResult } from "@/lib/socia
 // org posting is a follow-up the schema already supports. Member refresh tokens are
 // only issued to approved apps — if absent, we degrade to reconnect-on-expiry.
 
-const SCOPES = "openid profile w_member_social";
+// Default = member posting, which is all the "Share on LinkedIn" product grants.
+// Overridable (env SOCIAL_LINKEDIN_SCOPES or SSM …/linkedin/scopes) so the campaign
+// can add `w_organization_social` once LinkedIn approves the Community Management API
+// — no code edit or redeploy needed. See web/docs/linkedin-setup.md.
+const DEFAULT_SCOPES = "openid profile w_member_social";
 const AUTHORIZE = "https://www.linkedin.com/oauth/v2/authorization";
 const TOKEN = "https://www.linkedin.com/oauth/v2/accessToken";
 const USERINFO = "https://api.linkedin.com/v2/userinfo";
+
+/** Requested OAuth scopes (override → default member scope). */
+async function scopes(): Promise<string> {
+  return (await socialAppParam("linkedin", "scopes")) || DEFAULT_SCOPES;
+}
 
 async function appCreds() {
   const [clientId, clientSecret, redirectUri] = await Promise.all([
@@ -48,7 +57,7 @@ export const linkedinProvider: OAuthProvider = {
     u.searchParams.set("response_type", "code");
     u.searchParams.set("client_id", clientId);
     u.searchParams.set("redirect_uri", redirectUri);
-    u.searchParams.set("scope", SCOPES);
+    u.searchParams.set("scope", await scopes());
     u.searchParams.set("state", state);
     return { ok: true, url: u.toString() };
   },
@@ -82,7 +91,7 @@ export const linkedinProvider: OAuthProvider = {
         authorUrn,
         accountName,
         expiresAt: tok.body.expires_in ? new Date(Date.now() + tok.body.expires_in * 1000).toISOString() : undefined,
-        scopes: SCOPES,
+        scopes: await scopes(),
       },
     };
   },

@@ -60,7 +60,7 @@ Like SES, Clerk, and S3 elsewhere in the app, publishing **degrades gracefully**
 
 - **Facebook (+ Instagram):** Meta OAuth → long-lived user token → the **Page** (its token is what we post with) and the linked **Instagram business account**. One connect powers both channels.
 - **X:** OAuth2 **Authorization Code + PKCE** (verifier in a second cookie) → access + refresh token. `offline.access` scope is required for the refresh token.
-- **LinkedIn:** OAuth2 (`openid profile w_member_social`) → access token; the author URN is resolved from OpenID `userinfo` (`urn:li:person:{sub}`).
+- **LinkedIn:** OAuth2 (`openid profile w_member_social`, overridable via `SOCIAL_LINKEDIN_SCOPES`) → access token; the author URN is resolved from OpenID `userinfo` (`urn:li:person:{sub}`). The same app also powers Clerk staff login — see [`linkedin-setup.md`](./linkedin-setup.md).
 - Connections are stored in DynamoDB (`SOCIALAUTH` partition, `lib/social/connections.ts`). Each platform's registered `redirect_uri` must point at `…/api/social/callback/<platform>`.
 
 **Token refresh:** `resolveCredentials()` calls `ensureFresh()` (`oauth/refresh.ts`) — when a connection is within 7 days of expiry it refreshes + persists the (possibly rotated) token; never throws (degrades to the stale token and surfaces the expiry in the UI). The `/api/cron/social-drain` worker also calls `refreshExpiring()` as a backstop.

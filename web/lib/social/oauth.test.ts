@@ -97,6 +97,20 @@ describe("LinkedIn provider (OAuth2)", () => {
     expect(new URL(r.url).searchParams.get("scope")).toContain("w_member_social");
   });
 
+  it("honors a scopes override (e.g. adding org posting after CMA approval)", async () => {
+    process.env.SOCIAL_LINKEDIN_SCOPES = "openid profile w_member_social w_organization_social";
+    _clearAppParamCache();
+    try {
+      const r = await linkedinProvider.authorizeUrl("st");
+      expect(r.ok).toBe(true);
+      if (!r.ok) return;
+      expect(new URL(r.url).searchParams.get("scope")).toContain("w_organization_social");
+    } finally {
+      delete process.env.SOCIAL_LINKEDIN_SCOPES;
+      _clearAppParamCache();
+    }
+  });
+
   it("exchanges a code and resolves the author URN via userinfo", async () => {
     const fetchMock = vi
       .fn()
