@@ -103,3 +103,8 @@ All three kinds are now on the pattern — copy the closest one:
   `WALGREENS_*` is unset); `components/PrintStudio.tsx` loads it via `useResource`. The imperative
   store-finder/order-submit stay as raw fetch — they're user actions, not declarative loads.
   `app/api/research/census/route.ts` also returns a `Resource` (ready for a future demographics panel).
+- **Server-side reads** — `lib/data/research.ts` (`loadFieldResearch`, `loadCandidateResearch`) wraps the
+  research dashboard's DynamoDB reads in a `Resource`; the pages render `<DegradedNotice>`/`<ProvenanceChip>`
+  for the store-not-connected / not-ingested / stale states. The research read routes (`member/[id]`,
+  `/bills`, `/votes`, `timeline`, `child-act`, `alignment`) return `Resource` envelopes too (no UI consumer
+  — readiness); `health` (503 contract), `graphic` (PNG), `script` (text), and the ingest/cron writes stay as-is.
