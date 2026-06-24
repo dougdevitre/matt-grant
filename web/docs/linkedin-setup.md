@@ -17,6 +17,7 @@ Each app needs just **one** redirect URL (the job it does). They don't share cre
 
 ## Prerequisites
 
+- **Each app is verified with the campaign Company Page.** Both apps are associated with the **"Matt Grant for Congress (MO Dist. 2 - Repub.)"** LinkedIn Page. In the apps list a Page shown as **Not verified** means the app→Page verification is pending: open each app → **Settings** → **App verification** → **Verify** → a Page **admin** opens the generated link and approves. Required to clear development/restricted limits, and a hard prerequisite for organization-page posting below. (Be a Page admin first via the Page's *Admin tools → Manage admins*.)
 - **Clerk is live:** both `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` set (`lib/auth.ts:5`). If blank, `/sign-in` shows "not configured" and no social login renders.
 - **You are an admin:** only the `admin` role has `manageSocial` (`lib/rbac.ts`), required to reach `/dashboard/social` and the **Connect** buttons. Add your email to `DASHBOARD_ALLOWLIST` (or an invited staff row) before connecting.
 - The **Client Secret** for each app, from its **Auth** tab.
