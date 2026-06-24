@@ -20,6 +20,11 @@ flowchart LR
 |---|---|
 | `brand_letter.py` | The engine — brand tokens, masthead/footer, QR band, `build()`. Run directly to render the Sunshine Law voter-list request sample. |
 | `outreach_volunteer.py` | A ready-to-send volunteer/supporter recruitment letter with the QR band switched on. A worked example of supplying custom content + a custom QR set. |
+| `legislator_mailing.py` | Mail-merge: reads `candidate/letters/senate-targets.csv`, personalizes a letter per recipient by title/committee/issue-alignment, and compiles every [letter + CHILD brief] packet into ONE print-ready PDF via `build_many`. See `candidate/letters/legislator-mailing.md` for the roster and customization logic. |
+
+### Rendering many letters into one PDF
+
+`build_many(out_path, contents, title=...)` concatenates a list of content dicts into a single document, each starting on a fresh page — a print-ready mail-merge. `build(out_path, content)` renders one letter. Both share `letter_story(content, st)`, which renders every content block conditionally, so a simpler page (e.g. an enclosure brief with no recipient/RE/signature) just omits those keys.
 
 ## Requirements
 
