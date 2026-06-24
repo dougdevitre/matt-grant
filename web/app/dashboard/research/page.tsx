@@ -2,16 +2,10 @@ import Link from "next/link";
 import { requireCap } from "@/lib/auth";
 import { PageHeader, HowTo } from "@/components/dashboard/Notice";
 import { InfoTip } from "@/components/dashboard/InfoTip";
-import { dbConfigured } from "@/lib/db";
-import { loadField, partyLabel } from "@/lib/integrations/research/candidates";
-import { loadStatements } from "@/lib/integrations/statements/data";
-import { analyzeField } from "@/lib/analysis/alignment";
+import { DegradedNotice, ProvenanceChip } from "@/components/data/ResourceState";
+import { loadFieldResearch } from "@/lib/data/research";
+import { partyLabel } from "@/lib/integrations/research/candidates";
 import { ISSUE_AXES } from "@/lib/integrations/research/issues";
-import { getAllFec, getAllFecDetail, getAllNews } from "@/lib/integrations/research/store";
-import { lastFieldIngest } from "@/lib/integrations/research/ingestField";
-import { fieldFreshness } from "@/lib/integrations/research/freshness";
-import type { FecSummary, FecDetail } from "@/lib/integrations/fec/types";
-import type { NewsFeed } from "@/lib/integrations/news/client";
 
 export const dynamic = "force-dynamic";
 
@@ -26,41 +20,17 @@ const VERDICT = {
 
 export default async function ResearchPage() {
   await requireCap("viewResearch"); // members are denied; don't rely on the sidebar hiding the link (H1)
-  const field = loadField().filter((c) => c.active !== false);
-  const statements = loadStatements();
-  const analysis = analyzeField(field, statements, new Date().toISOString());
-
-  let fec: Record<string, FecSummary> = {};
-  let detail: Record<string, FecDetail> = {};
-  let news: Record<string, NewsFeed> = {};
-  let run: Awaited<ReturnType<typeof lastFieldIngest>> = null;
-  if (dbConfigured) {
-    try {
-      [fec, detail, news, run] = await Promise.all([getAllFec(), getAllFecDetail(), getAllNews(), lastFieldIngest()]);
-    } catch {
-      /* degrade to no money/run data */
-    }
-  }
-
-  // Reliable freshness from the data's own timestamps (per-step retrievedAt),
-  // not the run record — a heavy run can exceed the Lambda window and never write
-  // its ok:true end-record even though the data landed fine.
-  const fresh = fieldFreshness({ detail, news, fec, runAt: run?.startedAt ?? null });
-
+  // Roster + alignment always render; money/news/freshness degrade gracefully.
+  const res = await loadFieldResearch(new Date().toISOString());
+  const { field, analysis, fec, detail, news } = res.data!;
   const bySlug = new Map(analysis.candidates.map((a) => [a.slug, a]));
 
   return (
     <>
       <PageHeader kicker="Field & alignment research" title="The MO-02 primary field">
-        {fresh.latestAt ? (
-          <span className={`font-mono text-xs ${fresh.stale ? "text-brick" : "text-slate"}`}>
-            {fresh.stale ? "⚠ stale — " : "data as of "}
-            {new Date(fresh.latestAt).toLocaleDateString()}
-          </span>
-        ) : (
-          <span className="font-mono text-xs text-brick">⚠ no candidate data ingested yet</span>
-        )}
+        <ProvenanceChip meta={res.meta} />
       </PageHeader>
+      {res.meta.degraded && <DegradedNotice reason={res.meta.degraded.reason} source={res.meta.source} />}
 
       <HowTo
         steps={[

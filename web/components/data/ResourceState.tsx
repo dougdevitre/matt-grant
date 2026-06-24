@@ -51,10 +51,11 @@ export function DegradedNotice({ reason, source }: { reason?: string; source?: s
   );
 }
 
-// One-line provenance chip (source · live/sample · count) for cards and headers.
+// One-line provenance chip (source · live/sample · count · as-of date) for cards and headers.
 export function ProvenanceChip({ meta }: { meta: Provenance | null }) {
   if (!meta) return null;
   const live = meta.live && !meta.degraded;
+  const asOf = meta.fetchedAt ? new Date(meta.fetchedAt) : null;
   return (
     <span className="inline-flex items-center gap-2 font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate">
       <span
@@ -64,6 +65,9 @@ export function ProvenanceChip({ meta }: { meta: Provenance | null }) {
       {meta.source}
       {typeof meta.count === "number" && <span className="text-slate/70">· {meta.count}</span>}
       <span className="text-slate/70">· {live ? "live" : "sample"}</span>
+      {asOf && !Number.isNaN(asOf.getTime()) && (
+        <span className="text-slate/70">· as of {asOf.toLocaleDateString()}</span>
+      )}
     </span>
   );
 }
