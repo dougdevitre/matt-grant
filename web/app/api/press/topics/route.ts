@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { PRESS_TOPICS, type TopicCluster } from "@/lib/pressTopics";
 import { PRIORITIES } from "@/lib/site";
 import { getSecret } from "@/lib/ssm";
+import { rateLimit, clientIp } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -27,6 +28,12 @@ function ok(clusters: TopicCluster[], source: string) {
 }
 
 export async function POST(req: Request) {
+  // This endpoint is public and each AI call costs money + latency. Bound it per
+  // IP; when over the limit, degrade gracefully to the curated set rather than
+  // 429 (the page stays useful, we just skip the model). Fails open on DB issues.
+  const rl = await rateLimit(`press-topics:${clientIp(req)}`, { limit: 10, windowSec: 60 });
+  if (!rl.allowed) return ok(PRESS_TOPICS, "curated");
+
   let focus = "";
   let outlet = "";
   try {
