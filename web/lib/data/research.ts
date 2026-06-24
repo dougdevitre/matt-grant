@@ -125,7 +125,7 @@ export async function loadCandidateResearch(slug: string): Promise<Resource<Cand
 
   if (!dbConfigured) return degraded(bundle, "research store not connected — alignment + statements only", base);
   if (readFailed) return degraded(bundle, "research store read failed", base);
-  const anyStored = !!(fec || detail || bio || (news && news.items.length) || stateLeg || votes.length || bills.length);
+  const anyStored = !!(fec || donors || detail || bio || (news && news.items.length) || stateLeg || votes.length || bills.length);
   if (!anyStored) return degraded(bundle, "no stored record yet — run /api/research/ingest", base);
   return ok(bundle, base);
 }
