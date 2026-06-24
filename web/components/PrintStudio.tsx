@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import renditions from "@/lib/printRenditions.json";
+import { useResource } from "@/lib/data/useResource";
 import { CAMPAIGN } from "@/lib/site";
 
 type Design = { id: string; label: string; thumb: string; sizes: Record<string, string> };
@@ -15,8 +16,12 @@ const promiseLabel = (t?: string) =>
 const largest = (d: Design) => Object.values(d.sizes).at(-1) ?? d.thumb;
 
 export function PrintStudio() {
-  const [configured, setConfigured] = useState<boolean | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
+  // Initial catalog load on the shared Resource hook. Missing creds / upstream
+  // errors come back as a degraded Resource (empty catalog) — never an error.
+  const productsRes = useResource<{ products?: Product[] }>("/api/print/products", { body: {} });
+  const configured = productsRes.state === "loading" ? null : !productsRes.meta?.degraded;
+  const products = useMemo<Product[]>(() => productsRes.data?.products ?? [], [productsRes.data]);
+
   const [design, setDesign] = useState<Design | null>(null);
   const [productId, setProductId] = useState("");
   const [qty, setQty] = useState(1);
@@ -26,16 +31,6 @@ export function PrintStudio() {
   const [agreed, setAgreed] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [result, setResult] = useState<{ vendorOrderId?: string; status?: string; err?: string } | null>(null);
-
-  useEffect(() => {
-    fetch("/api/print/products", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })
-      .then((r) => r.json())
-      .then((d) => {
-        setConfigured(Boolean(d.configured));
-        setProducts(Array.isArray(d.products) ? d.products : []);
-      })
-      .catch(() => setConfigured(false));
-  }, []);
 
   // Only offer products whose size we render purpose-built art for.
   const printable = useMemo(() => products.filter((p) => RSIZES.has(p.productSize)), [products]);
