@@ -70,9 +70,26 @@ export async function unblockNumberAction(formData: FormData): Promise<void> {
   refresh(phone);
 }
 
-// Register an inbound texter as a Clerk SUPPORTER. Clerk is email-only here, so a
-// real email is required — we never fabricate one. Mirrors inviteStaff's flow:
-// Clerk invitation when possible, SES note as the fallback.
+// Conversion path A — text the person a self-signup link. They register
+// themselves (no email needed up front); the Clerk user.created webhook then
+// stamps the "supporter" role automatically. Goes through the same consent gate
+// as any 1:1 send, so it only reaches someone who texted us first or is opted in.
+export async function sendSignupLink(formData: FormData): Promise<MsgState> {
+  const g = await gate();
+  if (!g) return { ok: false, message: "Not allowed." };
+  if (!(await smsEnabled())) return { ok: false, message: "Texting isn't configured yet (add Twilio credentials)." };
+  const to = toE164(String(formData.get("phone") ?? ""));
+  if (!to) return { ok: false, message: "Bad number." };
+  const body = `Thanks for texting Matt Grant for Congress! Join the community and follow the campaign here: ${SITE_URL}/sign-up`;
+  const r = await sendDirectMessage({ to, body, by: g.email ?? "system" });
+  if (!r.sent) return { ok: false, message: r.reason ?? "Couldn't send." };
+  refresh(to);
+  return { ok: true, message: "Sign-up link texted." };
+}
+
+// Conversion path B — register an inbound texter as a Clerk SUPPORTER directly.
+// Clerk is email-only here, so a real email is required — we never fabricate one.
+// Mirrors inviteStaff's flow: Clerk invitation when possible, SES note as fallback.
 export async function registerTexter(formData: FormData): Promise<MsgState> {
   const g = await gate();
   if (!g) return { ok: false, message: "Not allowed." };
