@@ -4,6 +4,8 @@ import { linkedinProvider } from "@/lib/social/oauth/linkedin";
 import { tiktokProvider } from "@/lib/social/oauth/tiktok";
 import { youtubeProvider } from "@/lib/social/oauth/youtube";
 import { ensureFresh } from "@/lib/social/oauth/refresh";
+import { CONNECTABLE_PLATFORMS } from "@/lib/social/oauth";
+import { CONNECT_PLATFORMS } from "@/lib/social/connect-platforms";
 import { _clearAppParamCache } from "@/lib/social/credentials";
 import type { SocialConnection } from "@/lib/social/connections";
 
@@ -11,6 +13,16 @@ function res(status: number, body: unknown): Response {
   const text = typeof body === "string" ? body : JSON.stringify(body);
   return { ok: status >= 200 && status < 300, status, text: async () => text, json: async () => JSON.parse(text) } as unknown as Response;
 }
+
+describe("connect UI ↔ OAuth registry sync", () => {
+  // Guards the gap found in the scan: #68/#69 registered tiktok/youtube providers but
+  // the connections panel only listed facebook/x/linkedin. If a provider is added to
+  // the registry (or removed) without updating the connect UI's platform list, this
+  // fails — so every connectable provider always has a Connect button, and vice-versa.
+  it("every registered OAuth provider is surfaced as a Connect option (and vice-versa)", () => {
+    expect([...CONNECT_PLATFORMS].sort()).toEqual([...CONNECTABLE_PLATFORMS].sort());
+  });
+});
 
 describe("X provider (OAuth2 + PKCE)", () => {
   beforeEach(() => {

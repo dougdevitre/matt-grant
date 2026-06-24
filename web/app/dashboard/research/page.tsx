@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireCap } from "@/lib/auth";
 import { PageHeader, HowTo } from "@/components/dashboard/Notice";
+import { InfoTip } from "@/components/dashboard/InfoTip";
 import { dbConfigured } from "@/lib/db";
 import { loadField, partyLabel } from "@/lib/integrations/research/candidates";
 import { loadStatements } from "@/lib/integrations/statements/data";
@@ -73,7 +74,13 @@ export default async function ResearchPage() {
 
       {/* Coalition priority ranking */}
       <section className="mb-10">
-        <h2 className="mb-3 font-display text-2xl font-semibold text-ink">Coalition priority</h2>
+        <h2 className="mb-3 font-display text-2xl font-semibold text-ink">
+          Coalition priority
+          <InfoTip label="What does coalition priority mean?">
+            Opponents ranked by how much common ground they share with Matt — most potential bridges
+            first, weighted by how much of their stance is actually on the record (cited), not assumed.
+          </InfoTip>
+        </h2>
         <p className="mb-4 max-w-2xl text-sm text-slate">
           Ranked by sourced common ground with Matt (most bridges first, weighted by how much is on record).
           Open primary — persuadable Democrats and unaffiliated voters can pull a Republican ballot.

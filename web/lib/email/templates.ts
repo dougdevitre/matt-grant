@@ -45,6 +45,35 @@ export function volunteerWelcome(firstName = "there"): Email {
   };
 }
 
+// Reminder to a pending invitee who hasn't accepted yet. Transactional (they were
+// explicitly invited): no unsubscribe. Points straight at the invite's accept URL.
+export function inviteReminder(o: { firstName?: string; acceptUrl: string }): Email {
+  const name = o.firstName?.trim() || "there";
+  const title = `Your invitation is waiting, ${name}.`;
+  return {
+    subject: "Your invitation to the Matt Grant campaign HQ is waiting",
+    html: renderEmail({
+      preheader: "You were invited to the Peace Room — accept to join the team.",
+      eyebrow: "Campaign HQ",
+      title,
+      subtitle: "You were invited to the Matt Grant for Congress Peace Room and haven't joined yet.",
+      heroImage: { src: img("brand/headshot.png"), alt: "Matt Grant" },
+      bodyHtml: `<p>A little while back you were invited to the Matt Grant for Congress <strong>Peace Room</strong> — the campaign's collaborative hub for restoring public trust in MO-02. Your invitation is still open.</p>
+        <p>It takes about a minute to accept and set up your sign-in. We'd love to have you with us before August 4.</p>`,
+      signature: true,
+      button: { label: "Accept your invitation", href: o.acceptUrl, color: "red" },
+    }),
+    text: renderText({
+      title,
+      lines: [
+        "You were invited to the Matt Grant for Congress Peace Room and haven't joined yet.",
+        "",
+        "Accept your invitation: " + o.acceptUrl,
+      ],
+    }),
+  };
+}
+
 export function supporterWelcome(firstName = "there"): Email {
   const title = `Welcome to the community, ${firstName}.`;
   return {
@@ -126,6 +155,7 @@ export function issueSpotlight(slug: string): Email {
     subject: `Where Matt stands: ${issue.title}`,
     html: renderEmail({
       preheader: issue.tagline,
+      greeting: true,
       eyebrow: issue.eyebrow,
       title: issue.title,
       subtitle: issue.tagline,
@@ -151,6 +181,7 @@ export function campaignNewsletter(): Email {
     subject: "The four priorities — and how you can help",
     html: renderEmail({
       preheader: "Where Matt stands, and your plan to help.",
+      greeting: true,
       eyebrow: "Campaign update",
       title,
       subtitle: "Where Matt stands — and how you can move this race forward.",
@@ -172,6 +203,7 @@ export function gotvReminder(daysOut = 7): Email {
     subject: daysOut <= 1 ? "Vote tomorrow for Matt Grant" : `${daysOut} days left — here's your plan to vote`,
     html: renderEmail({
       preheader: `Primary election: ${CAMPAIGN.electionLabel}.`,
+      greeting: true,
       eyebrow: "Get out the vote",
       title,
       subtitle: `The primary is ${CAMPAIGN.electionLabel}. Make your plan to vote.`,
@@ -197,6 +229,7 @@ export function fundraisingAppeal(): Email {
     subject: "Chip in before the deadline — Matt Grant for Congress",
     html: renderEmail({
       preheader: "Every dollar funds doors, calls, and mail.",
+      greeting: true,
       eyebrow: "Chip in",
       title,
       subtitle: "Grassroots support — not Washington insiders — carries this campaign.",
@@ -217,12 +250,13 @@ export function eventInvite(): Email {
     subject: "You're invited: {{event_title}}",
     html: renderEmail({
       preheader: "{{event_date}} · {{event_location}}",
+      greeting: true,
       eyebrow: "You're invited",
       title: "{{event_title}}",
       heroImage: { src: img("web/st-louis-arch.png"), alt: "Join Matt Grant" },
       bodyHtml: `<p>Join Matt Grant and neighbors across Missouri's 2nd District.</p>
         <p><strong>When:</strong> {{event_date}}<br><strong>Where:</strong> {{event_location}}</p>
-        <p>{{event_details}}</p>`,
+        {{event_details}}`,
       button: { label: "RSVP now", href: "{{rsvp_url}}", color: "red" },
       secondaryButton: { label: "Add to calendar", href: "{{calendar_url}}", color: "navy" },
       unsubscribeUrl: UNSUB,
@@ -237,11 +271,12 @@ export function announcement(): Email {
     subject: "{{subject}}",
     html: renderEmail({
       preheader: "{{preheader}}",
+      greeting: true,
       eyebrow: "{{eyebrow}}",
       title: "{{headline}}",
       subtitle: "{{subhead}}",
       heroImage: { src: img("brand/headshot.png"), alt: "Matt Grant" },
-      bodyHtml: `<p>{{body}}</p>`,
+      bodyHtml: `{{body}}`,
       signature: true,
       button: { label: "{{cta_label}}", href: "{{cta_url}}", color: "red" },
       unsubscribeUrl: UNSUB,

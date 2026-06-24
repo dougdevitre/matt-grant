@@ -68,7 +68,7 @@ export async function sendCampaign(formData: FormData): Promise<SendState> {
   if (missing.length) return { ok: false, message: `Fill required fields: ${missing.join(", ")}.` };
   if (groups.length === 0 && !segment) return { ok: false, message: "Pick at least one group to send to." };
 
-  const { emails: recipients, internal } = await resolveRecipients(groups, segment);
+  const { recipients, internal } = await resolveRecipients(groups, segment);
   if (recipients.length === 0) return { ok: false, message: "No recipients for that selection." };
 
   const subjectPreview = broadcast.build(vars).subject;
@@ -76,7 +76,17 @@ export async function sendCampaign(formData: FormData): Promise<SendState> {
   let scheduledAt: string | undefined;
   if (rawWhen) {
     const d = new Date(rawWhen);
-    if (!isNaN(d.getTime())) scheduledAt = d.toISOString();
+    // Reject unparseable or absurdly-far-future dates (a fat-fingered year 2500
+    // would otherwise sit in the queue indefinitely). Cap at 90 days out; past
+    // dates fall through and send immediately via the !future path below.
+    const maxAt = Date.now() + 90 * 86_400_000;
+    if (isNaN(d.getTime())) {
+      return { ok: false, message: "That send time isn't a valid date." };
+    }
+    if (d.getTime() > maxAt) {
+      return { ok: false, message: "Pick a send time within the next 90 days." };
+    }
+    scheduledAt = d.toISOString();
   }
   const future = !!scheduledAt && scheduledAt > new Date().toISOString();
 

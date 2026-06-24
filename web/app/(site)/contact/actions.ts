@@ -1,10 +1,15 @@
 "use server";
 
+import { headers } from "next/headers";
 import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, newId, dbConfigured } from "@/lib/db";
+import { rateLimit } from "@/lib/ratelimit";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { volunteerWelcome, contactReceipt } from "@/lib/email/templates";
 import { CAMPAIGN } from "@/lib/site";
+import { toE164 } from "@/lib/sms/send";
+import { recordConsent } from "@/lib/sms/consent";
+import { saveProfile, cleanZip } from "@/lib/profile";
 
 export type ContactResult = { ok: boolean; message: string };
 
@@ -46,6 +51,8 @@ export async function submitContact(_prev: ContactResult | null, formData: FormD
   const interestTags = formData.getAll("interests").map(String).filter(Boolean);
   const interests = interestTags.join(", ");
   const message = String(formData.get("message") ?? "").trim();
+  const smsOptIn = !!String(formData.get("smsOptIn") ?? "").trim();
+  const zip = cleanZip(String(formData.get("zip") ?? ""));
 
   // Honeypot: a hidden field real users never see or fill. If it has a value,
   // it's almost certainly a bot — return a success message without saving or
@@ -63,6 +70,17 @@ export async function submitContact(_prev: ContactResult | null, formData: FormD
       ok: false,
       message: "Our intake isn't connected yet. Please email mattgrantforcongress@gmail.com and we'll follow up.",
     };
+  }
+
+  // Rate-limit per client IP before the DB write so the public intake can't be
+  // flooded with junk leads. Fails open (see lib/ratelimit) so a DynamoDB hiccup
+  // never blocks a real supporter. Honeypot + validation already ran above, so
+  // only real-looking submissions count against the window.
+  const h = await headers();
+  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+  const rl = await rateLimit(`contact:${ip}`, { limit: 10, windowSec: 3600 });
+  if (!rl.allowed) {
+    return { ok: false, message: "Too many submissions from this connection — please try again in a little while." };
   }
 
   const source = String(formData.get("source") ?? "").trim() || "contact-form";
@@ -83,7 +101,7 @@ export async function submitContact(_prev: ContactResult | null, formData: FormD
         // Latest submission wins for contact details; status + createdAt are set
         // once and never reset — an ACTIVE volunteer who re-submits stays ACTIVE.
         UpdateExpression:
-          "SET #n = :n, email = :em, phone = :ph, city = :ci, interests = :in, interestTags = :tags, notes = :no, " +
+          "SET #n = :n, email = :em, phone = :ph, city = :ci, zip = :zip, interests = :in, interestTags = :tags, notes = :no, " +
           "#src = :src, updatedAt = :u, #st = if_not_exists(#st, :new), createdAt = if_not_exists(createdAt, :u)",
         ExpressionAttributeNames: { "#n": "name", "#st": "status", "#src": "source" },
         ExpressionAttributeValues: {
@@ -91,6 +109,7 @@ export async function submitContact(_prev: ContactResult | null, formData: FormD
           ":em": email || null,
           ":ph": phone || null,
           ":ci": city || null,
+          ":zip": zip ?? null,
           ":tags": interestTags,
           ":in": interests || null,
           ":no": message || null,
@@ -100,6 +119,28 @@ export async function submitContact(_prev: ContactResult | null, formData: FormD
         },
       }),
     );
+    // Explicit SMS opt-in (TCPA): record consent only when the box was checked
+    // and the phone normalizes to a valid US number. Best-effort — never fail the
+    // form on it, and never opt in a number that wasn't explicitly consented.
+    if (smsOptIn) {
+      const e164 = toE164(phone);
+      if (e164) {
+        try {
+          await recordConsent(e164, "web-form");
+        } catch {
+          /* best-effort */
+        }
+      }
+    }
+    // Save zip to the reusable supporter profile (only when we have an email to
+    // key on and an actual zip — avoids creating empty profile rows). Best-effort.
+    if (email && zip) {
+      try {
+        await saveProfile(email, { zip });
+      } catch {
+        /* best-effort */
+      }
+    }
     await notify({ name, email, phone, city, interests, message });
     return { ok: true, message: "Thank you! The campaign will be in touch soon. Onward to August 4." };
   } catch {

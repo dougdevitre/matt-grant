@@ -30,6 +30,11 @@ WALGREENS_AFF_ID="xxxxxxxxxx"
 WALGREENS_PUBLISHER_ID=""                       # optional revenue-share id; blank for the campaign
 WALGREENS_ENV="sandbox"                         # "sandbox" | "production"
 
+# --- SMS (Twilio A2P 10DLC) ---
+TWILIO_ACCOUNT_SID="ACxxxxxxxx"                 # Twilio Console → Account Info
+TWILIO_AUTH_TOKEN="xxxxxxxx"                     # Twilio Console → Account Info (keep secret)
+TWILIO_MESSAGING_SERVICE_SID="MGxxxxxxxx"        # Messaging → Services → your approved service
+
 # --- public / non-secret config (String) ---
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_live_xxxxxxxx"
 DASHBOARD_ALLOWLIST="you@example.com"          # comma-separated staff emails allowed into the dashboard
@@ -39,6 +44,7 @@ S3_ASSETS_BUCKET="matt-grant-for-congress" # from the create-bucket step
 ASSETS_CDN_URL="https://dxxxxxxxx.cloudfront.net"  # CloudFront domain (after you create it)
 SES_FROM=""                                    # verified SES sender, e.g. "Matt Grant for Congress <info@mattgrantforcongress.org>"
 SES_CONFIG_SET=""                              # optional SES configuration set
+SMS_OPTIN_KEYWORD="MATT"                       # inbound keyword that opts a texter in (default MATT)
 RESEARCH_BIOGUIDE_ID="W000812"                 # Ann Wagner, MO-02
 RESEARCH_VOTE_YEAR="2025"
 RESEARCH_FROM_ROLL="1"
@@ -61,6 +67,9 @@ put WALGREENS_API_KEY                 "$WALGREENS_API_KEY"                 Secur
 put WALGREENS_AFF_ID                  "$WALGREENS_AFF_ID"                  SecureString
 put WALGREENS_PUBLISHER_ID            "$WALGREENS_PUBLISHER_ID"            String
 put WALGREENS_ENV                     "$WALGREENS_ENV"                     String
+put TWILIO_ACCOUNT_SID                "$TWILIO_ACCOUNT_SID"                SecureString
+put TWILIO_AUTH_TOKEN                 "$TWILIO_AUTH_TOKEN"                 SecureString
+put TWILIO_MESSAGING_SERVICE_SID      "$TWILIO_MESSAGING_SERVICE_SID"      SecureString
 put NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY "$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" String
 put DASHBOARD_ALLOWLIST               "$DASHBOARD_ALLOWLIST"               String
 put DYNAMODB_TABLE                    "$DYNAMODB_TABLE"                    String
@@ -69,6 +78,7 @@ put S3_ASSETS_BUCKET                  "$S3_ASSETS_BUCKET"                  Strin
 put ASSETS_CDN_URL                    "$ASSETS_CDN_URL"                    String
 put SES_FROM                          "$SES_FROM"                          String
 put SES_CONFIG_SET                    "$SES_CONFIG_SET"                    String
+put SMS_OPTIN_KEYWORD                 "$SMS_OPTIN_KEYWORD"                 String
 put RESEARCH_BIOGUIDE_ID              "$RESEARCH_BIOGUIDE_ID"              String
 put RESEARCH_VOTE_YEAR                "$RESEARCH_VOTE_YEAR"                String
 put RESEARCH_FROM_ROLL                "$RESEARCH_FROM_ROLL"               String

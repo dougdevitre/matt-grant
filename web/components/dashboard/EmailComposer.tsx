@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { sendTestCampaign, sendCampaign, type SendState } from "@/app/dashboard/emails/actions";
 import { CONTACT_GROUPS, GROUP_LABELS, TEAM_GROUPS, type ContactGroup } from "@/lib/email/audienceGroups";
 import type { BroadcastMeta } from "@/lib/email/broadcasts";
+import { InfoTip } from "./InfoTip";
 
 const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-field";
 const topicLabel: Record<string, string> = {
@@ -32,6 +33,32 @@ export function EmailComposer({
   const [scheduledAt, setScheduledAt] = useState("");
   const [res, setRes] = useState<SendState | null>(null);
   const [pending, start] = useTransition();
+  const [preview, setPreview] = useState<{ subject: string; html: string } | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+  // Live preview: re-render the selected broadcast with the entered vars as staff
+  // type. Debounced (350ms) + abortable; keeps the last good preview on error/abort.
+  useEffect(() => {
+    if (!key) { setPreview(null); return; }
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      setPreviewLoading(true);
+      try {
+        const r = await fetch("/api/email/preview", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ templateKey: key, vars }),
+          signal: ctrl.signal,
+        });
+        if (r.ok) setPreview((await r.json()) as { subject: string; html: string });
+      } catch {
+        /* aborted or offline — keep the last good preview */
+      } finally {
+        setPreviewLoading(false);
+      }
+    }, 350);
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [key, vars]);
 
   const tpl = broadcasts.find((b) => b.key === key);
   const toggle = (g: ContactGroup) => setGroups((cur) => (cur.includes(g) ? cur.filter((x) => x !== g) : [...cur, g]));
@@ -63,6 +90,7 @@ export function EmailComposer({
   const run = (action: (f: FormData) => Promise<SendState>) => start(async () => setRes(await action(fd())));
 
   return (
+    <div className="grid gap-4 lg:grid-cols-[1fr_24rem]">
     <div className="card p-6">
       <p className="eyebrow text-brick">Compose a broadcast</p>
 
@@ -101,6 +129,11 @@ export function EmailComposer({
             ) : (
               <input type={f.type === "number" ? "number" : "text"} value={vars[f.name] ?? ""} onChange={(e) => setVar(f.name, e.target.value)} className={`${field} mt-1`} placeholder={f.placeholder} aria-label={f.label} />
             )}
+            {f.rich && (
+              <p className="mt-1 text-[0.7rem] text-slate">
+                Formatting: <code className="font-mono">**bold**</code>, <code className="font-mono">*italic*</code>, <code className="font-mono">[link](https://…)</code>, blank line = new paragraph, <code className="font-mono">-</code> = bullet. See the live preview.
+              </p>
+            )}
           </div>
         ))}
         {tpl && tpl.fields.length === 0 && <p className="text-sm text-slate">This template has no inputs — ready to send.</p>}
@@ -132,8 +165,8 @@ export function EmailComposer({
 
           {segments.length > 0 && (
             <div className="mt-2">
-              <select value={segment} onChange={(e) => setSegment(e.target.value)} className={`${field} w-auto`} aria-label="Advanced supporter segment">
-                <option value="">Advanced: also target supporters…</option>
+              <select value={segment} onChange={(e) => setSegment(e.target.value)} className={`${field} w-auto`} aria-label="Add a filter by interest or role">
+                <option value="">Add filters (by interest or role)…</option>
                 {[...new Set(segments.map((s) => s.group))].map((group) => (
                   <optgroup key={group} label={group}>
                     {segments.filter((s) => s.group === group).map((s) => (
@@ -147,7 +180,15 @@ export function EmailComposer({
 
           <p className="mt-2 font-mono text-xs text-slate">
             ~{approxCount} recipient{approxCount === 1 ? "" : "s"} (before de-dupe &amp; opt-outs)
-            {isInternal && <span className="ml-1 text-field">· team send — bypasses topic opt-outs</span>}
+            {isInternal && (
+              <span className="ml-1 text-field">
+                · team send
+                <InfoTip label="What is a team send?">
+                  A team send goes to staff and captains. It skips per-topic opt-outs (so operational
+                  notices get through) but still honors anyone who fully unsubscribed.
+                </InfoTip>
+              </span>
+            )}
           </p>
         </div>
 
@@ -190,6 +231,25 @@ export function EmailComposer({
         <p className={`mt-3 rounded-sm border px-3 py-2 text-sm ${res.ok ? "border-field/40 bg-field/10 text-field" : "border-brick/40 bg-brick/10 text-brick"}`}>{res.message}</p>
       )}
       {!canSend && <p className="mt-3 text-xs text-slate">You can draft and send tests. Sending to the list is limited to admins.</p>}
+    </div>
+
+      <aside className="lg:sticky lg:top-6 lg:self-start">
+        <div className="card p-5">
+          <div className="flex items-center justify-between">
+            <p className="eyebrow text-slate">Live preview</p>
+            {previewLoading && <span className="font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate">Rendering…</span>}
+          </div>
+          {preview ? (
+            <>
+              <p className="mt-2 truncate text-sm font-semibold text-ink" title={preview.subject}>{preview.subject}</p>
+              <iframe title="Email preview" sandbox="" srcDoc={preview.html} className="mt-2 h-[560px] w-full rounded-sm border border-line bg-white" />
+              <p className="mt-2 text-[0.7rem] text-slate">Sample preview — personalization and the unsubscribe link are filled per recipient at send time.</p>
+            </>
+          ) : (
+            <p className="mt-2 text-sm text-slate">Pick a template to see a live preview here.</p>
+          )}
+        </div>
+      </aside>
     </div>
   );
 }

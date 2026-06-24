@@ -61,7 +61,16 @@ export function SocialProfileOptimizer({ history = [] }: { history?: FootprintSn
                   </td>
                   {FIELDS.map((f) => (
                     <td key={f.key} className="px-2 py-1">
-                      <input type="number" min={0} name={`${ch}_${f.key}`} className={input} defaultValue={0} />
+                      {/* Column <th>s don't programmatically name these inputs, so each
+                          carries an explicit accessible name (channel + metric). */}
+                      <input
+                        type="number"
+                        min={0}
+                        name={`${ch}_${f.key}`}
+                        aria-label={`${CHANNELS[ch].label} — ${f.label}`}
+                        className={input}
+                        defaultValue={0}
+                      />
                     </td>
                   ))}
                 </tr>

@@ -43,6 +43,10 @@ export function ContactForm() {
           <span className="mb-1 block text-sm font-semibold text-ink">Phone</span>
           <input name="phone" className={field} placeholder="(314) 555-0123" />
         </label>
+        <label className="block">
+          <span className="mb-1 block text-sm font-semibold text-ink">ZIP code</span>
+          <input name="zip" inputMode="numeric" maxLength={5} className={field} placeholder="63017" />
+        </label>
       </div>
 
       <fieldset className="mt-5">
@@ -64,14 +68,21 @@ export function ContactForm() {
         <textarea name="message" rows={3} className={field} placeholder="Anything you'd like us to know" />
       </label>
 
+      <label className="mt-5 flex items-start gap-2.5">
+        <input type="checkbox" name="smsOptIn" value="yes" className="mt-0.5 h-4 w-4 shrink-0 accent-field" />
+        <span className="text-sm text-ink">
+          Text me campaign updates at this number. Msg &amp; data rates may apply; message frequency varies.
+          Reply STOP to opt out, HELP for help.
+        </span>
+      </label>
+
       <button type="submit" disabled={pending} className="btn-primary mt-6 w-full disabled:opacity-60">
         {pending ? "Sending…" : "Count me in"}
       </button>
 
       <p className="mt-4 text-xs leading-relaxed text-slate">
-        We&apos;ll use your information only to follow up about the campaign — we never sell it. By submitting,
-        you agree to receive campaign updates and, if you provide a phone number, calls or texts about the
-        campaign; reply STOP to any text to opt out. See our{" "}
+        We&apos;ll use your information only to follow up about the campaign — we never sell it. We&apos;ll send
+        automated text updates only if you check the box above; reply STOP to any text to opt out. See our{" "}
         <Link href="/data-policy" className="underline hover:text-brick">
           Data Policy
         </Link>

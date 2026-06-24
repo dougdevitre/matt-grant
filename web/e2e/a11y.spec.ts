@@ -36,6 +36,19 @@ const DASHBOARD_ROUTES = [
   "/dashboard/team",
   "/dashboard/targets",
   "/dashboard/plan",
+  // Form/composer-heavy surfaces added after the initial pass — these are exactly
+  // where a11y regressions hide (labels, contrast on custom controls), so keep
+  // them in the gate.
+  "/dashboard/sms",
+  "/dashboard/social",
+  "/dashboard/messages",
+  "/dashboard/assets",
+  "/dashboard/setup",
+  "/dashboard/studio",
+  "/dashboard/peace-room",
+  "/dashboard/map",
+  "/dashboard/events",
+  "/dashboard/photos",
 ];
 
 const ROUTES = process.env.A11Y_BASE_URL ? PUBLIC_ROUTES : [...PUBLIC_ROUTES, ...DASHBOARD_ROUTES];
