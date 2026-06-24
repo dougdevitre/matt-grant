@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
-import { SourceCard } from "@/components/data/SourceCard";
+import { DataHub, type HubRow } from "@/components/data/DataHub";
 import { loadPrintTracker } from "@/lib/data/printTracker";
-import { KIND_LABEL, SOURCES_BY_KIND } from "@/lib/data/registry";
-import type { SourceKind } from "@/lib/data/resource";
+import renditions from "@/lib/printRenditions.json";
+import { SOURCES } from "@/lib/data/registry";
 
 export const dynamic = "force-dynamic";
-
-const KINDS: SourceKind[] = ["csv", "api", "geo"];
 
 function envPresent(name: string): boolean {
   const v = process.env[name];
@@ -15,11 +13,23 @@ function envPresent(name: string): boolean {
 }
 
 export default function DataHubPage() {
-  // CSV rows can show a real, validated count from their loader (Resource pattern).
+  // Server-side: validated CSV counts + a small sample for the preview panel.
   const print = loadPrintTracker();
-  const liveCount: Record<string, number | undefined> = {
-    "print-tracker": print.ok ? print.meta.count : undefined,
-  };
+  const designs = (renditions.designs as Array<{ label: string }>) ?? [];
+
+  const rows: HubRow[] = SOURCES.map((entry) => {
+    const row: HubRow = { entry };
+    if (entry.kind === "api") row.enabled = entry.enabledEnv ? entry.enabledEnv.every(envPresent) : true;
+    if (entry.id === "print-tracker") {
+      row.liveCount = print.ok ? print.meta.count : undefined;
+      row.sample = print.ok ? print.data.slice(0, 3).map((i) => i.item) : [];
+    }
+    if (entry.id === "print-renditions") {
+      row.liveCount = designs.length;
+      row.sample = designs.slice(0, 3).map((d) => d.label);
+    }
+    return row;
+  });
 
   return (
     <>
@@ -36,34 +46,13 @@ export default function DataHubPage() {
       </p>
       <HowTo
         steps={[
-          "Pick the source you need — grouped by how it's retrieved (CSV / API / geo).",
+          "The health bar sums every source's status; “Check all” live-pings the checkable ones (geo + opted-in) at once.",
+          "A degraded or unconfigured source shows the exact fix — the env var to set, or the command to regenerate it.",
+          "Expand a card’s “Preview” to see a few real values and confirm the source returns what you expect.",
           "CSV manifests are generated from a file and committed; edit the source and re-run its generator.",
-          "API rows show whether their keys are configured; unset keys degrade the feature gracefully.",
-          "For geo layers, “Check now” pings the (cached) endpoint and shows its live provenance.",
         ]}
       />
-
-      {KINDS.map((kind) => (
-        <section key={kind} className="mb-8">
-          <h2 className="mb-3 font-display text-lg font-semibold text-ink">{KIND_LABEL[kind]}</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {SOURCES_BY_KIND[kind].map((entry) => (
-              <SourceCard
-                key={entry.id}
-                entry={entry}
-                enabled={
-                  entry.kind === "api"
-                    ? entry.enabledEnv
-                      ? entry.enabledEnv.every(envPresent)
-                      : true
-                    : undefined
-                }
-                liveCount={liveCount[entry.id]}
-              />
-            ))}
-          </div>
-        </section>
-      ))}
+      <DataHub rows={rows} />
     </>
   );
 }
