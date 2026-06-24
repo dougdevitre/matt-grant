@@ -1,6 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
-import { CAMPAIGN, NAV, LEGAL } from "@/lib/site";
+import { CAMPAIGN, NAV, LEGAL, mainHref } from "@/lib/site";
+
+// Server component (no host at render time), so footer links to the main site are
+// always absolute to the apex. That's correct on every pillar subdomain and on the
+// apex itself; footers don't need client-side SPA nav, so the full-load is fine.
+const apex = (path: string) => mainHref(path, true);
 
 export function SiteFooter() {
   return (
@@ -31,13 +36,13 @@ export function SiteFooter() {
           <ul className="mt-4 space-y-2 text-sm">
             {NAV.map((item) => (
               <li key={item.href}>
-                <Link href={item.href} className="text-paper/80 hover:text-goldlight">
+                <Link href={apex(item.href)} className="text-paper/80 hover:text-goldlight">
                   {item.label}
                 </Link>
               </li>
             ))}
             <li>
-              <Link href="/dashboard" className="text-paper/80 hover:text-goldlight">
+              <Link href={apex("/dashboard")} className="text-paper/80 hover:text-goldlight">
                 Staff sign-in
               </Link>
             </li>
@@ -66,7 +71,7 @@ export function SiteFooter() {
           <ul className="mt-4 space-y-2 text-sm">
             {LEGAL.map((item) => (
               <li key={item.href}>
-                <Link href={item.href} className="text-paper/80 hover:text-goldlight">
+                <Link href={apex(item.href)} className="text-paper/80 hover:text-goldlight">
                   {item.label}
                 </Link>
               </li>
