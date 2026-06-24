@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { toE164, expectedTwilioSignature } from "@/lib/sms/send";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { toE164, expectedTwilioSignature, sendSms } from "@/lib/sms/send";
 
 describe("toE164", () => {
   it("normalizes common US formats to +1XXXXXXXXXX", () => {
@@ -26,5 +26,49 @@ describe("expectedTwilioSignature", () => {
     expect(a).toBe(b);
     expect(a).not.toBe(expectedTwilioSignature("tok", url, { From: "+13145550100", Body: "START" }));
     expect(a).not.toBe(expectedTwilioSignature("other", url, { From: "+13145550100", Body: "STOP" }));
+  });
+});
+
+describe("sendSms retry (safe — Twilio creates only on 2xx)", () => {
+  beforeEach(() => {
+    // creds() reads these env-first via getSecret, so no SSM/network in the test.
+    process.env.TWILIO_ACCOUNT_SID = "AC_test";
+    process.env.TWILIO_AUTH_TOKEN = "tok_test";
+    process.env.TWILIO_MESSAGING_SERVICE_SID = "MG_test";
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    delete process.env.TWILIO_ACCOUNT_SID;
+    delete process.env.TWILIO_AUTH_TOKEN;
+    delete process.env.TWILIO_MESSAGING_SERVICE_SID;
+  });
+
+  it("retries a 500 then succeeds", async () => {
+    let n = 0;
+    vi.stubGlobal("fetch", async () => {
+      n++;
+      return n === 1
+        ? new Response("err", { status: 500 })
+        : new Response(JSON.stringify({ sid: "SM123" }), { status: 201, headers: { "content-type": "application/json" } });
+    });
+    const r = await sendSms({ to: "314-555-0100", body: "hi" });
+    expect(n).toBe(2);
+    expect(r.sent).toBe(true);
+    expect(r.sid).toBe("SM123");
+  });
+
+  it("does not retry a 4xx (e.g. invalid recipient)", async () => {
+    let n = 0;
+    vi.stubGlobal("fetch", async () => {
+      n++;
+      return new Response(JSON.stringify({ message: "not a mobile number" }), {
+        status: 400,
+        headers: { "content-type": "application/json" },
+      });
+    });
+    const r = await sendSms({ to: "314-555-0100", body: "hi" });
+    expect(n).toBe(1);
+    expect(r.sent).toBe(false);
+    expect(r.error).toMatch(/not a mobile/);
   });
 });
