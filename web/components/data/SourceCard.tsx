@@ -29,7 +29,7 @@ function KindBadge({ kind }: { kind: SourceKind }) {
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className="flex gap-2">
-      <dt className="w-20 shrink-0 font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate/70">{k}</dt>
+      <dt className="w-20 shrink-0 font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate">{k}</dt>
       <dd className="font-mono text-[0.65rem] text-slate">{v}</dd>
     </div>
   );
