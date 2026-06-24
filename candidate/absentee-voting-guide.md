@@ -12,7 +12,9 @@ every step so your ballot **counts**.
 > primary. Election rules and site lists change — **always confirm current
 > deadlines, hours, and locations with your election authority** (contacts at the
 > bottom of this guide) or the Missouri Secretary of State at https://www.sos.mo.gov
-> before you rely on a date.
+> before you rely on a date. **Dates and notary rules last verified June 24, 2026**
+> against the Missouri SOS and St. Louis County / St. Charles County election
+> authorities.
 
 > **EDUCATIONAL DISCLAIMER:** This is educational voting information, not legal
 > advice. The voting process applies to all voters regardless of candidate
@@ -37,7 +39,7 @@ flowchart TD
     D --> G["Apply by 5 p.m. Wed, Jul 22"]
     G --> H{"Reason #1, #3, or #4?"}
     H -->|"Yes"| I["Notarize return envelope (free)"]
-    H -->|"No (#2 or #6)"| J["No notary needed"]
+    H -->|"No (#2, #5, #6)"| J["No notary needed"]
     I --> K["Return so it ARRIVES\nby 7 p.m. Tue, Aug 4"]
     J --> K
     E --> L["Clerk witnesses: no notary"]
@@ -102,9 +104,13 @@ You qualify if **one** of these is true on Election Day:
 2. If you registered by mail/online and have **never voted in person**,
    include a **copy of your photo ID** with the application.
 3. **Your ballot arrives by mail.** Mark it in secret.
-4. **NOTARY CHECK:** For reasons **#1, #3, and #4**, your ballot return
-   envelope **must be notarized** (it's **free** — banks, libraries, and
-   credit unions often do it). Reasons **#2 and #6 are notary-exempt.**
+4. **NOTARY CHECK:** Reasons **#2 (illness/disability), #5 (incarceration),
+   and #6 (Safe at Home)** are **notary-exempt** (as are permanently disabled
+   and covered military/overseas voters). Reasons **#1, #3, and #4** generally
+   require your ballot return envelope to be **notarized** — it's **free**
+   (banks, libraries, and credit unions often do it). Notary rules have
+   specific exemptions and have changed in recent years, so **confirm your
+   situation with your county election authority.**
    👉 **Do not sign the envelope until you're in front of the notary.**
 5. **Return it** so it **arrives by 7 p.m. on Aug 4.** Mail early or
    hand-deliver to your election authority. **No drop boxes.**

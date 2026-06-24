@@ -133,10 +133,14 @@ export default function AbsenteePage() {
         ))}
       </ol>
       <p className="mt-4 max-w-prose text-sm text-slate">
-        <strong className="text-ink">Notary check:</strong> reasons #1, #3, and #4 require a notarized
-        return envelope (free — banks, libraries, and credit unions often do it). Reasons #2 and #6 are
-        notary-exempt. If you&apos;d rather skip the notary entirely, vote no-excuse in person (July
-        21–Aug 3) instead — but if you do, don&apos;t also return a mailed ballot. Vote once, one way.
+        <strong className="text-ink">Notary check:</strong> reasons #2 (illness/disability), #5
+        (incarceration), and #6 (Safe at Home) are notary-exempt — as are permanently disabled and
+        covered military/overseas voters. Reasons #1, #3, and #4 generally require a notarized return
+        envelope (free — banks, libraries, and credit unions often do it). Notary rules have specific
+        exemptions and have changed in recent years, so confirm your situation with your county
+        election authority. If you&apos;d rather skip the notary entirely, vote no-excuse in person
+        (July 21–Aug 3) instead — but if you do, don&apos;t also return a mailed ballot. Vote once, one
+        way.
       </p>
 
       {/* After submit */}
