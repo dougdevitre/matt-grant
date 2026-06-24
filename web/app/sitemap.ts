@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { PILLARS } from "@/lib/pillars";
+import { publicPillars } from "@/lib/pillars";
 import { getManifest } from "@/lib/pillars-content";
 
 const BASE = "https://mattgrantforcongress.org";
@@ -13,7 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }));
 
   // Each pillar resource hub on its own subdomain, plus any synced docs/tools.
-  const pillars: MetadataRoute.Sitemap = PILLARS.flatMap((p) => {
+  const pillars: MetadataRoute.Sitemap = publicPillars.flatMap((p) => {
     const root = `https://${p.subdomain}.mattgrantforcongress.org`;
     const manifest = getManifest(p.slug);
     const docs = (manifest?.docs ?? []).map((d) => ({ url: `${root}/pillars/${p.slug}/${d.slug}`, changeFrequency: "monthly" as const, priority: 0.5 }));
