@@ -15,6 +15,8 @@ function feature(e: EventRow): GeoJSON.Feature {
       title: e.title,
       type: e.type,
       status: e.status,
+      priority: e.priority,
+      priorityManual: e.priorityManual,
       start: e.start,
       allDay: e.allDay,
       locationName: e.location.name || e.location.city || "",
