@@ -8,16 +8,21 @@
 // organizer — never treat the timing here as authoritative. This list was hand-
 // compiled from public sources; expand it (with citations) as the field firms up.
 //
+// `priority` is an editorial fit-ranking (1 = be there) to help triage where to
+// appear — see lib/events/priority.ts for the rubric. It's a judgment call on
+// public events, not a prediction; staff can override per event after creating.
+//
 // Counties use the FIPS-backed labels the district resolver understands
 // (St. Louis 189, Jefferson 099, Franklin 071, Washington 221). Type maps onto
 // the existing EVENT_TYPES so "Add to calendar" produces a normal draft event.
 
-import type { EventType, EventInput } from "@/lib/events/types";
+import type { EventType, EventPriority, EventInput } from "@/lib/events/types";
 
 export type AppearanceOpportunity = {
   slug: string;
   name: string;
   suggestedType: EventType;
+  priority: EventPriority;
   city: string;
   county: string; // human label (resolveDistrict normalizes by name)
   typicalWindow: string; // e.g. "Mid-July" — confirm exact dates with the organizer
@@ -34,6 +39,7 @@ export const APPEARANCE_OPPORTUNITIES: AppearanceOpportunity[] = [
     slug: "jefferson-county-fair",
     name: "Jefferson County Fair",
     suggestedType: "meet-greet",
+    priority: 1, // largest county-wide draw in a core MO-02 county
     city: "Hillsboro",
     county: "Jefferson County",
     typicalWindow: "Mid-to-late July",
@@ -46,6 +52,7 @@ export const APPEARANCE_OPPORTUNITIES: AppearanceOpportunity[] = [
     slug: "washington-town-country-fair",
     name: "Washington Town & Country Fair",
     suggestedType: "meet-greet",
+    priority: 1, // one of the region's largest fairs (includes a parade)
     city: "Washington",
     county: "Franklin County",
     typicalWindow: "Early August (Wed–Sun)",
@@ -58,6 +65,7 @@ export const APPEARANCE_OPPORTUNITIES: AppearanceOpportunity[] = [
     slug: "franklin-county-fair",
     name: "Franklin County Fair",
     suggestedType: "meet-greet",
+    priority: 2,
     city: "Union",
     county: "Franklin County",
     typicalWindow: "Mid-June",
@@ -70,6 +78,7 @@ export const APPEARANCE_OPPORTUNITIES: AppearanceOpportunity[] = [
     slug: "twin-city-firecracker-festival",
     name: "Twin City Firecracker Festival",
     suggestedType: "meet-greet",
+    priority: 2,
     city: "Festus",
     county: "Jefferson County",
     typicalWindow: "Late June",
@@ -82,6 +91,7 @@ export const APPEARANCE_OPPORTUNITIES: AppearanceOpportunity[] = [
     slug: "kirkwood-freedom-festival",
     name: "Kirkwood Freedom Festival & Fireworks",
     suggestedType: "meet-greet",
+    priority: 2,
     city: "Kirkwood",
     county: "St. Louis County",
     typicalWindow: "July 4",
@@ -94,6 +104,7 @@ export const APPEARANCE_OPPORTUNITIES: AppearanceOpportunity[] = [
     slug: "webster-groves-community-days",
     name: "Webster Groves Community Days (July 4 parade)",
     suggestedType: "parade",
+    priority: 1, // parade = earned media + a classic candidate walking route
     city: "Webster Groves",
     county: "St. Louis County",
     typicalWindow: "July 2 & 4 (parade steps off 10am July 4)",
@@ -106,6 +117,7 @@ export const APPEARANCE_OPPORTUNITIES: AppearanceOpportunity[] = [
     slug: "mo-gop-state-lincoln-days",
     name: "Missouri GOP State Lincoln Days",
     suggestedType: "meet-greet",
+    priority: 1, // statewide party gathering — activists, donors, press
     city: "Springfield",
     county: "",
     typicalWindow: "Late February",
@@ -118,6 +130,7 @@ export const APPEARANCE_OPPORTUNITIES: AppearanceOpportunity[] = [
     slug: "franklin-county-lincoln-day",
     name: "Franklin County Lincoln Day",
     suggestedType: "fundraiser",
+    priority: 2,
     city: "Union",
     county: "Franklin County",
     typicalWindow: "Spring",
@@ -130,6 +143,7 @@ export const APPEARANCE_OPPORTUNITIES: AppearanceOpportunity[] = [
     slug: "washington-county-lincoln-day",
     name: "Washington County Lincoln Day",
     suggestedType: "fundraiser",
+    priority: 3,
     city: "Potosi",
     county: "Washington County",
     typicalWindow: "March",
@@ -147,10 +161,13 @@ export function getOpportunity(slug: string): AppearanceOpportunity | null {
 // Map an opportunity to a DRAFT event input. `start` is supplied by the caller
 // (a placeholder the admin must replace — we never fabricate a real date), so
 // this stays pure/testable. The cited source + verify reminder go in the body.
+// The curated priority is carried over as a manual override so it sticks.
 export function opportunityToEventInput(o: AppearanceOpportunity, opts: { createdBy: string; start: string }): EventInput {
   return {
     title: o.name,
     type: o.suggestedType,
+    priority: o.priority,
+    priorityManual: true,
     start: opts.start,
     location: { name: o.name, address: "", city: o.city, county: o.county },
     description:

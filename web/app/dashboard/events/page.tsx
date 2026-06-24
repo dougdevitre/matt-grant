@@ -4,6 +4,7 @@ import { listEvents } from "@/lib/events";
 import { EVENT_TYPE_LABELS, isEventType, type EventRow } from "@/lib/events/types";
 import { formatEventRange } from "@/lib/events/time";
 import { districtLabel } from "@/lib/events/districts";
+import { PRIORITY_BADGE } from "@/lib/events/priority";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { EventComposer } from "@/components/dashboard/EventComposer";
 
@@ -24,6 +25,9 @@ function EventRowCard({ e }: { e: EventRow }) {
     >
       <span className={`rounded-sm px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-eyebrow ${STATUS_BADGE[e.status] ?? "bg-line text-slate"}`}>
         {e.status}
+      </span>
+      <span className={`rounded-sm px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-eyebrow ${PRIORITY_BADGE[e.priority]}`} title="Priority tier">
+        P{e.priority}
       </span>
       <span className="font-semibold text-ink">{e.title}</span>
       <span className="text-xs text-slate">{EVENT_TYPE_LABELS[e.type]}</span>
@@ -49,7 +53,9 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
   const presentTypes = [...new Set(allRows.map((e) => e.type))];
   const rows = active ? allRows.filter((e) => e.type === active) : allRows;
   const now = new Date().toISOString();
-  const upcoming = rows.filter((e) => e.start >= now);
+  // Upcoming sorted by priority (P1 first), then soonest — so the must-attend
+  // appearances rise to the top of the planning list.
+  const upcoming = rows.filter((e) => e.start >= now).sort((a, b) => a.priority - b.priority || a.start.localeCompare(b.start));
   const past = rows.filter((e) => e.start < now).reverse();
 
   return (

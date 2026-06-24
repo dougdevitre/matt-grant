@@ -3,9 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
+import { newId } from "@/lib/db";
 import {
   createEvent, updateEvent, setEventStatus, deleteEvent, getEvent, setEventNotify,
-  isEventType, type EventType, type EventLocation,
+  isEventType, type EventType, type EventLocation, type EventPriority, type EventChecklistItem,
 } from "@/lib/events";
 import { localCentralToIso } from "@/lib/events/time";
 import { geocodeAddress } from "@/lib/events/geocode";
@@ -231,6 +232,82 @@ export async function createEventFromOpportunity(formData: FormData): Promise<vo
   refresh(id);
   const { redirect } = await import("next/navigation");
   redirect(`/dashboard/events/${id}`);
+}
+
+// Override the priority tier by hand. Sticks (priorityManual) so a later edit
+// won't recompute it from the rubric.
+export async function setEventPriority(formData: FormData): Promise<void> {
+  const g = await gate();
+  if (!g) return;
+  const id = String(formData.get("id") ?? "").trim();
+  const n = Number(formData.get("priority"));
+  if (!id || (n !== 1 && n !== 2 && n !== 3)) return;
+  await updateEvent(id, { priority: n as EventPriority, priorityManual: true });
+  refresh(id);
+}
+
+// Check/uncheck a checklist item, stamping who did it and when on completion.
+export async function toggleChecklistItem(formData: FormData): Promise<void> {
+  const g = await gate();
+  if (!g) return;
+  const id = String(formData.get("id") ?? "").trim();
+  const itemId = String(formData.get("itemId") ?? "").trim();
+  if (!id || !itemId) return;
+  const ev = await getEvent(id);
+  if (!ev) return;
+  const checklist = ev.checklist.map((it) => {
+    if (it.id !== itemId) return it;
+    const done = !it.done;
+    return done
+      ? { ...it, done, doneBy: g.email ?? "system", doneAt: new Date().toISOString() }
+      : { ...it, done, doneBy: undefined, doneAt: undefined };
+  });
+  await updateEvent(id, { checklist });
+  refresh(id);
+}
+
+// Add a custom checklist item.
+export async function addChecklistItem(formData: FormData): Promise<void> {
+  const g = await gate();
+  if (!g) return;
+  const id = String(formData.get("id") ?? "").trim();
+  const text = String(formData.get("text") ?? "").trim().slice(0, 200);
+  if (!id || !text) return;
+  const ev = await getEvent(id);
+  if (!ev) return;
+  const item: EventChecklistItem = { id: newId(), text, done: false };
+  await updateEvent(id, { checklist: [...ev.checklist, item] });
+  refresh(id);
+}
+
+// Remove a checklist item by id.
+export async function removeChecklistItem(formData: FormData): Promise<void> {
+  const g = await gate();
+  if (!g) return;
+  const id = String(formData.get("id") ?? "").trim();
+  const itemId = String(formData.get("itemId") ?? "").trim();
+  if (!id || !itemId) return;
+  const ev = await getEvent(id);
+  if (!ev) return;
+  await updateEvent(id, { checklist: ev.checklist.filter((it) => it.id !== itemId) });
+  refresh(id);
+}
+
+// Assign (or clear) a checklist item to a roster volunteer. value = "id|name" or "".
+export async function assignChecklistItem(formData: FormData): Promise<void> {
+  const g = await gate();
+  if (!g) return;
+  const id = String(formData.get("id") ?? "").trim();
+  const itemId = String(formData.get("itemId") ?? "").trim();
+  if (!id || !itemId) return;
+  const who = parseStaffer(String(formData.get("assignee") ?? ""));
+  const ev = await getEvent(id);
+  if (!ev) return;
+  const checklist = ev.checklist.map((it) =>
+    it.id === itemId ? { ...it, assigneeId: who?.id, assigneeName: who?.name } : it,
+  );
+  await updateEvent(id, { checklist });
+  refresh(id);
 }
 
 // Regenerate one district's cached insight on demand (the cron does this nightly).
