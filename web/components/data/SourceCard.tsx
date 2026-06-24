@@ -53,7 +53,8 @@ export function SourceCard({
   liveCount?: number;
 }) {
   const [checking, setChecking] = useState(false);
-  const canCheck = entry.kind === "geo" && !!entry.endpoint; // GET + ISR-cached → safe to ping
+  // Geo routes are always safe GETs; other kinds opt in via `checkable` in the registry.
+  const canCheck = !!entry.endpoint && (entry.kind === "geo" || !!entry.checkable);
 
   return (
     <div className="rounded-sm border border-line bg-white px-4 py-3">

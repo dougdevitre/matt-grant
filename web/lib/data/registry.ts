@@ -17,6 +17,8 @@ export type SourceEntry = {
   enabledEnv?: string[];
   /** Caching note for the hub (ISR seconds, HTTP cache, or "build" for static manifests). */
   cache: string;
+  /** Safe for the hub to live-ping (idempotent GET, no heavy side effects). Geo is always checkable. */
+  checkable?: boolean;
   note?: string;
 };
 
@@ -60,6 +62,7 @@ export const SOURCES: SourceEntry[] = [
     endpoint: "/api/research/census",
     enabledEnv: ["CENSUS_API_KEY"],
     cache: "public, max-age=3600",
+    checkable: true, // idempotent GET that returns a Resource — safe to ping from the hub
     note: "Demographics; works at low volume without a key. On the Resource layer (no UI consumer yet).",
   },
   {
