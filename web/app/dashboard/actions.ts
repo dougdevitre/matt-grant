@@ -27,7 +27,10 @@ async function authorize(cap: Capability) {
   if (!can(role, cap)) throw new Error("Forbidden");
 }
 
-const str = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim() || undefined;
+// Trim, coerce empty → undefined, and clamp length. The clamp is an abuse guard
+// (no single free-text field — payee, notes, occupation — has a legitimate reason
+// to exceed 2k chars), not a UX limit.
+const str = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim().slice(0, 2000) || undefined;
 
 export async function addDonor(formData: FormData) {
   await authorize("viewDonorDetail");

@@ -1,7 +1,9 @@
 "use server";
 
+import { headers } from "next/headers";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, newId, dbConfigured } from "@/lib/db";
+import { rateLimit } from "@/lib/ratelimit";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { volunteerWelcome } from "@/lib/email/templates";
 
@@ -26,6 +28,16 @@ export async function commitToIssue(_prev: CommitResult | null, formData: FormDa
   if (!email.includes("@")) return { ok: false, message: "Please enter a valid email address." };
   if (!dbConfigured) {
     return { ok: false, message: "Our intake isn't connected yet — email mattgrantforcongress@gmail.com and we'll follow up." };
+  }
+
+  // Rate-limit per client IP so this public form can't be used to spam leads or
+  // fan out welcome emails. Fails open (lib/ratelimit) — a DynamoDB blip never
+  // blocks a real supporter.
+  const h = await headers();
+  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+  const rl = await rateLimit(`issue-commit:${ip}`, { limit: 10, windowSec: 3600 });
+  if (!rl.allowed) {
+    return { ok: false, message: "Too many submissions from this connection — please try again in a little while." };
   }
 
   const interests = `${issueLabel}${ways.length ? " — " + ways.join(", ") : ""}`;
