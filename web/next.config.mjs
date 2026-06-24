@@ -25,6 +25,34 @@ const nextConfig = {
     // Allow next/image to optimize the public brand assets served from CloudFront.
     remotePatterns: [{ protocol: "https", hostname: "d5jzyan9wboi3.cloudfront.net" }],
   },
+  async headers() {
+    // Lock down the synced pillar tools. Each /pillar-tools/* file is HTML imported
+    // from an external access-to-* repo and embedded in a sandboxed iframe, so treat
+    // it as untrusted. The load-bearing directives: connect-src 'none' (a running tool
+    // can't phone home / exfiltrate anything the visitor types) and frame-ancestors
+    // 'self' (only this app may embed it). 'unsafe-inline' is required — the tools ship
+    // inline <script>/<style>. Next applies these headers to public/ assets too.
+    const toolCsp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data:",
+      "font-src 'self' data:",
+      "connect-src 'none'",
+      "form-action 'none'",
+      "base-uri 'none'",
+      "frame-ancestors 'self'",
+    ].join("; ");
+    return [
+      {
+        source: "/pillar-tools/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: toolCsp },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

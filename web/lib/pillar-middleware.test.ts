@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 import { pillarOrVanityResponse } from "./pillar-middleware";
 
@@ -43,5 +43,25 @@ describe("pillarOrVanityResponse", () => {
   it("never hijacks /api/* or already-rewritten /pillars/* on a pillar host", () => {
     expect(pillarOrVanityResponse(req("education.mattgrantforcongress.org", "/api/x"))).toBeNull();
     expect(pillarOrVanityResponse(req("education.mattgrantforcongress.org", "/pillars/education"))).toBeNull();
+  });
+});
+
+describe("pillarOrVanityResponse unknown-subdomain logging", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("warns once when an unrecognized apex subdomain falls through", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(pillarOrVanityResponse(req("nope.mattgrantforcongress.org"))).toBeNull();
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0][0]).toContain("'nope'");
+  });
+
+  it("stays quiet for the apex, www, and known pillar/vanity hosts", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    pillarOrVanityResponse(req("mattgrantforcongress.org"));
+    pillarOrVanityResponse(req("www.mattgrantforcongress.org"));
+    pillarOrVanityResponse(req("education.mattgrantforcongress.org")); // rewritten, not fall-through
+    pillarOrVanityResponse(req("courts.mattgrantforcongress.org")); // redirected
+    expect(warn).not.toHaveBeenCalled();
   });
 });

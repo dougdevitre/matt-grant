@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { pillarRewritePath, issueVanityRedirect, ISSUE_VANITY } from "./pillar-routing";
+import { pillarRewritePath, issueVanityRedirect, unknownPillarSubdomain, ISSUE_VANITY } from "./pillar-routing";
 import { pillarForHost, pillarSlugs } from "./pillars";
 import { issueSlugs } from "./issues";
 import { pillarHref } from "./site";
@@ -74,6 +74,27 @@ describe("issueVanityRedirect", () => {
       expect(issueSlugs).toContain(slug);
       expect(pillarSlugs).not.toContain(label);
     }
+  });
+});
+
+describe("unknownPillarSubdomain", () => {
+  it("returns the label for an unrecognized apex subdomain", () => {
+    expect(unknownPillarSubdomain("nope.mattgrantforcongress.org")).toBe("nope");
+    expect(unknownPillarSubdomain("Typo.MattGrantForCongress.org:443")).toBe("typo");
+  });
+
+  it("returns null for known pillars and vanity aliases", () => {
+    expect(unknownPillarSubdomain("education.mattgrantforcongress.org")).toBeNull();
+    expect(unknownPillarSubdomain("courts.mattgrantforcongress.org")).toBeNull();
+  });
+
+  it("returns null for the apex, www, and multi-level or foreign hosts", () => {
+    expect(unknownPillarSubdomain("mattgrantforcongress.org")).toBeNull();
+    expect(unknownPillarSubdomain("www.mattgrantforcongress.org")).toBeNull();
+    expect(unknownPillarSubdomain("a.b.mattgrantforcongress.org")).toBeNull();
+    expect(unknownPillarSubdomain("education.example.com")).toBeNull();
+    expect(unknownPillarSubdomain("localhost")).toBeNull();
+    expect(unknownPillarSubdomain(null)).toBeNull();
   });
 });
 
