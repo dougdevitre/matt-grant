@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { pillarRewritePath, issueVanityRedirect, ISSUE_VANITY } from "./pillar-routing";
 import { pillarForHost, pillarSlugs } from "./pillars";
 import { issueSlugs } from "./issues";
+import { pillarHref } from "./site";
 
 describe("pillarRewritePath", () => {
   it("rewrites a pillar subdomain root to the pillar hub", () => {
@@ -59,5 +60,26 @@ describe("issueVanityRedirect", () => {
       expect(issueSlugs).toContain(slug);
       expect(pillarSlugs).not.toContain(label);
     }
+  });
+});
+
+describe("pillarHref", () => {
+  it("renders clean within-pillar paths on the subdomain", () => {
+    expect(pillarHref("education", "/iep-guide", true)).toBe("/iep-guide");
+    expect(pillarHref("education", "/tools/calc", true)).toBe("/tools/calc");
+    expect(pillarHref("education", "", true)).toBe("/"); // hub root
+  });
+
+  it("renders canonical /pillars/<slug>/… paths on the apex", () => {
+    expect(pillarHref("education", "/iep-guide", false)).toBe("/pillars/education/iep-guide");
+    expect(pillarHref("education", "/tools/calc", false)).toBe("/pillars/education/tools/calc");
+    expect(pillarHref("education", "", false)).toBe("/pillars/education"); // hub root
+  });
+
+  it("round-trips a clean subdomain path back through the host rewrite", () => {
+    // The clean form we emit on the subdomain must be exactly what middleware maps
+    // back to the canonical route — otherwise the link would 404.
+    const clean = pillarHref("education", "/iep-guide", true);
+    expect(pillarRewritePath("education.mattgrantforcongress.org", clean)).toBe("/pillars/education/iep-guide");
   });
 });

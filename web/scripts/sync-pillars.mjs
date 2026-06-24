@@ -72,6 +72,37 @@ function neutralizeTool(html) {
   return html; // served in a sandboxed iframe; its own <head> is harmless there.
 }
 
+// Some access-to-* repos ship a "tool" as a React/SPA source tree (package.json +
+// src/) whose only HTML is an unbuilt dist/index.html — which the importer filters
+// out. Those would vanish silently. Detect such app dirs (in apps/<name>/ and the
+// repo root) that produced NO imported tool, so we can surface them instead of
+// dropping them. We do NOT build them here — that's a per-repo decision (embed a
+// built artifact, link out, or skip).
+function detectReactApps(clone, importedHtml) {
+  const candidates = [];
+  const appsRoot = path.join(clone, "apps");
+  if (existsSync(appsRoot)) {
+    for (const name of readdirSync(appsRoot)) {
+      if (name.startsWith(".") || name === "node_modules") continue;
+      const dir = path.join(appsRoot, name);
+      try {
+        if (statSync(dir).isDirectory()) candidates.push(dir);
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+  candidates.push(clone); // the repo root itself may be the app
+
+  const skipped = [];
+  for (const dir of candidates) {
+    if (!existsSync(path.join(dir, "package.json"))) continue;
+    const yielded = importedHtml.some((f) => f === dir || f.startsWith(dir + path.sep));
+    if (!yielded) skipped.push({ name: path.basename(dir), path: path.relative(clone, dir) || "." });
+  }
+  return skipped;
+}
+
 function syncOne(pillar, tmpRoot) {
   const repoUrl = `https://github.com/dougdevitre/${pillar.repo}.git`;
   const clone = path.join(tmpRoot, pillar.repo);
@@ -127,9 +158,17 @@ function syncOne(pillar, tmpRoot) {
     tools.push({ slug, label: base.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()), file });
   }
 
+  // Flag React/SPA tool dirs that didn't import as a standalone .html.
+  const skippedTools = detectReactApps(clone, htmlFiles);
+  for (const s of skippedTools) {
+    console.warn(`  ⚠️  skipped React app at ${s.path} — needs a built standalone .html or a link-out`);
+  }
+
   const manifest = { pillar: pillar.slug, repo: `dougdevitre/${pillar.repo}`, syncedAt: commit, docs, tools };
+  if (skippedTools.length) manifest.skippedTools = skippedTools;
   writeFileSync(path.join(outDir, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n");
-  console.log(`  ${docs.length} doc(s), ${tools.length} tool(s) → manifest @ ${commit}`);
+  console.log(`  ${docs.length} doc(s), ${tools.length} tool(s)${skippedTools.length ? `, ${skippedTools.length} skipped React app(s)` : ""} → manifest @ ${commit}`);
+  return skippedTools.map((s) => ({ pillar: pillar.slug, ...s }));
 }
 
 function main() {
@@ -143,9 +182,11 @@ function main() {
 
   const tmpRoot = path.join(os.tmpdir(), "mg-pillar-sync");
   mkdirSync(tmpRoot, { recursive: true });
+  const skipped = [];
   for (const p of pillars) {
     try {
-      syncOne(p, tmpRoot);
+      const s = syncOne(p, tmpRoot);
+      if (s?.length) skipped.push(...s);
     } catch (e) {
       console.error(`  ! ${p.slug} failed: ${e.message}`);
     }
@@ -153,6 +194,12 @@ function main() {
   if (!DRY) rmSync(tmpRoot, { recursive: true, force: true });
   // cpSync imported for parity with sync-assets; reserved for future asset copies.
   void cpSync;
+
+  if (skipped.length) {
+    console.warn(`\n⚠️  ${skipped.length} React-app tool(s) skipped (not standalone HTML):`);
+    for (const s of skipped) console.warn(`   • ${s.pillar}: apps path ${s.path} — embed a built artifact, link out, or skip.`);
+    console.warn("   These are recorded under manifest.skippedTools for follow-up.");
+  }
   console.log("\nDone. Review, then commit web/content/pillars/** and web/public/pillar-tools/**.");
 }
 

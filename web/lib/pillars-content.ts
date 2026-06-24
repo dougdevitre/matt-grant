@@ -24,6 +24,10 @@ export type PillarManifest = {
   syncedAt: string; // ISO date or source commit — stamped by the sync script
   docs: PillarDoc[];
   tools: PillarTool[];
+  // React/SPA "tools" the sync couldn't import as standalone HTML — recorded by
+  // scripts/sync-pillars.mjs for per-repo follow-up (build, link out, or skip).
+  // Informational only; the app doesn't render these.
+  skippedTools?: { name: string; path: string }[];
 };
 
 const CONTENT_ROOT = path.join(process.cwd(), "content", "pillars");

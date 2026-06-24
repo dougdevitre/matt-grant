@@ -47,6 +47,16 @@ export function mainHref(path: string, onSubdomain: boolean): string {
   return `${MAIN_SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+// A link to a pillar's own content. `path` is the WITHIN-pillar path: "" (hub),
+// "/iep-guide" (a doc), "/tools/x" (a tool). On the pillar's subdomain the host
+// rewrite (middleware.ts) maps a clean "/iep-guide" back to "/pillars/<slug>/…",
+// so we render the clean form there and the canonical form on the apex. Both
+// resolve; this only prettifies the address bar on the subdomain.
+export function pillarHref(slug: string, path: string, onSubdomain: boolean): string {
+  if (onSubdomain) return path === "" ? "/" : path;
+  return `/pillars/${slug}${path}`;
+}
+
 // Legal & transparency pages — linked in the footer.
 export const LEGAL = [
   { href: "/data-policy", label: "Data Policy" },
