@@ -39,6 +39,11 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
       - name: Sync pillar content
+        # sync:pillars exits NON-ZERO if any pillar fails to clone or trips the
+        # regression guard (had docs, now imports zero). That failure is load-bearing:
+        # it stops the job before the commit step, so a partial/destroyed sync is never
+        # shipped. Do NOT add `|| true` or otherwise swallow the exit code. A per-pillar
+        # summary is written to the run's $GITHUB_STEP_SUMMARY.
         run: |
           if [ -n "${{ github.event.inputs.only }}" ]; then
             npm run sync:pillars -- --only "${{ github.event.inputs.only }}"

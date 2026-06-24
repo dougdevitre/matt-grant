@@ -44,6 +44,33 @@ export function getManifest(pillarSlug: string): PillarManifest | null {
   return readJson<PillarManifest>(path.join(CONTENT_ROOT, pillarSlug, "manifest.json"));
 }
 
+// Structural validation for a committed manifest.json. Returns the list of problems
+// (empty = valid). Used by the manifest test to turn a corrupt/half-written manifest
+// into a loud CI failure instead of a silent "being prepared" fallback at runtime.
+export function validateManifest(value: unknown, expectedSlug?: string): string[] {
+  const errors: string[] = [];
+  if (typeof value !== "object" || value === null) return ["manifest is not an object"];
+  const m = value as Record<string, unknown>;
+  if (typeof m.pillar !== "string") errors.push("pillar must be a string");
+  else if (expectedSlug && m.pillar !== expectedSlug) errors.push(`pillar "${m.pillar}" != dir "${expectedSlug}"`);
+  if (typeof m.repo !== "string") errors.push("repo must be a string");
+  if (typeof m.syncedAt !== "string") errors.push("syncedAt must be a string");
+
+  const checkEntries = (key: "docs" | "tools", labelField: "title" | "label") => {
+    const arr = m[key];
+    if (!Array.isArray(arr)) return errors.push(`${key} must be an array`), undefined;
+    arr.forEach((e, i) => {
+      const o = e as Record<string, unknown>;
+      if (typeof o?.slug !== "string") errors.push(`${key}[${i}].slug must be a string`);
+      if (typeof o?.file !== "string") errors.push(`${key}[${i}].file must be a string`);
+      if (typeof o?.[labelField] !== "string") errors.push(`${key}[${i}].${labelField} must be a string`);
+    });
+  };
+  checkEntries("docs", "title");
+  checkEntries("tools", "label");
+  return errors;
+}
+
 export function getDoc(pillarSlug: string, docSlug: string): { doc: PillarDoc; markdown: string } | null {
   const manifest = getManifest(pillarSlug);
   const doc = manifest?.docs.find((d) => d.slug === docSlug);
