@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import { schedulePost, type ActionState } from "@/app/dashboard/social/actions";
 import { CHANNELS, CHANNEL_IDS, type ChannelId } from "@/lib/social/channels";
 import { scoreContent, type Severity } from "@/lib/social/optimize";
+import { AssetPicker, type PickerAsset } from "@/components/dashboard/AssetPicker";
 
 type LibraryPost = {
   id: string;
@@ -30,8 +31,24 @@ export function SocialComposer({ library }: { library: LibraryPost[] }) {
   const [pillar, setPillar] = useState("");
   const [link, setLink] = useState("");
   const [attachGraphic, setAttachGraphic] = useState(true);
+  const [selectedAsset, setSelectedAsset] = useState<{ key: string; url: string; name: string } | null>(null);
   const [disclaimerInCopy, setDisclaimerInCopy] = useState(false);
   const [scheduledAt, setScheduledAt] = useState("");
+
+  // Image source is 3-way and mutually exclusive: the auto on-brand graphic, a
+  // library image, or none. Picking an asset turns the auto graphic off; turning
+  // the auto graphic back on clears the asset.
+  const chooseAsset = (a: PickerAsset) => {
+    setSelectedAsset({ key: a.key, url: a.url, name: a.name });
+    setAttachGraphic(false);
+  };
+  const toggleAutoGraphic = () => {
+    setAttachGraphic((v) => {
+      if (!v) setSelectedAsset(null); // turning auto graphic ON drops any picked asset
+      return !v;
+    });
+  };
+  const hasMedia = attachGraphic || !!selectedAsset;
 
   const tagList = useMemo(
     () => hashtags.split(/[\s,]+/).map((t) => t.trim().replace(/^#+/, "")).filter(Boolean).map((t) => `#${t}`),
@@ -46,11 +63,14 @@ export function SocialComposer({ library }: { library: LibraryPost[] }) {
     const fmt = channels[0] ? CHANNELS[channels[0]].imageFormat : "ig_square";
     return `/api/graphics?${new URLSearchParams({ format: fmt, theme: "navy", headline, sub: "Matt Grant for Congress" }).toString()}`;
   }, [caption, channels]);
-  const mediaUrl = attachGraphic ? graphicUrl : "";
+  // A picked library image wins; otherwise the auto graphic (or nothing). The
+  // asset's absolute CloudFront URL passes sanitizeMediaUrl + publish.ts unchanged.
+  const mediaUrl = selectedAsset ? selectedAsset.url : attachGraphic ? graphicUrl : "";
+  const mediaKey = selectedAsset?.key ?? "";
 
   const scores = useMemo(
-    () => channels.map((ch) => scoreContent({ channel: ch, caption, hashtags: tagList, hasMedia: attachGraphic, link: link || undefined, cta, hasDisclaimer })),
-    [channels, caption, tagList, attachGraphic, link, cta, hasDisclaimer],
+    () => channels.map((ch) => scoreContent({ channel: ch, caption, hashtags: tagList, hasMedia, link: link || undefined, cta, hasDisclaimer })),
+    [channels, caption, tagList, hasMedia, link, cta, hasDisclaimer],
   );
 
   function loadFromLibrary(id: string) {
@@ -142,19 +162,39 @@ export function SocialComposer({ library }: { library: LibraryPost[] }) {
           <p className="eyebrow text-slate">Image</p>
           <label className="mt-3 flex cursor-pointer items-center justify-between text-sm">
             <span className="font-semibold text-ink">Attach on-brand graphic (auto-includes the “Paid for by” line)</span>
-            <input type="checkbox" checked={attachGraphic} onChange={() => setAttachGraphic((v) => !v)} />
+            <input type="checkbox" checked={attachGraphic} onChange={toggleAutoGraphic} />
           </label>
+
+          {/* Or pull an image straight from the Assets library. */}
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <AssetPicker onSelect={chooseAsset} trigger={selectedAsset ? "Choose a different image" : "or choose from the Assets library"} />
+            {selectedAsset && (
+              <span className="text-xs text-slate">
+                Using <span className="font-medium text-ink">{selectedAsset.name}</span> ·{" "}
+                <button type="button" onClick={() => setSelectedAsset(null)} className="text-field underline">
+                  Remove
+                </button>
+              </span>
+            )}
+          </div>
+
+          {/* A library image may or may not carry the disclaimer, so require the
+              acknowledgment just like the no-auto-graphic case. */}
           {!attachGraphic && (
             <label className="mt-3 flex cursor-pointer items-center justify-between text-sm">
-              <span className="font-semibold text-ink">My caption already includes the “Paid for by” disclaimer</span>
+              <span className="font-semibold text-ink">
+                {selectedAsset ? "The image or my caption includes the “Paid for by” disclaimer" : "My caption already includes the “Paid for by” disclaimer"}
+              </span>
               <input type="checkbox" checked={disclaimerInCopy} onChange={() => setDisclaimerInCopy((v) => !v)} />
             </label>
           )}
+
           <input type="hidden" name="mediaUrl" value={mediaUrl} />
-          {attachGraphic && (
+          <input type="hidden" name="mediaKey" value={mediaKey} />
+          {(selectedAsset || attachGraphic) && (
             <div className="mt-3 overflow-hidden rounded-sm border border-line">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={graphicUrl} alt="Generated graphic preview" className="w-full" />
+              <img src={selectedAsset ? selectedAsset.url : graphicUrl} alt={selectedAsset ? selectedAsset.name : "Generated graphic preview"} className="w-full" />
             </div>
           )}
         </div>
