@@ -14,6 +14,10 @@ const SOS_GOVOTE = "https://www.sos.mo.gov/elections/govotemissouri"; // the Mis
 const SOS_HOME = "https://www.sos.mo.gov";
 const STL_COUNTY = "https://www.stlouiscountymovotes.gov";
 const STC_COUNTY = "https://www.sccmo.org";
+// Printable official SOS request form (served from /public) + St. Louis County
+// Library mobile printing, for voters who can't complete the application online.
+const FORM_PDF = "/absentee-ballot-request-form.pdf";
+const LIBRARY_PRINT = "https://mobileprint.slcl.org/myprintcenter";
 
 const DATES = [
   { what: "Register to vote", when: "Wed, July 8, 2026" },
@@ -154,6 +158,39 @@ export default function AbsenteePage() {
         <li>You notarize the return envelope if your reason requires it.</li>
         <li>You return it so it arrives by 7 p.m. on Aug 4.</li>
       </ol>
+
+      {/* Prefer paper / printable form */}
+      <h2 className="mt-12 font-display text-2xl font-semibold text-ink">Prefer paper? Print the request form</h2>
+      <p className="mt-3 max-w-prose text-sm text-slate">
+        You can apply online, but if you&apos;d rather fill it out by hand, print the official Missouri
+        Secretary of State <strong className="text-ink">Request for Missouri Absentee Ballot</strong> form,
+        complete it, and mail or hand-deliver it to your election authority so it arrives by{" "}
+        <strong className="text-ink">5 p.m. Wed, July 22</strong>.
+      </p>
+      <div className="mt-4 rounded-lg border border-line bg-white p-6 shadow-card">
+        <a href={FORM_PDF} target="_blank" rel="noopener noreferrer" className="btn-primary">
+          Download the request form (PDF) →
+        </a>
+        <p className="mt-4 text-sm text-slate">
+          <strong className="text-ink">No printer? Print it at any St. Louis County Library.</strong>{" "}
+          Use the library&apos;s mobile printing — cardholders get $5 in printing free each month, and
+          it works at every branch:
+        </p>
+        <ol className="mt-3 list-decimal space-y-2 pl-6 text-sm text-slate">
+          <li>
+            Save the PDF, then open the library print center at{" "}
+            <a className="underline" href={LIBRARY_PRINT} target="_blank" rel="noopener noreferrer">
+              mobileprint.slcl.org/myprintcenter
+            </a>.
+          </li>
+          <li>Upload the form and submit it to the print queue.</li>
+          <li>
+            Release and pick it up at the print station in any St. Louis County Library branch (sign in
+            with your library card, or ask staff for help).
+          </li>
+          <li>Fill it out, sign it, and mail or hand-deliver it to your election authority by the July 22 deadline.</li>
+        </ol>
+      </div>
 
       {/* Photo ID */}
       <h2 className="mt-12 font-display text-2xl font-semibold text-ink">Acceptable photo ID</h2>

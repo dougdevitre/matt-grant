@@ -26,6 +26,29 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-06-24 -- Absentee: printable request form + library printing
+
+**Changes:**
+- [added] web/public/absentee-ballot-request-form.pdf -- the official Missouri Secretary of State "Request for Missouri Absentee Ballot" form (SOS-issued, modified 2026-04-10), served at `/absentee-ballot-request-form.pdf`
+- [updated] web/app/(site)/vote/absentee/page.tsx -- new "Prefer paper? Print the request form" section: download button for the PDF plus 4-step St. Louis County Library mobile-printing instructions (mobileprint.slcl.org/myprintcenter) for voters who can't complete the application online
+- [updated] candidate/absentee-voting-guide.md -- mirrors the same printable-form link and library-printing steps
+
+**Verifications Performed:**
+- Confirmed the uploaded PDF is the SOS "Request for Missouri Absentee Ballot" form via embedded metadata (Company: "Missouri Secretary of State Office"; Title: "Request for Missouri Absentee Ballot")
+- Web typecheck (`tsc --noEmit`) and `next lint` pass clean for the absentee page; PDF placed in `web/public/` (served at the site root by Next)
+
+**Known Gaps:**
+- Library mobile-printing flow and the $5/month free-printing allowance are described per the existing candidate/library-print-and-produce-guide.md; confirm current library pricing/flow before heavy promotion
+- The mailed paper form must still meet the same 5 p.m. July 22 receipt deadline and notary rules as the online application
+
+**Files Modified:**
+- web/public/absentee-ballot-request-form.pdf
+- web/app/(site)/vote/absentee/page.tsx
+- candidate/absentee-voting-guide.md
+- references/update-log.md
+
+---
+
 ## 2026-06-24 -- Absentee & Early Voting Guide
 
 **Changes:**
