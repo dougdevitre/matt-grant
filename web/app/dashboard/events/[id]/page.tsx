@@ -65,6 +65,20 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                 <Link href={`/events/${event.id}`} className="text-field underline">View public page →</Link>
               )}
             </p>
+            {event.notifyResult && (() => {
+              const r = event.notifyResult;
+              // "no recipients"/"already notified" are expected, not failures; a thrown
+              // error (any other reason) means the broadcast didn't go out.
+              const benign = (reason?: string) => !reason || /already notified|no email recipients|no opted-in/i.test(reason);
+              const failed = (ch: { queued: boolean; reason?: string }) => !ch.queued && !benign(ch.reason);
+              const anyFail = failed(r.email) || failed(r.sms);
+              return (
+                <div className={`w-full rounded-sm px-3 py-2 text-xs ${anyFail ? "bg-gold/25 text-ink" : "bg-line/50 text-slate"}`}>
+                  <span className="font-semibold">Notifications:</span> Email — {r.email.queued ? "queued ✓" : r.email.reason ?? "not sent"}; SMS — {r.sms.queued ? "queued ✓" : r.sms.reason ?? "not sent"}.
+                  {anyFail && <> A channel didn&apos;t send — check Email/SMS configuration on the Setup page.</>}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Summary */}

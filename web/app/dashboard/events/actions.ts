@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import {
-  createEvent, updateEvent, setEventStatus, deleteEvent, getEvent,
+  createEvent, updateEvent, setEventStatus, deleteEvent, getEvent, setEventNotify,
   isEventType, type EventType, type EventLocation,
 } from "@/lib/events";
 import { localCentralToIso } from "@/lib/events/time";
@@ -29,12 +29,13 @@ function refresh(id?: string) {
   }
 }
 
-function readForm(f: FormData): { ok: boolean; type: EventType; location: EventLocation; start: string; end: string | null; title: string; description: string; capacity: number | null } {
+function readForm(f: FormData): { ok: boolean; type: EventType; location: EventLocation; start: string; end: string | null; allDay: boolean; title: string; description: string; capacity: number | null } {
   const title = String(f.get("title") ?? "").trim();
   const rawType = String(f.get("type") ?? "other");
   const start = localCentralToIso(String(f.get("start") ?? ""));
   const endLocal = String(f.get("end") ?? "").trim();
   const end = endLocal ? localCentralToIso(endLocal) : null;
+  const allDay = f.get("allDay") === "on" || f.get("allDay") === "true";
   const capRaw = String(f.get("capacity") ?? "").trim();
   const capacity = capRaw ? Math.max(0, Number(capRaw) || 0) : null;
   return {
@@ -43,6 +44,7 @@ function readForm(f: FormData): { ok: boolean; type: EventType; location: EventL
     type: isEventType(rawType) ? rawType : "other",
     start,
     end,
+    allDay,
     description: String(f.get("description") ?? "").trim(),
     capacity,
     location: {
@@ -61,11 +63,12 @@ export async function saveEvent(formData: FormData): Promise<EventState> {
   const id = String(formData.get("id") ?? "").trim();
   const d = readForm(formData);
   if (!d.ok) return { ok: false, message: "A title and start date/time are required." };
+  if (d.end && d.end < d.start) return { ok: false, message: "The end time must be after the start time." };
 
   try {
     if (id) {
       const okUpd = await updateEvent(id, {
-        title: d.title, type: d.type, start: d.start, end: d.end,
+        title: d.title, type: d.type, start: d.start, end: d.end, allDay: d.allDay,
         location: d.location, description: d.description, capacity: d.capacity, createdBy: g.email ?? "system",
       });
       if (!okUpd) return { ok: false, message: "Event not found." };
@@ -73,7 +76,7 @@ export async function saveEvent(formData: FormData): Promise<EventState> {
       return { ok: true, message: "Saved.", id };
     }
     const newId = await createEvent({
-      title: d.title, type: d.type, start: d.start, end: d.end,
+      title: d.title, type: d.type, start: d.start, end: d.end, allDay: d.allDay,
       location: d.location, description: d.description, capacity: d.capacity,
       status: "DRAFT", source: "manual", createdBy: g.email ?? "system",
     });
@@ -92,7 +95,12 @@ export async function publishEvent(formData: FormData): Promise<void> {
   if (!id) return;
   await setEventStatus(id, "PUBLISHED");
   const ev = await getEvent(id);
-  if (ev) await publishEventNotifications(ev, g.email ?? "system");
+  if (ev) {
+    // Persist the broadcast outcome so staff see whether notifications actually
+    // went out — not just that the status flipped to PUBLISHED.
+    const r = await publishEventNotifications(ev, g.email ?? "system");
+    await setEventNotify(id, { at: new Date().toISOString(), email: r.email, sms: r.sms });
+  }
   refresh(id);
 }
 

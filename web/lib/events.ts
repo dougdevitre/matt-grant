@@ -3,7 +3,7 @@ import { ddb, TABLE, PK, newId, dbConfigured } from "@/lib/db";
 import { resolveDistrict } from "@/lib/events/districts";
 import {
   isEventType, isEventStatus,
-  type EventType, type EventStatus, type EventLocation, type Signup, type EventRow, type PublicEvent, type EventInput,
+  type EventType, type EventStatus, type EventLocation, type Signup, type EventRow, type PublicEvent, type EventInput, type EventNotifyResult,
 } from "@/lib/events/types";
 
 // Campaign events / appearances. One DynamoDB partition (PK="EVENT") with
@@ -34,6 +34,7 @@ function rawToRow(it: Record<string, unknown>): EventRow {
     type: isEventType(it.type) ? it.type : "other",
     start: String(it.start ?? ""),
     end: (it.end as string) ?? null,
+    allDay: it.allDay === true,
     location: {
       name: String(loc.name ?? ""),
       address: String(loc.address ?? ""),
@@ -49,6 +50,7 @@ function rawToRow(it: Record<string, unknown>): EventRow {
     parseConfidence: it.parseConfidence == null ? null : Number(it.parseConfidence),
     notifiedEmailAt: (it.notifiedEmailAt as string) ?? null,
     notifiedSmsAt: (it.notifiedSmsAt as string) ?? null,
+    notifyResult: (it.notifyResult as EventRow["notifyResult"]) ?? null,
     createdBy: String(it.createdBy ?? ""),
     createdAt: String(it.createdAt ?? ""),
     updatedAt: (it.updatedAt as string) ?? null,
@@ -62,6 +64,7 @@ export function toPublicEvent(e: EventRow): PublicEvent {
     type: e.type,
     start: e.start,
     end: e.end,
+    allDay: e.allDay,
     location: e.location,
     districtKey: e.districtKey,
     description: e.description,
@@ -85,6 +88,7 @@ function buildItem(id: string, input: EventInput, now: string, prior?: Partial<E
     type: isEventType(input.type) ? input.type : "other",
     start,
     end: input.end || undefined,
+    allDay: input.allDay ?? prior?.allDay ?? undefined,
     location: cleanLocation(input.location),
     districtKey,
     description: clip(input.description, 4000),
@@ -95,6 +99,7 @@ function buildItem(id: string, input: EventInput, now: string, prior?: Partial<E
     parseConfidence: input.parseConfidence ?? prior?.parseConfidence ?? undefined,
     notifiedEmailAt: prior?.notifiedEmailAt ?? undefined,
     notifiedSmsAt: prior?.notifiedSmsAt ?? undefined,
+    notifyResult: prior?.notifyResult ?? undefined,
     createdBy: prior?.createdBy ?? input.createdBy,
     createdAt: prior?.createdAt ?? now,
     updatedAt: now,
@@ -168,6 +173,7 @@ export async function updateEvent(id: string, patch: Partial<EventInput> & { sta
     type: patch.type ?? cur.type,
     start: patch.start ?? cur.start,
     end: patch.end !== undefined ? patch.end : cur.end,
+    allDay: patch.allDay !== undefined ? patch.allDay : cur.allDay,
     location: patch.location ?? cur.location,
     description: patch.description ?? cur.description,
     capacity: patch.capacity !== undefined ? patch.capacity : cur.capacity,
@@ -190,6 +196,22 @@ export async function setEventStatus(id: string, status: EventStatus): Promise<b
       UpdateExpression: "SET #s = :s, updatedAt = :u",
       ExpressionAttributeNames: { "#s": "status" },
       ExpressionAttributeValues: { ":s": status, ":u": new Date().toISOString() },
+    }),
+  );
+  return true;
+}
+
+// Record the publish-time notification outcome so the dashboard can show whether
+// the email/SMS broadcast actually went out (not just that status flipped).
+export async function setEventNotify(id: string, result: EventNotifyResult): Promise<boolean> {
+  const raw = await findRaw(id);
+  if (!raw) return false;
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: PK.events, SK: String(raw.SK) },
+      UpdateExpression: "SET notifyResult = :r, updatedAt = :u",
+      ExpressionAttributeValues: { ":r": result, ":u": new Date().toISOString() },
     }),
   );
   return true;

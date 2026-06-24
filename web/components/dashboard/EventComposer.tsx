@@ -12,6 +12,7 @@ type Fields = {
   type: EventType;
   start: string;
   end: string;
+  allDay: string; // "true" | "false" (kept a string so the FormData loop stays simple)
   locName: string;
   locAddress: string;
   locCity: string;
@@ -26,6 +27,7 @@ function fromRow(e?: EventRow): Fields {
     type: e?.type ?? "rally",
     start: e ? isoToCentralLocal(e.start) : "",
     end: e?.end ? isoToCentralLocal(e.end) : "",
+    allDay: e?.allDay ? "true" : "false",
     locName: e?.location.name ?? "",
     locAddress: e?.location.address ?? "",
     locCity: e?.location.city ?? "",
@@ -140,6 +142,16 @@ export function EventComposer({ initial }: { initial?: EventRow }) {
         <div>
           <label className={label} htmlFor="ev-end">End (optional)</label>
           <input id="ev-end" type="datetime-local" className={input} value={f.end} onChange={(e) => set("end", e.target.value)} />
+        </div>
+        <div className="flex items-center gap-2 sm:col-span-2">
+          <input
+            id="ev-allday"
+            type="checkbox"
+            checked={f.allDay === "true"}
+            onChange={(e) => set("allDay", e.target.checked ? "true" : "false")}
+            className="h-4 w-4 rounded border-line"
+          />
+          <label htmlFor="ev-allday" className="text-xs font-semibold text-slate">All-day event (the calendar download uses the date only)</label>
         </div>
         <div>
           <label className={label} htmlFor="ev-locname">Venue name</label>
