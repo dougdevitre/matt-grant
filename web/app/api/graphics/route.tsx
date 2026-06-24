@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { CAMPAIGN } from "@/lib/site";
+import { trimHeadline } from "@/lib/social/headline";
 
 // Server-side campaign-graphic generator. Composites Matt's photo + custom copy
 // into branded social/print formats. Reads the processed avatar from /public.
@@ -31,7 +32,7 @@ export async function GET(req: Request) {
   const sp = new URL(req.url).searchParams;
   const fmt = FORMATS[sp.get("format") ?? "ig_square"] ?? FORMATS.ig_square;
   const theme = THEMES[sp.get("theme") ?? "navy"] ?? THEMES.navy;
-  const headline = (sp.get("headline") ?? "Put Missouri's children first.").slice(0, 80);
+  const headline = trimHeadline(sp.get("headline") ?? "Put Missouri's children first.", 120);
   const sub = (sp.get("sub") ?? "Matt Grant for Congress").slice(0, 90);
   const showPhoto = sp.get("photo") !== "0";
 
@@ -39,7 +40,11 @@ export async function GET(req: Request) {
   const wide = w > h * 1.3;
   const photo = showPhoto ? await avatarDataUri() : null;
   const photoSize = wide ? Math.round(h * 0.7) : Math.round(Math.min(w, h) * 0.42);
-  const headSize = wide ? Math.round(h * 0.16) : Math.round(w * 0.085);
+  // Scale the headline down as it gets longer so it always fits the card instead of
+  // overflowing and clipping against the bottom "Paid for by" line.
+  const hlLen = headline.length;
+  const hlScale = hlLen <= 24 ? 1 : hlLen <= 40 ? 0.86 : hlLen <= 60 ? 0.72 : hlLen <= 90 ? 0.6 : 0.5;
+  const headSize = Math.round((wide ? h * 0.16 : w * 0.085) * hlScale);
 
   const textBlock = (
     <div style={{ display: "flex", flexDirection: "column", gap: Math.round(h * 0.02), maxWidth: wide ? "62%" : "100%" }}>
@@ -72,7 +77,9 @@ export async function GET(req: Request) {
           justifyContent: wide ? "space-between" : "center",
           gap: Math.round(Math.min(w, h) * 0.05),
           background: theme.bg,
-          padding: `${Math.round(h * 0.09)}px ${Math.round(w * 0.07)}px`,
+          // Extra bottom padding reserves room for the absolutely-positioned
+          // "Paid for by" line so the headline never overlaps it.
+          padding: `${Math.round(h * 0.08)}px ${Math.round(w * 0.07)}px ${Math.round(h * 0.16)}px`,
           fontFamily: "Georgia, serif",
           position: "relative",
         }}
