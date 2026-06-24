@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 // internal data — a supporter has none of those capabilities.
 export default async function CommunityPage() {
   const gate = await staffGate();
-  const isStaff = can(gate.role, "viewOverview"); // admin / captain / member
+  const isStaff = can(gate.role, "viewOverview"); // admin / captain / volunteer
 
   // Engagement tier is derived from the signed-in user's OWN records — their
   // giving and their own volunteer signup, never anyone else's data (see

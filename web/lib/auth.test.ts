@@ -51,7 +51,7 @@ describe("staffGate role resolution", () => {
   it("env allowlist wins → admin (case-insensitive)", async () => {
     enableClerk();
     process.env.DASHBOARD_ALLOWLIST = "boss@x.co, other@x.co";
-    const g = await gateWith({ user: userWith("Boss@X.co", "member") });
+    const g = await gateWith({ user: userWith("Boss@X.co", "volunteer") });
     expect(g).toMatchObject({ ok: true, role: "admin" }); // allowlist beats the metadata role
   });
 
@@ -61,10 +61,10 @@ describe("staffGate role resolution", () => {
     expect(g).toMatchObject({ ok: true, role: "captain" });
   });
 
-  it("falls back to the DynamoDB staff row when no metadata role (legacy 'organizer' → member)", async () => {
+  it("falls back to the DynamoDB staff row when no metadata role (legacy 'organizer' → volunteer)", async () => {
     enableClerk();
     const g = await gateWith({ user: userWith("org@x.co"), dbRole: "organizer" });
-    expect(g).toMatchObject({ ok: true, role: "member" });
+    expect(g).toMatchObject({ ok: true, role: "volunteer" });
   });
 
   it("denies a signed-in user who is in none of the sources", async () => {
@@ -92,16 +92,16 @@ describe("staffGate view-as preview", () => {
   it("admin + view-as cookie → effective role is the preview, actualRole stays admin", async () => {
     enableClerk();
     process.env.DASHBOARD_ALLOWLIST = "boss@x.co";
-    const g = await gateWith({ user: userWith("boss@x.co"), viewAs: "member" });
-    expect(g).toMatchObject({ ok: true, role: "member", actualRole: "admin", viewingAs: "member" });
+    const g = await gateWith({ user: userWith("boss@x.co"), viewAs: "volunteer" });
+    expect(g).toMatchObject({ ok: true, role: "volunteer", actualRole: "admin", viewingAs: "volunteer" });
   });
 
   it("SECURITY: a non-admin's view-as cookie is ignored — no escalation", async () => {
     enableClerk();
-    // Real role is member (via metadata); cookie tries to escalate to captain.
-    const g = await gateWith({ user: userWith("m@x.co", "member"), viewAs: "captain" });
-    expect(g.role).toBe("member"); // cookie had no effect
-    expect(g.actualRole).toBe("member");
+    // Real role is volunteer (via metadata); cookie tries to escalate to captain.
+    const g = await gateWith({ user: userWith("m@x.co", "volunteer"), viewAs: "captain" });
+    expect(g.role).toBe("volunteer"); // cookie had no effect
+    expect(g.actualRole).toBe("volunteer");
     expect(g.viewingAs).toBeNull();
   });
 
