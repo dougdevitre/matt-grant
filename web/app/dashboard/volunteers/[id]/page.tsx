@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getVolunteer, getTasks } from "@/lib/queries";
 import { PageHeader } from "@/components/dashboard/Notice";
-import { updateVolunteer, markVolunteerContacted } from "@/app/dashboard/actions";
+import { updateVolunteer, markVolunteerContacted, updateVolunteerNotes } from "@/app/dashboard/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -54,11 +54,21 @@ export default async function VolunteerDetailPage({ params }: { params: Promise<
             <Row label="Last contacted" value={v.lastContactedAt ? fmt(v.lastContactedAt) : null} />
             <Row label="Signed up" value={v.createdAt ? fmt(v.createdAt) : null} />
           </div>
-          {v.notes && (
-            <p className="mt-4 rounded-sm border-l-2 border-line bg-paper px-3 py-2 text-sm italic text-slate">
-              &ldquo;{v.notes}&rdquo;
-            </p>
-          )}
+          {/* Notes — editable inline (was read-only). Empty submission clears them. */}
+          <form action={updateVolunteerNotes} className="mt-4">
+            <label htmlFor="vol-notes" className="eyebrow text-slate">Notes</label>
+            <input type="hidden" name="id" value={v.id} />
+            <textarea
+              id="vol-notes"
+              name="notes"
+              defaultValue={v.notes ?? ""}
+              rows={3}
+              maxLength={2000}
+              placeholder="Add a note about this volunteer…"
+              className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink focus:border-field"
+            />
+            <button type="submit" className="btn-ghost mt-1 px-3 py-1.5 text-sm">Save notes</button>
+          </form>
 
           {/* Controls */}
           <form action={updateVolunteer} className="mt-6 space-y-2 border-t border-line pt-5">
