@@ -68,8 +68,10 @@ chooses a state from the envelope, not from per-source ad-hoc flags.
 ## The registry
 
 `lib/data/registry.ts` enumerates every source (`id`, `label`, `kind`, `owner`,
-`endpoint`/`manifest`, `enabledEnv`, `cache`). It powers the **Data hub**
-(`/dashboard/data`) and is the inventory you update when adding a source.
+`endpoint`/`manifest`, `enabledEnv`, `cache`). It powers the **Data hub** at
+[`/dashboard/data`](../app/dashboard/data/page.tsx) — the live index where staff see
+every source grouped by kind, with config status and on-demand geo checks — and is
+the inventory you update when adding a source.
 
 ## Conventions to keep
 

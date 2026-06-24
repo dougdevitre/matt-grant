@@ -49,6 +49,7 @@ const GROUPS: Group[] = [
     label: "Strategy",
     items: [
       { href: "/dashboard/research", label: "Research", icon: "research", cap: "viewResearch" },
+      { href: "/dashboard/data", label: "Data sources", icon: "research", cap: "viewResearch" },
       { href: "/dashboard/plan", label: "Strategic plan", icon: "plan", cap: "viewPlan" },
     ],
   },
