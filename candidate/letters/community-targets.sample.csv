@@ -1,0 +1,13 @@
+segment,honorific,first_name,last_name,salutation,title,organization,address_line_1,address_line_2,city,state,zip,area_focus,ask_tier
+FAITH,Rev.,Jordan,Avery,Pastor,Senior Pastor,[SAMPLE] Riverbend Community Church,100 Sample St,,Chesterfield,MO,63017,families across west county,B
+FAITH,Pastor,Dana,Mercer,Pastor,Lead Pastor,[SAMPLE] Grace & Mercy Fellowship,200 Placeholder Ave,Suite 2,St. Charles,MO,63301,youth and family ministry,A
+FAITH,Dr.,Samuel,Otieno,Dr.,Executive Director,[SAMPLE] Faith Family Coalition,300 Example Blvd,,Wentzville,MO,63385,children and family programs,C
+BUSINESS,Mr.,Anthony,Russo,Mr.,President,[SAMPLE] West County Chamber of Commerce,400 Sample Pkwy,,Ballwin,MO,63011,small business and jobs,A
+BUSINESS,Ms.,Priya,Nair,Ms.,Owner,[SAMPLE] Nair Family Hardware,500 Placeholder Rd,,O'Fallon,MO,63366,Main Street businesses,B
+BUSINESS,Mr.,Caleb,Frost,Mr.,Managing Director,[SAMPLE] St. Charles Economic Forum,600 Example Ct,,St. Peters,MO,63376,regional economic growth,B
+EDUCATION,Dr.,Maria,Delgado,Superintendent,Superintendent,[SAMPLE] Rockwood-area School District,700 Sample Ln,,Eureka,MO,63025,students and families,A
+EDUCATION,Mr.,Kevin,Walsh,Mr.,School Board President,[SAMPLE] Fort Zumwalt-area Board of Education,800 Placeholder Dr,,O'Fallon,MO,63368,local schools,B
+EDUCATION,Ms.,Hannah,Bauer,Ms.,Council President,[SAMPLE] West County PTA Council,900 Example Way,,Wildwood,MO,63040,parents and school-age children,C
+CIVIC,Hon.,Robert,Klein,Mayor,Mayor,[SAMPLE] City of Maplewood Heights,1000 Sample Plaza,,Manchester,MO,63011,city services and neighborhoods,A
+CIVIC,Council Member,Teresa,Nguyen,Council Member,City Council Member,[SAMPLE] St. Charles County Council,1100 Placeholder Cir,,St. Charles,MO,63301,county constituents,B
+CIVIC,Mr.,Daniel,Okafor,Mr.,Committee Chair,[SAMPLE] Township Civic Association,1200 Example Ter,,Arnold,MO,63010,neighborhood civic life,C
