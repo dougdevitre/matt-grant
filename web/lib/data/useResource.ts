@@ -9,7 +9,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type Provenance, type Resource } from "./resource";
 
-export type ResourceUiState = "loading" | "ready" | "empty" | "error" | "degraded";
+export type ResourceUiState = "idle" | "loading" | "ready" | "empty" | "error" | "degraded";
 
 function isEmptyData(d: unknown): boolean {
   if (Array.isArray(d)) return d.length === 0;
@@ -32,11 +32,16 @@ function normalize<T>(json: unknown, httpOk: boolean): Resource<T> {
   return { ok: true, data: json as T, meta };
 }
 
-export function useResource<T = unknown>(url: string, init?: { method?: string; body?: unknown }) {
-  const [state, setState] = useState<ResourceUiState>("loading");
+export function useResource<T = unknown>(
+  url: string,
+  init?: { method?: string; body?: unknown; manual?: boolean },
+) {
+  const manual = init?.manual ?? false;
+  const [state, setState] = useState<ResourceUiState>(manual ? "idle" : "loading");
   const [data, setData] = useState<T | null>(null);
   const [meta, setMeta] = useState<Provenance | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lastFetchedAt, setLastFetchedAt] = useState<number | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   // Stable dependency key so an inline body object doesn't re-fire every render.
@@ -60,6 +65,7 @@ export function useResource<T = unknown>(url: string, init?: { method?: string; 
       const r = normalize<T>(json, res.ok);
       setData(r.data);
       setMeta(r.meta);
+      setLastFetchedAt(Date.now());
       if (!r.ok) {
         setError(r.error);
         setState("error");
@@ -73,14 +79,17 @@ export function useResource<T = unknown>(url: string, init?: { method?: string; 
     } catch (err) {
       if ((err as Error)?.name === "AbortError") return;
       setError((err as Error)?.message ?? "request failed");
+      setLastFetchedAt(Date.now());
       setState("error");
     }
   }, [url, method, bodyKey]);
 
+  // Auto-fetch on mount unless `manual` — manual sources fetch on `reload()` only,
+  // so the hub doesn't ping every upstream on page load.
   useEffect(() => {
-    load();
+    if (!manual) load();
     return () => abortRef.current?.abort();
-  }, [load]);
+  }, [load, manual]);
 
-  return { state, data, meta, error, reload: load };
+  return { state, data, meta, error, lastFetchedAt, reload: load };
 }

@@ -19,6 +19,10 @@ export type SourceEntry = {
   cache: string;
   /** Safe for the hub to live-ping (idempotent GET, no heavy side effects). Geo is always checkable. */
   checkable?: boolean;
+  /** CSV: the command that regenerates the committed manifest from its source. */
+  regen?: string;
+  /** Free-form fix shown when this source is degraded/errored (e.g. "Run /api/research/ingest"). */
+  remedy?: string;
   note?: string;
 };
 
@@ -31,6 +35,7 @@ export const SOURCES: SourceEntry[] = [
     owner: "candidate/letters/print-tracker.csv",
     manifest: "web/lib/printTracker.json",
     cache: "build (npm run print-tracker)",
+    regen: "npm run print-tracker",
     note: "Letter-sized print queue mapped to templates. Reference slice for the Resource pattern.",
   },
   {
@@ -40,6 +45,7 @@ export const SOURCES: SourceEntry[] = [
     owner: "web/scripts/generate-print-renditions.mjs",
     manifest: "web/lib/printRenditions.json",
     cache: "build",
+    regen: "node scripts/generate-print-renditions.mjs",
     note: "12 signature designs × 3 photo sizes; consumed by the public Print Studio.",
   },
 
@@ -84,6 +90,7 @@ export const SOURCES: SourceEntry[] = [
     endpoint: "/api/research/child-act",
     cache: "force-dynamic",
     checkable: true, // param-free GET on the Resource layer; degrades when the store is unset
+    remedy: "Run /api/research/ingest with the CRON_SECRET bearer to populate the store",
     note: "Family-court-relevant bills from the ingested federal record. Degrades when the store isn't connected.",
   },
   {
