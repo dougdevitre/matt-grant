@@ -47,12 +47,16 @@ jobs:
           fi
       - name: Commit changes (if any)
         run: |
-          if git diff --quiet -- content/pillars public/pillar-tools; then
+          # Stage first, then test the index — `git diff` (working tree) is blind to
+          # newly-synced untracked files, so a first-time sync would otherwise look
+          # like "no changes" and be discarded. `git diff --cached` sees additions,
+          # modifications, and deletions, keeping a true no-op run idempotent.
+          git add content/pillars public/pillar-tools
+          if git diff --cached --quiet; then
             echo "No content changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add content/pillars public/pillar-tools
           git commit -m "chore: sync pillar content from access-to-* repos [skip ci]"
           git push
