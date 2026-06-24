@@ -54,6 +54,21 @@ export type Signup = {
 // so the dashboard renders without a join, mirroring task assignment.
 export type EventStaffer = { id: string; name: string };
 
+// Priority tier for deciding where to appear (rubric + helpers in ./priority).
+export type EventPriority = 1 | 2 | 3;
+
+// One item on a captain's run-of-show checklist. May be assigned to a roster
+// volunteer; `doneBy`/`doneAt` record who checked it and when.
+export type EventChecklistItem = {
+  id: string;
+  text: string;
+  done: boolean;
+  assigneeId?: string;
+  assigneeName?: string;
+  doneBy?: string;
+  doneAt?: string;
+};
+
 export type EventRow = {
   id: string;
   title: string;
@@ -68,6 +83,9 @@ export type EventRow = {
   description: string;
   status: EventStatus;
   capacity: number | null;
+  priority: EventPriority;
+  priorityManual: boolean;
+  checklist: EventChecklistItem[];
   signups: Signup[];
   captain: EventStaffer | null;
   volunteers: EventStaffer[];
@@ -109,6 +127,9 @@ export type EventInput = {
   lng?: number | null;
   description: string;
   capacity?: number | null;
+  priority?: EventPriority;
+  priorityManual?: boolean;
+  checklist?: EventChecklistItem[];
   captain?: EventStaffer | null;
   volunteers?: EventStaffer[];
   status?: EventStatus;

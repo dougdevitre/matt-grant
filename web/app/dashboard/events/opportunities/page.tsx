@@ -1,17 +1,25 @@
 import Link from "next/link";
 import { requireCap } from "@/lib/auth";
-import { EVENT_TYPE_LABELS } from "@/lib/events/types";
+import { EVENT_TYPE_LABELS, type EventPriority } from "@/lib/events/types";
 import { APPEARANCE_OPPORTUNITIES, OPPORTUNITY_COUNTIES } from "@/lib/events/opportunities";
+import { PRIORITY_BADGE } from "@/lib/events/priority";
 import { PageHeader, HowTo } from "@/components/dashboard/Notice";
 import { SubmitButton } from "@/components/dashboard/SubmitButton";
 import { createEventFromOpportunity } from "../actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function OpportunitiesPage({ searchParams }: { searchParams: Promise<{ county?: string }> }) {
+const TIERS: EventPriority[] = [1, 2, 3];
+
+export default async function OpportunitiesPage({ searchParams }: { searchParams: Promise<{ county?: string; tier?: string }> }) {
   await requireCap("manageEvents");
-  const { county } = await searchParams;
-  const rows = county ? APPEARANCE_OPPORTUNITIES.filter((o) => o.county === county) : APPEARANCE_OPPORTUNITIES;
+  const { county, tier } = await searchParams;
+  const tierNum = tier === "1" || tier === "2" || tier === "3" ? (Number(tier) as EventPriority) : null;
+  const rows = APPEARANCE_OPPORTUNITIES
+    .filter((o) => (county ? o.county === county : true))
+    .filter((o) => (tierNum ? o.priority === tierNum : true))
+    .slice()
+    .sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name)); // P1 first
 
   return (
     <>
@@ -37,28 +45,47 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
         </span>
       </div>
 
-      {OPPORTUNITY_COUNTIES.length > 1 && (
-        <div className="mb-6 flex flex-wrap gap-2">
-          <Link href="/dashboard/events/opportunities" className={`rounded-full border px-3 py-1 text-xs ${county ? "border-line text-slate hover:border-ink" : "border-ink bg-ink text-paper"}`}>
-            All
-          </Link>
-          {OPPORTUNITY_COUNTIES.map((c) => (
-            <Link
-              key={c}
-              href={`/dashboard/events/opportunities?county=${encodeURIComponent(c)}`}
-              className={`rounded-full border px-3 py-1 text-xs ${county === c ? "border-ink bg-ink text-paper" : "border-line text-slate hover:border-ink"}`}
-            >
-              {c}
-            </Link>
-          ))}
-        </div>
-      )}
+      {(() => {
+        // Build a filter URL preserving the other facet.
+        const href = (next: { county?: string | null; tier?: string | null }) => {
+          const c = next.county === undefined ? county : next.county;
+          const t = next.tier === undefined ? (tierNum ? String(tierNum) : null) : next.tier;
+          const p = new URLSearchParams();
+          if (c) p.set("county", c);
+          if (t) p.set("tier", t);
+          const q = p.toString();
+          return `/dashboard/events/opportunities${q ? `?${q}` : ""}`;
+        };
+        const chip = (active: boolean) =>
+          `rounded-full border px-3 py-1 text-xs ${active ? "border-ink bg-ink text-paper" : "border-line text-slate hover:border-ink"}`;
+        return (
+          <div className="mb-6 space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="mr-1 text-xs font-semibold text-slate">Priority</span>
+              <Link href={href({ tier: null })} className={chip(!tierNum)}>All</Link>
+              {TIERS.map((t) => (
+                <Link key={t} href={href({ tier: String(t) })} className={chip(tierNum === t)}>P{t}</Link>
+              ))}
+            </div>
+            {OPPORTUNITY_COUNTIES.length > 1 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="mr-1 text-xs font-semibold text-slate">County</span>
+                <Link href={href({ county: null })} className={chip(!county)}>All</Link>
+                {OPPORTUNITY_COUNTIES.map((c) => (
+                  <Link key={c} href={href({ county: c })} className={chip(county === c)}>{c}</Link>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       <div className="space-y-3">
         {rows.map((o) => (
           <div key={o.slug} className="flex flex-wrap items-start gap-x-4 gap-y-2 rounded-sm border border-line bg-paper p-4">
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
+                <span className={`rounded-sm px-2 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow ${PRIORITY_BADGE[o.priority]}`}>P{o.priority}</span>
                 <span className="font-semibold text-ink">{o.name}</span>
                 <span className="rounded-sm bg-line px-2 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate">{EVENT_TYPE_LABELS[o.suggestedType]}</span>
               </div>

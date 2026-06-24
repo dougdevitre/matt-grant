@@ -2,10 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireCap } from "@/lib/auth";
 import { getEvent } from "@/lib/events";
-import { EVENT_TYPE_LABELS } from "@/lib/events/types";
+import { EVENT_TYPE_LABELS, type EventPriority } from "@/lib/events/types";
 import { formatEventRange } from "@/lib/events/time";
 import { districtLabel } from "@/lib/events/districts";
 import { getDistrictInsight } from "@/lib/events/insights";
+import { suggestPriority, PRIORITY_LABEL, PRIORITY_BADGE } from "@/lib/events/priority";
 import { listStaff } from "@/lib/staff";
 import { getVolunteers } from "@/lib/queries";
 import { SITE_URL } from "@/lib/site";
@@ -14,7 +15,12 @@ import { EventComposer } from "@/components/dashboard/EventComposer";
 import { DistrictInsightPanel } from "@/components/dashboard/DistrictInsightPanel";
 import { SubmitButton } from "@/components/dashboard/SubmitButton";
 import { ConfirmButton } from "@/components/dashboard/ConfirmButton";
-import { publishEvent, cancelEvent, unpublishEvent, removeEvent, setEventCaptain, addEventVolunteer, removeEventVolunteer } from "../actions";
+import {
+  publishEvent, cancelEvent, unpublishEvent, removeEvent, setEventCaptain, addEventVolunteer, removeEventVolunteer,
+  setEventPriority, toggleChecklistItem, addChecklistItem, removeChecklistItem, assignChecklistItem,
+} from "../actions";
+
+const PRIORITIES: EventPriority[] = [1, 2, 3];
 
 export const dynamic = "force-dynamic";
 
@@ -38,11 +44,14 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     .sort((a, b) => Number(b.status === "ACTIVE") - Number(a.status === "ACTIVE"))
     .map((v) => ({ id: v.id, name: v.name }));
   const selectCls = "w-full rounded-sm border border-line bg-white px-2 py-1.5 text-sm text-ink";
+  const checkDone = event.checklist.filter((c) => c.done).length;
+  const suggestion = suggestPriority({ type: event.type, districtKey: event.districtKey });
 
   return (
     <>
       <Link href="/dashboard/events" className="text-sm text-field underline">← All events</Link>
       <PageHeader kicker={EVENT_TYPE_LABELS[event.type]} title={event.title}>
+        <span className={`rounded-sm px-2 py-1 font-mono text-[0.65rem] uppercase tracking-eyebrow ${PRIORITY_BADGE[event.priority]}`}>P{event.priority}</span>
         <span className="rounded-sm bg-line px-2 py-1 font-mono text-xs uppercase tracking-eyebrow text-slate">{event.status}</span>
       </PageHeader>
 
@@ -104,6 +113,24 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               <dd className="text-ink">{[event.location.name, event.location.address, event.location.city, event.location.county].filter(Boolean).join(", ") || "—"}</dd>
               <dt className="font-semibold text-slate">District</dt>
               <dd className="text-ink">{districtLabel(event.districtKey)}</dd>
+              <dt className="font-semibold text-slate">Priority</dt>
+              <dd className="text-ink">
+                <span className={`mr-2 rounded-sm px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow ${PRIORITY_BADGE[event.priority]}`}>
+                  {PRIORITY_LABEL[event.priority]}
+                </span>
+                <span className="text-xs text-slate">
+                  {event.priorityManual ? "set by hand" : "auto"} · suggested P{suggestion.tier}: {suggestion.reasons.join(", ")}
+                </span>
+                <form action={setEventPriority} className="mt-1 flex items-center gap-2">
+                  <input type="hidden" name="id" value={event.id} />
+                  <select name="priority" defaultValue={String(event.priority)} aria-label="Override priority" className="rounded-sm border border-line bg-white px-2 py-1 text-xs text-ink">
+                    {PRIORITIES.map((p) => (
+                      <option key={p} value={p}>P{p} — {PRIORITY_LABEL[p].split("—")[1].trim()}</option>
+                    ))}
+                  </select>
+                  <SubmitButton pendingText="…" className="btn-ghost px-2.5 py-1 text-xs">Set</SubmitButton>
+                </form>
+              </dd>
               {event.source === "email" && (
                 <>
                   <dt className="font-semibold text-slate">Source</dt>
@@ -181,6 +208,70 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               <SubmitButton pendingText="…" className="btn-ghost px-3 py-1.5 text-sm">Add</SubmitButton>
             </form>
             <p className="mt-3 text-[0.7rem] text-slate">Captains are active admins/captains; volunteers come from your contact roster. Publishing still notifies all captains &amp; volunteers.</p>
+          </div>
+
+          {/* Captain checklist — run-of-show the captain works with volunteers */}
+          <div className="card p-5">
+            <h3 className="font-display text-lg font-semibold text-ink">
+              Checklist <span className="text-sm font-normal text-slate">({checkDone}/{event.checklist.length})</span>
+            </h3>
+            {event.checklist.length > 0 && (
+              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-line" aria-hidden>
+                <div className="h-full bg-field" style={{ width: `${Math.round((checkDone / event.checklist.length) * 100)}%` }} />
+              </div>
+            )}
+            {event.checklist.length === 0 ? (
+              <p className="mt-2 text-sm text-slate">No checklist items.</p>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {event.checklist.map((item) => (
+                  <li key={item.id} className="border-b border-line/60 pb-2">
+                    <div className="flex items-start gap-2">
+                      <form action={toggleChecklistItem} className="mt-0.5">
+                        <input type="hidden" name="id" value={event.id} />
+                        <input type="hidden" name="itemId" value={item.id} />
+                        <SubmitButton
+                          pendingText="…"
+                          aria-label={item.done ? "Mark not done" : "Mark done"}
+                          className={`grid h-5 w-5 shrink-0 place-items-center rounded-full text-[0.7rem] ${item.done ? "bg-field text-paper" : "border-2 border-line text-transparent"}`}
+                        >
+                          ✓
+                        </SubmitButton>
+                      </form>
+                      <span className={`flex-1 text-sm ${item.done ? "text-slate line-through" : "text-ink"}`}>{item.text}</span>
+                      <form action={removeChecklistItem}>
+                        <input type="hidden" name="id" value={event.id} />
+                        <input type="hidden" name="itemId" value={item.id} />
+                        <SubmitButton pendingText="…" className="text-xs text-brick hover:underline">Remove</SubmitButton>
+                      </form>
+                    </div>
+                    <div className="ml-7 mt-1 flex flex-wrap items-center gap-2">
+                      <form action={assignChecklistItem} className="flex items-center gap-1">
+                        <input type="hidden" name="id" value={event.id} />
+                        <input type="hidden" name="itemId" value={item.id} />
+                        <select name="assignee" defaultValue={item.assigneeId ? `${item.assigneeId}|${item.assigneeName ?? ""}` : ""} aria-label={`Assign "${item.text}"`} className="rounded-sm border border-line bg-white px-1.5 py-1 text-xs text-ink">
+                          <option value="">— Owner —</option>
+                          {item.assigneeId && !event.volunteers.some((v) => v.id === item.assigneeId) && (
+                            <option value={`${item.assigneeId}|${item.assigneeName ?? ""}`}>{item.assigneeName}</option>
+                          )}
+                          {event.volunteers.map((v) => (
+                            <option key={v.id} value={`${v.id}|${v.name}`}>{v.name}</option>
+                          ))}
+                        </select>
+                        <SubmitButton pendingText="…" className="text-xs text-field hover:underline">Set</SubmitButton>
+                      </form>
+                      {item.done && item.doneBy && <span className="text-[0.65rem] text-slate">✓ by {item.doneBy}</span>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <form action={addChecklistItem} className="mt-3 flex items-center gap-2">
+              <input type="hidden" name="id" value={event.id} />
+              <input name="text" maxLength={200} placeholder="Add a checklist item…" className={selectCls} />
+              <SubmitButton pendingText="…" className="btn-ghost px-3 py-1.5 text-sm">Add</SubmitButton>
+            </form>
+            <p className="mt-3 text-[0.7rem] text-slate">Seeded from the event type. Assign items to a roster volunteer; the captain checks them off day-of.</p>
           </div>
 
           {/* Sign-ups (staff-only PII) */}
