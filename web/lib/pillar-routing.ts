@@ -1,5 +1,29 @@
 import { pillarForHost } from "./pillars";
 
+const MAIN = "https://mattgrantforcongress.org";
+
+// Vanity subdomains for the four documented priorities. Each is a short marketing
+// alias that 308-redirects to the canonical /issues/<slug> page on the apex — one
+// source of truth, no duplicate content. Labels are intentionally distinct from the
+// resource-pillar labels in lib/pillars.ts (e.g. justice. stays the legal-aid hub).
+// Values MUST match real slugs in lib/issues.ts (asserted by the unit test).
+export const ISSUE_VANITY: Record<string, string> = {
+  courts: "family-courts",
+  limits: "term-limits",
+  lean: "smaller-government",
+  taxes: "lower-taxes",
+};
+
+// Absolute apex URL a vanity issue subdomain should redirect to, or null if the
+// host isn't a vanity label. Path/query are dropped — the alias always lands on the
+// canonical issue page.
+export function issueVanityRedirect(host: string | null | undefined): string | null {
+  if (!host) return null;
+  const label = host.split(":")[0].split(".")[0].toLowerCase();
+  const slug = ISSUE_VANITY[label];
+  return slug ? `${MAIN}/issues/${slug}` : null;
+}
+
 // Pure host→path mapping for the pillar-subdomain rewrite, factored out of
 // middleware.ts so it's unit-testable without the Clerk/edge runtime.
 //

@@ -44,12 +44,34 @@ counsel sign off on committee-hosted resource subdomains before launch.
 
 ## DNS + Amplify (ops, post-merge)
 
-1. In the Amplify app → **Domain management**, add the pillar subdomains pointing at
-   this same app. Use a wildcard `*.mattgrantforcongress.org` if supported for this
-   app; otherwise add each (`education`, `jobs`, …) explicitly.
+1. In the Amplify app → **Domain management**, add the subdomains pointing at this
+   same app. Use a wildcard `*.mattgrantforcongress.org` if supported (covers the 8
+   resource hubs AND the 4 vanity issue subdomains at once); otherwise add each of
+   `education`, `jobs`, `housing`, `food`, `health`, `justice`, `business`,
+   `services`, `courts`, `limits`, `lean`, `taxes` explicitly.
 2. Manage the records in **Route 53** (the apex is moving there per `docs/GO-LIVE.md`).
 3. Verify TLS is issued for each subdomain, then load
    `https://education.mattgrantforcongress.org` and confirm the shared chrome renders.
+
+## Vanity issue subdomains
+
+Short marketing aliases for the four documented priorities **308-redirect** to the
+canonical `/issues/<slug>` page on the apex (no duplicate content). Defined in
+`ISSUE_VANITY` (`lib/pillar-routing.ts`); the redirect is issued by `middleware.ts`
+before the pillar rewrite. Labels are distinct from the resource-pillar labels
+(`justice.` stays the legal-aid hub).
+
+| Subdomain | Redirects to |
+|---|---|
+| `courts.mattgrantforcongress.org` | `/issues/family-courts` |
+| `limits.mattgrantforcongress.org` | `/issues/term-limits` |
+| `lean.mattgrantforcongress.org` | `/issues/smaller-government` |
+| `taxes.mattgrantforcongress.org` | `/issues/lower-taxes` |
+
+These need the same DNS step below (a wildcard `*.mattgrantforcongress.org` covers
+them). They are redirects, so they are intentionally absent from `sitemap.ts`. To
+change a label, edit the `ISSUE_VANITY` map (the unit test enforces that every value
+is a real issue slug and never collides with a resource-pillar label).
 
 ## Add or refresh a pillar
 

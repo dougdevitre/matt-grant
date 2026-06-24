@@ -1,6 +1,15 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
-import { pillarRewritePath } from "@/lib/pillar-routing";
+import { pillarRewritePath, issueVanityRedirect } from "@/lib/pillar-routing";
+
+// Vanity issue subdomains (courts./limits./lean./taxes.) 308-redirect to the
+// canonical /issues/<slug> page on the apex. Returns null for every other host.
+// Runs before the pillar rewrite (the labels never overlap, but redirect-before-
+// rewrite keeps the intent obvious).
+function issueVanity(req: NextRequest): NextResponse | null {
+  const target = issueVanityRedirect(req.headers.get("host"));
+  return target ? NextResponse.redirect(target, 308) : null;
+}
 
 // Pillar subdomains (e.g. education.mattgrantforcongress.org) are served by the
 // same app: rewrite the host's leftmost label to the /pillars/<slug> route group,
@@ -40,6 +49,8 @@ const clerkEnabled =
 // Escape hatch: set ALLOW_OPEN_DASHBOARD=true to intentionally show an open demo.
 export default clerkEnabled
   ? clerkMiddleware(async (auth, req) => {
+      const redirect = issueVanity(req);
+      if (redirect) return redirect;
       const rewrite = pillarRewrite(req);
       if (rewrite) return rewrite;
       if (!isProtectedRoute(req)) return;
@@ -55,6 +66,8 @@ export default clerkEnabled
       return NextResponse.redirect(signIn);
     })
   : (req: NextRequest) => {
+      const redirect = issueVanity(req);
+      if (redirect) return redirect;
       const rewrite = pillarRewrite(req);
       if (rewrite) return rewrite;
       const isProd = process.env.NODE_ENV === "production";
