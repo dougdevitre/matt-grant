@@ -16,6 +16,9 @@ export const CATEGORIES: Record<Category, { label: string; color: string; blurb:
   polling: { label: "Polling places", color: "#0F2540", blurb: "Vote locations — load the official county GIS layer." },
 };
 
+// Events layer marker color (distinct from the POI categories above). Field green.
+export const EVENT_COLOR = "#2f7d4f";
+
 export type Poi = { name: string; category: Category; lng: number; lat: number; note?: string };
 
 export const POIS: Poi[] = [

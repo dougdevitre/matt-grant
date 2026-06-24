@@ -10,6 +10,8 @@ const base: EventRow = {
   end: "2026-07-13T01:00:00.000Z", // 8:00 PM CDT (same Central day)
   allDay: false,
   location: { name: "City Park", address: "1 Main St", city: "Chesterfield", county: "St. Louis County" },
+  lat: null,
+  lng: null,
   districtKey: "place:chesterfield",
   description: "Line one\nLine two",
   status: "PUBLISHED",

@@ -153,7 +153,7 @@ describe("toPublicEvent", () => {
   it("strips signup PII to aggregate counts", () => {
     const e = {
       id: "e", title: "T", type: "rally", start: "2026-07-12T23:00:00.000Z", end: null,
-      location: { name: "", address: "", city: "", county: "" }, districtKey: "district:mo-02",
+      location: { name: "", address: "", city: "", county: "" }, lat: null, lng: null, districtKey: "district:mo-02",
       description: "", status: "PUBLISHED", capacity: 10,
       signups: [
         { id: "1", name: "A", email: "a@x.org", phone: null, role: null, count: 2, createdAt: "" },

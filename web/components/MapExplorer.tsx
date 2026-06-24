@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
-import { CATEGORIES, POIS, PRECINCTS, type Category } from "@/lib/mapData";
+import { CATEGORIES, EVENT_COLOR, POIS, PRECINCTS, type Category } from "@/lib/mapData";
 
 // MapLibre touches window/WebGL — load client-only.
 const RegionMap3D = dynamic(() => import("@/components/RegionMap3D"), {
@@ -38,6 +38,9 @@ export function MapExplorer() {
   const [extra, setExtra] = useState<GeoJSON.FeatureCollection>(emptyFC);
   const [extraCount, setExtraCount] = useState<number | null>(null);
   const [showExtra, setShowExtra] = useState(true);
+  const [events, setEvents] = useState<GeoJSON.FeatureCollection>(emptyFC);
+  const [eventCount, setEventCount] = useState<number | null>(null);
+  const [showEvents, setShowEvents] = useState(true);
 
   // Pull live layers (real St. Louis County polling places + precinct turnout) on mount.
   useEffect(() => {
@@ -77,6 +80,15 @@ export function MapExplorer() {
         setExtraCount(fc.meta?.count ?? 0);
       })
       .catch(() => !cancelled && setExtraCount(0));
+
+    fetch("/api/geo/events")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((fc) => {
+        if (cancelled) return;
+        setEvents({ type: "FeatureCollection", features: fc.features });
+        setEventCount(fc.meta?.count ?? 0);
+      })
+      .catch(() => !cancelled && setEventCount(0));
 
     return () => {
       cancelled = true;
@@ -177,6 +189,15 @@ export function MapExplorer() {
             <input type="checkbox" checked={showExtra} onChange={() => setShowExtra((v) => !v)} />
           </label>
           <p className="mt-1 text-xs text-slate">Washington, Crawford, Gasconade — Census 2020 VTDs. Zoom out to see them.</p>
+          <label className="mt-4 flex cursor-pointer items-center justify-between text-sm">
+            <span className="font-semibold text-ink">
+              <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: EVENT_COLOR }} aria-hidden />
+              Events
+              {eventCount ? <span className="ml-2 font-mono text-xs text-slate">{eventCount}</span> : null}
+            </span>
+            <input type="checkbox" checked={showEvents} onChange={() => setShowEvents((v) => !v)} />
+          </label>
+          <p className="mt-1 text-xs text-slate">Appearances with a located address. Green = published, gold = draft. Click a marker to open the event.</p>
           <p className="mt-3 border-t border-line pt-3 text-xs text-slate">
             Drag to pan · right-drag to tilt/rotate · scroll to zoom.
           </p>
@@ -208,6 +229,8 @@ export function MapExplorer() {
           showJefferson={showJefferson}
           extraCounties={extra}
           showExtra={showExtra}
+          events={events}
+          showEvents={showEvents}
         />
       </div>
     </div>

@@ -17,6 +17,8 @@ type Fields = {
   locAddress: string;
   locCity: string;
   locCounty: string;
+  lat: string;
+  lng: string;
   description: string;
   capacity: string;
 };
@@ -32,6 +34,8 @@ function fromRow(e?: EventRow): Fields {
     locAddress: e?.location.address ?? "",
     locCity: e?.location.city ?? "",
     locCounty: e?.location.county ?? "",
+    lat: e?.lat != null ? String(e.lat) : "",
+    lng: e?.lng != null ? String(e.lng) : "",
     description: e?.description ?? "",
     capacity: e?.capacity != null ? String(e.capacity) : "",
   };
@@ -171,6 +175,17 @@ export function EventComposer({ initial }: { initial?: EventRow }) {
         <div>
           <label className={label} htmlFor="ev-loccounty">County (optional)</label>
           <input id="ev-loccounty" className={input} value={f.locCounty} onChange={(e) => set("locCounty", e.target.value)} placeholder="St. Louis County" />
+        </div>
+        <div className="sm:col-span-2 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className={label} htmlFor="ev-lat">Latitude (optional)</label>
+            <input id="ev-lat" type="number" step="any" className={input} value={f.lat} onChange={(e) => set("lat", e.target.value)} placeholder="auto from address" />
+          </div>
+          <div>
+            <label className={label} htmlFor="ev-lng">Longitude (optional)</label>
+            <input id="ev-lng" type="number" step="any" className={input} value={f.lng} onChange={(e) => set("lng", e.target.value)} placeholder="auto from address" />
+          </div>
+          <p className="text-xs text-slate sm:col-span-2">Leave blank to auto-locate from the address (US Census geocoder). Set both to pin the map marker manually.</p>
         </div>
         <div className="sm:col-span-2">
           <label className={label} htmlFor="ev-desc">Description</label>
