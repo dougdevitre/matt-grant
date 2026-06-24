@@ -152,6 +152,7 @@ Load only what is needed for the current task:
 | `candidate/profile.md` | User asks about Matt Grant, his bio, career, values, contact info, or how to donate |
 | `candidate/platform.md` | User asks about Matt Grant's priorities, positions, or the CHILD Protection Act |
 | `candidate/strategic-plan.md` | User asks how Matt Grant plans to win MO-02 — theory of victory, timeline, fundraising/field targets, GOTV, messaging |
+| `candidate/captain-field-plan.md` | User asks how Matt Grant organizes his MO-02 field team — captain coverage by county, which archetypes to deploy where, volunteer→supporter pipeline targets. Applies `tactics/captain-archetypes.md` to the real district; counts are illustrative placeholders |
 | `candidate/library-print-and-produce-guide.md` | User (or a supporter) asks how to print campaign materials, make yard/window signs, banners, swag, or video, where to print cheaply, or how to post/distribute materials legally — covers St. Louis County Library mobile printing + creative lab and Missouri sign/electioneering rules |
 | `candidate/absentee-voting-guide.md` | User (or a supporter/voter) asks how to vote early, vote absentee, or vote by mail in MO-02 for the August 4, 2026 primary — covers the three voting options, deadlines, notary rules, the absentee application walkthrough, photo ID, and the St. Louis County / St. Charles County election authorities. Mirrors the `/vote/absentee` page on the campaign site |
 
@@ -225,6 +226,7 @@ Load only what is needed for the current task:
 | File | Load When |
 |---|---|
 | `tools/contribution-tracker.md` | User needs a data schema for tracking donations (CSV/JSON), or needs limit-check logic |
+| `tools/captain-roster.md` | User needs a data schema (CSV/JSON) to store the field-leadership roster — captains, archetypes, roles, co-captains, volunteers, and supporter-pipeline targets. The storable form of the `workflows/team-pairing.md` worksheet |
 | `tools/expenditure-tracker.md` | User needs a data schema for tracking spending (CSV/JSON), or budget tracking template |
 | `tools/disclaimer-generator.md` | User needs to generate "Paid for by" text for print, TV, radio, digital, or email communications |
 | `tools/print-tracker.md` | User asks what the campaign prints, which template produces a given printed piece, the print queue/inventory/status, or whether a piece needs a disclaimer — a letter-sized print tracker mapping every item to its template |

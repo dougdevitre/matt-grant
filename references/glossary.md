@@ -32,6 +32,8 @@ Concise definitions of 65+ terms commonly encountered in US political campaigns.
 
 **Disclaimer** -- A legally required notice on campaign communications identifying who paid for them (e.g., "Paid for by Smith for Congress").
 
+**Donor Ambassador** -- A trusted, networked volunteer who introduces and gathers contributions from their own network (a form of legal bundling). The top rung of the volunteer-to-donor pipeline; reimbursing them for a contribution would be an illegal straw-donor scheme.
+
 **Earmarking** -- Directing a contribution to a specific candidate through an intermediary or conduit.
 
 **Earned Media** -- Press coverage obtained through newsworthy events, press releases, or public statements rather than paid advertising.
@@ -83,6 +85,8 @@ Concise definitions of 65+ terms commonly encountered in US political campaigns.
 **Primary Election** -- An election in which voters select their party's nominee for the general election. May be open (any voter), closed (registered party members only), or semi-open.
 
 **Principal Campaign Committee** -- The main authorized committee of a candidate, designated to receive contributions and make expenditures on the candidate's behalf.
+
+**Regional Coordinator** -- A field-organization layer above team captains, responsible for a geographic area (e.g., a county) and the captains working within it. Reports to the campaign manager or field director.
 
 **Residency Requirement** -- The legal requirement that a candidate reside within the jurisdiction of the office sought, for a specified period before the election.
 

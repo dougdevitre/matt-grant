@@ -5,6 +5,7 @@ Interactive utilities for tracking, checking, and generating campaign artifacts.
 ## Files
 
 - [campaign-tech-stack.md](campaign-tech-stack.md) -- Recommended technology organized by budget tier with free alternatives
+- [captain-roster.md](captain-roster.md) -- CSV/JSON schema for the field-leadership roster: captains, archetypes, roles, co-captains, volunteers, and supporter-pipeline targets
 - [contribution-tracker.md](contribution-tracker.md) -- Data management system for tracking donations, ensuring compliance, and generating filing exports
 - [disclaimer-generator.md](disclaimer-generator.md) -- Generate legally compliant "Paid for by" disclaimers for every medium
 - [donor-limit-checker.md](donor-limit-checker.md) -- Decision tree to determine if a donor can legally contribute more
