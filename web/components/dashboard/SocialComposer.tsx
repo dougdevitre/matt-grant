@@ -6,6 +6,7 @@ import { schedulePost, type ActionState } from "@/app/dashboard/social/actions";
 import { CHANNELS, CHANNEL_IDS, type ChannelId } from "@/lib/social/channels";
 import { scoreContent, type Severity } from "@/lib/social/optimize";
 import { AssetPicker, type PickerAsset } from "@/components/dashboard/AssetPicker";
+import { trimHeadline } from "@/lib/social/headline";
 
 type LibraryPost = {
   id: string;
@@ -59,7 +60,7 @@ export function SocialComposer({ library }: { library: LibraryPost[] }) {
   // the disclaimer requirement; otherwise it must be in the copy.
   const hasDisclaimer = attachGraphic || disclaimerInCopy;
   const graphicUrl = useMemo(() => {
-    const headline = (caption.split("\n")[0] || "Matt Grant for Congress").slice(0, 80);
+    const headline = trimHeadline(caption.split("\n")[0] || "Matt Grant for Congress", 70);
     const fmt = channels[0] ? CHANNELS[channels[0]].imageFormat : "ig_square";
     return `/api/graphics?${new URLSearchParams({ format: fmt, theme: "navy", headline, sub: "Matt Grant for Congress" }).toString()}`;
   }, [caption, channels]);
