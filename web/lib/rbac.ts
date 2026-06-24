@@ -65,6 +65,7 @@ export type Capability =
   | "viewFinanceTotals" // read-only finance + donor totals
   | "draftEmailCampaign"
   | "draftSms" // compose SMS broadcasts (captain may draft)
+  | "messageIndividuals" // 1:1 SMS inbox: text individuals, reply, moderate, register texters
   // admin only
   | "editFinance"
   | "viewDonorDetail" // full donor list incl. PII / editing
@@ -97,6 +98,7 @@ const MATRIX: Record<Role, Capability[]> = {
     "viewFinanceTotals",
     "draftEmailCampaign",
     "draftSms",
+    "messageIndividuals",
     "editFinance",
     "viewDonorDetail",
     "viewCompliance",
@@ -122,6 +124,7 @@ const MATRIX: Record<Role, Capability[]> = {
     "viewFinanceTotals",
     "draftEmailCampaign",
     "draftSms",
+    "messageIndividuals",
     "viewPeaceRoom",
     "contributePeaceRoom",
     "viewCommunity",
