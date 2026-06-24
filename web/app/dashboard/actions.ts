@@ -141,6 +141,29 @@ export async function markVolunteerContacted(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
+// Update just the freeform notes on a volunteer (the detail page's notes editor).
+// Notes are clearable, so an empty submission unsets them rather than no-op'ing.
+// `notes` is aliased (#n) defensively in case it ever collides with a reserved word.
+export async function updateVolunteerNotes(formData: FormData) {
+  await authorize("manageVolunteers");
+  requireDb();
+  const id = str(formData, "id");
+  if (!id) return;
+  const notes = String(formData.get("notes") ?? "").trim().slice(0, 2000) || null;
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: PK.volunteers, SK: id },
+      UpdateExpression: "SET #n = :n",
+      ExpressionAttributeNames: { "#n": "notes" },
+      ExpressionAttributeValues: { ":n": notes },
+    }),
+  );
+  revalidatePath(`/dashboard/volunteers/${id}`);
+  revalidatePath("/dashboard/volunteers");
+  revalidatePath("/dashboard");
+}
+
 export async function addTask(formData: FormData) {
   await authorize("manageTasks");
   requireDb();
