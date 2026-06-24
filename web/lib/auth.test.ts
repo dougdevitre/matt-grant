@@ -24,9 +24,16 @@ function enableClerk() {
   process.env.CLERK_SECRET_KEY = "sk_test_x";
 }
 
-async function gateWith({ user, dbRole }: { user?: unknown; dbRole?: string | null } = {}) {
+async function gateWith({
+  user,
+  dbRole,
+  viewAs,
+}: { user?: unknown; dbRole?: string | null; viewAs?: string } = {}) {
   vi.doMock("@clerk/nextjs/server", () => ({ currentUser: async () => user ?? null }));
   vi.doMock("@/lib/staff", () => ({ staffRole: async () => dbRole ?? null }));
+  vi.doMock("next/headers", () => ({
+    cookies: async () => ({ get: (name: string) => (viewAs && name === "mg_view_as" ? { value: viewAs } : undefined) }),
+  }));
   const { staffGate } = await import("@/lib/auth");
   return staffGate();
 }
@@ -38,7 +45,7 @@ const userWith = (email: string, role?: string) => ({
 
 describe("staffGate role resolution", () => {
   it("demo mode (no Clerk) → admin, open", async () => {
-    expect(await gateWith()).toEqual({ ok: true, email: null, role: "admin" });
+    expect(await gateWith()).toEqual({ ok: true, email: null, role: "admin", actualRole: "admin", viewingAs: null });
   });
 
   it("env allowlist wins → admin (case-insensitive)", async () => {
@@ -63,7 +70,7 @@ describe("staffGate role resolution", () => {
   it("denies a signed-in user who is in none of the sources", async () => {
     enableClerk();
     const g = await gateWith({ user: userWith("nobody@x.co"), dbRole: null });
-    expect(g).toEqual({ ok: false, email: "nobody@x.co", role: null });
+    expect(g).toEqual({ ok: false, email: "nobody@x.co", role: null, actualRole: null, viewingAs: null });
   });
 
   it("fails closed: empty allowlist does NOT grant everyone admin", async () => {
@@ -78,5 +85,44 @@ describe("staffGate role resolution", () => {
     process.env.ALLOW_OPEN_DASHBOARD = "true";
     const g = await gateWith({ user: userWith("anyone@x.co") });
     expect(g).toMatchObject({ ok: true, role: "admin" });
+  });
+});
+
+describe("staffGate view-as preview", () => {
+  it("admin + view-as cookie → effective role is the preview, actualRole stays admin", async () => {
+    enableClerk();
+    process.env.DASHBOARD_ALLOWLIST = "boss@x.co";
+    const g = await gateWith({ user: userWith("boss@x.co"), viewAs: "member" });
+    expect(g).toMatchObject({ ok: true, role: "member", actualRole: "admin", viewingAs: "member" });
+  });
+
+  it("SECURITY: a non-admin's view-as cookie is ignored — no escalation", async () => {
+    enableClerk();
+    // Real role is member (via metadata); cookie tries to escalate to captain.
+    const g = await gateWith({ user: userWith("m@x.co", "member"), viewAs: "captain" });
+    expect(g.role).toBe("member"); // cookie had no effect
+    expect(g.actualRole).toBe("member");
+    expect(g.viewingAs).toBeNull();
+  });
+
+  it("ignores a view-as cookie of 'admin' (that's the exit, not a preview)", async () => {
+    enableClerk();
+    process.env.DASHBOARD_ALLOWLIST = "boss@x.co";
+    const g = await gateWith({ user: userWith("boss@x.co"), viewAs: "admin" });
+    expect(g).toMatchObject({ role: "admin", viewingAs: null });
+  });
+
+  it("ignores an invalid view-as cookie value", async () => {
+    enableClerk();
+    process.env.DASHBOARD_ALLOWLIST = "boss@x.co";
+    const g = await gateWith({ user: userWith("boss@x.co"), viewAs: "wizard" });
+    expect(g).toMatchObject({ role: "admin", viewingAs: null });
+  });
+
+  it("admin with no cookie → no preview", async () => {
+    enableClerk();
+    process.env.DASHBOARD_ALLOWLIST = "boss@x.co";
+    const g = await gateWith({ user: userWith("boss@x.co") });
+    expect(g).toMatchObject({ role: "admin", actualRole: "admin", viewingAs: null });
   });
 });
