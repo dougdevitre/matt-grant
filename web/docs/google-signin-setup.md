@@ -27,10 +27,13 @@ In the Clerk dashboard → **User & Authentication → SSO Connections → Add c
 
 1. **Google Cloud Console** → select your project (the same one as YouTube is fine).
 2. **APIs & Services → OAuth consent screen** → configure if not already: User type **External**, app name, support + developer email. Scopes are the defaults `openid`, `email`, `profile` — **no restricted scopes, no audit needed**. Publish the consent screen so it isn't limited to test users.
-3. **APIs & Services → Credentials → Create credentials → OAuth client ID** → **Web application**. Name it e.g. *Clerk Sign-in* (keep it distinct from the YouTube posting client).
-4. **Clerk dashboard** → **SSO Connections → Add connection → For all users → Google** → toggle **Use custom credentials**. Clerk reveals an **Authorized Redirect URI** — **copy it**.
-5. Paste that URI into the Google client's **Authorized redirect URIs** and save.
-6. Back in Clerk, paste the Google **Client ID** + **Client Secret**; scopes `openid email profile`. **Save.**
+3. **APIs & Services → Credentials → Create credentials → OAuth client ID** → **Web application**. Name it e.g. *Clerk Sign-in* (keep it distinct from the YouTube posting client). Under **Authorized redirect URIs** add Clerk's callback — for this production instance it is:
+   ```
+   https://clerk.mattgrantforcongress.org/v1/oauth_callback
+   ```
+   (Clerk shows the exact value on the Google SSO connection screen; production **requires** custom credentials.)
+4. Create → copy the Google **Client ID** + **Client Secret**.
+5. **Clerk dashboard** → **SSO Connections → Google** → toggle **Use custom credentials** → paste the **Client ID** + **Client Secret** (scopes are the default `openid`, `email`, `profile`) → enable **for sign-up and sign-in** → **Save.**
 
 The Google button now appears on `/sign-in` and `/sign-up`.
 
