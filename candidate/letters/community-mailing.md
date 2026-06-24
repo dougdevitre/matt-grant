@@ -89,7 +89,7 @@ To adjust the logic, edit the segment paragraphs/asks in `tools/pdf-letterhead/c
 
 ## Real batch loaded — Local & Civic (MO House + St. Charles County)
 
-The canonical **real** CIVIC list is [`civic-targets.csv`](civic-targets.csv): **34 officials** = 26 state House members + 8 St. Charles County officials. Generate the real Local & Civic PDF with:
+The canonical **real** CIVIC list is [`civic-targets.csv`](civic-targets.csv): **37 officials** = 26 state House members + 8 St. Charles County officials + 3 St. Louis County council members. Generate the real Local & Civic PDF with:
 
 ```bash
 cd tools/pdf-letterhead
@@ -101,7 +101,11 @@ python3 community_mailing.py ../../candidate/letters/civic-targets.csv
 
 **Component 2 — St. Charles County (8)** — County Executive **Steve Ehlmann** + the seven County Council members (D1 Matt Swanson, D2 Joe Brazil, D3 Mike Elam, D4 Dave Hammond, D5 Terry Hollander, D6 Patti York, D7 Timothy Baker), sourced from the official `sccmo.org` member pages and council journal. Addressed at the County Administration Building, 201 N. Second Street, St. Charles, MO 63301. Executive + Council Chair (Elam)/Vice-Chair (Swanson) set to `ask_tier=A`.
 
-> **VERIFY BEFORE MAILING:** (1) **MO-02 overlap** — mo-gov's House county ranges are approximate with **no MO-02 mapping**; confirm against the enacted congressional map (some House districts may fall in **MO-01**). St. Charles County sits within MO-02. (2) **Add House room numbers** from house.mo.gov/MemberRoster.aspx. (3) **Re-confirm the St. Charles roster, leadership roles, and the County Administration Building address** on sccmo.org — and note **2026 is an election year** for the County Executive, so re-verify after November. (4) Re-check for new House vacancies. (5) Optionally promote House committee chairs (D94 Murphy, D96 Christ, D97 Casteel, D101 Keathley, D103 Hinman) to `ask_tier=A`.
+**Component 3 — St. Louis County council (3)** — the west/south council members whose districts overlap MO-02: **D7 Mark Harder** (West County — Chesterfield/Ballwin/Wildwood), **D3 Dennis Hancock** (Southwest — Fenton/Eureka/Valley Park), **D6 Michael Archer** (South County). Addressed at the St. Louis County Government Building, 41 S. Central Ave., Clayton, MO 63105. All `ask_tier=B`. **County Executive Sam Page is excluded** (lame duck — not seeking re-election — and under indictment as of 2026); add only if the campaign chooses. North-county council seats (D1 Days, D2 Bangert, D4 Webb) are in **MO-01** and excluded.
+
+**Component 4 — Municipal mayors — DEFERRED.** Mayors of the largest MO-02 cities (O'Fallon, St. Peters, St. Charles, Wentzville; Chesterfield, Wildwood, Ballwin) are **not yet included**: the **April 7, 2026 municipal elections** just occurred and several seats changed (e.g., Chesterfield's Bob Nation stepped down), so current names could not be confirmed without risking errors. Source these from each City Hall / Ballotpedia and add them with `salutation=Mayor`, `title=Mayor`, `organization=City of <Name>, Missouri` before mailing.
+
+> **VERIFY BEFORE MAILING:** (1) **MO-02 overlap** — mo-gov's House county ranges and the STL County council districts are approximate; confirm against the enacted congressional map (some House districts may fall in **MO-01**). St. Charles County sits within MO-02. (2) **Add House room numbers** from house.mo.gov/MemberRoster.aspx. (3) **Re-confirm the St. Charles roster, leadership roles, and the County Administration Building address** on sccmo.org — and note **2026 is an election year** for the County Executive, so re-verify after November. (4) **Re-confirm the St. Louis County council members and the Clayton address** on stlouiscountymo.gov. (5) Re-check for new House vacancies. (6) Source and add the deferred municipal mayors (Component 4). (7) Optionally promote House committee chairs (D94 Murphy, D96 Christ, D97 Casteel, D101 Keathley, D103 Hinman) to `ask_tier=A`.
 
 ---
 
