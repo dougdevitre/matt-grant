@@ -86,7 +86,20 @@ the inventory you update when adding a source.
 
 ## Reference slice
 
-The print/CSV path is the worked example: `candidate/letters/print-tracker.csv` →
+The print/CSV path is the canonical worked example: `candidate/letters/print-tracker.csv` →
 `web/scripts/generate-print-tracker.ts` (shared parser) → `web/lib/printTracker.json`
 → `lib/data/printTracker.ts` (`loadCsvManifest`) → `app/dashboard/print/page.tsx`
 (renders from the `Resource`). Copy it when wiring a new source.
+
+## Live adopters
+
+All three kinds are now on the pattern — copy the closest one:
+
+- **CSV** — print tracker (above).
+- **Geo** — all four `app/api/geo/*` routes are `export const GET = geoRoute({…})`; the
+  fetcher returns `{ fc, meta }` (route-specific meta merges onto the base provenance), and
+  `components/MapExplorer.tsx` reads all four through `useResource` (live/sample/count from `meta`).
+- **API** — `app/api/print/products/route.ts` uses `loadApi` (degrades to an empty catalog when
+  `WALGREENS_*` is unset); `components/PrintStudio.tsx` loads it via `useResource`. The imperative
+  store-finder/order-submit stay as raw fetch — they're user actions, not declarative loads.
+  `app/api/research/census/route.ts` also returns a `Resource` (ready for a future demographics panel).

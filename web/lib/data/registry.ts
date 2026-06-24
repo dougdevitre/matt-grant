@@ -50,7 +50,7 @@ export const SOURCES: SourceEntry[] = [
     endpoint: "/api/print/products",
     enabledEnv: ["WALGREENS_API_KEY", "WALGREENS_AFF_ID"],
     cache: "no-store",
-    note: "Product catalog, store finder, order submit. Degrades to download-only when unset.",
+    note: "Product catalog (on the Resource layer via loadApi) + store finder + order submit. Degrades to download-only when unset.",
   },
   {
     id: "census",
@@ -60,7 +60,7 @@ export const SOURCES: SourceEntry[] = [
     endpoint: "/api/research/census",
     enabledEnv: ["CENSUS_API_KEY"],
     cache: "public, max-age=3600",
-    note: "Demographics; works at low volume without a key.",
+    note: "Demographics; works at low volume without a key. On the Resource layer (no UI consumer yet).",
   },
   {
     id: "fec",
