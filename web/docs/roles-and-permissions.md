@@ -72,3 +72,42 @@ Roles & Permissions because: Clerk's org-permission model expresses a rich 25-ca
 gate, invite, the webhook, and the view-as preview for little gain (the capability matrix would stay in
 code regardless). If Clerk-dashboard visibility is wanted later, mirror the role into a Clerk Organization
 role for display only — without moving *enforcement* off the code matrix.
+
+## Consistency across layers (and how to audit it)
+A user's role touches five layers. The key property: every read **resolves through `asRole()`**, so the
+*effective* role is identical across front-end, back-end, and database even though the **raw stored
+strings were never migrated** (a legacy `member`/`organizer` row resolves to `volunteer` everywhere, but
+the literal value on disk is unchanged). So "consistent" means two different things per layer:
+
+| Layer | Where the role comes from | Should match the user's *current* role? |
+|---|---|---|
+| **Front-end** (nav, RoleSwitcher, badges, `/my-giving` gate) | `rbac.ts` + `asRole(publicMetadata.role)` | Yes — resolved |
+| **Back-end** (`can()` / `requireCap` / `staffGate`) | `asRole(Clerk role)` → capability | Yes — resolved |
+| **Database — `STAFF` row** (`lib/staff.ts`) | raw `role` attr (may be a legacy literal) | Yes on resolve; raw may be stale |
+| **Database — `DONOR` / `PROFILE` rows** | *no role stored* — donor tier is **derived** from net gifts (`donorStatus.ts`) | N/A |
+| **Clerk `publicMetadata.role`** | raw string — the runtime **source of truth** (`auth.ts` reads it first) | Yes on resolve; raw may be stale |
+| **Logs — `AUDIT#access` / `#preview`** (`lib/audit.ts`) | `role`/`prevRole` snapshots at the time of the action | **No — append-only history.** Old entries keep old role names by design; never "migrate" them. |
+
+Two drift risks that resolve-on-read hides:
+- **Clerk ↔ DynamoDB desync.** `setMemberRole`/`revokeStaff` write DynamoDB first, then call the
+  best-effort `setClerkRoleByEmail`/`clearClerkRoleByEmail` (which **never throw**). A silent Clerk
+  failure leaves the read source (Clerk) stale while the `STAFF` fallback has the new value.
+- **Donors are Clerk-only by design.** A `donor` has a `publicMetadata.role` but **no `STAFF` row**
+  (their tier is computed from contributions). That is expected, not drift — the audit must not flag it.
+
+**To audit (read-only — neither script writes):**
+- `node scripts/audit-roles.mjs` (`CLERK_SECRET_KEY` + `DYNAMODB_TABLE` + AWS creds) — reconciles **per
+  email** across Clerk + `STAFF` + `DONOR`, flagging Clerk↔staff mismatches, stale raw literals, orphan
+  rows, and donor-tier anomalies, and prints the last few audit-log entries as history (FYI only).
+- `node scripts/list-clerk-roles.mjs` — tallies `publicMetadata.role` across all Clerk users.
+
+**Guardrails that keep it from re-drifting** (fail the build):
+- `lib/roles-consistency.test.ts` — legacy names (`member`/`organizer`) as string literals exist only in
+  `rbac.ts`, and `audit-roles.mjs`'s mirrored role lists stay in sync with `rbac.ts`.
+- `lib/rbac.test.ts` — every role has a label/blurb/badge, the role subsets are correct, and the
+  capability matrix + isolation walls hold.
+
+If the audit surfaces stale raw values or a Clerk↔staff mismatch, the fix is a one-off **normalization**
+(re-stamp the canonical string into Clerk + `STAFF`; safe because reads already coerce) and/or surfacing
+the best-effort Clerk-write failure in the team actions — neither is needed until the audit shows a real
+discrepancy.
