@@ -153,6 +153,7 @@ Load only what is needed for the current task:
 | `candidate/platform.md` | User asks about Matt Grant's priorities, positions, or the CHILD Protection Act |
 | `candidate/strategic-plan.md` | User asks how Matt Grant plans to win MO-02 — theory of victory, timeline, fundraising/field targets, GOTV, messaging |
 | `candidate/library-print-and-produce-guide.md` | User (or a supporter) asks how to print campaign materials, make yard/window signs, banners, swag, or video, where to print cheaply, or how to post/distribute materials legally — covers St. Louis County Library mobile printing + creative lab and Missouri sign/electioneering rules |
+| `candidate/absentee-voting-guide.md` | User (or a supporter/voter) asks how to vote early, vote absentee, or vote by mail in MO-02 for the August 4, 2026 primary — covers the three voting options, deadlines, notary rules, the absentee application walkthrough, photo ID, and the St. Louis County / St. Charles County election authorities. Mirrors the `/vote/absentee` page on the campaign site |
 
 **Core reference files:**
 

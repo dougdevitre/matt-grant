@@ -26,6 +26,38 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-06-24 -- Absentee & Early Voting Guide
+
+**Changes:**
+- [added] candidate/absentee-voting-guide.md -- supporter/voter guide to voting early or absentee in MO-02 for the Aug 4, 2026 primary: the three voting options (no-excuse early in person, absentee by mail, absentee in person), the dates table, the six excuse reasons, the notary rule (#1/#3/#4 require notarization; #2/#6 exempt), the online application walkthrough, photo-ID list, and the St. Louis County / St. Charles County election authorities; carries staleness + educational disclaimers and a Mermaid decision flow
+- [added] web/app/(site)/vote/absentee/page.tsx -- new `/vote/absentee` page on the campaign site rendering the same guide content (dates table, three options, qualification reasons, application arc, photo ID, county authorities), with prominent outbound links to the official Missouri SOS voting-rules page and the county authorities
+- [updated] web/app/(site)/vote/page.tsx -- step 3 "Vote early or absentee" CTA now points to the internal `/vote/absentee` page (was the external SOS go-vote page); added a secondary "Official Missouri voting rules" link to the prior SOS go-vote page so the voting-rules page it replaced stays reachable
+- [updated] SKILL.md -- candidate-files load-when row for the absentee voting guide
+- [updated] INDEX.md -- "I need to contact voters" section entry
+- [updated] commands/commands.md -- `/voteabsentee` command in GOTV & Events
+
+**Verifications Performed:**
+- Dates/deadlines verified June 24, 2026 against the Missouri SOS and the St. Louis County / St. Charles County election authorities: register July 8; excuse-based absentee opens ~June 23; by-mail application received by 5 p.m. July 22; no-excuse early in-person voting July 21–Aug 3; voted ballot received by 7 p.m. Aug 4 — all confirmed
+- Notary rules corrected: incarceration (#5) is notary-exempt (was omitted) alongside illness/disability (#2) and Safe at Home (#6), plus permanently disabled and covered military/overseas voters; reasons #1/#3/#4 generally require notarization, with a caveat added to confirm with the county authority (county sources vary on #1/#4). Applied to both the markdown guide and the `/vote/absentee` page
+- Web typecheck (`tsc --noEmit`) and `next lint` pass clean for both vote pages; both routes render HTTP 200 on a local dev server
+- Internal cross-references (SKILL.md, INDEX.md, commands.md) confirmed to point to the new file path
+
+**Known Gaps:**
+- Early-voting site lists and county hours are samples — the guide and page both direct voters to stlouiscountymovotes.gov / sccmo.org to confirm
+- Skill markdown (candidate/absentee-voting-guide.md) is not a served web route; the served voter-facing version is the `/vote/absentee` page
+- The campaign FEC disclaimer line in the markdown guide is a placeholder pending committee/treasurer confirmation
+
+**Files Modified:**
+- candidate/absentee-voting-guide.md
+- web/app/(site)/vote/absentee/page.tsx
+- web/app/(site)/vote/page.tsx
+- SKILL.md
+- INDEX.md
+- commands/commands.md
+- references/update-log.md
+
+---
+
 ## 2026-06-24 -- Print Production Tracker
 
 **Changes:**

@@ -133,6 +133,7 @@ Instant-generation triggers. When a user types any of these commands, generate t
 | Command | Output |
 |---|---|
 | `/gotvplan` | Complete GOTV operations plan for the final 2 weeks |
+| `/voteabsentee` | Step-by-step absentee/early-voting guide for the MO-02 Aug 4, 2026 primary — three voting options, deadlines, notary rules, application walkthrough, photo ID, and county election authorities, sourced from `candidate/absentee-voting-guide.md` (mirrors the `/vote/absentee` page on the campaign site) |
 | `/electionday` | Election day operations timeline (5 AM to polls close) |
 | `/rallyrunofshow` | Rally or large event run-of-show document |
 | `/townhall` | Town hall event plan (format, logistics, Q&A prep) |
