@@ -40,6 +40,7 @@ const GROUPS: Group[] = [
       { href: "/dashboard/assets", label: "Assets", icon: "assets", cap: "manageAssets" },
       { href: "/dashboard/emails", label: "Email", icon: "campaign", cap: "draftEmailCampaign" },
       { href: "/dashboard/sms", label: "Text blasts", icon: "campaign", cap: "draftSms" },
+      { href: "/dashboard/messages", label: "Inbox", icon: "campaign", cap: "messageIndividuals" },
       { href: "/dashboard/social", label: "Social", icon: "social", cap: "manageSocial" },
     ],
   },

@@ -1,5 +1,6 @@
 import { getVolunteers } from "@/lib/queries";
 import { optedInSet } from "@/lib/sms/consent";
+import { listBlocked } from "@/lib/sms/moderation";
 import { toE164 } from "@/lib/sms/send";
 
 // Resolve SMS broadcast recipients. Unlike email, the audience is gated on
@@ -23,16 +24,21 @@ export function smsAudienceLabel(groups: SmsGroup[]): string {
   return groups.map((g) => SMS_GROUP_LABELS[g]).join(" + ") || "—";
 }
 
-// E.164 phones from the chosen groups, filtered to opted-in and de-duplicated.
+// E.164 phones from the chosen groups, filtered to opted-in, minus blocked
+// numbers, and de-duplicated. (The drain re-checks opt-in + block at send too.)
 export async function resolveSmsRecipients(groups: SmsGroup[]): Promise<string[]> {
-  const opted = await optedInSet();
+  const [opted, blocked] = await Promise.all([optedInSet(), listBlocked()]);
+  const blockedSet = new Set(blocked.map((b) => b.phone));
   const out = new Set<string>();
-  if (groups.includes("subscribers")) for (const p of opted) out.add(p);
+  const add = (e: string) => {
+    if (!blockedSet.has(e)) out.add(e);
+  };
+  if (groups.includes("subscribers")) for (const p of opted) add(p);
   if (groups.includes("volunteers")) {
     const vols = (await getVolunteers()).rows;
     for (const v of vols) {
       const e = toE164(v.phone);
-      if (e && opted.has(e)) out.add(e);
+      if (e && opted.has(e)) add(e);
     }
   }
   return [...out];
