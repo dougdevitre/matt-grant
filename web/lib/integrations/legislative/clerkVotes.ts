@@ -2,6 +2,7 @@
 // https://clerk.house.gov/evs/{year}/roll{NNN}.xml — the <legislator> elements
 // carry @name-id = bioguide ID, so we can extract a member's position directly.
 import { XMLParser } from "fast-xml-parser";
+import { requestWithRetry } from "@/lib/integrations/http";
 import type { LegVoteRec } from "./types";
 
 const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "@" });
@@ -11,25 +12,14 @@ function asArray<T>(v: T | T[] | undefined): T[] {
   return Array.isArray(v) ? v : [v];
 }
 
-// Fetch one roll-call and extract this member's position, or null if the roll
-// doesn't exist (404 gaps are normal) or the member isn't recorded on it.
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-// GET the roll XML, retrying transient failures (network error / 5xx). A genuine
-// 404 means the roll doesn't exist and returns immediately. Without the retry, a
-// blip on one of hundreds of concurrent fetches silently undercounts the record.
-async function fetchRollXml(url: string, retries = 2): Promise<Response | null> {
-  for (let attempt = 0; ; attempt++) {
-    let res: Response;
-    try {
-      res = await fetch(url, { signal: AbortSignal.timeout(15000) });
-    } catch {
-      if (attempt < retries) { await sleep(400 * (attempt + 1)); continue; }
-      return null; // network failure after retries — best-effort gap
-    }
-    if (res.status === 404) return res; // genuine gap, don't retry
-    if (!res.ok && attempt < retries) { await sleep(400 * (attempt + 1)); continue; }
-    return res;
+// GET the roll XML via the shared transport (hard timeout + retry on network/5xx,
+// honoring Retry-After). A genuine 404 means the roll doesn't exist and is returned
+// without retrying; a network failure that survives retries throws → best-effort null.
+async function fetchRollXml(url: string): Promise<Response | null> {
+  try {
+    return await requestWithRetry(url, { timeoutMs: 15000, retries: 2, label: "clerk votes" });
+  } catch {
+    return null; // network failure after retries — best-effort gap
   }
 }
 

@@ -1,6 +1,8 @@
 // Walgreens Native Photo Prints client. Imported ONLY by /api/print/* route
 // handlers (server) — the apiKey/affId must never reach the browser. Sandbox by
 // default; set WALGREENS_ENV=production after Walgreens approves the app.
+import { requestWithRetry } from "@/lib/integrations/http";
+
 const ENV = process.env.WALGREENS_ENV === "production" ? "production" : "sandbox";
 const BASE = ENV === "production"
   ? "https://services.walgreens.com"
@@ -23,26 +25,34 @@ export const walgreensEnabled = Boolean(walgreens.apiKey && walgreens.affId);
 export type WgResult = { ok: boolean; status: number; json: unknown };
 
 export async function wgPost(path: string, body: Record<string, unknown>): Promise<WgResult> {
-  const res = await fetch(`${walgreens.base}${path}`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      apiKey: walgreens.apiKey,
-      affId: walgreens.affId,
-      appVer: walgreens.appVer,
-      devInf: walgreens.devInf,
-      ...body,
-    }),
-    signal: AbortSignal.timeout(20_000),
-  });
-  let json: unknown;
-  const text = await res.text();
+  // Shared transport for the timeout, but retries:0 — Walgreens order submit is NOT
+  // idempotent, so a blind retry could double-submit. (Idempotent product/store/
+  // coupon calls could opt into retries later.) Preserve the never-throws WgResult.
   try {
-    json = JSON.parse(text);
-  } catch {
-    json = { raw: text };
+    const res = await requestWithRetry(`${walgreens.base}${path}`, {
+      method: "POST",
+      body: {
+        apiKey: walgreens.apiKey,
+        affId: walgreens.affId,
+        appVer: walgreens.appVer,
+        devInf: walgreens.devInf,
+        ...body,
+      },
+      timeoutMs: 20_000,
+      retries: 0,
+      label: "walgreens",
+    });
+    const text = await res.text();
+    let json: unknown;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      json = { raw: text };
+    }
+    return { ok: res.ok, status: res.status, json };
+  } catch (err) {
+    return { ok: false, status: 0, json: { error: String(err) } };
   }
-  return { ok: res.ok, status: res.status, json };
 }
 
 export type WgProduct = {

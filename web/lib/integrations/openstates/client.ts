@@ -2,6 +2,8 @@
 // Assembly legislators + sponsored bills — the state-legislative record for
 // candidates who held MO state office. Free key (X-API-KEY header) at
 // https://openstates.org/api/register/.
+import { fetchJsonWithRetry } from "@/lib/integrations/http";
+
 export const openStatesEnabled = !!process.env.OPENSTATES_API_KEY;
 
 const BASE = "https://v3.openstates.org";
@@ -36,9 +38,11 @@ export class OpenStatesClient {
   private async get(path: string, params: Record<string, string> = {}): Promise<Json> {
     const u = new URL(BASE + path);
     for (const [k, v] of Object.entries(params)) u.searchParams.set(k, v);
-    const res = await fetch(u, { headers: { "X-API-KEY": this.key, accept: "application/json" } });
-    if (!res.ok) throw new Error(`openstates ${res.status} ${path}`);
-    return (await res.json()) as Json;
+    // Shared transport: adds the hard timeout + bounded retry this raw fetch lacked.
+    return fetchJsonWithRetry<Json>(u, {
+      headers: { "X-API-KEY": this.key, accept: "application/json" },
+      label: `openstates ${path}`,
+    });
   }
 
   // openStatesId is the ocd-person id (e.g. "ocd-person/....").

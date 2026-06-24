@@ -3,6 +3,7 @@
 // source + date — factual and sourced, never our characterization (consistent with
 // the research tool's "cite the source, not this dashboard" rule).
 import { XMLParser } from "fast-xml-parser";
+import { fetchTextWithRetry } from "@/lib/integrations/http";
 
 const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "@" });
 const UA = "Mozilla/5.0 (compatible; MattGrantForCongress research)";
@@ -27,9 +28,8 @@ export async function fetchNews(name: string, maxItems = 6): Promise<NewsFeed | 
 
   let xml: string;
   try {
-    const res = await fetch(url, { headers: { "user-agent": UA }, signal: AbortSignal.timeout(8000) });
-    if (!res.ok) return null;
-    xml = await res.text();
+    // Shared transport (text variant): gains retry + Retry-After; stays best-effort.
+    xml = await fetchTextWithRetry(url, { headers: { "user-agent": UA }, timeoutMs: 8000, retries: 1, label: "news" });
   } catch {
     return null; // best-effort; never block on news
   }
