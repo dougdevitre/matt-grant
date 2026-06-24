@@ -43,7 +43,7 @@ The "Where We Align" section is chosen by primary committee/role:
 | **GEOGRAPHY** | St. Louis City/County, St. Charles, MO-02 area | Shared constituents and a stake in courts they can trust |
 | *Appropriations add-on* | "Appropriations" in committees | One extra paragraph: leaner government + lower taxes by cutting waste (Priorities 3 & 4) + the Title IV-D federal-grant lever |
 
-Every letter then carries the same **CHILD Protection Act** paragraph (Title IV-D lever), an **"Explore the Data Together"** offer (framed as collaboration on evidence — *no fabricated figures*), and the **Take Action** QR band (Vote / Take Action / Donate).
+Every letter then carries the same **CHILD Protection Act** paragraph (Title IV-D lever), an **"Explore the Data Together"** offer (framed as collaboration on evidence — *no fabricated figures*), and a single, dignified **"Learn More"** QR linking to Matt's priorities and the CHILD Protection Act (`/issues`) — no donation ask to a sitting legislator.
 
 ### Ask tier → the invitation
 - **A — lead with endorsement:** committee chairs & vice-chairs; President Pro Tem; Majority Floor Leader.
