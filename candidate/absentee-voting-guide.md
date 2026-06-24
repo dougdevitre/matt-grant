@@ -156,6 +156,28 @@ Submitting the application is **not** the same as voting. Here's the full arc:
 
 ---
 
+## 🖨️ Prefer paper? Print the request form
+You can apply online, but if you'd rather fill it out by hand, print the
+official Missouri Secretary of State **Request for Missouri Absentee Ballot**
+form, complete it, and mail or hand-deliver it to your election authority so it
+**arrives by 5 p.m. Wed, July 22.**
+
+👉 **[Download the request form (PDF)](/absentee-ballot-request-form.pdf)**
+(served at `/absentee-ballot-request-form.pdf` on the campaign site).
+
+**No printer? Print it at any St. Louis County Library.** The library's mobile
+printing works at every branch, and cardholders get **$5 in printing free each
+month.**
+1. Save the PDF, then open the library print center at
+   **https://mobileprint.slcl.org/myprintcenter**.
+2. Upload the form and submit it to the print queue.
+3. Release and pick it up at the print station in any St. Louis County Library
+   branch (sign in with your library card, or ask staff for help).
+4. Fill it out, **sign it**, and mail or hand-deliver it to your election
+   authority by the **July 22** deadline.
+
+---
+
 ## 🪪 Acceptable photo ID
 - Non-expired **Missouri driver's or non-driver license**
 - **U.S. passport**
@@ -197,5 +219,10 @@ St. Louis County and St. Charles County election authorities. Rules can
 change — always confirm with your election authority. The voting process
 applies to all voters regardless of candidate preference.*
 
-*Paid for by Matt Grant for Congress. [Confirm exact FEC disclaimer with
-your committee/treasurer before distribution.]*
+*Paid for by the Matt Grant for Congress Committee.*
+
+> **Note for printed copies:** Per FEC rules (11 CFR 110.11), this "Paid for
+> by" line must appear in a printed box set apart from the rest of the content,
+> in clearly readable type (12-point black-on-white is the FEC safe harbor for
+> pieces up to 24"×36"). Have the committee treasurer confirm placement before
+> distribution.
