@@ -173,10 +173,16 @@ def letter_content(r):
         "signoff": "Respectfully,",
         "sign_name": "Matt Grant",
         "sign_meta": SIGN_META,
-        # Full Vote / Take Action / Donate band (per the campaign's choice).
+        # A single, dignified "Learn More" QR — appropriate for official
+        # correspondence (no Donate ask to a sitting legislator).
         "action_band": True,
-        "qr_eyebrow": "Take Action",
-        "qr_intro": "Scan to make your plan to vote, learn more, or support the effort.",
+        "qr_actions": [(
+            "Learn More",
+            "https://mattgrantforcongress.org/issues",
+            "Matt's priorities & the CHILD Protection Act",
+        )],
+        "qr_eyebrow": "Learn More",
+        "qr_intro": "Scan to read Matt's priorities and the CHILD Protection Act.",
     }
 
 
