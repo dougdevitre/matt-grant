@@ -82,3 +82,24 @@ is a real issue slug and never collides with a resource-pillar label).
 1. Add/adjust the entry in `lib/pillars.ts`.
 2. `npm run sync:pillars -- --only <slug>` and commit the generated files.
 3. Add the subdomain in Amplify/Route 53. No further code changes per pillar.
+
+## Stability guardrails
+
+These keep the hardened paths from failing silently. Most are enforced in code; one
+is a repo setting you must enable.
+
+- **Sync fails loudly.** `scripts/sync-pillars.mjs` exits non-zero if any pillar fails
+  to clone or trips the regression guard (had docs upstream, now imports zero), so the
+  `sync-pillars` workflow stops before committing a partial/destroyed result. It also
+  prunes files that disappear upstream and writes a per-pillar summary to the run page.
+- **Routing + content invariants are tested.** `lib/pillar-middleware.test.ts`,
+  `lib/pillar-routing.test.ts`, `lib/pillar-dns-drift.test.ts` (vanity table ↔
+  `ISSUE_VANITY`), and `lib/pillars-content.test.ts` (every committed `manifest.json`
+  is valid and its referenced files exist) all run in `ci.yml`.
+- **Make CI a required check (manual, needs repo admin — do this once).** `ci.yml`
+  already runs lint + typecheck + tests + a keyless build, plus an "up-to-date with
+  base" guard, on every PR — but GitHub won't *block* a merge until those are marked
+  required. In **Settings → Branches → branch protection for `main`**, enable
+  *"Require status checks to pass"* and select **`build-test`** and **`up-to-date`**,
+  and check *"Require branches to be up to date before merging."* Without this, a red
+  CI run can still be merged.
