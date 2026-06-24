@@ -372,5 +372,90 @@ else
   echo "  (set SET_TABLE_KMS=1 to upgrade to an AWS-managed KMS key for PII/audit)"
 fi
 
+# ── 9. Inbound event email (SES receiving → SNS → /api/webhooks/inbound-email) ─────
+# Phase 2 of the event calendar: a forwarded event email becomes a DRAFT event.
+# SES receives mail for events@<domain>, publishes it to an SNS topic, and SNS
+# POSTs it to the webhook (signature-verified in lib/sns; the route auto-confirms
+# the subscription). Mail stays inside the AWS account — no third-party processor.
+#
+# Gated on INBOUND_EMAIL_DOMAIN because it needs the domain verified for *receiving*
+# in SES and an MX record you control. SES email receiving exists only in us-east-1,
+# us-west-2, and eu-west-1.
+INBOUND_EMAIL_DOMAIN="${INBOUND_EMAIL_DOMAIN:-}"
+if [ -z "$INBOUND_EMAIL_DOMAIN" ]; then
+  say "Inbound email (skipped)"
+  echo "  Set INBOUND_EMAIL_DOMAIN=mattgrantforcongress.org to wire SES→SNS→webhook."
+else
+  say "Inbound email → events@${INBOUND_EMAIL_DOMAIN}"
+  case "$REGION" in
+    us-east-1|us-west-2|eu-west-1) : ;;
+    *) echo "  WARNING: SES email receiving isn't available in $REGION — use us-east-1/us-west-2/eu-west-1." ;;
+  esac
+  RECIPIENT="events@${INBOUND_EMAIL_DOMAIN}"
+  WEBHOOK_URL="${BASE_URL%/}/api/webhooks/inbound-email"
+
+  # 9a. SNS topic SES publishes inbound mail to.
+  IN_TOPIC_ARN="$(aws sns create-topic --name matt-grant-inbound-email --region "$REGION" \
+    --query TopicArn --output text)"
+  echo "  topic: $IN_TOPIC_ARN"
+
+  # 9b. Allow SES (this account only) to publish to the topic.
+  aws sns set-topic-attributes --topic-arn "$IN_TOPIC_ARN" --region "$REGION" \
+    --attribute-name Policy --attribute-value "$(cat <<JSON
+{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"ses.amazonaws.com"},"Action":"sns:Publish","Resource":"${IN_TOPIC_ARN}","Condition":{"StringEquals":{"aws:SourceAccount":"${ACCT}"}}}]}
+JSON
+)" >/dev/null && echo "  topic policy: SES publish allowed (account ${ACCT}) ✓"
+
+  # 9c. Subscribe the webhook (HTTPS). SNS POSTs a SubscriptionConfirmation the
+  # route auto-accepts. Skip if this endpoint is already subscribed.
+  if aws sns list-subscriptions-by-topic --topic-arn "$IN_TOPIC_ARN" --region "$REGION" \
+       --query "Subscriptions[?Endpoint=='${WEBHOOK_URL}']|[0].SubscriptionArn" --output text 2>/dev/null \
+       | grep -q "arn:aws:sns"; then
+    echo "  subscription: $WEBHOOK_URL already subscribed ✓"
+  else
+    aws sns subscribe --topic-arn "$IN_TOPIC_ARN" --region "$REGION" \
+      --protocol https --notification-endpoint "$WEBHOOK_URL" >/dev/null \
+      && echo "  subscription requested → $WEBHOOK_URL (auto-confirmed by the route)"
+  fi
+
+  # 9d. SES receipt rule set + rule: events@ → publish to SNS (Base64-encoded raw
+  # message), virus/spam scan on. Idempotent by name.
+  if ! aws ses describe-receipt-rule-set --rule-set-name matt-grant-inbound --region "$REGION" >/dev/null 2>&1; then
+    aws ses create-receipt-rule-set --rule-set-name matt-grant-inbound --region "$REGION" \
+      >/dev/null && echo "  receipt rule set matt-grant-inbound created"
+  else
+    echo "  receipt rule set matt-grant-inbound exists"
+  fi
+  if ! aws ses describe-receipt-rule --rule-set-name matt-grant-inbound --rule-name events-to-sns \
+         --region "$REGION" >/dev/null 2>&1; then
+    aws ses create-receipt-rule --rule-set-name matt-grant-inbound --region "$REGION" \
+      --rule "$(cat <<JSON
+{"Name":"events-to-sns","Enabled":true,"TlsPolicy":"Optional","ScanEnabled":true,"Recipients":["${RECIPIENT}"],"Actions":[{"SNSAction":{"TopicArn":"${IN_TOPIC_ARN}","Encoding":"Base64"}}]}
+JSON
+)" >/dev/null && echo "  rule events-to-sns created (${RECIPIENT} → SNS)"
+  else
+    echo "  rule events-to-sns exists"
+  fi
+  aws ses set-active-receipt-rule-set --rule-set-name matt-grant-inbound --region "$REGION" \
+    >/dev/null && echo "  matt-grant-inbound is the active rule set ✓"
+
+  # 9e. Persist config + a fallback secret to SSM (Amplify env is hydrated from SSM).
+  aws ssm put-parameter --name /matt-grant/INBOUND_SNS_TOPIC_ARN --type String \
+    --value "$IN_TOPIC_ARN" --overwrite --region "$REGION" >/dev/null \
+    && echo "  SSM /matt-grant/INBOUND_SNS_TOPIC_ARN set"
+  if ! aws ssm get-parameter --name /matt-grant/INBOUND_EMAIL_SECRET --region "$REGION" >/dev/null 2>&1; then
+    aws ssm put-parameter --name /matt-grant/INBOUND_EMAIL_SECRET --type SecureString \
+      --value "$(openssl rand -hex 32)" --region "$REGION" >/dev/null \
+      && echo "  SSM /matt-grant/INBOUND_EMAIL_SECRET generated (fallback provider path)"
+  else
+    echo "  SSM /matt-grant/INBOUND_EMAIL_SECRET exists"
+  fi
+
+  echo "  --- YOU MUST STILL DO (DNS + verification) ---"
+  echo "  1. Verify ${INBOUND_EMAIL_DOMAIN} for RECEIVING in SES (region ${REGION})."
+  echo "  2. Add an MX record:  ${INBOUND_EMAIL_DOMAIN}.  MX  10 inbound-smtp.${REGION}.amazonaws.com."
+  echo "  3. Add INBOUND_SNS_TOPIC_ARN to the Amplify env (pins the topic) and redeploy."
+fi
+
 say "Done"
 echo "Next: verify a manual run — curl -X POST -H \"Authorization: Bearer \$CRON_SECRET\" ${BASE_URL}/api/cron/email-drain"
