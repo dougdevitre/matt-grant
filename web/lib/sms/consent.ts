@@ -57,6 +57,19 @@ export async function isOptedIn(phone: string): Promise<boolean> {
   }
 }
 
+/** The recorded status for one number: opted_in / opted_out / unknown (no row). */
+export async function consentStatus(phone: string): Promise<SmsConsentStatus | "unknown"> {
+  const e = toE164(phone);
+  if (!dbConfigured || !e) return "unknown";
+  try {
+    const r = await ddb.send(new GetCommand({ TableName: TABLE, Key: { PK: SMS_PK, SK: e } }));
+    const s = r.Item?.status;
+    return s === "opted_in" ? "opted_in" : s === "opted_out" ? "opted_out" : "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
 /** The full consent ledger (for the dashboard + audience filtering). */
 export async function listConsent(): Promise<SmsConsentRow[]> {
   if (!dbConfigured) return [];
