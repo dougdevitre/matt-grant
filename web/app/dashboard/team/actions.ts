@@ -41,7 +41,7 @@ export async function inviteStaff(_prev: InviteResult | null, formData: FormData
   // Staff picker may only assign internal roles — `partner` is provisioned via
   // the Peace Room invite flow, never here, so it can't be granted by accident.
   const requested = asRole(formData.get("role"));
-  const role = requested && INVITABLE_ROLES.includes(requested) ? requested : "member";
+  const role = requested && INVITABLE_ROLES.includes(requested) ? requested : "volunteer";
   if (!email || !email.includes("@")) return { ok: false, message: "Enter a valid email address." };
 
   let clerk = { invited: false, existing: false };

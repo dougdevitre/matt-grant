@@ -129,7 +129,7 @@ describe("checklist actions", () => {
 
 describe("RBAC gate", () => {
   it("refuses a role without manageEvents and never writes", async () => {
-    staffGate.mockResolvedValue({ ok: true, role: "member", email: "m@x.test" });
+    staffGate.mockResolvedValue({ ok: true, role: "volunteer", email: "m@x.test" });
     await setEventCaptain(fd({ id: "e1", captain: "cap@x.test|Casey" }));
     await addEventVolunteer(fd({ id: "e1", volunteer: "v2|Ben" }));
     await setEventPriority(fd({ id: "e1", priority: "1" }));

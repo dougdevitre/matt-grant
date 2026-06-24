@@ -3,6 +3,7 @@ import { listStaff } from "@/lib/staff";
 import { segmentEmails, isWayToHelp, type WayToHelp } from "@/lib/profile";
 import { isIssueId, type IssueId } from "@/lib/integrations/research/issues";
 import { TEAM_GROUPS, type ContactGroup } from "@/lib/email/audienceGroups";
+import { STAFF_ROLES } from "@/lib/rbac";
 import type { Recipient } from "@/lib/campaigns";
 
 // Resolve the recipient list for a set of contact groups (+ an optional supporter
@@ -19,8 +20,9 @@ import type { Recipient } from "@/lib/campaigns";
 // all-team) and no external supporter segment is included — those sends bypass
 // topic opt-outs (operational), while mixed sends stay conservative.
 
-// All-team = internal staff roles (excludes external partner/supporter rows).
-const TEAM_ROLES = new Set(["admin", "captain", "member"]);
+// All-team = internal staff roles (excludes external donor/supporter/partner rows).
+// Derived from the canonical STAFF_ROLES so it can't drift from rbac.ts.
+const TEAM_ROLES = new Set<string>(STAFF_ROLES);
 
 // First token of a stored full name → the {{first_name}} merge value.
 const firstNameOf = (name?: string | null): string | undefined => (name ?? "").trim().split(/\s+/)[0] || undefined;

@@ -28,7 +28,7 @@ const inputOf = () => (send.mock.calls[0][0] as { input: Record<string, unknown>
 
 beforeEach(() => {
   vi.clearAllMocks();
-  staffGate.mockResolvedValue({ role: "member", email: "m@x.test" });
+  staffGate.mockResolvedValue({ role: "volunteer", email: "m@x.test" });
   send.mockResolvedValue({});
 });
 

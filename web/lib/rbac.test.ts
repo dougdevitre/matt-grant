@@ -1,5 +1,18 @@
 import { describe, it, expect } from "vitest";
-import { can, asRole, ROLES, INVITABLE_ROLES, type Capability, type Role } from "@/lib/rbac";
+import {
+  can,
+  asRole,
+  ROLES,
+  STAFF_ROLES,
+  INVITABLE_ROLES,
+  ROLE_LABELS,
+  ROLE_BLURBS,
+  ROLE_BADGE,
+  isStaffRole,
+  homeFor,
+  type Capability,
+  type Role,
+} from "@/lib/rbac";
 
 // Every capability in the matrix. If you add one to rbac.ts, add it here too —
 // the count assertions below will otherwise fail, which is the point: the
@@ -10,7 +23,6 @@ const ALL_CAPS: Capability[] = [
   "manageTasks",
   "useStudio",
   "manageAssets",
-  "viewPhotos",
   "viewMap",
   "viewTargets",
   "viewResearch",
@@ -27,6 +39,7 @@ const ALL_CAPS: Capability[] = [
   "sendSms",
   "manageSocial",
   "manageTeam",
+  "viewDonorPortal",
   "viewPeaceRoom",
   "contributePeaceRoom",
   "viewCommunity",
@@ -36,8 +49,9 @@ const ALL_CAPS: Capability[] = [
 const PEACE_CAPS: Capability[] = ["viewPeaceRoom", "contributePeaceRoom"];
 
 // The agreed access rules. Captain = field leader + read-only finance/donor
-// totals; sending email campaigns + team management = admin only; member = field
-// & content; supporter = public community hub only; partner = Peace Room only.
+// totals; sending email campaigns + team management = admin only; volunteer =
+// field & content; donor = supporter + their OWN giving portal; supporter =
+// public community hub only; partner = Peace Room only.
 const GRANTS: Record<Role, Capability[]> = {
   admin: ALL_CAPS,
   captain: [
@@ -46,7 +60,6 @@ const GRANTS: Record<Role, Capability[]> = {
     "manageTasks",
     "useStudio",
     "manageAssets",
-    "viewPhotos",
     "viewMap",
     "viewTargets",
     "viewResearch",
@@ -59,18 +72,18 @@ const GRANTS: Record<Role, Capability[]> = {
     ...PEACE_CAPS,
     "viewCommunity",
   ],
-  member: [
+  volunteer: [
     "viewOverview",
     "manageVolunteers",
     "manageTasks",
     "useStudio",
     "manageAssets",
-    "viewPhotos",
     "viewMap",
     "viewTargets",
     ...PEACE_CAPS,
     "viewCommunity",
   ],
+  donor: ["viewCommunity", "viewPeaceRoom", "viewDonorPortal"],
   supporter: ["viewCommunity", "viewPeaceRoom"],
   partner: [...PEACE_CAPS],
 };
@@ -96,16 +109,16 @@ describe("rbac capability matrix", () => {
     expect(can("admin", "manageTeam")).toBe(true);
     expect(can("captain", "sendEmailCampaign")).toBe(false);
     expect(can("captain", "manageTeam")).toBe(false);
-    expect(can("member", "manageTeam")).toBe(false);
+    expect(can("volunteer", "manageTeam")).toBe(false);
   });
 
-  it("only admin can send SMS; captains may draft, members/external cannot", () => {
+  it("only admin can send SMS; captains may draft, volunteers/external cannot", () => {
     expect(can("admin", "draftSms")).toBe(true);
     expect(can("admin", "sendSms")).toBe(true);
     expect(can("captain", "draftSms")).toBe(true);
     expect(can("captain", "sendSms")).toBe(false);
-    expect(can("member", "draftSms")).toBe(false);
-    expect(can("member", "sendSms")).toBe(false);
+    expect(can("volunteer", "draftSms")).toBe(false);
+    expect(can("volunteer", "sendSms")).toBe(false);
     expect(can("supporter", "draftSms")).toBe(false);
     expect(can("partner", "sendSms")).toBe(false);
   });
@@ -113,9 +126,35 @@ describe("rbac capability matrix", () => {
   it("the social command center is admin-only", () => {
     expect(can("admin", "manageSocial")).toBe(true);
     expect(can("captain", "manageSocial")).toBe(false);
-    expect(can("member", "manageSocial")).toBe(false);
+    expect(can("volunteer", "manageSocial")).toBe(false);
     expect(can("supporter", "manageSocial")).toBe(false);
     expect(can("partner", "manageSocial")).toBe(false);
+  });
+
+  // The donor PORTAL (a donor's view of their OWN giving) is reachable by donor +
+  // admin only — and is NOT the internal donor list (that's viewDonorDetail, admin
+  // only). A donor must never reach anyone else's data.
+  it("viewDonorPortal is donor + admin only; it is NOT viewDonorDetail", () => {
+    expect(can("donor", "viewDonorPortal")).toBe(true);
+    expect(can("admin", "viewDonorPortal")).toBe(true);
+    expect(can("captain", "viewDonorPortal")).toBe(false);
+    expect(can("volunteer", "viewDonorPortal")).toBe(false);
+    expect(can("supporter", "viewDonorPortal")).toBe(false);
+    expect(can("partner", "viewDonorPortal")).toBe(false);
+    // the donor's own-giving portal is NOT the internal full donor list
+    expect(can("donor", "viewDonorDetail")).toBe(false);
+    expect(can("donor", "viewFinanceTotals")).toBe(false);
+  });
+
+  // HARD WALL: a donor sees the public surfaces + their OWN giving and NOTHING
+  // else private — never the internal donor list, finance, compliance, research,
+  // the plan, or team. If this fails, a donor login can reach private data.
+  it("donor can reach ONLY community + Peace Room + their own giving — nothing else private", () => {
+    const DONOR_CAPS: Capability[] = ["viewCommunity", "viewPeaceRoom", "viewDonorPortal"];
+    for (const cap of DONOR_CAPS) expect(can("donor", cap)).toBe(true);
+    for (const cap of ALL_CAPS.filter((c) => !DONOR_CAPS.includes(c))) {
+      expect(can("donor", cap), `donor must NOT have ${cap}`).toBe(false);
+    }
   });
 
   // HARD WALL: a partner (external coalition member / allied campaign) may touch
@@ -130,6 +169,7 @@ describe("rbac capability matrix", () => {
     }
     // explicit spot-checks on the most sensitive surfaces
     expect(can("partner", "viewDonorDetail")).toBe(false);
+    expect(can("partner", "viewDonorPortal")).toBe(false);
     expect(can("partner", "viewFinanceTotals")).toBe(false);
     expect(can("partner", "viewCompliance")).toBe(false);
     expect(can("partner", "manageTeam")).toBe(false);
@@ -151,17 +191,11 @@ describe("rbac capability matrix", () => {
     }
     // a supporter is not in any private staff dashboard surface
     expect(can("supporter", "viewOverview")).toBe(false);
+    expect(can("supporter", "viewDonorPortal")).toBe(false); // not a donor until they give
     expect(can("supporter", "contributePeaceRoom")).toBe(false); // view the board, not edit it
     expect(can("supporter", "viewDonorDetail")).toBe(false);
     expect(can("supporter", "viewFinanceTotals")).toBe(false);
     expect(can("supporter", "manageTeam")).toBe(false);
-  });
-
-  // partner must never be assignable from the staff picker / role dropdown — it's
-  // provisioned only via the Peace Room invite flow. Guards the one-way wall.
-  it("partner is not an invitable staff role", () => {
-    expect(INVITABLE_ROLES).not.toContain("partner");
-    expect(INVITABLE_ROLES).toEqual(["admin", "captain", "member"]);
   });
 
   it("denies a null / unknown role", () => {
@@ -171,16 +205,61 @@ describe("rbac capability matrix", () => {
   });
 });
 
+// Anti-drift invariants: these fail the build if a role is added/renamed without
+// updating its label/blurb/badge, or if a role-subset falls out of sync with the
+// canonical ROLES list. This is the ratchet that keeps every surface consistent.
+describe("rbac invariants (anti-drift)", () => {
+  it("every role has a non-empty label, blurb, and badge", () => {
+    for (const role of ROLES) {
+      expect(ROLE_LABELS[role], `label for ${role}`).toBeTruthy();
+      expect(ROLE_BLURBS[role], `blurb for ${role}`).toBeTruthy();
+      expect(ROLE_BADGE[role], `badge for ${role}`).toBeTruthy();
+    }
+    // and no stray keys beyond ROLES
+    expect(Object.keys(ROLE_LABELS).sort()).toEqual([...ROLES].sort());
+    expect(Object.keys(ROLE_BLURBS).sort()).toEqual([...ROLES].sort());
+    expect(Object.keys(ROLE_BADGE).sort()).toEqual([...ROLES].sort());
+  });
+
+  it("STAFF_ROLES and INVITABLE_ROLES are subsets of ROLES and exclude the external tiers", () => {
+    for (const r of STAFF_ROLES) expect(ROLES).toContain(r);
+    expect(INVITABLE_ROLES).toEqual(STAFF_ROLES);
+    expect(STAFF_ROLES).toEqual(["admin", "captain", "volunteer"]);
+    for (const external of ["donor", "supporter", "partner"] as Role[]) {
+      expect(INVITABLE_ROLES).not.toContain(external);
+    }
+  });
+
+  it("isStaffRole matches STAFF_ROLES", () => {
+    for (const role of ROLES) expect(isStaffRole(role)).toBe(STAFF_ROLES.includes(role));
+    expect(isStaffRole(null)).toBe(false);
+    expect(isStaffRole(undefined)).toBe(false);
+  });
+
+  it("homeFor routes each tier to its own home", () => {
+    expect(homeFor("admin").href).toBe("/dashboard");
+    expect(homeFor("captain").href).toBe("/dashboard");
+    expect(homeFor("volunteer").href).toBe("/dashboard");
+    expect(homeFor("donor").href).toBe("/my-giving");
+    expect(homeFor("partner").href).toBe("/dashboard/peace-room");
+    expect(homeFor("supporter").href).toBe("/dashboard/peace-room");
+    expect(homeFor(null).href).toBe("/community"); // not-yet-stamped floor
+  });
+});
+
 describe("asRole", () => {
-  it("accepts the four known roles", () => {
+  it("accepts the known roles", () => {
     expect(asRole("admin")).toBe("admin");
     expect(asRole("captain")).toBe("captain");
-    expect(asRole("member")).toBe("member");
+    expect(asRole("volunteer")).toBe("volunteer");
+    expect(asRole("donor")).toBe("donor");
+    expect(asRole("supporter")).toBe("supporter");
     expect(asRole("partner")).toBe("partner");
   });
 
-  it("maps the legacy 'organizer' value to 'member' (no migration)", () => {
-    expect(asRole("organizer")).toBe("member");
+  it("maps legacy 'member' and 'organizer' values to 'volunteer' (no migration)", () => {
+    expect(asRole("member")).toBe("volunteer");
+    expect(asRole("organizer")).toBe("volunteer");
   });
 
   it("rejects anything else", () => {
