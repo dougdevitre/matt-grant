@@ -57,21 +57,30 @@ chooses a state from the envelope, not from per-source ad-hoc flags.
 
 ## Client + UX states
 
-- **`useResource<T>(url)`** (`lib/data/useResource.ts`) — native fetch +
+- **`useResource<T>(url, init?)`** (`lib/data/useResource.ts`) — native fetch +
   `AbortController`, no SWR dependency. Returns
-  `{ state: "loading"|"ready"|"empty"|"error"|"degraded", data, meta, reload }`.
+  `{ state: "idle"|"loading"|"ready"|"empty"|"error"|"degraded", data, meta, error, lastFetchedAt, reload }`.
   Accepts a `Resource` envelope **or** a bare payload (back-compat with existing routes).
+  Pass `{ manual: true }` to skip the on-mount fetch and load only on `reload()` — used by
+  the hub so it doesn't ping every upstream on page load.
 - **`ResourceState.tsx`** (`components/data/`) — shared `<Loading/>`, `<Empty/>`,
-  `<ErrorState onRetry/>`, `<DegradedNotice/>`, and a `<ProvenanceChip/>`, styled to
-  match the dashboard skeleton and `DbNotice`.
+  `<ErrorState onRetry/>`, `<DegradedNotice/>`, and a `<ProvenanceChip/>` (source · count ·
+  live/sample · as-of date), styled to match the dashboard skeleton and `DbNotice`.
 
-## The registry
+## The registry & Data hub
 
 `lib/data/registry.ts` enumerates every source (`id`, `label`, `kind`, `owner`,
-`endpoint`/`manifest`, `enabledEnv`, `cache`). It powers the **Data hub** at
-[`/dashboard/data`](../app/dashboard/data/page.tsx) — the live index where staff see
-every source grouped by kind, with config status and on-demand geo checks — and is
-the inventory you update when adding a source.
+`endpoint`/`manifest`, `enabledEnv`, `cache`, `checkable`, `regen`, `remedy`). It powers the
+**Data hub** at [`/dashboard/data`](../app/dashboard/data/page.tsx), the live index where staff see
+every source grouped by kind. The hub (`components/data/DataHub.tsx` + `SourceCard.tsx`) adds:
+- a **health bar** + **"Check all"** that live-pings the `checkable` sources at once (status rolled
+  up via `summarize()` in `lib/data/hubStatus.ts`);
+- **actionable degraded states** — each unconfigured/degraded source shows its fix via `remedyFor()`
+  (the `enabledEnv` to set, or the `regen` command, or the `remedy` string);
+- an **inline preview** (`previewOf()`) — a few real values per source (CSV sample server-side; feature
+  names / rows for a checked geo/api source).
+
+Update the registry whenever you add a source (and set `checkable`/`regen`/`remedy` where they apply).
 
 ## Conventions to keep
 
