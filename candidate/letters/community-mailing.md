@@ -87,6 +87,24 @@ To adjust the logic, edit the segment paragraphs/asks in `tools/pdf-letterhead/c
 
 ---
 
-> **VERIFICATION — read before printing/mailing.** The included CSV is a **SAMPLE** with fictional `[SAMPLE]` rows so the pipeline runs end-to-end; it is **not** a real recipient list. Before any mail drop: source real names/titles/addresses, confirm each leader is correctly placed in a segment and ask tier, and verify mailing addresses. Counts in the sizing worksheet are illustrative placeholders, not real data.
+## Real batch loaded — MO House (St. Louis County & St. Charles)
+
+A first **real** CIVIC list is included at [`civic-house-targets.csv`](civic-house-targets.csv): **26 sitting Missouri House members** in the St. Louis County / St. Charles County district ranges, sourced from the mo-gov `mo-house-roster.md` (name, district, party). Generate the real Local & Civic PDF with:
+
+```bash
+cd tools/pdf-letterhead
+python3 community_mailing.py ../../candidate/letters/civic-house-targets.csv
+# -> candidate/letters/output/Matt-Grant-Local-Civic-Mailing.pdf  (26 letters + briefs)
+```
+
+- **Coverage:** House districts **86–113** (mo-gov's approximate St. Louis County ~86–99 + St. Charles ~100–113 ranges).
+- **Excluded:** District **95** (O'Donnell, resigned Jan 2025) and District **110** (Sparks, resigned Nov 2025) — vacant.
+- **Addressed at the Capitol** (201 W. Capitol Ave., Jefferson City, MO 65101). All set to `ask_tier=B`.
+
+> **VERIFY BEFORE MAILING (this batch):** (1) mo-gov's county ranges are approximate and contain **no MO-02 mapping** — confirm exact MO-02 overlap against the enacted congressional map; some of these districts may fall wholly or partly in **MO-01**, not MO-02. (2) **Add room numbers** from house.mo.gov/MemberRoster.aspx. (3) Re-check for any roster changes/new vacancies. (4) Optionally promote committee chairs (e.g., D94 Murphy, D96 Christ, D97 Casteel, D101 Keathley, D103 Hinman) to `ask_tier=A`.
+
+---
+
+> **VERIFICATION — read before printing/mailing.** The included sample CSV is a **SAMPLE** with fictional `[SAMPLE]` rows so the pipeline runs end-to-end; it is **not** a real recipient list. Before any mail drop: source real names/titles/addresses, confirm each leader is correctly placed in a segment and ask tier, and verify mailing addresses. Counts in the sizing worksheet are illustrative placeholders, not real data.
 
 > **EDUCATIONAL / NONPARTISAN NOTE.** This is campaign outreach material presented faithfully to Matt Grant's documented positions (`candidate/platform.md`). Personalization uses provided, verifiable attributes of each recipient; it invents no positions, numbers, or data. _Paid for by the Matt Grant for Congress Committee._
