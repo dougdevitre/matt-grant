@@ -1,5 +1,29 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
+import { pillarRewritePath, issueVanityRedirect } from "@/lib/pillar-routing";
+
+// Vanity issue subdomains (courts./limits./lean./taxes.) 308-redirect to the
+// canonical /issues/<slug> page on the apex. Returns null for every other host.
+// Runs before the pillar rewrite (the labels never overlap, but redirect-before-
+// rewrite keeps the intent obvious).
+function issueVanity(req: NextRequest): NextResponse | null {
+  const target = issueVanityRedirect(req.headers.get("host"));
+  return target ? NextResponse.redirect(target, 308) : null;
+}
+
+// Pillar subdomains (e.g. education.mattgrantforcongress.org) are served by the
+// same app: rewrite the host's leftmost label to the /pillars/<slug> route group,
+// which lives under (site) and therefore inherits the shared header/footer/AskMatt.
+// This is an internal rewrite (URL in the address bar stays on the subdomain), not
+// a redirect. Apex, www, localhost, /api/*, and already-rewritten /pillars/* paths
+// pass through untouched (see pillarRewritePath). Runs FIRST in both branches below.
+function pillarRewrite(req: NextRequest): NextResponse | null {
+  const target = pillarRewritePath(req.headers.get("host"), req.nextUrl.pathname);
+  if (!target) return null;
+  const url = req.nextUrl.clone();
+  url.pathname = target;
+  return NextResponse.rewrite(url);
+}
 
 // Dashboard + research read APIs + asset upload are staff-only. /community (the
 // supporter hub) and /my-giving (the donor portal) require sign-in — any signed-in
@@ -25,6 +49,10 @@ const clerkEnabled =
 // Escape hatch: set ALLOW_OPEN_DASHBOARD=true to intentionally show an open demo.
 export default clerkEnabled
   ? clerkMiddleware(async (auth, req) => {
+      const redirect = issueVanity(req);
+      if (redirect) return redirect;
+      const rewrite = pillarRewrite(req);
+      if (rewrite) return rewrite;
       if (!isProtectedRoute(req)) return;
       const { userId } = await auth();
       if (userId) return; // signed in — proceed (allowlist enforced in the dashboard layout + API routes)
@@ -38,6 +66,10 @@ export default clerkEnabled
       return NextResponse.redirect(signIn);
     })
   : (req: NextRequest) => {
+      const redirect = issueVanity(req);
+      if (redirect) return redirect;
+      const rewrite = pillarRewrite(req);
+      if (rewrite) return rewrite;
       const isProd = process.env.NODE_ENV === "production";
       const allowOpen = process.env.ALLOW_OPEN_DASHBOARD === "true";
       if (isProd && !allowOpen && isProtectedRoute(req)) {
