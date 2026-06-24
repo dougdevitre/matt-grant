@@ -9,7 +9,7 @@ import { recordAccessChange } from "@/lib/audit";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { renderEmail, renderText } from "@/lib/email/layout";
 import { SITE_URL } from "@/lib/site";
-import { remindPendingInvites } from "@/lib/invites";
+import { remindPendingInvites, resendInvite } from "@/lib/invites";
 
 export type InviteResult = { ok: boolean; message: string };
 
@@ -25,6 +25,31 @@ export async function remindPendingInvitesAction(_prev: InviteResult | null): Pr
   const skipped = r.skipped ? ` · skipped ${r.skipped} (recently reminded)` : "";
   const tail = r.remaining > 0 ? ` · ${r.remaining} left — click again to send the rest.` : "";
   return { ok: true, message: `Reminded ${r.reminded} pending invitee${r.reminded === 1 ? "" : "s"}${skipped}${tail}` };
+}
+
+// Resend the invitation to ONE still-pending person from their row's button.
+// Explicit per-person nudge: bypasses the 48h de-dup, refuses anyone who already
+// accepted, and logs an `invite_reminder` audit entry. Admin-only.
+export async function resendInviteAction(_prev: InviteResult | null, formData: FormData): Promise<InviteResult> {
+  const actor = await guardAdmin();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!email || !email.includes("@")) return { ok: false, message: "No email to resend to." };
+  if (!sesEnabled) return { ok: false, message: "Email isn't configured yet (set SES_FROM)." };
+
+  const r = await resendInvite(email);
+  if (!r.ok) {
+    const message =
+      r.reason === "not_pending"
+        ? `${email} has already accepted — no email sent.`
+        : r.reason === "not_configured"
+          ? "Email or Clerk isn't configured yet."
+          : `Couldn't send the reminder to ${email}. Try again.`;
+    return { ok: false, message };
+  }
+
+  await recordAccessChange({ at: new Date().toISOString(), actor: actor || "system", target: email, action: "invite_reminder" });
+  revalidatePath("/dashboard/team");
+  return { ok: true, message: `Reminder sent to ${email}.` };
 }
 
 // Only those with the manageTeam capability (admins) may manage access.

@@ -87,7 +87,7 @@ async function markReminded(email: string): Promise<void> {
   }
 }
 
-const firstNameFromEmail = (email: string): string => {
+export const firstNameFromEmail = (email: string): string => {
   const token = (email.split("@")[0] ?? "").split(/[._-]/)[0] ?? "";
   return token ? token.charAt(0).toUpperCase() + token.slice(1) : "there";
 };
@@ -123,4 +123,28 @@ export async function remindPendingInvites(opts?: { limit?: number; minHoursSinc
     }
   }
   return { pending: pending.length, reminded, skipped, remaining: Math.max(0, pending.length - processed) };
+}
+
+export type ResendReason = "not_pending" | "not_configured" | "send_failed";
+
+// Resend the branded invitation reminder to ONE still-pending invitee. Unlike the
+// bulk `remindPendingInvites`, this is an explicit per-person admin action, so it
+// deliberately bypasses the 48h de-dup guard — but it still refuses to email anyone
+// who has already accepted (not in Clerk's pending list). The send is recorded in
+// the reminder ledger so the bulk job won't double-nudge them right after.
+export async function resendInvite(email: string): Promise<{ ok: boolean; reason?: ResendReason }> {
+  const target = email.trim().toLowerCase();
+  if (!clerkEnabled || !sesEnabled) return { ok: false, reason: "not_configured" };
+
+  const pending = await listPendingInvites();
+  const invite = pending.find((p) => p.email === target);
+  if (!invite) return { ok: false, reason: "not_pending" };
+
+  const acceptUrl = invite.url || `${SITE_URL}/sign-in`;
+  const mail = inviteReminder({ firstName: firstNameFromEmail(target), acceptUrl });
+  const res = await sendEmail({ to: target, subject: mail.subject, html: mail.html, text: mail.text });
+  if (!res.sent) return { ok: false, reason: "send_failed" };
+
+  await markReminded(target);
+  return { ok: true };
 }
