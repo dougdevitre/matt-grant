@@ -86,6 +86,7 @@ DEST_SOCIAL="$(create_destination matt-grant-social-drain /api/cron/social-drain
 DEST_SMS="$(create_destination matt-grant-sms-drain /api/cron/sms-drain)"
 DEST_NEWS="$(create_destination matt-grant-research-news /api/research/news)"
 DEST_BIO="$(create_destination matt-grant-research-bio /api/research/bio)"
+DEST_DISTRICTS="$(create_destination matt-grant-district-insights /api/cron/district-insights)"
 
 # Execution role EventBridge assumes to invoke the API destinations. Trust must be
 # events.amazonaws.com for EventBridge Rules. (Idempotently corrected from any
@@ -128,6 +129,9 @@ create_rule matt-grant-sms-drain       "rate(1 minute)"      "$DEST_SMS"
 # ingest): news daily (time-sensitive), bios weekly (rarely change).
 create_rule matt-grant-research-news   "cron(0 9 * * ? *)"   "$DEST_NEWS"
 create_rule matt-grant-research-bio    "cron(0 9 ? * MON *)" "$DEST_BIO"
+# Per-district event-calendar insights (Census + AI), refreshed nightly. The route
+# only regenerates entries that are missing or >14 days stale, so this is cheap.
+create_rule matt-grant-district-insights "cron(0 7 * * ? *)" "$DEST_DISTRICTS"
 
 # ── 4. Alerting ──────────────────────────────────────────────────────────────────
 # Without this, donations/emails can stop silently. Alarm on SSR Lambda errors and
