@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pitch Practice Timer</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1117;
+    color: #e2e4e9;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 640px; margin: 0 auto; text-align: center; }
+  h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+  .subtitle {
+    color: #8b8fa3;
+    font-size: 0.9rem;
+    margin-bottom: 28px;
+  }
+  .presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 28px;
+  }
+  .preset-btn {
+    background: #1a1d27;
+    border: 1px solid #2a2d3a;
+    border-radius: 10px;
+    color: #c0c3ce;
+    padding: 12px 18px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .preset-btn:hover { border-color: #6366f1; color: #fff; }
+  .preset-btn.active { background: #6366f1; border-color: #6366f1; color: #fff; }
+  .preset-btn .preset-label { display: block; font-size: 0.7rem; color: #8b8fa3; margin-top: 2px; }
+  .preset-btn.active .preset-label { color: #c7c8ff; }
+  .timer-ring-container {
+    position: relative;
+    width: 260px;
+    height: 260px;
+    margin: 0 auto 24px;
+  }
+  .timer-ring-container svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+  .ring-bg { fill: none; stroke: #1a1d27; stroke-width: 10; }
+  .ring-progress {
+    fill: none;
+    stroke: #22c55e;
+    stroke-width: 10;
+    stroke-linecap: round;
+    transition: stroke 0.3s;
+  }
+  .timer-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .timer-text .time {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+  }
+  .timer-text .status {
+    font-size: 0.85rem;
+    color: #8b8fa3;
+    margin-top: 2px;
+  }
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .ctrl-btn {
+    padding: 12px 28px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .ctrl-btn.primary { background: #6366f1; color: #fff; }
+  .ctrl-btn.primary:hover { background: #5558e6; }
+  .ctrl-btn.secondary { background: #1a1d27; color: #c0c3ce; border: 1px solid #2a2d3a; }
+  .ctrl-btn.secondary:hover { border-color: #6366f1; }
+  .ctrl-btn:disabled { opacity: 0.4; cursor: default; }
+  .audio-toggle {
+    margin-bottom: 28px;
+    font-size: 0.85rem;
+    color: #8b8fa3;
+    cursor: pointer;
+    user-select: none;
+  }
+  .audio-toggle input { margin-right: 6px; accent-color: #6366f1; }
+  .card {
+    background: #1a1d27;
+    border: 1px solid #2a2d3a;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+  .card h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 14px;
+    color: #c0c3ce;
+  }
+  .section-row {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #12141c;
+    font-size: 0.85rem;
+  }
+  .section-row:last-child { border-bottom: none; }
+  .section-name { flex: 1; color: #e2e4e9; }
+  .section-time { color: #6366f1; font-weight: 600; min-width: 50px; text-align: right; }
+  .section-bar-bg {
+    flex: 1;
+    height: 6px;
+    background: #12141c;
+    border-radius: 3px;
+    margin: 0 12px;
+    overflow: hidden;
+  }
+  .section-bar-fill {
+    height: 100%;
+    background: #6366f1;
+    border-radius: 3px;
+  }
+  .current-section {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #8b8fa3;
+    margin-bottom: 12px;
+    min-height: 1.4em;
+  }
+  .current-section span { color: #6366f1; font-weight: 600; }
+  .disclaimer {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #555;
+    margin-top: 24px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Pitch Practice Timer</h1>
+  <p class="subtitle">Rehearse your pitch with structured time splits</p>
+
+  <div class="presets">
+    <button class="preset-btn" onclick="selectPreset(0)">0:30<span class="preset-label">Elevator</span></button>
+    <button class="preset-btn" onclick="selectPreset(1)">2:00<span class="preset-label">Intro</span></button>
+    <button class="preset-btn" onclick="selectPreset(2)">5:00<span class="preset-label">Investor</span></button>
+    <button class="preset-btn" onclick="selectPreset(3)">10:00<span class="preset-label">Full Pitch</span></button>
+  </div>
+
+  <div class="current-section" id="currentSection"></div>
+
+  <div class="timer-ring-container">
+    <svg viewBox="0 0 120 120">
+      <circle class="ring-bg" cx="60" cy="60" r="52"/>
+      <circle class="ring-progress" id="ringProgress" cx="60" cy="60" r="52"
+        stroke-dasharray="326.73" stroke-dashoffset="0"/>
+    </svg>
+    <div class="timer-text">
+      <div class="time" id="timeDisplay">0:00</div>
+      <div class="status" id="statusText">Select a preset</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl-btn primary" id="startBtn" onclick="toggleStart()" disabled>Start</button>
+    <button class="ctrl-btn secondary" id="resetBtn" onclick="resetTimer()" disabled>Reset</button>
+  </div>
+
+  <label class="audio-toggle">
+    <input type="checkbox" id="audioToggle" checked> Audio alerts (beep at 30s and 0s)
+  </label>
+
+  <div class="card" id="sectionsCard" style="display:none;">
+    <h2>Suggested Time Splits</h2>
+    <div id="sectionsContainer"></div>
+  </div>
+</div>
+
+<script>
+var presets = [
+  {
+    label: 'Elevator', totalSec: 30,
+    sections: [
+      { name: 'Hook', sec: 10 },
+      { name: 'Value Prop', sec: 10 },
+      { name: 'Ask', sec: 10 }
+    ]
+  },
+  {
+    label: 'Intro', totalSec: 120,
+    sections: [
+      { name: 'Problem', sec: 30 },
+      { name: 'Solution', sec: 30 },
+      { name: 'Traction', sec: 30 },
+      { name: 'Ask', sec: 30 }
+    ]
+  },
+  {
+    label: 'Investor', totalSec: 300,
+    sections: [
+      { name: 'Problem', sec: 45 },
+      { name: 'Solution', sec: 45 },
+      { name: 'Market', sec: 30 },
+      { name: 'Traction', sec: 45 },
+      { name: 'Team', sec: 30 },
+      { name: 'Ask', sec: 45 },
+      { name: 'Buffer', sec: 60 }
+    ]
+  },
+  {
+    label: 'Full Pitch', totalSec: 600,
+    sections: [
+      { name: 'Problem', sec: 90 },
+      { name: 'Solution', sec: 90 },
+      { name: 'Market', sec: 60 },
+      { name: 'Business Model', sec: 60 },
+      { name: 'Traction', sec: 75 },
+      { name: 'Team', sec: 45 },
+      { name: 'Financials', sec: 60 },
+      { name: 'Ask', sec: 60 },
+      { name: 'Buffer', sec: 60 }
+    ]
+  }
+];
+
+var currentPreset = -1;
+var totalSeconds = 0;
+var remaining = 0;
+var running = false;
+var intervalId = null;
+var audioCtx = null;
+var beeped30 = false;
+var beeped0 = false;
+
+var circumference = 2 * Math.PI * 52;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function beep(freq, duration) {
+  if (!document.getElementById('audioToggle').checked) return;
+  try {
+    var ctx = getAudioCtx();
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + duration);
+  } catch (e) {}
+}
+
+function formatTime(sec) {
+  var m = Math.floor(sec / 60);
+  var s = sec % 60;
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function selectPreset(idx) {
+  resetTimer();
+  currentPreset = idx;
+  totalSeconds = presets[idx].totalSec;
+  remaining = totalSeconds;
+
+  var btns = document.querySelectorAll('.preset-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].className = 'preset-btn' + (i === idx ? ' active' : '');
+
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('timeDisplay').textContent = formatTime(remaining);
+  document.getElementById('statusText').textContent = 'Ready';
+  document.getElementById('currentSection').innerHTML = '';
+  updateRing();
+  renderSections();
+}
+
+function renderSections() {
+  var p = presets[currentPreset];
+  var html = '';
+  for (var i = 0; i < p.sections.length; i++) {
+    var s = p.sections[i];
+    var pct = (s.sec / p.totalSec) * 100;
+    html += '<div class="section-row" id="sec-' + i + '">' +
+      '<span class="section-name">' + s.name + '</span>' +
+      '<span class="section-bar-bg"><span class="section-bar-fill" style="width:' + pct + '%"></span></span>' +
+      '<span class="section-time">' + formatTime(s.sec) + '</span>' +
+      '</div>';
+  }
+  document.getElementById('sectionsContainer').innerHTML = html;
+  document.getElementById('sectionsCard').style.display = '';
+}
+
+function getCurrentSectionInfo() {
+  if (currentPreset < 0) return null;
+  var p = presets[currentPreset];
+  var elapsed = totalSeconds - remaining;
+  var acc = 0;
+  for (var i = 0; i < p.sections.length; i++) {
+    acc += p.sections[i].sec;
+    if (elapsed < acc) {
+      return { index: i, name: p.sections[i].name, secLeft: acc - elapsed };
+    }
+  }
+  return { index: p.sections.length - 1, name: p.sections[p.sections.length - 1].name, secLeft: 0 };
+}
+
+function updateRing() {
+  var fraction = totalSeconds > 0 ? remaining / totalSeconds : 1;
+  var offset = circumference * (1 - fraction);
+  var ring = document.getElementById('ringProgress');
+  ring.style.strokeDasharray = circumference;
+  ring.style.strokeDashoffset = offset;
+
+  if (fraction > 0.5) ring.style.stroke = '#22c55e';
+  else if (fraction > 0.2) ring.style.stroke = '#eab308';
+  else ring.style.stroke = '#ef4444';
+}
+
+function updateCurrentSection() {
+  var info = getCurrentSectionInfo();
+  if (!info || !running) {
+    document.getElementById('currentSection').innerHTML = '';
+    return;
+  }
+  document.getElementById('currentSection').innerHTML =
+    'Current: <span>' + info.name + '</span> (' + info.secLeft + 's left in section)';
+
+  var rows = document.querySelectorAll('.section-row');
+  for (var i = 0; i < rows.length; i++) {
+    rows[i].style.background = i === info.index ? '#6366f115' : 'transparent';
+    rows[i].style.borderLeft = i === info.index ? '3px solid #6366f1' : '3px solid transparent';
+  }
+}
+
+function tick() {
+  if (remaining <= 0) {
+    stopTimer();
+    if (!beeped0) { beep(880, 0.5); setTimeout(function() { beep(880, 0.5); }, 600); beeped0 = true; }
+    document.getElementById('statusText').textContent = 'Time!';
+    document.getElementById('timeDisplay').style.color = '#ef4444';
+    return;
+  }
+  remaining--;
+  document.getElementById('timeDisplay').textContent = formatTime(remaining);
+  updateRing();
+  updateCurrentSection();
+
+  if (remaining === 30 && !beeped30) { beep(660, 0.3); beeped30 = true; }
+  if (remaining === 0 && !beeped0) { beep(880, 0.5); setTimeout(function() { beep(880, 0.5); }, 600); beeped0 = true; }
+
+  var fraction = totalSeconds > 0 ? remaining / totalSeconds : 1;
+  if (fraction > 0.5) document.getElementById('timeDisplay').style.color = '#fff';
+  else if (fraction > 0.2) document.getElementById('timeDisplay').style.color = '#eab308';
+  else document.getElementById('timeDisplay').style.color = '#ef4444';
+}
+
+function toggleStart() {
+  if (running) {
+    stopTimer();
+    document.getElementById('startBtn').textContent = 'Resume';
+    document.getElementById('statusText').textContent = 'Paused';
+  } else {
+    running = true;
+    intervalId = setInterval(tick, 1000);
+    document.getElementById('startBtn').textContent = 'Pause';
+    document.getElementById('resetBtn').disabled = false;
+    document.getElementById('statusText').textContent = 'Running';
+    updateCurrentSection();
+  }
+}
+
+function stopTimer() {
+  running = false;
+  if (intervalId) { clearInterval(intervalId); intervalId = null; }
+}
+
+function resetTimer() {
+  stopTimer();
+  beeped30 = false;
+  beeped0 = false;
+  if (currentPreset >= 0) {
+    remaining = totalSeconds;
+    document.getElementById('timeDisplay').textContent = formatTime(remaining);
+    document.getElementById('timeDisplay').style.color = '#fff';
+    document.getElementById('statusText').textContent = 'Ready';
+    updateRing();
+  }
+  document.getElementById('startBtn').textContent = 'Start';
+  document.getElementById('startBtn').disabled = currentPreset < 0;
+  document.getElementById('resetBtn').disabled = true;
+  document.getElementById('currentSection').innerHTML = '';
+
+  var rows = document.querySelectorAll('.section-row');
+  for (var i = 0; i < rows.length; i++) {
+    rows[i].style.background = 'transparent';
+    rows[i].style.borderLeft = '3px solid transparent';
+  }
+}
+</script>
+</body>
+</html>

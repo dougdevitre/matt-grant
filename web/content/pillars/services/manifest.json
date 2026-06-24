@@ -1,0 +1,29 @@
+{
+  "pillar": "services",
+  "repo": "dougdevitre/access-to-services",
+  "syncedAt": "505edf8",
+  "docs": [
+    {
+      "slug": "schema",
+      "title": "Resource Directory — Schema & Query Guide",
+      "file": "schema.md"
+    },
+    {
+      "slug": "security",
+      "title": "Security Policy",
+      "file": "security.md"
+    },
+    {
+      "slug": "eval-results",
+      "title": "Evaluation Results — Access to Services v3.0",
+      "file": "eval-results.md"
+    }
+  ],
+  "tools": [],
+  "skippedTools": [
+    {
+      "name": "access-to-services",
+      "path": "."
+    }
+  ]
+}

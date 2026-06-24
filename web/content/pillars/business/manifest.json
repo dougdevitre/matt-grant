@@ -1,0 +1,434 @@
+{
+  "pillar": "business",
+  "repo": "dougdevitre/access-to-business",
+  "syncedAt": "9935206",
+  "docs": [
+    {
+      "slug": "startup-cpa-guide",
+      "title": "Finding and Working With a Startup CPA",
+      "file": "startup-cpa-guide.md"
+    },
+    {
+      "slug": "tax-calendar",
+      "title": "Startup Tax Calendar — Missouri & Federal",
+      "file": "tax-calendar.md"
+    },
+    {
+      "slug": "diagnostic-frameworks",
+      "title": "Quick Diagnostic Frameworks",
+      "file": "diagnostic-frameworks.md"
+    },
+    {
+      "slug": "portfolio-tools",
+      "title": "Portfolio Management Tools",
+      "file": "portfolio-tools.md"
+    },
+    {
+      "slug": "session-prep",
+      "title": "Advisor Session Preparation Guide",
+      "file": "session-prep.md"
+    },
+    {
+      "slug": "checklists",
+      "title": "Weekly Founder Checklists by Stage",
+      "file": "checklists.md"
+    },
+    {
+      "slug": "binder-commands",
+      "title": "Binder & Fundraising Commands",
+      "file": "binder-commands.md"
+    },
+    {
+      "slug": "ops-commands",
+      "title": "Ops, Sales & Coaching Commands",
+      "file": "ops-commands.md"
+    },
+    {
+      "slug": "session-commands",
+      "title": "Session & Flow Commands",
+      "file": "session-commands.md"
+    },
+    {
+      "slug": "data-privacy",
+      "title": "Data Privacy Compliance",
+      "file": "data-privacy.md"
+    },
+    {
+      "slug": "hipaa",
+      "title": "HIPAA Compliance for Startups",
+      "file": "hipaa.md"
+    },
+    {
+      "slug": "industry-compliance",
+      "title": "Industry-Specific Compliance",
+      "file": "industry-compliance.md"
+    },
+    {
+      "slug": "security-basics",
+      "title": "Security Basics for Early-Stage Startups",
+      "file": "security-basics.md"
+    },
+    {
+      "slug": "soc2",
+      "title": "SOC 2 for Startups",
+      "file": "soc2.md"
+    },
+    {
+      "slug": "contract-negotiation",
+      "title": "Contract Negotiation Guide",
+      "file": "contract-negotiation.md"
+    },
+    {
+      "slug": "dpa-nda-termsheet",
+      "title": "Data Processing Agreement (DPA), NDA Library & Term Sheet Guide",
+      "file": "dpa-nda-termsheet.md"
+    },
+    {
+      "slug": "marketing-contracts",
+      "title": "Marketing Contracts",
+      "file": "marketing-contracts.md"
+    },
+    {
+      "slug": "master-services-agreement",
+      "title": "Master Services Agreement (MSA)",
+      "file": "master-services-agreement.md"
+    },
+    {
+      "slug": "operational-contracts",
+      "title": "Startup Operational Contracts",
+      "file": "operational-contracts.md"
+    },
+    {
+      "slug": "saas-subscription-agreement",
+      "title": "SaaS Subscription Agreement",
+      "file": "saas-subscription-agreement.md"
+    },
+    {
+      "slug": "build-vs-buy",
+      "title": "Build vs Buy",
+      "file": "build-vs-buy.md"
+    },
+    {
+      "slug": "entity-type",
+      "title": "LLC vs C-Corp vs S-Corp",
+      "file": "entity-type.md"
+    },
+    {
+      "slug": "should-i-raise",
+      "title": "Should I Raise Funding?",
+      "file": "should-i-raise.md"
+    },
+    {
+      "slug": "when-to-hire",
+      "title": "When to Make Your First Hire",
+      "file": "when-to-hire.md"
+    },
+    {
+      "slug": "glossary",
+      "title": "Startup Glossary",
+      "file": "glossary.md"
+    },
+    {
+      "slug": "airtable-starter-bases",
+      "title": "Airtable Starter Bases for Startups",
+      "file": "airtable-starter-bases.md"
+    },
+    {
+      "slug": "stripe-setup",
+      "title": "Stripe Revenue Infrastructure Playbook",
+      "file": "stripe-setup.md"
+    },
+    {
+      "slug": "patents",
+      "title": "Patents for Startups",
+      "file": "patents.md"
+    },
+    {
+      "slug": "trademarks-trade-secrets-copyright",
+      "title": "Trademarks, Trade Secrets, Copyright & IP Assignments",
+      "file": "trademarks-trade-secrets-copyright.md"
+    },
+    {
+      "slug": "deck-design-system",
+      "title": "Pitch Deck Design System",
+      "file": "deck-design-system.md"
+    },
+    {
+      "slug": "marketing-copy-library",
+      "title": "Marketing Copy Library",
+      "file": "marketing-copy-library.md"
+    },
+    {
+      "slug": "one-sheet-system",
+      "title": "One-Sheet System",
+      "file": "one-sheet-system.md"
+    },
+    {
+      "slug": "pitch-coaching",
+      "title": "Pitch Coaching — Verbal Delivery System",
+      "file": "pitch-coaching.md"
+    },
+    {
+      "slug": "presentation-toolkit",
+      "title": "Presentation Toolkit",
+      "file": "presentation-toolkit.md"
+    },
+    {
+      "slug": "automation-advanced",
+      "title": "Automation: Admin, Audit & Strategy",
+      "file": "automation-advanced.md"
+    },
+    {
+      "slug": "automation",
+      "title": "Startup Automation Playbook",
+      "file": "automation.md"
+    },
+    {
+      "slug": "competitive-intelligence-management",
+      "title": "Competitive Intelligence: Monitoring & Communication",
+      "file": "competitive-intelligence-management.md"
+    },
+    {
+      "slug": "competitive-intelligence",
+      "title": "Competitive Intelligence Framework",
+      "file": "competitive-intelligence.md"
+    },
+    {
+      "slug": "customer-discovery-advanced",
+      "title": "Customer Discovery: Advanced Scripts & Tracking",
+      "file": "customer-discovery-advanced.md"
+    },
+    {
+      "slug": "customer-discovery",
+      "title": "Customer Discovery Scripts",
+      "file": "customer-discovery.md"
+    },
+    {
+      "slug": "first-revenue-scalable",
+      "title": "First Revenue: Scalable Paths (Paths 4–6)",
+      "file": "first-revenue-scalable.md"
+    },
+    {
+      "slug": "first-revenue",
+      "title": "First Revenue Playbook",
+      "file": "first-revenue.md"
+    },
+    {
+      "slug": "funding-types",
+      "title": "Funding Types Playbook",
+      "file": "funding-types.md"
+    },
+    {
+      "slug": "fundraising",
+      "title": "Fundraising Playbook",
+      "file": "fundraising.md"
+    },
+    {
+      "slug": "gtm-sales",
+      "title": "GTM & Sales Playbook",
+      "file": "gtm-sales.md"
+    },
+    {
+      "slug": "investor-binder-due-diligence",
+      "title": "Investor Binder: Due Diligence & Closing (Sections 12–17)",
+      "file": "investor-binder-due-diligence.md"
+    },
+    {
+      "slug": "investor-binder",
+      "title": "Investor Binder Playbook",
+      "file": "investor-binder.md"
+    },
+    {
+      "slug": "legal-formation",
+      "title": "Legal & Formation Playbook",
+      "file": "legal-formation.md"
+    },
+    {
+      "slug": "marketing-brand",
+      "title": "Marketing & Brand Playbook",
+      "file": "marketing-brand.md"
+    },
+    {
+      "slug": "metrics-finance",
+      "title": "Metrics & Finance Playbook",
+      "file": "metrics-finance.md"
+    },
+    {
+      "slug": "network-building-advisors",
+      "title": "Network Building: Advisors & Formal Relationships",
+      "file": "network-building-advisors.md"
+    },
+    {
+      "slug": "network-building",
+      "title": "Network Building System for Founders",
+      "file": "network-building.md"
+    },
+    {
+      "slug": "ninety-day-sprints-growth",
+      "title": "90-Day Sprint: Stage 3 — Growth to Scale-Ready",
+      "file": "ninety-day-sprints-growth.md"
+    },
+    {
+      "slug": "ninety-day-sprints",
+      "title": "90-Day Sprint Plans by Stage",
+      "file": "ninety-day-sprints.md"
+    },
+    {
+      "slug": "operations",
+      "title": "Operations Playbook",
+      "file": "operations.md"
+    },
+    {
+      "slug": "pricing-strategy-advanced",
+      "title": "Pricing Strategy: Psychology, Testing & Optimization",
+      "file": "pricing-strategy-advanced.md"
+    },
+    {
+      "slug": "pricing-strategy",
+      "title": "Pricing Strategy for Startups",
+      "file": "pricing-strategy.md"
+    },
+    {
+      "slug": "product-mvp",
+      "title": "Product & MVP Playbook",
+      "file": "product-mvp.md"
+    },
+    {
+      "slug": "resilience-advanced",
+      "title": "Resilience: Advanced — Co-Founder Conflict, Identity, Isolation & Crisis",
+      "file": "resilience-advanced.md"
+    },
+    {
+      "slug": "resilience",
+      "title": "Resilience Playbook",
+      "file": "resilience.md"
+    },
+    {
+      "slug": "team-hiring",
+      "title": "Team & Hiring Playbook",
+      "file": "team-hiring.md"
+    },
+    {
+      "slug": "time-blocking",
+      "title": "Founder Time-Blocking System",
+      "file": "time-blocking.md"
+    },
+    {
+      "slug": "tool-stack",
+      "title": "Tool Stack Playbook",
+      "file": "tool-stack.md"
+    },
+    {
+      "slug": "validation",
+      "title": "Validation Playbook",
+      "file": "validation.md"
+    },
+    {
+      "slug": "california",
+      "title": "California — Regional Deployment",
+      "file": "california.md"
+    },
+    {
+      "slug": "missouri",
+      "title": "Missouri — Regional Deployment (Reference Implementation)",
+      "file": "missouri.md"
+    },
+    {
+      "slug": "texas",
+      "title": "Texas — Regional Deployment",
+      "file": "texas.md"
+    },
+    {
+      "slug": "board-advisor-templates",
+      "title": "Board & Advisor Templates",
+      "file": "board-advisor-templates.md"
+    },
+    {
+      "slug": "community-marketing-templates",
+      "title": "Community & Marketing Templates",
+      "file": "community-marketing-templates.md"
+    },
+    {
+      "slug": "crisis-difficult-templates",
+      "title": "Crisis & Difficult Conversation Templates",
+      "file": "crisis-difficult-templates.md"
+    },
+    {
+      "slug": "customer-templates",
+      "title": "Customer Communications Templates",
+      "file": "customer-templates.md"
+    },
+    {
+      "slug": "internal-comms-templates",
+      "title": "Internal Communications Templates",
+      "file": "internal-comms-templates.md"
+    },
+    {
+      "slug": "investor-templates",
+      "title": "Investor Templates",
+      "file": "investor-templates.md"
+    },
+    {
+      "slug": "legal-templates",
+      "title": "Legal Templates",
+      "file": "legal-templates.md"
+    },
+    {
+      "slug": "partner-vendor-templates",
+      "title": "Partner & Vendor Templates",
+      "file": "partner-vendor-templates.md"
+    },
+    {
+      "slug": "pr-media-templates",
+      "title": "PR & Media Templates",
+      "file": "pr-media-templates.md"
+    },
+    {
+      "slug": "sales-templates",
+      "title": "Sales Templates",
+      "file": "sales-templates.md"
+    },
+    {
+      "slug": "team-hr-templates",
+      "title": "Team & HR Templates",
+      "file": "team-hr-templates.md"
+    },
+    {
+      "slug": "traction-benchmarks",
+      "title": "Traction Benchmarks by Stage",
+      "file": "traction-benchmarks.md"
+    },
+    {
+      "slug": "changelog",
+      "title": "Changelog",
+      "file": "changelog.md"
+    },
+    {
+      "slug": "getting-started",
+      "title": "Getting Started with Access to Business",
+      "file": "getting-started.md"
+    }
+  ],
+  "tools": [
+    {
+      "slug": "intake-app",
+      "label": "Intake App",
+      "file": "intake-app.html"
+    },
+    {
+      "slug": "pitch-timer",
+      "label": "Pitch Timer",
+      "file": "pitch-timer.html"
+    },
+    {
+      "slug": "runway-calculator",
+      "label": "Runway Calculator",
+      "file": "runway-calculator.html"
+    },
+    {
+      "slug": "unit-economics-calculator",
+      "label": "Unit Economics Calculator",
+      "file": "unit-economics-calculator.html"
+    }
+  ]
+}
