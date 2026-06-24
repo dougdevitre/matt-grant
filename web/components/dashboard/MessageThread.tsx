@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { replyMessage, registerTexter, type MsgState } from "@/app/dashboard/messages/actions";
+import { replyMessage, registerTexter, sendSignupLink, type MsgState } from "@/app/dashboard/messages/actions";
 import type { SmsMessage } from "@/lib/sms/conversations";
 
 const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-field";
@@ -31,9 +31,19 @@ export function MessageThread({
   const [body, setBody] = useState("");
   const [reply, setReply] = useState<MsgState | null>(null);
   const [reg, setReg] = useState<MsgState | null>(null);
+  const [link, setLink] = useState<MsgState | null>(null);
   const [email, setEmail] = useState(prefillEmail ?? "");
   const [showReg, setShowReg] = useState(false);
   const [pending, start] = useTransition();
+
+  const textSignupLink = () =>
+    start(async () => {
+      const fd = new FormData();
+      fd.set("phone", phone);
+      const res = await sendSignupLink(fd);
+      setLink(res);
+      if (res.ok) router.refresh();
+    });
 
   const sendReply = () =>
     start(async () => {
@@ -128,9 +138,18 @@ export function MessageThread({
             </div>
           </div>
         ) : (
-          <button onClick={() => setShowReg(true)} className="text-sm text-field underline hover:text-ink">
-            Register as a community supporter →
-          </button>
+          <div>
+            <p className="text-xs font-semibold text-slate">Make them a community supporter</p>
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <button onClick={textSignupLink} disabled={pending || !canSend} className="btn-ghost disabled:opacity-50" title={canSend ? undefined : blockReason}>
+                {pending ? "Working…" : "Text a sign-up link"}
+              </button>
+              <button onClick={() => setShowReg(true)} className="text-sm text-field underline hover:text-ink">
+                Register by email →
+              </button>
+              {link && <span className={`text-sm ${link.ok ? "text-field" : "text-brick"}`}>{link.message}</span>}
+            </div>
+          </div>
         )}
       </div>
     </div>

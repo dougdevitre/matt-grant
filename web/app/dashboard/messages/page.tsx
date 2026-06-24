@@ -48,7 +48,7 @@ export default async function MessagesPage() {
           "This is 1:1 texting — separate from broadcast Text blasts. Replies from people land here as threads.",
           "You can reply to anyone who texted the campaign first, and start new texts to opted-in supporters. Opted-out (STOP) and blocked numbers are refused.",
           "A ⚠ badge flags inappropriate language for your review — it does NOT auto-block. Use Block on a thread to stop an abusive number.",
-          "Register a texter as a community supporter from their thread (needs their real email).",
+          "Turn a texter into a community supporter from their thread — text them a self-signup link, or register them by email.",
         ]}
       />
 
