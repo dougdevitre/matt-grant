@@ -63,10 +63,10 @@ export function ProvenanceChip({ meta }: { meta: Provenance | null }) {
         aria-hidden
       />
       {meta.source}
-      {typeof meta.count === "number" && <span className="text-slate/70">· {meta.count}</span>}
-      <span className="text-slate/70">· {live ? "live" : "sample"}</span>
+      {typeof meta.count === "number" && <span className="text-slate">· {meta.count}</span>}
+      <span className="text-slate">· {live ? "live" : "sample"}</span>
       {asOf && !Number.isNaN(asOf.getTime()) && (
-        <span className="text-slate/70">· as of {asOf.toLocaleDateString()}</span>
+        <span className="text-slate">· as of {asOf.toLocaleDateString()}</span>
       )}
     </span>
   );
