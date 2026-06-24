@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { pillarRewritePath, issueVanityRedirect } from "./pillar-routing";
+import { pillarRewritePath, issueVanityRedirect, unknownPillarSubdomain } from "./pillar-routing";
 
 // The host-based routing pre-check shared by both branches of middleware.ts
 // (Clerk-enabled and the fail-closed fallback). Kept in its own module — free of
@@ -31,5 +31,13 @@ export function pillarRewrite(req: NextRequest): NextResponse | null {
 // then the pillar rewrite. Returns the response to send immediately, or null to let
 // the rest of the middleware (auth gating) run.
 export function pillarOrVanityResponse(req: NextRequest): NextResponse | null {
-  return issueVanity(req) ?? pillarRewrite(req);
+  const routed = issueVanity(req) ?? pillarRewrite(req);
+  if (routed) return routed;
+  // Nothing matched. If this was an unrecognized subdomain of the apex (wildcard DNS
+  // routes every label here), warn so catalog/DNS drift or a typo is visible in logs.
+  const unknown = unknownPillarSubdomain(req.headers.get("host"));
+  if (unknown) {
+    console.warn(`[pillar] unknown subdomain '${unknown}' — fell through to apex (catalog/DNS drift?)`);
+  }
+  return null;
 }
