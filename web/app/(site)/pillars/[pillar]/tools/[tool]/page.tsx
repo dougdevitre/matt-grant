@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PILLARS, getPillar } from "@/lib/pillars";
+import { publicPillars, getPillar } from "@/lib/pillars";
 import { getManifest } from "@/lib/pillars-content";
 import { CAMPAIGN } from "@/lib/site";
 import { PillarLink } from "@/components/PillarLink";
@@ -13,7 +13,7 @@ import { PillarLink } from "@/components/PillarLink";
 
 export function generateStaticParams() {
   const params: { pillar: string; tool: string }[] = [];
-  for (const pillar of PILLARS) {
+  for (const pillar of publicPillars) {
     const manifest = getManifest(pillar.slug);
     for (const tool of manifest?.tools ?? []) {
       params.push({ pillar: pillar.slug, tool: tool.slug });
@@ -32,8 +32,8 @@ export async function generateMetadata({ params }: { params: Promise<{ pillar: s
 export default async function PillarToolPage({ params }: { params: Promise<{ pillar: string; tool: string }> }) {
   const { pillar: pillarSlug, tool: toolSlug } = await params;
   const pillar = getPillar(pillarSlug);
-  const tool = pillar ? getManifest(pillarSlug)?.tools.find((t) => t.slug === toolSlug) : undefined;
-  if (!pillar || !tool) notFound();
+  const tool = pillar && !pillar.hidden ? getManifest(pillarSlug)?.tools.find((t) => t.slug === toolSlug) : undefined;
+  if (!pillar || pillar.hidden || !tool) notFound();
 
   const src = `/pillar-tools/${pillar.slug}/${tool.file}`;
 

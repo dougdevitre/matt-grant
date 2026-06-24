@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PILLARS, getPillar } from "@/lib/pillars";
+import { publicPillars, getPillar } from "@/lib/pillars";
 import { getManifest, getDoc } from "@/lib/pillars-content";
 import { renderMarkdown } from "@/lib/markdown";
 import { CAMPAIGN } from "@/lib/site";
@@ -14,7 +14,7 @@ import { PillarLink } from "@/components/PillarLink";
 
 export function generateStaticParams() {
   const params: { pillar: string; slug: string[] }[] = [];
-  for (const pillar of PILLARS) {
+  for (const pillar of publicPillars) {
     const manifest = getManifest(pillar.slug);
     for (const doc of manifest?.docs ?? []) {
       params.push({ pillar: pillar.slug, slug: [doc.slug] });
@@ -37,8 +37,8 @@ const PROSE =
 export default async function PillarDocPage({ params }: { params: Promise<{ pillar: string; slug: string[] }> }) {
   const { pillar: pillarSlug, slug } = await params;
   const pillar = getPillar(pillarSlug);
-  const found = pillar ? getDoc(pillarSlug, slug[0]) : null;
-  if (!pillar || !found) notFound();
+  const found = pillar && !pillar.hidden ? getDoc(pillarSlug, slug[0]) : null;
+  if (!pillar || pillar.hidden || !found) notFound();
 
   const html = renderMarkdown(found.markdown);
 
