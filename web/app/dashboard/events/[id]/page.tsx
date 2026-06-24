@@ -6,13 +6,15 @@ import { EVENT_TYPE_LABELS } from "@/lib/events/types";
 import { formatEventRange } from "@/lib/events/time";
 import { districtLabel } from "@/lib/events/districts";
 import { getDistrictInsight } from "@/lib/events/insights";
+import { listStaff } from "@/lib/staff";
+import { getVolunteers } from "@/lib/queries";
 import { SITE_URL } from "@/lib/site";
 import { PageHeader } from "@/components/dashboard/Notice";
 import { EventComposer } from "@/components/dashboard/EventComposer";
 import { DistrictInsightPanel } from "@/components/dashboard/DistrictInsightPanel";
 import { SubmitButton } from "@/components/dashboard/SubmitButton";
 import { ConfirmButton } from "@/components/dashboard/ConfirmButton";
-import { publishEvent, cancelEvent, unpublishEvent, removeEvent } from "../actions";
+import { publishEvent, cancelEvent, unpublishEvent, removeEvent, setEventCaptain, addEventVolunteer, removeEventVolunteer } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +26,18 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
   const insight = await getDistrictInsight(event.districtKey);
   const going = event.signups.reduce((s, x) => s + (Number(x.count) || 1), 0);
+
+  // Staffing option lists: captains = active admins/captains; volunteers = the
+  // contact roster, ACTIVE first. Both reused from existing stores.
+  const captainOptions = (await listStaff())
+    .filter((s) => s.status === "active" && (s.role === "admin" || s.role === "captain"))
+    .map((s) => ({ id: s.email, name: s.name || s.email }));
+  const onRoster = new Set(event.volunteers.map((v) => v.id));
+  const volunteerOptions = (await getVolunteers()).rows
+    .filter((v) => !onRoster.has(v.id))
+    .sort((a, b) => Number(b.status === "ACTIVE") - Number(a.status === "ACTIVE"))
+    .map((v) => ({ id: v.id, name: v.name }));
+  const selectCls = "w-full rounded-sm border border-line bg-white px-2 py-1.5 text-sm text-ink";
 
   return (
     <>
@@ -113,6 +127,61 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
         <div className="space-y-6">
           <DistrictInsightPanel insight={insight} districtKey={event.districtKey} eventId={event.id} />
+
+          {/* Staffing — internal captain + volunteer roster (distinct from RSVPs) */}
+          <div className="card p-5">
+            <h3 className="font-display text-lg font-semibold text-ink">
+              Staffing <span className="text-sm font-normal text-slate">({event.volunteers.length} volunteer{event.volunteers.length === 1 ? "" : "s"}{event.captain ? " · captain set" : ""})</span>
+            </h3>
+
+            {/* Captain */}
+            <form action={setEventCaptain} className="mt-3">
+              <label htmlFor="ev-captain" className="block text-xs font-semibold text-slate">Team captain</label>
+              <input type="hidden" name="id" value={event.id} />
+              <div className="mt-1 flex items-center gap-2">
+                <select id="ev-captain" name="captain" defaultValue={event.captain ? `${event.captain.id}|${event.captain.name}` : ""} className={selectCls}>
+                  <option value="">— Unassigned —</option>
+                  {event.captain && !captainOptions.some((c) => c.id === event.captain!.id) && (
+                    <option value={`${event.captain.id}|${event.captain.name}`}>{event.captain.name}</option>
+                  )}
+                  {captainOptions.map((c) => (
+                    <option key={c.id} value={`${c.id}|${c.name}`}>{c.name}</option>
+                  ))}
+                </select>
+                <SubmitButton pendingText="…" className="btn-ghost px-3 py-1.5 text-sm">Set</SubmitButton>
+              </div>
+            </form>
+
+            {/* Volunteer roster */}
+            <p className="mt-4 block text-xs font-semibold text-slate">Volunteers working this event</p>
+            {event.volunteers.length === 0 ? (
+              <p className="mt-1 text-sm text-slate">None assigned yet.</p>
+            ) : (
+              <ul className="mt-1 divide-y divide-line">
+                {event.volunteers.map((v) => (
+                  <li key={v.id} className="flex items-center justify-between gap-2 py-1.5 text-sm">
+                    <span className="text-ink">{v.name}</span>
+                    <form action={removeEventVolunteer}>
+                      <input type="hidden" name="id" value={event.id} />
+                      <input type="hidden" name="volunteerId" value={v.id} />
+                      <SubmitButton pendingText="…" className="text-xs text-brick hover:underline">Remove</SubmitButton>
+                    </form>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <form action={addEventVolunteer} className="mt-3 flex items-center gap-2">
+              <input type="hidden" name="id" value={event.id} />
+              <select name="volunteer" aria-label="Add a volunteer to this event" defaultValue="" className={selectCls}>
+                <option value="" disabled>Add a volunteer…</option>
+                {volunteerOptions.map((v) => (
+                  <option key={v.id} value={`${v.id}|${v.name}`}>{v.name}</option>
+                ))}
+              </select>
+              <SubmitButton pendingText="…" className="btn-ghost px-3 py-1.5 text-sm">Add</SubmitButton>
+            </form>
+            <p className="mt-3 text-[0.7rem] text-slate">Captains are active admins/captains; volunteers come from your contact roster. Publishing still notifies all captains &amp; volunteers.</p>
+          </div>
 
           {/* Sign-ups (staff-only PII) */}
           <div className="card p-5">
