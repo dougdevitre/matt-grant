@@ -8,6 +8,7 @@ import {
   isEventType, type EventType, type EventLocation,
 } from "@/lib/events";
 import { localCentralToIso } from "@/lib/events/time";
+import { geocodeAddress } from "@/lib/events/geocode";
 import { publishEventNotifications } from "@/lib/events/notify";
 import { parseForwardedEmail, type EventDraft } from "@/lib/events/parseEmail";
 import { refreshDistrictInsight } from "@/lib/events/insights";
@@ -29,7 +30,15 @@ function refresh(id?: string) {
   }
 }
 
-function readForm(f: FormData): { ok: boolean; type: EventType; location: EventLocation; start: string; end: string | null; allDay: boolean; title: string; description: string; capacity: number | null } {
+// Parse an optional numeric lat/lng the admin typed by hand. Blank → null.
+function num(f: FormData, k: string): number | null {
+  const raw = String(f.get(k) ?? "").trim();
+  if (!raw) return null;
+  const n = Number(raw);
+  return isFinite(n) ? n : null;
+}
+
+function readForm(f: FormData): { ok: boolean; type: EventType; location: EventLocation; start: string; end: string | null; allDay: boolean; title: string; description: string; capacity: number | null; lat: number | null; lng: number | null } {
   const title = String(f.get("title") ?? "").trim();
   const rawType = String(f.get("type") ?? "other");
   const start = localCentralToIso(String(f.get("start") ?? ""));
@@ -47,6 +56,8 @@ function readForm(f: FormData): { ok: boolean; type: EventType; location: EventL
     allDay,
     description: String(f.get("description") ?? "").trim(),
     capacity,
+    lat: num(f, "lat"),
+    lng: num(f, "lng"),
     location: {
       name: String(f.get("locName") ?? "").trim(),
       address: String(f.get("locAddress") ?? "").trim(),
@@ -54,6 +65,21 @@ function readForm(f: FormData): { ok: boolean; type: EventType; location: EventL
       county: String(f.get("locCounty") ?? "").trim(),
     },
   };
+}
+
+// Resolve the coordinates to store: a hand-entered lat+lng always wins; otherwise
+// forward-geocode the street address (best-effort, may stay null). For an existing
+// event we skip geocoding when the address is unchanged and coords already exist.
+async function resolveCoords(
+  d: { lat: number | null; lng: number | null; location: EventLocation },
+  prior?: { lat: number | null; lng: number | null; address: string } | null,
+): Promise<{ lat: number | null; lng: number | null }> {
+  if (d.lat != null && d.lng != null) return { lat: d.lat, lng: d.lng };
+  if (prior && prior.lat != null && prior.lng != null && prior.address === d.location.address) {
+    return { lat: prior.lat, lng: prior.lng };
+  }
+  const hit = await geocodeAddress(d.location);
+  return hit ? { lat: hit.lat, lng: hit.lng } : { lat: null, lng: null };
 }
 
 // Create or update (hidden `id` distinguishes). Returns state for the client form.
@@ -67,17 +93,21 @@ export async function saveEvent(formData: FormData): Promise<EventState> {
 
   try {
     if (id) {
+      const prior = await getEvent(id);
+      const coords = await resolveCoords(d, prior ? { lat: prior.lat, lng: prior.lng, address: prior.location.address } : null);
       const okUpd = await updateEvent(id, {
         title: d.title, type: d.type, start: d.start, end: d.end, allDay: d.allDay,
-        location: d.location, description: d.description, capacity: d.capacity, createdBy: g.email ?? "system",
+        location: d.location, lat: coords.lat, lng: coords.lng,
+        description: d.description, capacity: d.capacity, createdBy: g.email ?? "system",
       });
       if (!okUpd) return { ok: false, message: "Event not found." };
       refresh(id);
       return { ok: true, message: "Saved.", id };
     }
+    const coords = await resolveCoords(d);
     const newId = await createEvent({
       title: d.title, type: d.type, start: d.start, end: d.end, allDay: d.allDay,
-      location: d.location, description: d.description, capacity: d.capacity,
+      location: d.location, lat: coords.lat, lng: coords.lng, description: d.description, capacity: d.capacity,
       status: "DRAFT", source: "manual", createdBy: g.email ?? "system",
     });
     refresh(newId);
