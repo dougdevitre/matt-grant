@@ -35,6 +35,18 @@ export const NAV = [
 
 export const SITE_URL = "https://mattgrantforcongress.org";
 
+// The canonical apex. Pillar microsites are served on subdomains
+// (e.g. education.mattgrantforcongress.org) via the host rewrite in middleware.ts,
+// where a relative "/about" would resolve to the SUBDOMAIN and 404. mainHref()
+// absolutizes a main-site path to the apex when rendering on a subdomain, and
+// keeps it relative (preserving client-side nav) on the apex itself.
+export const MAIN_SITE_URL = SITE_URL;
+
+export function mainHref(path: string, onSubdomain: boolean): string {
+  if (!onSubdomain) return path; // apex: relative link, SPA nav preserved
+  return `${MAIN_SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 // Legal & transparency pages — linked in the footer.
 export const LEGAL = [
   { href: "/data-policy", label: "Data Policy" },
