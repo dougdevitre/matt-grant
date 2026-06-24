@@ -17,6 +17,7 @@ describe("APPEARANCE_OPPORTUNITIES catalog", () => {
       expect(o.verifiedAt, o.slug).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       expect(isEventType(o.suggestedType), o.slug).toBe(true);
       expect(o.name.trim().length, o.slug).toBeGreaterThan(0);
+      expect([1, 2, 3], o.slug).toContain(o.priority);
     }
   });
 });
@@ -34,6 +35,9 @@ describe("opportunityToEventInput", () => {
     expect(input.location.county).toBe(opp.county);
     expect(input.start).toBe("2026-07-15T17:00:00.000Z");
     expect(input.createdBy).toBe("a@x.test");
+    // curated priority carried over as a manual override
+    expect(input.priority).toBe(opp.priority);
+    expect(input.priorityManual).toBe(true);
   });
 
   it("carries the cited source + a verify-the-date reminder into the description", () => {
