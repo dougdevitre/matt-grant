@@ -90,3 +90,15 @@ export type EventInput = {
   parseConfidence?: number | null;
   createdBy: string;
 };
+
+/** Remaining RSVP spots. A null capacity means unlimited → returns null. */
+export function spotsLeft(capacity: number | null, goingCount: number): number | null {
+  if (capacity == null) return null;
+  return Math.max(0, capacity - goingCount);
+}
+
+/** True only when a capacity is set and it's reached/exceeded. */
+export function isEventFull(capacity: number | null, goingCount: number): boolean {
+  const left = spotsLeft(capacity, goingCount);
+  return left != null && left <= 0;
+}

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireCap } from "@/lib/auth";
 import { listEvents } from "@/lib/events";
-import { EVENT_TYPE_LABELS, type EventRow } from "@/lib/events/types";
+import { EVENT_TYPE_LABELS, isEventType, type EventRow } from "@/lib/events/types";
 import { formatEventRange } from "@/lib/events/time";
 import { districtLabel } from "@/lib/events/districts";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
@@ -38,9 +38,13 @@ function EventRowCard({ e }: { e: EventRow }) {
   );
 }
 
-export default async function EventsPage() {
+export default async function EventsPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
   await requireCap("manageEvents");
-  const { connected, rows } = await listEvents();
+  const { type } = await searchParams;
+  const { connected, rows: allRows } = await listEvents();
+  const active = isEventType(type) ? type : null;
+  const presentTypes = [...new Set(allRows.map((e) => e.type))];
+  const rows = active ? allRows.filter((e) => e.type === active) : allRows;
   const now = new Date().toISOString();
   const upcoming = rows.filter((e) => e.start >= now);
   const past = rows.filter((e) => e.start < now).reverse();
@@ -67,6 +71,23 @@ export default async function EventsPage() {
         <h2 className="mb-3 font-display text-xl font-semibold text-ink">Add an event</h2>
         <EventComposer />
       </div>
+
+      {presentTypes.length > 1 && (
+        <div className="mb-6 flex flex-wrap gap-2">
+          <Link href="/dashboard/events" className={`rounded-full border px-3 py-1 text-xs ${active ? "border-line text-slate hover:border-ink" : "border-ink bg-ink text-paper"}`}>
+            All
+          </Link>
+          {presentTypes.map((t) => (
+            <Link
+              key={t}
+              href={`/dashboard/events?type=${t}`}
+              className={`rounded-full border px-3 py-1 text-xs ${active === t ? "border-ink bg-ink text-paper" : "border-line text-slate hover:border-ink"}`}
+            >
+              {EVENT_TYPE_LABELS[t]}
+            </Link>
+          ))}
+        </div>
+      )}
 
       <h2 className="mb-3 font-display text-xl font-semibold text-ink">Upcoming</h2>
       {upcoming.length === 0 ? (

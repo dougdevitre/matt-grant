@@ -4,15 +4,18 @@ import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, dbConfigured } from "@/lib/db";
 import { getSecret } from "@/lib/ssm";
 import { rateLimit } from "@/lib/ratelimit";
+import { secretMatches } from "@/lib/webhookAuth";
 import { parseForwardedEmail } from "@/lib/events/parseEmail";
 import { createEvent } from "@/lib/events";
 
 // Inbound email → draft event. PHASE 2 endpoint: it works the moment an inbound
 // parse provider (Postmark/SendGrid/Mailgun) is pointed at it via MX +
 // events@mattgrantforcongress.org, but until then it simply isn't called. Auth is a
-// shared bearer secret (INBOUND_EMAIL_SECRET) so only the configured provider can
-// post. Parsed events always land as DRAFT for human review — never auto-publish,
-// never auto-notify. Dedupe (sha256 of From+Subject+body) makes provider retries
+// shared secret (INBOUND_EMAIL_SECRET) supplied EITHER as an `Authorization: Bearer`
+// header OR a `?secret=` query param — providers differ in what they can send
+// (Postmark, e.g., can't set a custom header but can post to a secret URL). Parsed
+// events always land as DRAFT for human review — never auto-publish, never
+// auto-notify. Dedupe (sha256 of From+Subject+body) makes provider retries
 // idempotent. Until INBOUND_EMAIL_SECRET is set the route fails closed (401).
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,10 +23,9 @@ export const dynamic = "force-dynamic";
 async function authorized(req: Request): Promise<boolean> {
   const secret = await getSecret("INBOUND_EMAIL_SECRET");
   if (!secret) return false; // fail closed when unconfigured
-  const got = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
-  const a = Buffer.from(got);
-  const b = Buffer.from(secret);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+  const bearer = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
+  const query = new URL(req.url).searchParams.get("secret") ?? "";
+  return secretMatches(bearer, secret) || secretMatches(query, secret);
 }
 
 // Tolerate the common provider field names (Postmark TextBody, SendGrid text, …).

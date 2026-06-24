@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getEvent, toPublicEvent } from "@/lib/events";
-import { EVENT_TYPE_LABELS } from "@/lib/events/types";
+import { EVENT_TYPE_LABELS, isEventFull, spotsLeft } from "@/lib/events/types";
 import { formatEventRange } from "@/lib/events/time";
 import { CAMPAIGN } from "@/lib/site";
 import { RsvpForm } from "@/components/site/RsvpForm";
@@ -54,7 +54,7 @@ export default async function PublicEventPage({ params }: { params: Promise<{ id
         </div>
 
         <div>
-          <RsvpForm eventId={e.id} />
+          <RsvpForm eventId={e.id} full={isEventFull(e.capacity, e.goingCount)} spotsLeft={spotsLeft(e.capacity, e.goingCount)} />
         </div>
       </div>
     </section>
