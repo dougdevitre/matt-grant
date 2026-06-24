@@ -1,0 +1,38 @@
+segment,honorific,first_name,last_name,salutation,title,organization,address_line_1,address_line_2,city,state,zip,area_focus,ask_tier
+CIVIC,Rep.,Jeff,Hales,Representative,State Representative for District 86,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 86,B
+CIVIC,Rep.,Connie,Steinmetz,Representative,State Representative for District 87,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 87,B
+CIVIC,Rep.,Holly,Jones,Representative,State Representative for District 88,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 88,B
+CIVIC,Rep.,George,Hruza,Representative,State Representative for District 89,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 89,B
+CIVIC,Rep.,Mark,Boyko,Representative,State Representative for District 90,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 90,B
+CIVIC,Rep.,Jo,Doll,Representative,State Representative for District 91,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 91,B
+CIVIC,Rep.,Michael,Burton,Representative,State Representative for District 92,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 92,B
+CIVIC,Rep.,Bridget,Moore,Representative,State Representative for District 93,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 93,B
+CIVIC,Rep.,Jim,Murphy,Representative,State Representative for District 94,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 94,B
+CIVIC,Rep.,Brad,Christ,Representative,State Representative for District 96,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 96,B
+CIVIC,Rep.,David,Casteel,Representative,State Representative for District 97,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 97,B
+CIVIC,Rep.,Jaclyn,Zimmermann,Representative,State Representative for District 98,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 98,B
+CIVIC,Rep.,Ian,Mackey,Representative,State Representative for District 99,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 99,B
+CIVIC,Rep.,Philip,Oehlerking,Representative,State Representative for District 100,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 100,B
+CIVIC,Rep.,Ben,Keathley,Representative,State Representative for District 101,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 101,B
+CIVIC,Rep.,Richard,West,Representative,State Representative for District 102,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 102,B
+CIVIC,Rep.,Dave,Hinman,Representative,State Representative for District 103,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 103,B
+CIVIC,Rep.,Terri,Violet,Representative,State Representative for District 104,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 104,B
+CIVIC,Rep.,Colin,Wellenkamp,Representative,State Representative for District 105,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 105,B
+CIVIC,Rep.,Travis,Wilson,Representative,State Representative for District 106,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 106,B
+CIVIC,Rep.,Mark,Matthiesen,Representative,State Representative for District 107,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 107,B
+CIVIC,Rep.,Mike,Costlow,Representative,State Representative for District 108,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 108,B
+CIVIC,Rep.,John,Simmons,Representative,State Representative for District 109,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 109,B
+CIVIC,Rep.,Cecelie,Williams,Representative,State Representative for District 111,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 111,B
+CIVIC,Rep.,Renee,Reuter,Representative,State Representative for District 112,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 112,B
+CIVIC,Rep.,Phil,Amato,Representative,State Representative for District 113,the Missouri House of Representatives,201 W. Capitol Ave.,,Jefferson City,MO,65101,the families of District 113,B
+CIVIC,,Matt,Swanson,Council Member,"County Council Member, District 1",St. Charles County Council,201 N. Second Street,,St. Charles,MO,63301,St. Charles County,A
+CIVIC,,Joe,Brazil,Council Member,"County Council Member, District 2",St. Charles County Council,201 N. Second Street,,St. Charles,MO,63301,St. Charles County,B
+CIVIC,,Mike,Elam,Council Member,"County Council Member, District 3",St. Charles County Council,201 N. Second Street,,St. Charles,MO,63301,St. Charles County,A
+CIVIC,,Dave,Hammond,Council Member,"County Council Member, District 4",St. Charles County Council,201 N. Second Street,,St. Charles,MO,63301,St. Charles County,B
+CIVIC,,Terry,Hollander,Council Member,"County Council Member, District 5",St. Charles County Council,201 N. Second Street,,St. Charles,MO,63301,St. Charles County,B
+CIVIC,,Patti,York,Council Member,"County Council Member, District 6",St. Charles County Council,201 N. Second Street,,St. Charles,MO,63301,St. Charles County,B
+CIVIC,,Timothy,Baker,Council Member,"County Council Member, District 7",St. Charles County Council,201 N. Second Street,,St. Charles,MO,63301,St. Charles County,B
+CIVIC,,Steve,Ehlmann,County Executive,County Executive,St. Charles County,201 N. Second Street,,St. Charles,MO,63301,St. Charles County,A
+CIVIC,,Mark,Harder,Council Member,"County Council Member, District 7",St. Louis County Council,41 S. Central Ave.,,Clayton,MO,63105,St. Louis County,B
+CIVIC,,Dennis,Hancock,Council Member,"County Council Member, District 3",St. Louis County Council,41 S. Central Ave.,,Clayton,MO,63105,St. Louis County,B
+CIVIC,,Michael,Archer,Council Member,"County Council Member, District 6",St. Louis County Council,41 S. Central Ave.,,Clayton,MO,63105,St. Louis County,B

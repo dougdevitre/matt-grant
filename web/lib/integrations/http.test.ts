@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { mapLimit } from "@/lib/integrations/http";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { mapLimit, requestWithRetry, fetchJsonWithRetry, fetchTextWithRetry } from "@/lib/integrations/http";
 
 describe("mapLimit", () => {
   it("preserves input order and processes every item", async () => {
@@ -27,5 +27,57 @@ describe("mapLimit", () => {
   it("passes the index to the mapper", async () => {
     const out = await mapLimit(["a", "b", "c"], 1, async (v, i) => `${i}:${v}`);
     expect(out).toEqual(["0:a", "1:b", "2:c"]);
+  });
+});
+
+describe("requestWithRetry", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("retries a 500 then returns the success response", async () => {
+    let n = 0;
+    vi.stubGlobal("fetch", async () => {
+      n++;
+      return n === 1 ? new Response("err", { status: 500 }) : new Response("{}", { status: 200 });
+    });
+    const res = await requestWithRetry("http://x", { retries: 2 });
+    expect(n).toBe(2);
+    expect(res.status).toBe(200);
+  });
+
+  it("returns a 404 without throwing or retrying", async () => {
+    let n = 0;
+    vi.stubGlobal("fetch", async () => {
+      n++;
+      return new Response("nope", { status: 404 });
+    });
+    const res = await requestWithRetry("http://x", { retries: 3 });
+    expect(n).toBe(1);
+    expect(res.status).toBe(404);
+  });
+
+  it("sends an object body as JSON with a content-type", async () => {
+    let init: RequestInit | undefined;
+    vi.stubGlobal("fetch", async (_url: unknown, i: RequestInit) => {
+      init = i;
+      return new Response("{}", { status: 200 });
+    });
+    await requestWithRetry("http://x", { body: { a: 1 } });
+    expect(init?.method).toBe("POST");
+    expect((init?.headers as Record<string, string>)["content-type"]).toBe("application/json");
+    expect(init?.body).toBe(JSON.stringify({ a: 1 }));
+  });
+});
+
+describe("fetchJsonWithRetry / fetchTextWithRetry", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("fetchJsonWithRetry throws on a final non-ok status", async () => {
+    vi.stubGlobal("fetch", async () => new Response("nope", { status: 404 }));
+    await expect(fetchJsonWithRetry("http://x")).rejects.toThrow(/404/);
+  });
+
+  it("fetchTextWithRetry returns the body text", async () => {
+    vi.stubGlobal("fetch", async () => new Response("hello world", { status: 200 }));
+    expect(await fetchTextWithRetry("http://x")).toBe("hello world");
   });
 });

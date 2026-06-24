@@ -11,6 +11,10 @@ type FetchJsonOpts = {
   timeoutMs?: number;
   retries?: number;
   label?: string;
+  /** HTTP method (default GET). */
+  method?: string;
+  /** Request body — an object is JSON-stringified with a default content-type. */
+  body?: string | object;
 };
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -36,13 +40,26 @@ export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T, in
   return results;
 }
 
-export async function fetchJsonWithRetry<T = unknown>(url: string | URL, opts: FetchJsonOpts = {}): Promise<T> {
-  const { headers, timeoutMs = 15000, retries = 3, label = "fetch" } = opts;
+/**
+ * Core transport: a single request with hard timeout + bounded retry on transient
+ * failures (network error / 429 / 5xx, honoring Retry-After). Returns the final
+ * Response WITHOUT throwing on HTTP status — callers decide what a non-ok status
+ * means (e.g. ClerkVotes treats 404 as a genuine gap, not an error). Throws only
+ * on a network/timeout failure that survives all retries.
+ */
+export async function requestWithRetry(url: string | URL, opts: FetchJsonOpts = {}): Promise<Response> {
+  const { headers, timeoutMs = 15000, retries = 3, label = "fetch", method, body } = opts;
+  const isObjectBody = body != null && typeof body === "object";
+  const init: RequestInit = {
+    method: method ?? (body != null ? "POST" : "GET"),
+    headers: isObjectBody ? { "content-type": "application/json", ...headers } : headers,
+    body: isObjectBody ? JSON.stringify(body) : (body as string | undefined),
+  };
   let attempt = 0;
   for (;;) {
     let res: Response;
     try {
-      res = await fetch(url, { headers, signal: AbortSignal.timeout(timeoutMs) });
+      res = await fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) });
     } catch (err) {
       // Network failure or timeout (AbortError / TimeoutError).
       if (attempt++ < retries) {
@@ -51,12 +68,25 @@ export async function fetchJsonWithRetry<T = unknown>(url: string | URL, opts: F
       }
       throw new Error(`${label}: ${(err as Error)?.name ?? "fetch failed"} after ${retries} retries`);
     }
-    if (res.ok) return (await res.json()) as T;
     if ((res.status === 429 || res.status >= 500) && attempt++ < retries) {
       const ra = Number(res.headers.get("retry-after"));
       await sleep(Number.isFinite(ra) && ra > 0 ? ra * 1000 : backoffMs(attempt));
       continue;
     }
-    throw new Error(`${label} ${res.status}`);
+    return res;
   }
+}
+
+/** Retry + timeout, then parse JSON. Throws on a non-ok status (after retries). */
+export async function fetchJsonWithRetry<T = unknown>(url: string | URL, opts: FetchJsonOpts = {}): Promise<T> {
+  const res = await requestWithRetry(url, opts);
+  if (!res.ok) throw new Error(`${opts.label ?? "fetch"} ${res.status}`);
+  return (await res.json()) as T;
+}
+
+/** Retry + timeout, then return the body text. Throws on a non-ok status (after retries). */
+export async function fetchTextWithRetry(url: string | URL, opts: FetchJsonOpts = {}): Promise<string> {
+  const res = await requestWithRetry(url, opts);
+  if (!res.ok) throw new Error(`${opts.label ?? "fetch"} ${res.status}`);
+  return res.text();
 }

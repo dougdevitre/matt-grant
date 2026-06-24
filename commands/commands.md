@@ -165,6 +165,7 @@ Instant-generation triggers. When a user types any of these commands, generate t
 | Command | Output |
 |---|---|
 | `/print-at-library` | Step-by-step guide to print campaign materials (and make signs, banners, swag, video) at the St. Louis County Library, with what-to-print picks and the responsible-use rules — sourced from `candidate/library-print-and-produce-guide.md` |
+| `/printtracker` | Print production tracker — every letter-sized printable mapped to the template that produces it, its disclaimer/solicitation/internal flags, and production status, sourced from `tools/print-tracker.md` |
 
 ### Post-Election
 | Command | Output |

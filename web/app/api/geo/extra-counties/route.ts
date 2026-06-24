@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { geoRoute } from "@/lib/data/geo";
 import { CENSUS_VTD } from "@/lib/geoSources";
 import { turnoutFor } from "@/lib/countyTurnout";
 
@@ -7,34 +7,37 @@ import { turnoutFor } from "@/lib/countyTurnout";
 // are wholly in the 2025-map MO-02, so no district clip is needed.
 export const revalidate = 604800; // weekly — VTD boundaries are static
 
-export async function GET() {
-  const fips = Object.keys(CENSUS_VTD.counties);
-  const where = fips.map((f) => `GEOID LIKE '${f}%'`).join(" OR ");
-  const params = new URLSearchParams({
-    where,
-    outFields: "GEOID,NAME",
-    returnGeometry: "true",
-    outSR: "4326",
-    maxAllowableOffset: "0.001",
-    geometryPrecision: "5",
-    f: "geojson",
-  });
-  try {
+const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
+
+export const GET = geoRoute({
+  source: "Rural counties (Census 2020 VTDs)",
+  fallback: EMPTY,
+  cacheControl: "public, s-maxage=604800, stale-while-revalidate=86400",
+  fetcher: async () => {
+    const fips = Object.keys(CENSUS_VTD.counties);
+    const where = fips.map((f) => `GEOID LIKE '${f}%'`).join(" OR ");
+    const params = new URLSearchParams({
+      where,
+      outFields: "GEOID,NAME",
+      returnGeometry: "true",
+      outSR: "4326",
+      maxAllowableOffset: "0.001",
+      geometryPrecision: "5",
+      f: "geojson",
+    });
     const res = await fetch(`${CENSUS_VTD.url}?${params}`, { next: { revalidate } });
     if (!res.ok) throw new Error(String(res.status));
     const fc = (await res.json()) as GeoJSON.FeatureCollection;
-    if (!fc?.features?.length) throw new Error("empty");
+    if (!fc?.features?.length) return { fc: null };
     const features = fc.features.map((f) => {
       const geoid = String((f.properties as { GEOID?: string })?.GEOID ?? "");
       const county = CENSUS_VTD.counties[geoid.slice(0, 5)] ?? "";
       const t = turnoutFor(county);
       return { ...f, properties: { ...f.properties, county, ...(t != null ? { turnoutPct: t } : {}) } };
     });
-    return NextResponse.json(
-      { type: "FeatureCollection", features, meta: { live: true, count: features.length, counties: Object.values(CENSUS_VTD.counties) } },
-      { headers: { "cache-control": "public, s-maxage=604800, stale-while-revalidate=86400" } },
-    );
-  } catch {
-    return NextResponse.json({ type: "FeatureCollection", features: [], meta: { live: false, count: 0 } });
-  }
-}
+    return {
+      fc: { type: "FeatureCollection", features },
+      meta: { counties: Object.values(CENSUS_VTD.counties) },
+    };
+  },
+});

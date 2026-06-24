@@ -1,9 +1,8 @@
-import { NextResponse } from "next/server";
-import { timingSafeEqual } from "node:crypto";
 import { loadField } from "@/lib/integrations/research/candidates";
 import { fetchNews } from "@/lib/integrations/news/client";
 import { persistNews } from "@/lib/integrations/research/store";
-import { getSecret } from "@/lib/ssm";
+import { cronAuthorized } from "@/lib/cron-auth";
+import { jobOk, unauthorized } from "@/lib/jobResult";
 
 // Fast recent-coverage refresh (Google News RSS), sequential and decoupled from
 // the heavy field ingest. Persists per candidate and returns a count so it's
@@ -12,18 +11,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-async function authorized(req: Request): Promise<boolean> {
-  const secret = await getSecret("CRON_SECRET");
-  if (!secret) return false;
-  const got = Buffer.from(req.headers.get("authorization") ?? "");
-  const want = Buffer.from(`Bearer ${secret}`);
-  return got.length === want.length && timingSafeEqual(got, want);
-}
-
 async function handle(req: Request) {
-  if (!(await authorized(req))) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
+  if (!(await cronAuthorized(req))) return unauthorized();
   const slug = new URL(req.url).searchParams.get("slug");
   const field = loadField().filter((c) => c.active !== false);
   const targets = slug ? field.filter((c) => c.slug === slug) : field;
@@ -42,7 +31,7 @@ async function handle(req: Request) {
       results[c.slug] = { name: c.name, error: String(err) };
     }
   }
-  return NextResponse.json({ ok: true, count: targets.length, results });
+  return jobOk({ count: targets.length, results });
 }
 
 export const GET = handle;

@@ -2,13 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireCap } from "@/lib/auth";
 import { PageHeader } from "@/components/dashboard/Notice";
-import { dbConfigured } from "@/lib/db";
-import { getCandidate, partyLabel } from "@/lib/integrations/research/candidates";
-import { statementsFor } from "@/lib/integrations/statements/data";
-import { alignCandidate } from "@/lib/analysis/alignment";
+import { DegradedNotice, ProvenanceChip } from "@/components/data/ResourceState";
+import { loadCandidateResearch } from "@/lib/data/research";
+import { partyLabel } from "@/lib/integrations/research/candidates";
 import { ISSUE_AXES, axis } from "@/lib/integrations/research/issues";
-import { getFec, getDonorProfile, getFecDetail, getWikiBio, getNews, getStateLeg } from "@/lib/integrations/research/store";
-import { getVotes, getBills } from "@/lib/integrations/legislative/store";
 import { CoalitionScript } from "@/components/dashboard/CoalitionScript";
 import { ContrastCard } from "@/components/dashboard/ContrastCard";
 
@@ -22,46 +19,24 @@ const VERDICT_LABEL = { agree: "Agrees with Matt", differ: "Differs", unknown: "
 export default async function CandidatePage({ params }: { params: Promise<{ slug: string }> }) {
   await requireCap("viewResearch"); // gate the per-candidate drilldown too (H1)
   const { slug } = await params;
-  const c = getCandidate(slug);
-  if (!c) notFound();
-
-  const statements = statementsFor(slug);
-  const a = alignCandidate(c, statements);
-
-  let fec = null,
-    donors: Awaited<ReturnType<typeof getDonorProfile>> = null,
-    detail: Awaited<ReturnType<typeof getFecDetail>> = null,
-    bio: Awaited<ReturnType<typeof getWikiBio>> = null,
-    news: Awaited<ReturnType<typeof getNews>> = null,
-    stateLeg: Awaited<ReturnType<typeof getStateLeg>> = null,
-    votes: Awaited<ReturnType<typeof getVotes>> = [],
-    bills: Awaited<ReturnType<typeof getBills>> = [];
-  if (dbConfigured) {
-    try {
-      [fec, donors, detail, bio, news, stateLeg, votes, bills] = await Promise.all([
-        getFec(slug),
-        getDonorProfile(slug),
-        getFecDetail(slug),
-        getWikiBio(slug),
-        getNews(slug),
-        c.stateLegId ? getStateLeg(slug) : Promise.resolve(null),
-        c.bioguideId ? getVotes(c.bioguideId) : Promise.resolve([]),
-        c.bioguideId ? getBills(c.bioguideId, { relation: "sponsored" }) : Promise.resolve([]),
-      ]);
-    } catch {
-      /* degrade */
-    }
-  }
+  const res = await loadCandidateResearch(slug);
+  if (!res) notFound();
+  // Alignment + statements always render; the FEC/bio/news/record reads degrade.
+  const { candidate: c, statements, alignment: a, fec, donors, detail, bio, news, stateLeg, votes, bills } = res.data!;
   const hasDonorData =
     donors && (donors.topEmployers.length || donors.topOccupations.length || donors.bySize.length || donors.byState.length);
 
   return (
     <>
       <PageHeader kicker="Field & alignment research" title={c.name}>
-        <Link href="/dashboard/research" className="font-mono text-xs text-field hover:underline">
-          ← field
-        </Link>
+        <div className="flex items-center gap-3">
+          <ProvenanceChip meta={res.meta} />
+          <Link href="/dashboard/research" className="font-mono text-xs text-field hover:underline">
+            ← field
+          </Link>
+        </div>
       </PageHeader>
+      {res.meta.degraded && <DegradedNotice reason={res.meta.degraded.reason} source={res.meta.source} />}
 
       <p className="mb-6 text-sm text-slate">
         {partyLabel(c.party)} · {c.primary} primary{c.incumbent ? " · incumbent" : ""} · {c.office ?? "U.S. House MO-02"}

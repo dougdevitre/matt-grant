@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { getSecret } from "@/lib/ssm";
+import { requestWithRetry } from "@/lib/integrations/http";
 
 // Twilio SMS via the campaign's approved Messaging Service. Graceful: if the creds
 // aren't set the app still runs and callers no-op (mirrors lib/email/send.ts's
@@ -41,13 +42,20 @@ export async function sendSms(o: { to: string; body: string }): Promise<{ sent: 
   const c = await creds();
   if (!c.sid || !c.token || !c.service) return { sent: false, error: "Twilio not configured" };
   try {
-    const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${c.sid}/Messages.json`, {
+    // Shared transport with retry: SAFE because Twilio creates a message only on a
+    // 2xx — a non-2xx or network error means it was not created, so retrying a
+    // transient failure can't double-send. requestWithRetry retries network/429/5xx
+    // and returns 4xx (e.g. invalid number) immediately without retrying.
+    const res = await requestWithRetry(`https://api.twilio.com/2010-04-01/Accounts/${c.sid}/Messages.json`, {
       method: "POST",
       headers: {
         authorization: `Basic ${Buffer.from(`${c.sid}:${c.token}`).toString("base64")}`,
         "content-type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({ MessagingServiceSid: c.service, To: to, Body: o.body }).toString(),
+      timeoutMs: 10000,
+      retries: 2,
+      label: "twilio",
     });
     const data = (await res.json().catch(() => null)) as { sid?: string; message?: string } | null;
     if (!res.ok) return { sent: false, error: data?.message ?? `Twilio ${res.status}` };

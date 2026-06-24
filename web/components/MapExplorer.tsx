@@ -1,8 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { CATEGORIES, EVENT_COLOR, POIS, PRECINCTS, type Category } from "@/lib/mapData";
+import { useResource } from "@/lib/data/useResource";
 
 // MapLibre touches window/WebGL — load client-only.
 const RegionMap3D = dynamic(() => import("@/components/RegionMap3D"), {
@@ -22,78 +23,48 @@ const sampleFC: GeoJSON.FeatureCollection = {
     geometry: { type: "Point", coordinates: [p.lng, p.lat] },
   })),
 };
+const emptyFC: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
+
+// Geo-layer meta carries route-specific keys on top of the base Provenance.
+type GeoMeta = { live?: boolean; count?: number; pollingLive?: boolean };
 
 export function MapExplorer() {
   const [visible, setVisible] = useState<Category[]>(ALL);
   const [buildings, setBuildings] = useState(true);
   const [turnout, setTurnout] = useState(true);
-  const [pois, setPois] = useState<GeoJSON.FeatureCollection>(sampleFC);
-  const [pollingLive, setPollingLive] = useState<boolean | null>(null);
-  const [precincts, setPrecincts] = useState<GeoJSON.FeatureCollection>(PRECINCTS);
-  const [precinctsLive, setPrecinctsLive] = useState<boolean | null>(null);
-  const emptyFC: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
-  const [jefferson, setJefferson] = useState<GeoJSON.FeatureCollection>(emptyFC);
-  const [jeffCount, setJeffCount] = useState<number | null>(null);
   const [showJefferson, setShowJefferson] = useState(true);
-  const [extra, setExtra] = useState<GeoJSON.FeatureCollection>(emptyFC);
-  const [extraCount, setExtraCount] = useState<number | null>(null);
   const [showExtra, setShowExtra] = useState(true);
-  const [events, setEvents] = useState<GeoJSON.FeatureCollection>(emptyFC);
-  const [eventCount, setEventCount] = useState<number | null>(null);
   const [showEvents, setShowEvents] = useState(true);
 
-  // Pull live layers (real St. Louis County polling places + precinct turnout) on mount.
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/geo/pois")
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((fc) => {
-        if (cancelled) return;
-        setPois({ type: "FeatureCollection", features: fc.features });
-        setPollingLive(!!fc.meta?.pollingLive);
-      })
-      .catch(() => !cancelled && setPollingLive(false));
+  // The live layers, each on the shared Resource hook (loading/ready/empty/
+  // degraded/error). The {type,features,meta} payload normalizes to data+meta.
+  const poisRes = useResource<GeoJSON.FeatureCollection>("/api/geo/pois");
+  const precinctsRes = useResource<GeoJSON.FeatureCollection>("/api/geo/precincts");
+  const jeffersonRes = useResource<GeoJSON.FeatureCollection>("/api/geo/jefferson");
+  const extraRes = useResource<GeoJSON.FeatureCollection>("/api/geo/extra-counties");
+  const eventsRes = useResource<GeoJSON.FeatureCollection>("/api/geo/events");
 
-    fetch("/api/geo/precincts")
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((fc) => {
-        if (cancelled) return;
-        setPrecincts({ type: "FeatureCollection", features: fc.features });
-        setPrecinctsLive(!!fc.meta?.live);
-      })
-      .catch(() => !cancelled && setPrecinctsLive(false));
+  // Pass live features to the map; fall back to sample/empty until they arrive.
+  const featuresOf = (
+    res: { data: GeoJSON.FeatureCollection | null },
+    fallback: GeoJSON.FeatureCollection,
+  ): GeoJSON.FeatureCollection => {
+    const f = res.data?.features;
+    return f && f.length ? { type: "FeatureCollection", features: f } : fallback;
+  };
 
-    fetch("/api/geo/jefferson")
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((fc) => {
-        if (cancelled) return;
-        setJefferson({ type: "FeatureCollection", features: fc.features });
-        setJeffCount(fc.meta?.count ?? 0);
-      })
-      .catch(() => !cancelled && setJeffCount(0));
+  const pois = useMemo(() => featuresOf(poisRes, sampleFC), [poisRes]);
+  const precincts = useMemo(() => featuresOf(precinctsRes, PRECINCTS), [precinctsRes]);
+  const jefferson = useMemo(() => featuresOf(jeffersonRes, emptyFC), [jeffersonRes]);
+  const extra = useMemo(() => featuresOf(extraRes, emptyFC), [extraRes]);
+  const events = useMemo(() => featuresOf(eventsRes, emptyFC), [eventsRes]);
 
-    fetch("/api/geo/extra-counties")
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((fc) => {
-        if (cancelled) return;
-        setExtra({ type: "FeatureCollection", features: fc.features });
-        setExtraCount(fc.meta?.count ?? 0);
-      })
-      .catch(() => !cancelled && setExtraCount(0));
-
-    fetch("/api/geo/events")
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((fc) => {
-        if (cancelled) return;
-        setEvents({ type: "FeatureCollection", features: fc.features });
-        setEventCount(fc.meta?.count ?? 0);
-      })
-      .catch(() => !cancelled && setEventCount(0));
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  // Indicators: null while loading, then the live flag / count from meta.
+  const pollingLive = poisRes.state === "loading" ? null : Boolean((poisRes.meta as GeoMeta | null)?.pollingLive);
+  const precinctsLive = precinctsRes.state === "loading" ? null : Boolean((precinctsRes.meta as GeoMeta | null)?.live);
+  const jeffCount = jeffersonRes.state === "loading" ? null : ((jeffersonRes.meta as GeoMeta | null)?.count ?? 0);
+  const extraCount = extraRes.state === "loading" ? null : ((extraRes.meta as GeoMeta | null)?.count ?? 0);
+  const eventCount = eventsRes.state === "loading" ? null : ((eventsRes.meta as GeoMeta | null)?.count ?? 0);
 
   const toggle = (c: Category) =>
     setVisible((v) => (v.includes(c) ? v.filter((x) => x !== c) : [...v, c]));
