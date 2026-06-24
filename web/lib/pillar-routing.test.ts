@@ -35,6 +35,20 @@ describe("pillarRewritePath", () => {
   it("ignores a port on the host", () => {
     expect(pillarForHost("education.localhost:3000")?.slug).toBe("education");
   });
+
+  it("passes malformed and empty hosts through without throwing", () => {
+    expect(pillarRewritePath("", "/")).toBeNull();
+    expect(pillarRewritePath("   ", "/")).toBeNull();
+    expect(pillarRewritePath(null, "/")).toBeNull();
+    expect(pillarRewritePath(undefined, "/")).toBeNull();
+    // A stray extra colon must not crash the label split.
+    expect(pillarRewritePath("education.mattgrantforcongress.org:8080:9090", "/x")).toBe("/pillars/education/x");
+  });
+
+  it("passes an unknown subdomain through at both root and a deep path", () => {
+    expect(pillarRewritePath("nope.mattgrantforcongress.org", "/")).toBeNull();
+    expect(pillarRewritePath("nope.mattgrantforcongress.org", "/deep/path")).toBeNull();
+  });
 });
 
 describe("issueVanityRedirect", () => {
