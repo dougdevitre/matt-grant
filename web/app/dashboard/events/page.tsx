@@ -33,6 +33,9 @@ function EventRowCard({ e }: { e: EventRow }) {
         {e.source === "email" && <span className="ml-2 text-field">· from email</span>}
         {going > 0 && <span className="ml-2">· {going} signed up</span>}
         {e.capacity ? <span className="text-slate"> / {e.capacity}</span> : null}
+        {(e.volunteers.length > 0 || e.captain) && (
+          <span className="ml-2 text-field">· staffed: {e.captain ? "captain" : "no captain"}, {e.volunteers.length} vol</span>
+        )}
       </span>
     </Link>
   );

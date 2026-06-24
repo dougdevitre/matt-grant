@@ -48,6 +48,12 @@ export type Signup = {
   createdAt: string;
 };
 
+// Internal event staffing — the captain who owns the appearance and the volunteer
+// roster assigned to work it. Distinct from public `signups` (RSVPs). `id` is a
+// volunteer record id (or a staff email for the captain); `name` is denormalized
+// so the dashboard renders without a join, mirroring task assignment.
+export type EventStaffer = { id: string; name: string };
+
 export type EventRow = {
   id: string;
   title: string;
@@ -63,6 +69,8 @@ export type EventRow = {
   status: EventStatus;
   capacity: number | null;
   signups: Signup[];
+  captain: EventStaffer | null;
+  volunteers: EventStaffer[];
   source: "manual" | "email";
   parseConfidence: number | null;
   notifiedEmailAt: string | null;
@@ -101,6 +109,8 @@ export type EventInput = {
   lng?: number | null;
   description: string;
   capacity?: number | null;
+  captain?: EventStaffer | null;
+  volunteers?: EventStaffer[];
   status?: EventStatus;
   source?: "manual" | "email";
   parseConfidence?: number | null;
