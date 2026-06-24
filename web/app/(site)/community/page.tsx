@@ -4,6 +4,7 @@ import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { CaseForChange } from "@/components/CaseForChange";
 import { CommunityOnboarding } from "@/components/CommunityOnboarding";
+import { ViewAsBanner } from "@/components/dashboard/ViewAsBanner";
 import { supporterTierForEmail } from "@/lib/supporterTier";
 import { getProfile } from "@/lib/profile";
 import { dollars } from "@/lib/money";
@@ -62,6 +63,9 @@ export default async function CommunityPage() {
 
   return (
     <section className="container-page py-16 sm:py-20">
+      {/* An admin previewing as Supporter is routed here (they lack viewOverview);
+          surface the exit control so they're never stranded outside the dashboard. */}
+      {gate.viewingAs && <ViewAsBanner role={gate.viewingAs} />}
       <p className="eyebrow text-brick">{me.isDonor ? "Donor · thank you" : me.isVolunteer ? "Volunteer · thank you" : "You’re in"}</p>
       <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">
         Welcome to the community{firstName ? `, ${firstName}` : ""}.
