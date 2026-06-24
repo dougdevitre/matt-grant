@@ -85,6 +85,11 @@ export default async function CommunityPage() {
             {donor.gifts > 1 ? ` across ${donor.gifts} gifts` : ""} is funding doors, calls, and mail
             across MO-02. You&apos;re part of the core making this race winnable.
           </p>
+          {can(gate.role, "viewDonorPortal") && (
+            <Link href="/my-giving" className="mt-3 inline-block text-sm font-semibold text-brick hover:underline">
+              View your giving →
+            </Link>
+          )}
         </div>
       )}
 
