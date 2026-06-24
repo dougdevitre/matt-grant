@@ -15,6 +15,7 @@ export function MessageThread({
   messages,
   canSend,
   blockReason,
+  optedOut,
   registeredEmail,
   prefillEmail,
   prefillName,
@@ -23,6 +24,7 @@ export function MessageThread({
   messages: SmsMessage[];
   canSend: boolean;
   blockReason?: string;
+  optedOut?: boolean;
   registeredEmail?: string;
   prefillEmail?: string;
   prefillName?: string;
@@ -108,7 +110,15 @@ export function MessageThread({
             </div>
           </>
         ) : (
-          <p className="text-sm text-slate">{blockReason ?? "You can't message this number right now."}</p>
+          <div
+            role={optedOut ? "alert" : undefined}
+            className={`rounded-sm border px-4 py-3 text-sm ${
+              optedOut ? "border-brick/40 bg-brick/10 text-brick" : "border-line bg-paper text-slate"
+            }`}
+          >
+            {optedOut && <span className="mr-1 font-semibold">⚠ Opted out —</span>}
+            {blockReason ?? "You can't message this number right now."}
+          </div>
         )}
       </div>
 
