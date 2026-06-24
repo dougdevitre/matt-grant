@@ -1,9 +1,11 @@
 import { PutCommand, QueryCommand, UpdateCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, newId, dbConfigured } from "@/lib/db";
 import { resolveDistrict } from "@/lib/events/districts";
+import { suggestPriority } from "@/lib/events/priority";
+import { defaultChecklistFor } from "@/lib/events/checklists";
 import {
   isEventType, isEventStatus,
-  type EventType, type EventStatus, type EventLocation, type Signup, type EventStaffer, type EventRow, type PublicEvent, type EventInput, type EventNotifyResult,
+  type EventType, type EventStatus, type EventLocation, type Signup, type EventStaffer, type EventPriority, type EventChecklistItem, type EventRow, type PublicEvent, type EventInput, type EventNotifyResult,
 } from "@/lib/events/types";
 
 // Campaign events / appearances. One DynamoDB partition (PK="EVENT") with
@@ -47,6 +49,9 @@ function rawToRow(it: Record<string, unknown>): EventRow {
     description: String(it.description ?? ""),
     status: isEventStatus(it.status) ? it.status : "DRAFT",
     capacity: it.capacity == null ? null : Number(it.capacity),
+    priority: it.priority === 1 || it.priority === 3 ? it.priority : 2,
+    priorityManual: it.priorityManual === true,
+    checklist: Array.isArray(it.checklist) ? (it.checklist as EventChecklistItem[]) : [],
     signups: Array.isArray(it.signups) ? (it.signups as Signup[]) : [],
     captain: (it.captain as EventStaffer) ?? null,
     volunteers: Array.isArray(it.volunteers) ? (it.volunteers as EventStaffer[]) : [],
@@ -84,12 +89,18 @@ export function toPublicEvent(e: EventRow): PublicEvent {
 function buildItem(id: string, input: EventInput, now: string, prior?: Partial<EventRow>) {
   const start = input.start;
   const districtKey = resolveDistrict(input.location).key;
+  const type: EventType = isEventType(input.type) ? input.type : "other";
+  // On create (no prior) seed the checklist from the type template and the
+  // priority from the rubric; on update, keep prior unless the patch overrides.
+  const priority: EventPriority =
+    input.priority ?? prior?.priority ?? suggestPriority({ type, districtKey }).tier;
+  const checklist: EventChecklistItem[] = input.checklist ?? prior?.checklist ?? defaultChecklistFor(type);
   return {
     PK: PK.events,
     SK: sk(start, id),
     id,
     title: clip(input.title, 140),
-    type: isEventType(input.type) ? input.type : "other",
+    type,
     start,
     end: input.end || undefined,
     allDay: input.allDay ?? prior?.allDay ?? undefined,
@@ -100,6 +111,9 @@ function buildItem(id: string, input: EventInput, now: string, prior?: Partial<E
     description: clip(input.description, 4000),
     status: input.status ?? prior?.status ?? "DRAFT",
     capacity: input.capacity ?? undefined,
+    priority,
+    priorityManual: input.priorityManual ?? prior?.priorityManual ?? false,
+    checklist,
     signups: prior?.signups ?? [],
     captain: input.captain !== undefined ? input.captain ?? undefined : prior?.captain ?? undefined,
     volunteers: input.volunteers ?? prior?.volunteers ?? undefined,
@@ -187,6 +201,9 @@ export async function updateEvent(id: string, patch: Partial<EventInput> & { sta
     lng: patch.lng !== undefined ? patch.lng : cur.lng,
     description: patch.description ?? cur.description,
     capacity: patch.capacity !== undefined ? patch.capacity : cur.capacity,
+    priority: patch.priority !== undefined ? patch.priority : cur.priority,
+    priorityManual: patch.priorityManual !== undefined ? patch.priorityManual : cur.priorityManual,
+    checklist: patch.checklist !== undefined ? patch.checklist : cur.checklist,
     captain: patch.captain !== undefined ? patch.captain : cur.captain,
     volunteers: patch.volunteers !== undefined ? patch.volunteers : cur.volunteers,
     status: patch.status ?? cur.status,
