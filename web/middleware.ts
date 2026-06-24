@@ -1,13 +1,15 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Dashboard + research read APIs + asset upload are staff-only. /community is the
-// supporter hub — any signed-in user may enter (role-gating beyond sign-in happens
-// in-page). The ingest route is excluded — it's secured separately by CRON_SECRET
-// (cron has no Clerk session).
+// Dashboard + research read APIs + asset upload are staff-only. /community (the
+// supporter hub) and /my-giving (the donor portal) require sign-in — any signed-in
+// user may reach them and role-gating beyond sign-in happens in-page. The ingest
+// route is excluded — it's secured separately by CRON_SECRET (cron has no Clerk
+// session).
 const isProtectedRoute = createRouteMatcher([
   "/dashboard(.*)",
   "/community(.*)",
+  "/my-giving(.*)",
   "/go",
   "/api/research/member(.*)",
   "/api/assets(.*)",

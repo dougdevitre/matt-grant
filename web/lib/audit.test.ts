@@ -63,12 +63,12 @@ describe("listAccessChanges", () => {
 describe("preview switch stream (separate partition)", () => {
   it("recordPreviewSwitch writes under AUDIT#preview with a sortable key", async () => {
     const at = "2026-06-24T06:00:00.000Z";
-    await recordPreviewSwitch({ at, actor: "admin@x.org", target: "admin@x.org", action: "preview_enter", role: "member" });
+    await recordPreviewSwitch({ at, actor: "admin@x.org", target: "admin@x.org", action: "preview_enter", role: "volunteer" });
     const item = send.mock.calls[0][0].input.Item;
     expect(item.PK).toBe("AUDIT#preview"); // NOT the access partition
     expect(item.SK).toBe(`${at}#fixed-id`);
     expect(item.action).toBe("preview_enter");
-    expect(item.role).toBe("member");
+    expect(item.role).toBe("volunteer");
   });
 
   it("listPreviewSwitches queries the preview partition newest-first", async () => {
@@ -86,7 +86,7 @@ describe("preview switch stream (separate partition)", () => {
   it("is best-effort: a write failure never throws", async () => {
     send.mockRejectedValue(new Error("ddb down"));
     await expect(
-      recordPreviewSwitch({ at: "2026-06-24T06:00:00.000Z", actor: "a", target: "a", action: "preview_enter", role: "member" }),
+      recordPreviewSwitch({ at: "2026-06-24T06:00:00.000Z", actor: "a", target: "a", action: "preview_enter", role: "volunteer" }),
     ).resolves.toBeUndefined();
   });
 });

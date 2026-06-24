@@ -7,7 +7,7 @@ import { STAFF_ALLOWLIST, staffGate, clerkEnabled } from "@/lib/auth";
 import { listStaff } from "@/lib/staff";
 import { pendingInviteCount } from "@/lib/invites";
 import { listAccessChanges, listPreviewSwitches } from "@/lib/audit";
-import { can, INVITABLE_ROLES, ROLE_LABELS, type Role } from "@/lib/rbac";
+import { can, INVITABLE_ROLES, ROLE_LABELS, ROLE_BADGE, isStaffRole, type Role } from "@/lib/rbac";
 import { revokeStaff, setMemberRole } from "./actions";
 import { ConfirmButton } from "@/components/dashboard/ConfirmButton";
 import { SubmitButton } from "@/components/dashboard/SubmitButton";
@@ -25,18 +25,11 @@ const previewLabel: Record<string, string> = {
 
 export const dynamic = "force-dynamic";
 
-const roleBadge: Record<string, string> = {
-  admin: "bg-brick/10 text-brick",
-  captain: "bg-gold/15 text-[#9a6f1a]",
-  member: "bg-field/10 text-field",
-  partner: "bg-ink/5 text-slate",
-};
-
 export default async function TeamPage() {
   const { role } = await staffGate();
   if (!can(role, "manageTeam")) redirect("/dashboard?denied=team");
   const active = (await listStaff()).filter((s) => s.status === "active");
-  const invited = active.filter((s) => s.role !== "partner"); // internal team
+  const invited = active.filter((s) => isStaffRole(s.role)); // internal team
   const partners = active.filter((s) => s.role === "partner"); // Peace Room only
   const changes = await listAccessChanges(25);
   const previews = await listPreviewSwitches(25);
@@ -101,7 +94,7 @@ export default async function TeamPage() {
                     name="role"
                     defaultValue={s.role}
                     aria-label={`Role for ${s.email}`}
-                    className={`rounded-sm border border-line px-2 py-1 text-xs ${roleBadge[s.role] ?? ""}`}
+                    className={`rounded-sm border border-line px-2 py-1 text-xs ${ROLE_BADGE[s.role] ?? ""}`}
                   >
                     {INVITABLE_ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
                   </select>
@@ -136,7 +129,7 @@ export default async function TeamPage() {
                   <span className="text-ink">{p.name ? `${p.name} · ` : ""}{p.email}</span>
                   {p.invitedBy && <span className="block text-[0.65rem] text-slate">invited by {p.invitedBy}</span>}
                 </span>
-                <span className={`rounded-sm px-2 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow ${roleBadge.partner}`}>
+                <span className={`rounded-sm px-2 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow ${ROLE_BADGE.partner}`}>
                   Partner · Peace Room
                 </span>
                 <form action={revokeStaff}>

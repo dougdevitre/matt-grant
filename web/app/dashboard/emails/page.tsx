@@ -3,7 +3,7 @@ import Link from "next/link";
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { EmailComposer } from "@/components/dashboard/EmailComposer";
 import { staffGate } from "@/lib/auth";
-import { can } from "@/lib/rbac";
+import { can, STAFF_ROLES } from "@/lib/rbac";
 import { getDonors, getVolunteers } from "@/lib/queries";
 import { listStaff } from "@/lib/staff";
 import { sesEnabled } from "@/lib/email/send";
@@ -35,7 +35,7 @@ export default async function EmailsPage() {
     volunteers: v.rows.filter((x) => x.email).length,
     donors: d.rows.filter((x) => x.email).length,
     captains: activeStaff.filter((s) => s.role === "captain" && s.email).length,
-    team: activeStaff.filter((s) => ["admin", "captain", "member"].includes(s.role) && s.email).length,
+    team: activeStaff.filter((s) => STAFF_ROLES.includes(s.role) && s.email).length,
   };
   // Profile-driven targeting: by interest (priority) and by how they want to help.
   const segments = [

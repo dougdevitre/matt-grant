@@ -9,7 +9,7 @@ vi.mock("@/lib/staff", () => ({
   listStaff: vi.fn(async () => [
     { email: "cap@x.com", role: "captain", status: "active" },
     { email: "admin@x.com", role: "admin", status: "active" },
-    { email: "member@x.com", role: "member", status: "active" },
+    { email: "member@x.com", role: "volunteer", status: "active" },
     { email: "old@x.com", role: "captain", status: "removed" },
     { email: "partner@x.com", role: "partner", status: "active" },
   ]),
@@ -39,7 +39,7 @@ describe("resolveRecipients", () => {
     expect(r.internal).toBe(true);
   });
 
-  it("all-team = active admins + captains + members (no partner, no removed)", async () => {
+  it("all-team = active admins + captains + volunteers (no partner, no removed)", async () => {
     const r = await resolveRecipients(["team"]);
     expect(r.recipients.map((x) => x.email).sort()).toEqual(["admin@x.com", "cap@x.com", "member@x.com"]);
     expect(r.internal).toBe(true);

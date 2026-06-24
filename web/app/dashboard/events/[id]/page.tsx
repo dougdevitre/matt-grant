@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireCap } from "@/lib/auth";
+import { can } from "@/lib/rbac";
 import { getEvent } from "@/lib/events";
 import { EVENT_TYPE_LABELS, type EventPriority } from "@/lib/events/types";
 import { formatEventRange } from "@/lib/events/time";
@@ -33,10 +34,11 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const insight = await getDistrictInsight(event.districtKey);
   const going = event.signups.reduce((s, x) => s + (Number(x.count) || 1), 0);
 
-  // Staffing option lists: captains = active admins/captains; volunteers = the
-  // contact roster, ACTIVE first. Both reused from existing stores.
+  // Staffing option lists: event leads = active staff who can manage events
+  // (admins + captains, via the capability — never a hardcoded role); volunteers =
+  // the contact roster, ACTIVE first. Both reused from existing stores.
   const captainOptions = (await listStaff())
-    .filter((s) => s.status === "active" && (s.role === "admin" || s.role === "captain"))
+    .filter((s) => s.status === "active" && can(s.role, "manageEvents"))
     .map((s) => ({ id: s.email, name: s.name || s.email }));
   const onRoster = new Set(event.volunteers.map((v) => v.id));
   const volunteerOptions = (await getVolunteers()).rows
