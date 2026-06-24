@@ -11,6 +11,7 @@
     "db:create-table": "tsx scripts/create-table.ts",
     "db:seed": "tsx scripts/seed-dynamo.ts",
     "brand": "node scripts/brand-assets.mjs",
+    "print-tracker": "node scripts/generate-print-tracker.mjs",
     "test": "vitest run",
     "test:a11y": "playwright test"
   },
