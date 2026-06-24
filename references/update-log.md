@@ -37,8 +37,9 @@ Version history and change tracking for the get-elected skill reference files.
 - [updated] commands/commands.md -- `/voteabsentee` command in GOTV & Events
 
 **Verifications Performed:**
-- Dates, deadlines, and notary rules are reproduced verbatim from the campaign-supplied copy; not independently re-verified against RSMo Ch. 115 (the user opted to add as-is rather than fact-check) — both the guide and the web page carry staleness warnings directing voters to confirm with their election authority / the Missouri SOS
-- Web typecheck (`tsc --noEmit`) and `next lint` pass clean for both vote pages after the changes
+- Dates/deadlines verified June 24, 2026 against the Missouri SOS and the St. Louis County / St. Charles County election authorities: register July 8; excuse-based absentee opens ~June 23; by-mail application received by 5 p.m. July 22; no-excuse early in-person voting July 21–Aug 3; voted ballot received by 7 p.m. Aug 4 — all confirmed
+- Notary rules corrected: incarceration (#5) is notary-exempt (was omitted) alongside illness/disability (#2) and Safe at Home (#6), plus permanently disabled and covered military/overseas voters; reasons #1/#3/#4 generally require notarization, with a caveat added to confirm with the county authority (county sources vary on #1/#4). Applied to both the markdown guide and the `/vote/absentee` page
+- Web typecheck (`tsc --noEmit`) and `next lint` pass clean for both vote pages; both routes render HTTP 200 on a local dev server
 - Internal cross-references (SKILL.md, INDEX.md, commands.md) confirmed to point to the new file path
 
 **Known Gaps:**
