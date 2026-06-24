@@ -5,15 +5,20 @@ import { fetchJsonWithRetry } from "@/lib/integrations/http";
 
 export const censusEnabled = !!process.env.CENSUS_API_KEY;
 
-const YEAR = process.env.CENSUS_ACS_YEAR ?? "2023";
-const BASE = `https://api.census.gov/data/${YEAR}/acs/acs5`;
+export const ACS_YEAR = process.env.CENSUS_ACS_YEAR ?? "2023";
+const YEAR = ACS_YEAR;
+export const ACS_BASE = `https://api.census.gov/data/${YEAR}/acs/acs5`;
+const BASE = ACS_BASE;
 
-// Counties that make up (or overlap) MO-02. FIPS within state 29.
-// St. Louis (189), St. Charles (183), Jefferson (099), Warren (219), Franklin (071).
-const MO02_COUNTIES = (process.env.CENSUS_MO02_COUNTIES ?? "189,183,099,219,071").split(",").map((s) => s.trim());
+// Counties that make up (or overlap) MO-02 under the 2025 ENACTED map (in effect
+// for the Aug 4 2026 primary; see lib/countySources.ts). FIPS within state 29:
+// St. Louis (189), Jefferson (099), Washington (221), Crawford (055), Gasconade (073).
+// (The earlier default — St. Charles/Warren/Franklin — pre-dated the 2025 remap and
+// is no longer in MO-02. Override with CENSUS_MO02_COUNTIES if the map changes.)
+const MO02_COUNTIES = (process.env.CENSUS_MO02_COUNTIES ?? "189,099,221,055,073").split(",").map((s) => s.trim());
 
 // ACS variable codes → friendly keys.
-const VARS = {
+export const VARS = {
   population: "B01003_001E",
   medianHouseholdIncome: "B19013_001E",
   medianAge: "B01002_001E",
@@ -27,7 +32,7 @@ const VARS = {
   eduDoctorate: "B15003_025E",
 } as const;
 
-const EDU_VARS = [VARS.eduBachelors, VARS.eduMasters, VARS.eduProfessional, VARS.eduDoctorate];
+export const EDU_VARS = [VARS.eduBachelors, VARS.eduMasters, VARS.eduProfessional, VARS.eduDoctorate];
 
 export type CountyAcs = {
   name: string;
@@ -40,12 +45,13 @@ export type CountyAcs = {
   sourceUrl: string;
 };
 
-const n = (v: string | null): number | null => {
+export const acsNum = (v: string | null): number | null => {
   if (v == null) return null;
   const x = Number(v);
   // Census uses large negative sentinels (e.g. -666666666) for missing data.
   return Number.isFinite(x) && x > -100000000 ? x : null;
 };
+const n = acsNum;
 
 export async function fetchMo02Acs(): Promise<CountyAcs[]> {
   const get = Object.values(VARS).join(",");

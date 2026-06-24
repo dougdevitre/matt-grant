@@ -25,6 +25,7 @@ export const NAV = [
   { href: "/about", label: "About Matt" },
   { href: "/issues", label: "Issues" },
   { href: "/vote", label: "Vote" },
+  { href: "/events", label: "Events" },
   { href: "/act", label: "Take Action" },
   { href: "/donate", label: "Donate" },
   { href: "/media", label: "Media" },

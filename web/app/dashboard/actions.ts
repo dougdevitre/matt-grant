@@ -27,7 +27,10 @@ async function authorize(cap: Capability) {
   if (!can(role, cap)) throw new Error("Forbidden");
 }
 
-const str = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim() || undefined;
+// Trim, coerce empty → undefined, and clamp length. The clamp is an abuse guard
+// (no single free-text field — payee, notes, occupation — has a legitimate reason
+// to exceed 2k chars), not a UX limit.
+const str = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim().slice(0, 2000) || undefined;
 
 export async function addDonor(formData: FormData) {
   await authorize("viewDonorDetail");
@@ -134,6 +137,29 @@ export async function markVolunteerContacted(formData: FormData) {
       ExpressionAttributeValues: bump ? { ":t": now, ":c": "CONTACTED" } : { ":t": now },
     }),
   );
+  revalidatePath("/dashboard/volunteers");
+  revalidatePath("/dashboard");
+}
+
+// Update just the freeform notes on a volunteer (the detail page's notes editor).
+// Notes are clearable, so an empty submission unsets them rather than no-op'ing.
+// `notes` is aliased (#n) defensively in case it ever collides with a reserved word.
+export async function updateVolunteerNotes(formData: FormData) {
+  await authorize("manageVolunteers");
+  requireDb();
+  const id = str(formData, "id");
+  if (!id) return;
+  const notes = String(formData.get("notes") ?? "").trim().slice(0, 2000) || null;
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: PK.volunteers, SK: id },
+      UpdateExpression: "SET #n = :n",
+      ExpressionAttributeNames: { "#n": "notes" },
+      ExpressionAttributeValues: { ":n": notes },
+    }),
+  );
+  revalidatePath(`/dashboard/volunteers/${id}`);
   revalidatePath("/dashboard/volunteers");
   revalidatePath("/dashboard");
 }

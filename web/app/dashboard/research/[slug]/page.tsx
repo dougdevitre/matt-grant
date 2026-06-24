@@ -6,6 +6,8 @@ import { DegradedNotice, ProvenanceChip } from "@/components/data/ResourceState"
 import { loadCandidateResearch } from "@/lib/data/research";
 import { partyLabel } from "@/lib/integrations/research/candidates";
 import { ISSUE_AXES, axis } from "@/lib/integrations/research/issues";
+import { CoalitionScript } from "@/components/dashboard/CoalitionScript";
+import { ContrastCard } from "@/components/dashboard/ContrastCard";
 
 export const dynamic = "force-dynamic";
 
@@ -118,16 +120,18 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
             );
           })}
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <a href={`/api/research/script?candidate=${slug}`} target="_blank" rel="noopener noreferrer" className="rounded-sm border border-line px-3 py-1.5 text-xs text-slate hover:border-ink">
-            coalition script ↗
-          </a>
-          <a href={`/api/research/graphic?candidate=${slug}`} target="_blank" rel="noopener noreferrer" className="rounded-sm border border-line px-3 py-1.5 text-xs text-slate hover:border-ink">
-            common-ground card ↗
-          </a>
-          <a href={`/api/research/alignment?candidate=${slug}`} target="_blank" rel="noopener noreferrer" className="rounded-sm border border-line px-3 py-1.5 text-xs text-slate hover:border-ink">
-            alignment JSON ↗
-          </a>
+        <div className="mt-4 space-y-3">
+          {/* Coalition script rendered inline (was a bare link to raw text/plain). */}
+          <CoalitionScript slug={slug} name={c.name} />
+          <ContrastCard slug={slug} name={c.name} />
+          <div className="flex flex-wrap gap-2">
+            <a href={`/api/research/graphic?candidate=${slug}`} target="_blank" rel="noopener noreferrer" className="rounded-sm border border-line px-3 py-1.5 text-xs text-slate hover:border-ink">
+              common-ground card ↗
+            </a>
+            <a href={`/api/research/alignment?candidate=${slug}`} target="_blank" rel="noopener noreferrer" className="rounded-sm border border-line px-3 py-1.5 text-xs text-slate hover:border-ink">
+              alignment JSON ↗
+            </a>
+          </div>
         </div>
       </section>
 

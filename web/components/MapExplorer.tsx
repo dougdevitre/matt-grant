@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
-import { CATEGORIES, POIS, PRECINCTS, type Category } from "@/lib/mapData";
+import { CATEGORIES, EVENT_COLOR, POIS, PRECINCTS, type Category } from "@/lib/mapData";
 import { useResource } from "@/lib/data/useResource";
 
 // MapLibre touches window/WebGL — load client-only.
@@ -34,13 +34,15 @@ export function MapExplorer() {
   const [turnout, setTurnout] = useState(true);
   const [showJefferson, setShowJefferson] = useState(true);
   const [showExtra, setShowExtra] = useState(true);
+  const [showEvents, setShowEvents] = useState(true);
 
-  // The four live layers, each on the shared Resource hook (loading/ready/empty/
+  // The live layers, each on the shared Resource hook (loading/ready/empty/
   // degraded/error). The {type,features,meta} payload normalizes to data+meta.
   const poisRes = useResource<GeoJSON.FeatureCollection>("/api/geo/pois");
   const precinctsRes = useResource<GeoJSON.FeatureCollection>("/api/geo/precincts");
   const jeffersonRes = useResource<GeoJSON.FeatureCollection>("/api/geo/jefferson");
   const extraRes = useResource<GeoJSON.FeatureCollection>("/api/geo/extra-counties");
+  const eventsRes = useResource<GeoJSON.FeatureCollection>("/api/geo/events");
 
   // Pass live features to the map; fall back to sample/empty until they arrive.
   const featuresOf = (
@@ -55,12 +57,14 @@ export function MapExplorer() {
   const precincts = useMemo(() => featuresOf(precinctsRes, PRECINCTS), [precinctsRes]);
   const jefferson = useMemo(() => featuresOf(jeffersonRes, emptyFC), [jeffersonRes]);
   const extra = useMemo(() => featuresOf(extraRes, emptyFC), [extraRes]);
+  const events = useMemo(() => featuresOf(eventsRes, emptyFC), [eventsRes]);
 
   // Indicators: null while loading, then the live flag / count from meta.
   const pollingLive = poisRes.state === "loading" ? null : Boolean((poisRes.meta as GeoMeta | null)?.pollingLive);
   const precinctsLive = precinctsRes.state === "loading" ? null : Boolean((precinctsRes.meta as GeoMeta | null)?.live);
   const jeffCount = jeffersonRes.state === "loading" ? null : ((jeffersonRes.meta as GeoMeta | null)?.count ?? 0);
   const extraCount = extraRes.state === "loading" ? null : ((extraRes.meta as GeoMeta | null)?.count ?? 0);
+  const eventCount = eventsRes.state === "loading" ? null : ((eventsRes.meta as GeoMeta | null)?.count ?? 0);
 
   const toggle = (c: Category) =>
     setVisible((v) => (v.includes(c) ? v.filter((x) => x !== c) : [...v, c]));
@@ -156,6 +160,15 @@ export function MapExplorer() {
             <input type="checkbox" checked={showExtra} onChange={() => setShowExtra((v) => !v)} />
           </label>
           <p className="mt-1 text-xs text-slate">Washington, Crawford, Gasconade — Census 2020 VTDs. Zoom out to see them.</p>
+          <label className="mt-4 flex cursor-pointer items-center justify-between text-sm">
+            <span className="font-semibold text-ink">
+              <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: EVENT_COLOR }} aria-hidden />
+              Events
+              {eventCount ? <span className="ml-2 font-mono text-xs text-slate">{eventCount}</span> : null}
+            </span>
+            <input type="checkbox" checked={showEvents} onChange={() => setShowEvents((v) => !v)} />
+          </label>
+          <p className="mt-1 text-xs text-slate">Appearances with a located address. Green = published, gold = draft; larger dot = higher priority (P1). Click a marker to open the event.</p>
           <p className="mt-3 border-t border-line pt-3 text-xs text-slate">
             Drag to pan · right-drag to tilt/rotate · scroll to zoom.
           </p>
@@ -187,6 +200,8 @@ export function MapExplorer() {
           showJefferson={showJefferson}
           extraCounties={extra}
           showExtra={showExtra}
+          events={events}
+          showEvents={showEvents}
         />
       </div>
     </div>

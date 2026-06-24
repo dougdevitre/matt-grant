@@ -6,8 +6,8 @@ import { RemindPendingButton } from "@/components/dashboard/RemindPendingButton"
 import { STAFF_ALLOWLIST, staffGate, clerkEnabled } from "@/lib/auth";
 import { listStaff } from "@/lib/staff";
 import { pendingInviteCount } from "@/lib/invites";
-import { listAccessChanges } from "@/lib/audit";
-import { can, INVITABLE_ROLES, ROLE_LABELS } from "@/lib/rbac";
+import { listAccessChanges, listPreviewSwitches } from "@/lib/audit";
+import { can, INVITABLE_ROLES, ROLE_LABELS, type Role } from "@/lib/rbac";
 import { revokeStaff, setMemberRole } from "./actions";
 import { ConfirmButton } from "@/components/dashboard/ConfirmButton";
 import { SubmitButton } from "@/components/dashboard/SubmitButton";
@@ -16,6 +16,11 @@ const actionLabel: Record<string, string> = {
   invite: "invited",
   role_change: "changed role",
   revoke: "removed",
+};
+
+const previewLabel: Record<string, string> = {
+  preview_enter: "previewed as",
+  preview_exit: "exited preview of",
 };
 
 export const dynamic = "force-dynamic";
@@ -34,7 +39,9 @@ export default async function TeamPage() {
   const invited = active.filter((s) => s.role !== "partner"); // internal team
   const partners = active.filter((s) => s.role === "partner"); // Peace Room only
   const changes = await listAccessChanges(25);
+  const previews = await listPreviewSwitches(25);
   const pendingInvites = clerkEnabled ? await pendingInviteCount() : 0;
+  const roleName = (r?: string) => (r ? (ROLE_LABELS[r as Role] ?? r) : "—");
   const when = (iso: string) =>
     new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
@@ -163,6 +170,30 @@ export default async function TeamPage() {
           </ul>
         ) : (
           <p className="mt-3 text-sm text-slate">No access changes recorded yet.</p>
+        )}
+      </div>
+
+      <div className="mt-8">
+        <p className="eyebrow text-slate">Recent role previews</p>
+        <p className="mt-1 max-w-2xl text-xs text-slate">
+          Admins can preview the dashboard as a lower role (the &ldquo;View as&rdquo; switcher in the header). Every
+          switch is logged here.
+        </p>
+        {previews.length > 0 ? (
+          <ul className="mt-3 divide-y divide-line rounded-sm border border-line">
+            {previews.map((p, i) => (
+              <li key={`${p.at}-${i}`} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm">
+                <span className="min-w-0">
+                  <span className="text-ink">{p.actor}</span>{" "}
+                  <span className="text-slate">{previewLabel[p.action] ?? p.action}</span>{" "}
+                  <span className="text-ink">{roleName(p.role)}</span>
+                </span>
+                <span className="shrink-0 font-mono text-[0.65rem] text-slate">{when(p.at)}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 text-sm text-slate">No role previews recorded yet.</p>
         )}
       </div>
     </>
