@@ -8,7 +8,11 @@ const FROM = process.env.SES_FROM ?? ""; // e.g. "Matt Grant for Congress <info@
 const CONFIG_SET = process.env.SES_CONFIG_SET ?? "";
 export const sesEnabled = !!FROM;
 
-const client = new SESv2Client({ region: process.env.AWS_REGION ?? "us-east-1" });
+// maxAttempts makes the SDK's built-in retry explicit: it retries only retryable
+// errors (throttling / 5xx / network) with its own backoff — the conservative,
+// idempotency-safe send-retry for email (SES has no idempotency key, so a
+// hand-rolled retry-after-accept could double-send; the SDK avoids that).
+const client = new SESv2Client({ region: process.env.AWS_REGION ?? "us-east-1", maxAttempts: 3 });
 
 // Templates carry per-recipient merge fields like {{unsubscribe_url}} and
 // {{preferences_url}} (see lib/email/templates.ts). The send path MUST fill them

@@ -39,6 +39,7 @@ const GROUPS: Group[] = [
       { href: "/dashboard/studio", label: "Graphics", icon: "studio", cap: "useStudio" },
       // Photos folded into Assets — reach the photo library from the Assets page.
       { href: "/dashboard/assets", label: "Assets", icon: "assets", cap: "manageAssets" },
+      { href: "/dashboard/print", label: "Print", icon: "assets", cap: "manageAssets" },
       { href: "/dashboard/emails", label: "Email", icon: "campaign", cap: "draftEmailCampaign" },
       { href: "/dashboard/sms", label: "Text blasts", icon: "campaign", cap: "draftSms" },
       { href: "/dashboard/messages", label: "Inbox", icon: "campaign", cap: "messageIndividuals" },
@@ -49,6 +50,7 @@ const GROUPS: Group[] = [
     label: "Strategy",
     items: [
       { href: "/dashboard/research", label: "Research", icon: "research", cap: "viewResearch" },
+      { href: "/dashboard/data", label: "Data sources", icon: "research", cap: "viewResearch" },
       { href: "/dashboard/plan", label: "Strategic plan", icon: "plan", cap: "viewPlan" },
     ],
   },

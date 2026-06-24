@@ -11,6 +11,7 @@
     "db:create-table": "tsx scripts/create-table.ts",
     "db:seed": "tsx scripts/seed-dynamo.ts",
     "brand": "node scripts/brand-assets.mjs",
+    "print-tracker": "tsx scripts/generate-print-tracker.ts",
     "test": "vitest run",
     "test:a11y": "playwright test"
   },
@@ -29,7 +30,8 @@
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "sharp": "^0.33.5"
+    "sharp": "^0.33.5",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",

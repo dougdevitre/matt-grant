@@ -21,7 +21,7 @@ from reportlab.lib.enums import TA_RIGHT, TA_CENTER
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.platypus import (
     BaseDocTemplate, PageTemplate, Frame, Paragraph, Spacer,
-    Table, TableStyle, ListFlowable, ListItem, Flowable, KeepTogether,
+    Table, TableStyle, ListFlowable, ListItem, Flowable, KeepTogether, PageBreak,
 )
 from reportlab.graphics.barcode import qr
 from reportlab.graphics.shapes import Drawing
@@ -364,32 +364,27 @@ def make_list(items, st, numbered):
     )
 
 
-def build(out_path, content):
-    doc = BaseDocTemplate(
-        out_path, pagesize=letter,
-        leftMargin=LM, rightMargin=RM,
-        topMargin=TOP_RESERVE, bottomMargin=BOT_RESERVE,
-        title=content.get("title", "Matt Grant for Congress — Letter"),
-    )
-    frame = Frame(LM, BOT_RESERVE, CONTENT_W,
-                  PAGE_H - TOP_RESERVE - BOT_RESERVE, id="body",
-                  leftPadding=0, rightPadding=0, topPadding=0, bottomPadding=0)
-    doc.addPageTemplates([PageTemplate(id="main", frames=[frame], onPage=on_page)])
-
-    st = styles()
+def letter_story(content, st):
+    """Build the flowables for one letter. Every block is optional, so the same
+    function renders a full letter or a simpler one-pager (e.g. an enclosure
+    brief with no recipient/RE/signature)."""
     story = []
-    story.append(Paragraph(content["date"], st["date"]))
-    story.append(Spacer(1, 10))
-    story.append(Paragraph(content["recipient"], st["recip"]))
-    story.append(Spacer(1, 16))
-    story.append(SectionLabel(content["eyebrow"], space_before=0))
-    story.append(Spacer(1, 8))
-    story.append(re_panel(content["re"], st))
-    story.append(Spacer(1, 18))
-    for p in content["intro"]:
+    if content.get("date"):
+        story.append(Paragraph(content["date"], st["date"]))
+        story.append(Spacer(1, 10))
+    if content.get("recipient"):
+        story.append(Paragraph(content["recipient"], st["recip"]))
+        story.append(Spacer(1, 16))
+    if content.get("eyebrow"):
+        story.append(SectionLabel(content["eyebrow"], space_before=0))
+        story.append(Spacer(1, 8))
+    if content.get("re"):
+        story.append(re_panel(content["re"], st))
+        story.append(Spacer(1, 18))
+    for p in content.get("intro", []):
         story.append(Paragraph(p, st["body"]))
 
-    for sec in content["sections"]:
+    for sec in content.get("sections", []):
         story.append(SectionLabel(sec["label"]))
         story.append(Spacer(1, 7))
         for blk in sec["blocks"]:
@@ -401,20 +396,20 @@ def build(out_path, content):
             elif kind == "ul":
                 story.append(make_list(blk[1], st, numbered=False))
 
-    # closing
-    for p in content["closing"]:
+    for p in content.get("closing", []):
         story.append(Paragraph(p, st["body"]))
 
     # signature — kept together so the sign-off never orphans from the name
-    sig = [
-        Paragraph(content["signoff"], st["body"]),
-        Spacer(1, 6),
-        Paragraph(content["sign_name"], st["sign_name"]),
-        HRule(width=180, color=LINE, thickness=0.75, space_before=2, space_after=6),
-    ]
-    sig += [Paragraph(m, st["sign_meta"]) for m in content["sign_meta"]]
-    story.append(Spacer(1, 8))
-    story.append(KeepTogether(sig))
+    if content.get("sign_name"):
+        sig = [
+            Paragraph(content.get("signoff", "Sincerely,"), st["body"]),
+            Spacer(1, 6),
+            Paragraph(content["sign_name"], st["sign_name"]),
+            HRule(width=180, color=LINE, thickness=0.75, space_before=2, space_after=6),
+        ]
+        sig += [Paragraph(m, st["sign_meta"]) for m in content.get("sign_meta", [])]
+        story.append(Spacer(1, 8))
+        story.append(KeepTogether(sig))
 
     # optional, reusable "Take Action" QR band — off for formal letters
     if content.get("action_band"):
@@ -424,7 +419,38 @@ def build(out_path, content):
             intro=content.get("qr_intro", QR_INTRO),
             eyebrow=content.get("qr_eyebrow", "Take Action"),
         ))
+    return story
 
+
+def _new_doc(out_path, title):
+    doc = BaseDocTemplate(
+        out_path, pagesize=letter,
+        leftMargin=LM, rightMargin=RM,
+        topMargin=TOP_RESERVE, bottomMargin=BOT_RESERVE,
+        title=title,
+    )
+    frame = Frame(LM, BOT_RESERVE, CONTENT_W,
+                  PAGE_H - TOP_RESERVE - BOT_RESERVE, id="body",
+                  leftPadding=0, rightPadding=0, topPadding=0, bottomPadding=0)
+    doc.addPageTemplates([PageTemplate(id="main", frames=[frame], onPage=on_page)])
+    return doc
+
+
+def build(out_path, content):
+    doc = _new_doc(out_path, content.get("title", "Matt Grant for Congress — Letter"))
+    doc.build(letter_story(content, styles()))
+
+
+def build_many(out_path, contents, title="Matt Grant for Congress — Mailing"):
+    """Render many letters into ONE PDF, each starting on a fresh page —
+    a print-ready mail-merge. `contents` is a flat list of content dicts."""
+    doc = _new_doc(out_path, title)
+    st = styles()
+    story = []
+    for i, c in enumerate(contents):
+        if i:
+            story.append(PageBreak())
+        story.extend(letter_story(c, st))
     doc.build(story)
 
 

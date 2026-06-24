@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { loadField } from "@/lib/integrations/research/candidates";
 import { loadStatements } from "@/lib/integrations/statements/data";
 import { analyzeField, alignCandidate } from "@/lib/analysis/alignment";
+import { ok } from "@/lib/data/resource";
 
 // Computed alignment analysis as JSON — the substrate for the dashboard, the
 // coalition scripts (/api/research/script), and the share cards
@@ -15,11 +16,28 @@ export async function GET(req: Request) {
   const field = loadField().filter((c) => c.active !== false);
   const statements = loadStatements();
 
+  const now = new Date().toISOString();
+
   if (slug) {
     const c = field.find((x) => x.slug === slug);
     if (!c) return NextResponse.json({ error: `unknown candidate: ${slug}` }, { status: 404 });
-    return NextResponse.json({ generatedAt: new Date().toISOString(), candidate: alignCandidate(c, statements) });
+    return NextResponse.json(
+      ok({ generatedAt: now, candidate: alignCandidate(c, statements) }, {
+        source: `Alignment — ${c.name}`,
+        kind: "api",
+        live: true,
+        fetchedAt: now,
+      }),
+    );
   }
 
-  return NextResponse.json(analyzeField(field, statements, new Date().toISOString()));
+  return NextResponse.json(
+    ok(analyzeField(field, statements, now), {
+      source: "Field alignment (config)",
+      kind: "api",
+      live: true,
+      count: field.length,
+      fetchedAt: now,
+    }),
+  );
 }

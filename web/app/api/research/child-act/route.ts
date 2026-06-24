@@ -3,6 +3,7 @@ import { loadField } from "@/lib/integrations/research/candidates";
 import { getBills, type BillRecord } from "@/lib/integrations/legislative/store";
 import { dbConfigured } from "@/lib/db";
 import { scoreText, type BillRelevance } from "@/lib/analysis/childAct";
+import { type Provenance, ok, degraded } from "@/lib/data/resource";
 
 // CHILD Act synthesis — the family-court relevance view over the ingested
 // Congress.gov record. Implements candidate/issues-to-action-data-synthesis-plan.md
@@ -35,8 +36,12 @@ export async function GET() {
     "Public bills from the ingested Congress.gov record, matched to the family-court fight by keyword. " +
     "Relevance is a heuristic over each bill's own title/policy area — not a claim about its contents or any vote. Verify against the linked source.";
 
+  const meta: Provenance = { source: "CHILD Act bills (Congress.gov)", kind: "api", live: true, fetchedAt: generatedAt };
   if (!dbConfigured) {
-    return NextResponse.json({ generatedAt, configured: false, count: 0, bills: [], note });
+    return NextResponse.json(
+      degraded({ generatedAt, configured: false, count: 0, byTier: { core: 0, related: 0, tangential: 0 }, bills: [], note },
+        "research store not connected", meta),
+    );
   }
 
   const field = loadField().filter((c) => c.active !== false && c.bioguideId);
@@ -79,16 +84,21 @@ export async function GET() {
       (b.introducedDate ?? "").localeCompare(a.introducedDate ?? ""),
   );
 
-  return NextResponse.json({
-    generatedAt,
-    configured: true,
-    count: bills.length,
-    byTier: {
-      core: bills.filter((b) => b.relevance.tier === "core").length,
-      related: bills.filter((b) => b.relevance.tier === "related").length,
-      tangential: bills.filter((b) => b.relevance.tier === "tangential").length,
-    },
-    bills,
-    note,
-  });
+  return NextResponse.json(
+    ok(
+      {
+        generatedAt,
+        configured: true,
+        count: bills.length,
+        byTier: {
+          core: bills.filter((b) => b.relevance.tier === "core").length,
+          related: bills.filter((b) => b.relevance.tier === "related").length,
+          tangential: bills.filter((b) => b.relevance.tier === "tangential").length,
+        },
+        bills,
+        note,
+      },
+      { ...meta, count: bills.length },
+    ),
+  );
 }
