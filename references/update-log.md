@@ -26,6 +26,41 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-06-24 -- Print Production Tracker
+
+**Changes:**
+- [added] candidate/letters/print-tracker.csv -- letter-sized (8.5 x 11) print queue; adds a `template` column tying each of the 26 printable items to the repo template that produces it, plus 6 rows for the recently-built mailings (legislator, community Faith/Business/Education/Civic, Local & Civic, tier-1 cover letters, family-court letter, CHILD Protection Act brief enclosure)
+- [added] tools/print-tracker.md -- skill page: CSV schema + field definitions, the master template map (item -> template, by category), compliance notes (disclaimer / solicitation tax line / internal-only), and best practices
+- [added] web/app/dashboard/print/page.tsx + web/scripts/generate-print-tracker.mjs + web/lib/printTracker.json -- staff dashboard view of the same CSV (data-as-code manifest, mirroring the print-renditions pattern); `/dashboard/print` nav entry in DashSidebar (Comms group)
+- [updated] SKILL.md -- Tool reference files row for tools/print-tracker.md
+- [updated] INDEX.md -- "I want to print & produce materials" section entry
+- [updated] commands/commands.md -- `/printtracker` command in Print & Field Materials
+- [updated] web/package.json -- `print-tracker` script
+
+**Verifications Performed:**
+- Every `template` path in the CSV/skill page confirmed to resolve to a real committed file (git ls-files)
+- Disclaimer flag basis: 52 USC 30120 / 11 CFR 110.11 (public political communications); solicitation tax line basis cross-referenced to federal/disclosure-requirements.md; exact statutory text not paraphrased
+- Web generator output (lib/printTracker.json) regenerated from the CSV; one entry per row
+
+**Known Gaps:**
+- Production fields (quantity, vendor, unit_cost, order_by_date, in_hand_date) are blank until the campaign queues each piece
+- Web "template" cells show the repo path as reference text — skill markdown is not a served web route
+
+**Files Modified:**
+- candidate/letters/print-tracker.csv
+- tools/print-tracker.md
+- SKILL.md
+- INDEX.md
+- commands/commands.md
+- references/update-log.md
+- web/app/dashboard/print/page.tsx
+- web/scripts/generate-print-tracker.mjs
+- web/lib/printTracker.json
+- web/components/dashboard/DashSidebar.tsx
+- web/package.json
+
+---
+
 ## 2026-06-18 -- Library Print & Produce Guide
 
 **Changes:**

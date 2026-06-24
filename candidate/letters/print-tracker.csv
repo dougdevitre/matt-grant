@@ -1,0 +1,34 @@
+item,category,template,sheet_size,disclaimer_required,solicitation_tax_line,internal_only,quantity,vendor,unit_cost,order_by_date,in_hand_date,status
+Campaign letterhead,Correspondence,tools/pdf-letterhead/README.md,8.5 x 11,N,N,Y,,,,,,Not started
+Donor thank-you letter,Correspondence,outreach/stakeholder-correspondence.md,8.5 x 11,N,N,Y,,,,,,Not started
+Major donor / max-out acknowledgment letter,Correspondence,outreach/stakeholder-correspondence.md,8.5 x 11,N,N,Y,,,,,,Not started
+Volunteer thank-you / welcome letter,Correspondence,outreach/stakeholder-correspondence.md,8.5 x 11,N,N,Y,,,,,,Not started
+Endorsement request letter,Correspondence,outreach/endorsement-playbook.md,8.5 x 11,N,N,Y,,,,,,Not started
+Endorsement confirmation / thank-you letter,Correspondence,outreach/stakeholder-correspondence.md,8.5 x 11,N,N,Y,,,,,,Not started
+Event invitation letter,Correspondence,outreach/stakeholder-correspondence.md,8.5 x 11,Y,N,N,,,,,,Not started
+Sponsor / host committee solicitation letter,Correspondence,messaging/email-fundraising.md,8.5 x 11,Y,Y,N,,,,,,Not started
+Vendor correspondence cover letter,Correspondence,artifacts/campaign-documents.md,8.5 x 11,N,N,Y,,,,,,Not started
+Constituent / supporter response letter,Correspondence,outreach/stakeholder-correspondence.md,8.5 x 11,Y,N,N,,,,,,Not started
+General campaign flyer,Flyers & handouts,artifacts/campaign-documents.md,8.5 x 11,Y,N,N,,,,,,Not started
+Issue / policy one-sheet flyer,Flyers & handouts,messaging/positioning-framework.md,8.5 x 11,Y,N,N,,,,,,Not started
+Event flyer,Flyers & handouts,artifacts/campaign-documents.md,8.5 x 11,Y,N,N,,,,,,Not started
+Candidate one-sheet / bio card,Flyers & handouts,candidate/profile.md,8.5 x 11,Y,N,N,,,,,,Not started
+Endorsement flyer,Flyers & handouts,outreach/endorsement-playbook.md,8.5 x 11,Y,N,N,,,,,,Not started
+Walk lists / turf packets,Field & event,workflows/voter-targeting.md,8.5 x 11,N,N,Y,,,,,,Not started
+Phone bank scripts,Field & event,artifacts/campaign-documents.md,8.5 x 11,N,N,Y,,,,,,Not started
+Volunteer sign-in sheets,Field & event,workflows/volunteer-management.md,8.5 x 11,N,N,Y,,,,,,Not started
+Volunteer training packets,Field & event,workflows/volunteer-management.md,8.5 x 11,N,N,Y,,,,,,Not started
+Event programs / agendas,Field & event,tactics/scheduling-advance.md,8.5 x 11,Y,N,N,,,,,,Not started
+Press release template,Candidate & press,messaging/press-release-templates.md,8.5 x 11,N,N,Y,,,,,,Not started
+Media advisory template,Candidate & press,messaging/press-release-templates.md,8.5 x 11,N,N,Y,,,,,,Not started
+Candidate bio / background sheet,Candidate & press,candidate/profile.md,8.5 x 11,Y,N,N,,,,,,Not started
+Policy position sheets,Candidate & press,candidate/platform.md,8.5 x 11,Y,N,N,,,,,,Not started
+Q&A / talking points sheet,Candidate & press,messaging/debate-prep.md,8.5 x 11,N,N,Y,,,,,,Not started
+Fact sheet / Matt at a glance,Candidate & press,candidate/profile.md,8.5 x 11,Y,N,N,,,,,,Not started
+Compliance / FEC recordkeeping forms,Administrative,federal/disclosure-requirements.md,8.5 x 11,N,N,Y,,,,,,Not started
+Legislator (Senate) mailing,Correspondence,candidate/letters/legislator-mailing.md,8.5 x 11,Y,N,N,,,,,,Draft ready
+Community leader mailing (Faith/Business/Education/Civic),Correspondence,candidate/letters/community-mailing.md,8.5 x 11,Y,N,N,,,,,,Draft ready
+Local & Civic mailing,Correspondence,candidate/letters/community-mailing.md,8.5 x 11,Y,N,N,,,,,,Draft ready
+Tier-1 senator cover letters,Correspondence,candidate/letters/tier1-senator-cover-letters.md,8.5 x 11,Y,N,N,,,,,,Draft ready
+Family-court endorsement letter,Correspondence,candidate/letters/family-court-endorsement-letter.md,8.5 x 11,Y,N,N,,,,,,Draft ready
+CHILD Protection Act brief (enclosure),Correspondence,candidate/letters/child-protection-act-brief.md,8.5 x 11,N,N,N,,,,,,Draft ready

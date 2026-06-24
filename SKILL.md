@@ -225,6 +225,7 @@ Load only what is needed for the current task:
 | `tools/contribution-tracker.md` | User needs a data schema for tracking donations (CSV/JSON), or needs limit-check logic |
 | `tools/expenditure-tracker.md` | User needs a data schema for tracking spending (CSV/JSON), or budget tracking template |
 | `tools/disclaimer-generator.md` | User needs to generate "Paid for by" text for print, TV, radio, digital, or email communications |
+| `tools/print-tracker.md` | User asks what the campaign prints, which template produces a given printed piece, the print queue/inventory/status, or whether a piece needs a disclaimer — a letter-sized print tracker mapping every item to its template |
 | `tools/filing-deadline-calendar.md` | User wants to generate calendar events (.ics) for filing deadlines |
 | `tools/donor-limit-checker.md` | User asks "can this person give me more?" or needs limit-check decision trees |
 | `tools/campaign-tech-stack.md` | User asks about campaign software, CRMs, voter file tools, texting platforms, or tech recommendations |
