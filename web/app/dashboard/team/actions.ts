@@ -3,13 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { addStaff, removeStaff, setStaffRole, staffRole } from "@/lib/staff";
 import { staffGate } from "@/lib/auth";
-import { can, asRole, INVITABLE_ROLES } from "@/lib/rbac";
+import { can, asRole, INVITABLE_ROLES, ROLE_LABELS } from "@/lib/rbac";
 import { setClerkRoleByEmail, inviteToClerk, clearClerkRoleByEmail } from "@/lib/clerkRoles";
 import { recordAccessChange } from "@/lib/audit";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { renderEmail, renderText } from "@/lib/email/layout";
 import { SITE_URL } from "@/lib/site";
 import { remindPendingInvites } from "@/lib/invites";
+import { looksExternal } from "@/lib/externalEmail";
 
 export type InviteResult = { ok: boolean; message: string };
 
@@ -43,6 +44,15 @@ export async function inviteStaff(_prev: InviteResult | null, formData: FormData
   const requested = asRole(formData.get("role"));
   const role = requested && INVITABLE_ROLES.includes(requested) ? requested : "volunteer";
   if (!email || !email.includes("@")) return { ok: false, message: "Enter a valid email address." };
+
+  // A STAFF invite grants internal dashboard access once that email signs up. Press,
+  // government, and org role-inboxes get invited here by mistake (an admin treating
+  // the form like a contact list), so require an explicit confirmation for those.
+  const ext = looksExternal(email);
+  if (ext && formData.get("confirmExternal") !== "on") {
+    const why = ext === "gov/mil" ? "a government/military address" : ext === "press/org" ? "a press/org address" : "a role inbox, not a person";
+    return { ok: false, message: `${email} looks like ${why}. Inviting grants internal dashboard access at the ${ROLE_LABELS[role]} role. If that's intended, check the confirmation box and re-send.` };
+  }
 
   let clerk = { invited: false, existing: false };
   try {
