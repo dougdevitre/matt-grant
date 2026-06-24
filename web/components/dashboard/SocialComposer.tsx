@@ -96,7 +96,12 @@ export function SocialComposer({ library }: { library: LibraryPost[] }) {
             <p className="eyebrow text-slate">Pull from the content calendar</p>
             <span className="font-mono text-[0.6rem] text-slate">{library.length} ready posts</span>
           </div>
-          <select className={`mt-3 ${input}`} defaultValue="" onChange={(e) => loadFromLibrary(e.target.value)}>
+          <select
+            aria-label="Pull from the content calendar"
+            className={`mt-3 ${input}`}
+            defaultValue=""
+            onChange={(e) => loadFromLibrary(e.target.value)}
+          >
             <option value="">Start from scratch…</option>
             {library.map((p) => (
               <option key={p.id} value={p.id}>

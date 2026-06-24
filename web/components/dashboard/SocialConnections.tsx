@@ -74,7 +74,7 @@ export function SocialConnections({ providers }: { providers: ProviderSummary[] 
             {p.platform === "facebook" && p.connected && p.pages && p.pages.length > 1 && (
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <span className="font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate">Posting as</span>
-                <select name="pageId" defaultValue={p.pages.find((g) => g.active)?.id} className={input}>
+                <select aria-label="Facebook Page to post as" name="pageId" defaultValue={p.pages.find((g) => g.active)?.id} className={input}>
                   {p.pages.map((g) => (
                     <option key={g.id} value={g.id}>
                       {g.name ?? g.id}
