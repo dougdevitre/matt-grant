@@ -18,6 +18,8 @@ Concise definitions of 65+ terms commonly encountered in US political campaigns.
 
 **Canvassing** -- Door-to-door voter contact, typically involving scripted conversations to identify supporters, persuade undecided voters, or mobilize known supporters.
 
+**Captain Archetype** -- A recognizable volunteer-leader style defined by its strengths and weaknesses (e.g., the Organizer, Connector, Workhorse, Mentor, Closer, Strategist). Used to match leaders to the captain roles that fit them and to pair complementary co-captains.
+
 **Caucus** -- A meeting-based method of selecting party nominees or delegates, as opposed to a primary election. Rules vary significantly by state and party.
 
 **Conduit** -- An organization that receives earmarked contributions and forwards them to a designated candidate. ActBlue and WinRed are prominent examples.
@@ -97,6 +99,8 @@ Concise definitions of 65+ terms commonly encountered in US political campaigns.
 **Surrogate** -- A person who speaks or appears publicly on behalf of a candidate, such as an elected official, celebrity, or community leader.
 
 **Swing Voters** -- Voters who do not consistently support one party and may be persuaded to vote for either side. A key target of persuasion efforts.
+
+**Team Captain** -- A volunteer leader who recruits, trains, and manages a small team (typically 5-10 volunteers) for a specific function (canvassing, phone banking, events) or geographic area. Also called a precinct captain, block captain, or neighborhood organizer.
 
 **Vote Goal** -- The specific number of votes a campaign calculates it needs to win, based on projected turnout, partisan performance, and historical data.
 
