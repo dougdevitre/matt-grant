@@ -93,6 +93,16 @@ export async function getDashboardStatus(): Promise<StatusRow[]> {
       actionText: "Donors",
     },
     {
+      key: "inbound-email",
+      label: "Inbound event email",
+      state: process.env.INBOUND_SNS_TOPIC_ARN ? "live" : "setup",
+      detail: process.env.INBOUND_SNS_TOPIC_ARN
+        ? "Connected — forwarding an event email to events@ creates a draft event."
+        : "Not set up. Run infra/setup-aws.sh with INBOUND_EMAIL_DOMAIN, then add the MX record.",
+      actionHref: "/dashboard/events",
+      actionText: "Events",
+    },
+    {
       key: "research",
       label: "Opposition research",
       state: congressEnabled ? "live" : "setup",
