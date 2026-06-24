@@ -54,6 +54,9 @@ export const PK = {
   smsThread: (e164: string) => `SMSTHREAD#${e164}`, // per-person message thread (SK = `${iso}#${id}`)
   smsBlocks: "SMSBLOCK", // blocked/banned numbers (SK = E.164; inbound dropped, outbound refused)
   inviteReminders: "INVITEREMINDER", // per-email reminder bookkeeping (SK = email; remindedAt, count)
+  events: "EVENT", // campaign events/appearances (SK = `${startISO}#${id}`; chronological)
+  eventIngest: "EVENTINGEST", // inbound-email → event dedupe keys (idempotency, SK = sha256)
+  districtInsights: "DISTRICTINSIGHT", // cached per-district demographics + AI blurb (SK = districtKey)
 } as const;
 
 export function newId(): string {
