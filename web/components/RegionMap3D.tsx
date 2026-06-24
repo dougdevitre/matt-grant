@@ -237,10 +237,17 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         type: "circle",
         layout: { visibility: showEvents ? "visible" : "none" },
         paint: {
-          "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 6, 13, 11],
+          // Size by priority tier (P1 largest → P3 smallest) so high-value
+          // appearances pop; default to P2 sizing if priority is missing.
+          "circle-radius": [
+            "interpolate", ["linear"], ["zoom"],
+            9, ["match", ["get", "priority"], 1, 8, 2, 6, 3, 4.5, 6],
+            13, ["match", ["get", "priority"], 1, 14, 2, 11, 3, 8, 11],
+          ],
           // Draft events read lighter (gold) than published (green).
           "circle-color": ["case", ["==", ["get", "status"], "PUBLISHED"], EVENT_COLOR, "#E0A53B"],
-          "circle-stroke-width": 2.5,
+          // Heavier ring on P1 reinforces the priority read.
+          "circle-stroke-width": ["match", ["get", "priority"], 1, 3.5, 2.5],
           "circle-stroke-color": "#ffffff",
           "circle-opacity": 0.9,
         },
@@ -250,11 +257,11 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
       m.on("click", "event-circles", (e) => {
         const f = e.features?.[0];
         if (!f) return;
-        const p = f.properties as { id: string; title: string; type: string; status: string; start: string; locationName?: string };
+        const p = f.properties as { id: string; title: string; type: string; status: string; priority?: number; start: string; locationName?: string };
         const when = p.start ? new Date(p.start).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "";
         const lines = [
           `<strong>${p.title}</strong>`,
-          `<span style="color:${EVENT_COLOR}">${EVENT_TYPE_LABEL[p.type] ?? "Event"}</span>${p.status !== "PUBLISHED" ? ` · <span style="color:#9a6f1a">${p.status.toLowerCase()}</span>` : ""}`,
+          `<span style="color:${EVENT_COLOR}">${EVENT_TYPE_LABEL[p.type] ?? "Event"}</span>${p.priority ? ` · <strong>P${p.priority}</strong>` : ""}${p.status !== "PUBLISHED" ? ` · <span style="color:#9a6f1a">${p.status.toLowerCase()}</span>` : ""}`,
           when,
           p.locationName ? p.locationName : "",
           `<a href="/dashboard/events/${encodeURIComponent(p.id)}" style="display:inline-block;margin-top:6px;color:#B5343B;font-weight:700;text-decoration:none">Open event →</a>`,

@@ -197,7 +197,7 @@ export function MapExplorer() {
             </span>
             <input type="checkbox" checked={showEvents} onChange={() => setShowEvents((v) => !v)} />
           </label>
-          <p className="mt-1 text-xs text-slate">Appearances with a located address. Green = published, gold = draft. Click a marker to open the event.</p>
+          <p className="mt-1 text-xs text-slate">Appearances with a located address. Green = published, gold = draft; larger dot = higher priority (P1). Click a marker to open the event.</p>
           <p className="mt-3 border-t border-line pt-3 text-xs text-slate">
             Drag to pan · right-drag to tilt/rotate · scroll to zoom.
           </p>
