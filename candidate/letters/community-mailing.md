@@ -87,21 +87,21 @@ To adjust the logic, edit the segment paragraphs/asks in `tools/pdf-letterhead/c
 
 ---
 
-## Real batch loaded — MO House (St. Louis County & St. Charles)
+## Real batch loaded — Local & Civic (MO House + St. Charles County)
 
-A first **real** CIVIC list is included at [`civic-house-targets.csv`](civic-house-targets.csv): **26 sitting Missouri House members** in the St. Louis County / St. Charles County district ranges, sourced from the mo-gov `mo-house-roster.md` (name, district, party). Generate the real Local & Civic PDF with:
+The canonical **real** CIVIC list is [`civic-targets.csv`](civic-targets.csv): **34 officials** = 26 state House members + 8 St. Charles County officials. Generate the real Local & Civic PDF with:
 
 ```bash
 cd tools/pdf-letterhead
-python3 community_mailing.py ../../candidate/letters/civic-house-targets.csv
-# -> candidate/letters/output/Matt-Grant-Local-Civic-Mailing.pdf  (26 letters + briefs)
+python3 community_mailing.py ../../candidate/letters/civic-targets.csv
+# -> candidate/letters/output/Matt-Grant-Local-Civic-Mailing.pdf  (34 letters + briefs)
 ```
 
-- **Coverage:** House districts **86–113** (mo-gov's approximate St. Louis County ~86–99 + St. Charles ~100–113 ranges).
-- **Excluded:** District **95** (O'Donnell, resigned Jan 2025) and District **110** (Sparks, resigned Nov 2025) — vacant.
-- **Addressed at the Capitol** (201 W. Capitol Ave., Jefferson City, MO 65101). All set to `ask_tier=B`.
+**Component 1 — MO House (26)** — districts **86–113** (mo-gov `mo-house-roster.md`; approximate St. Louis County ~86–99 + St. Charles ~100–113). Also kept standalone at [`civic-house-targets.csv`](civic-house-targets.csv). Excludes vacant District **95** (O'Donnell, res. Jan 2025) and **110** (Sparks, res. Nov 2025). Addressed at the Capitol (201 W. Capitol Ave., Jefferson City). All `ask_tier=B`.
 
-> **VERIFY BEFORE MAILING (this batch):** (1) mo-gov's county ranges are approximate and contain **no MO-02 mapping** — confirm exact MO-02 overlap against the enacted congressional map; some of these districts may fall wholly or partly in **MO-01**, not MO-02. (2) **Add room numbers** from house.mo.gov/MemberRoster.aspx. (3) Re-check for any roster changes/new vacancies. (4) Optionally promote committee chairs (e.g., D94 Murphy, D96 Christ, D97 Casteel, D101 Keathley, D103 Hinman) to `ask_tier=A`.
+**Component 2 — St. Charles County (8)** — County Executive **Steve Ehlmann** + the seven County Council members (D1 Matt Swanson, D2 Joe Brazil, D3 Mike Elam, D4 Dave Hammond, D5 Terry Hollander, D6 Patti York, D7 Timothy Baker), sourced from the official `sccmo.org` member pages and council journal. Addressed at the County Administration Building, 201 N. Second Street, St. Charles, MO 63301. Executive + Council Chair (Elam)/Vice-Chair (Swanson) set to `ask_tier=A`.
+
+> **VERIFY BEFORE MAILING:** (1) **MO-02 overlap** — mo-gov's House county ranges are approximate with **no MO-02 mapping**; confirm against the enacted congressional map (some House districts may fall in **MO-01**). St. Charles County sits within MO-02. (2) **Add House room numbers** from house.mo.gov/MemberRoster.aspx. (3) **Re-confirm the St. Charles roster, leadership roles, and the County Administration Building address** on sccmo.org — and note **2026 is an election year** for the County Executive, so re-verify after November. (4) Re-check for new House vacancies. (5) Optionally promote House committee chairs (D94 Murphy, D96 Christ, D97 Casteel, D101 Keathley, D103 Hinman) to `ask_tier=A`.
 
 ---
 
