@@ -1,0 +1,278 @@
+{
+  "pillar": "education",
+  "repo": "dougdevitre/access-to-education",
+  "syncedAt": "abb33f4",
+  "docs": [
+    {
+      "slug": "index",
+      "title": "AI in Education — Index",
+      "file": "index.md"
+    },
+    {
+      "slug": "ai-literacy-career",
+      "title": "AI Literacy, Professional Development & Career Readiness",
+      "file": "ai-literacy-career.md"
+    },
+    {
+      "slug": "ai-policy-governance",
+      "title": "AI Policy, Privacy & Governance",
+      "file": "ai-policy-governance.md"
+    },
+    {
+      "slug": "ai-teaching-learning",
+      "title": "AI for Teaching, Learning & Communication",
+      "file": "ai-teaching-learning.md"
+    },
+    {
+      "slug": "compliance-calendar",
+      "title": "Compliance Calendar & Checklists — Missouri K-12 Education Reference",
+      "file": "compliance-calendar.md"
+    },
+    {
+      "slug": "equity-access",
+      "title": "Equity & Access — Missouri K-12 Education Reference",
+      "file": "equity-access.md"
+    },
+    {
+      "slug": "funding-programs",
+      "title": "Funding & Programs — Missouri K-12 Education Reference",
+      "file": "funding-programs.md"
+    },
+    {
+      "slug": "governance-policy",
+      "title": "Governance & Policy — Missouri K-12 Education Reference",
+      "file": "governance-policy.md"
+    },
+    {
+      "slug": "mo-education-law",
+      "title": "Missouri Education Law — Reference",
+      "file": "mo-education-law.md"
+    },
+    {
+      "slug": "title-ix",
+      "title": "Title IX Compliance in Missouri K-12 Schools",
+      "file": "title-ix.md"
+    },
+    {
+      "slug": "instructional-practice",
+      "title": "Instructional Practice — Evidence-Based Teaching",
+      "file": "instructional-practice.md"
+    },
+    {
+      "slug": "mo-learning-standards",
+      "title": "Missouri Learning Standards — Complete Reference",
+      "file": "mo-learning-standards.md"
+    },
+    {
+      "slug": "faq",
+      "title": "Frequently Asked Questions by Role",
+      "file": "faq.md"
+    },
+    {
+      "slug": "glossary",
+      "title": "Education Glossary — Acronyms & Terms",
+      "file": "glossary.md"
+    },
+    {
+      "slug": "guia-padres-espanol",
+      "title": "Guía de Derechos para Padres — Missouri K-12",
+      "file": "guia-padres-espanol.md"
+    },
+    {
+      "slug": "keyword-index",
+      "title": "Keyword Index — Missouri K-12 Education Navigator",
+      "file": "keyword-index.md"
+    },
+    {
+      "slug": "links-and-resources",
+      "title": "Links & Resources — Missouri K-12 Education",
+      "file": "links-and-resources.md"
+    },
+    {
+      "slug": "mo-data-tables",
+      "title": "Missouri Education Data Tables",
+      "file": "mo-data-tables.md"
+    },
+    {
+      "slug": "assessments",
+      "title": "Assessments — Missouri K-12 Education Reference",
+      "file": "assessments.md"
+    },
+    {
+      "slug": "athletics-activities",
+      "title": "Athletics & Activities — Missouri K-12 Education Reference",
+      "file": "athletics-activities.md"
+    },
+    {
+      "slug": "career-pathways",
+      "title": "Career Pathways — Missouri K-12 Education Reference",
+      "file": "career-pathways.md"
+    },
+    {
+      "slug": "crisis-emergency",
+      "title": "Crisis & Emergency Management — Missouri K-12 Education Reference",
+      "file": "crisis-emergency.md"
+    },
+    {
+      "slug": "data-reporting",
+      "title": "Data & Reporting — Missouri K-12 Education Reference",
+      "file": "data-reporting.md"
+    },
+    {
+      "slug": "discipline-behavior",
+      "title": "Discipline & Behavior — Missouri K-12 Education Reference",
+      "file": "discipline-behavior.md"
+    },
+    {
+      "slug": "facilities-operations",
+      "title": "Facilities & Operations — Missouri K-12 Education Reference",
+      "file": "facilities-operations.md"
+    },
+    {
+      "slug": "health-wellness",
+      "title": "Health & Wellness — Missouri K-12 Education Reference",
+      "file": "health-wellness.md"
+    },
+    {
+      "slug": "school-culture-climate",
+      "title": "School Culture & Climate — Missouri K-12 Education Reference",
+      "file": "school-culture-climate.md"
+    },
+    {
+      "slug": "technology-digital-learning",
+      "title": "Technology & Digital Learning — Missouri K-12 Education Reference",
+      "file": "technology-digital-learning.md"
+    },
+    {
+      "slug": "alternative-education",
+      "title": "Alternative Education — Missouri K-12 Education Reference",
+      "file": "alternative-education.md"
+    },
+    {
+      "slug": "early-childhood",
+      "title": "Early Childhood Education — Missouri K-12 Education Reference",
+      "file": "early-childhood.md"
+    },
+    {
+      "slug": "educator-workforce",
+      "title": "Educator Workforce — Missouri K-12 Education Reference",
+      "file": "educator-workforce.md"
+    },
+    {
+      "slug": "english-learners",
+      "title": "English Learners — Comprehensive ELL/ESL Reference",
+      "file": "english-learners.md"
+    },
+    {
+      "slug": "family-community",
+      "title": "Family & Community Engagement — Missouri K-12 Education Reference",
+      "file": "family-community.md"
+    },
+    {
+      "slug": "gifted-education",
+      "title": "Gifted & Talented Education — Missouri K-12 Reference",
+      "file": "gifted-education.md"
+    },
+    {
+      "slug": "mo-districts-regions",
+      "title": "Missouri Districts & Regions — Missouri K-12 Education Reference",
+      "file": "mo-districts-regions.md"
+    },
+    {
+      "slug": "professional-learning",
+      "title": "Professional Learning — Missouri K-12 Education Reference",
+      "file": "professional-learning.md"
+    },
+    {
+      "slug": "rural-education",
+      "title": "Rural & Regional Education — Missouri K-12 Education Reference",
+      "file": "rural-education.md"
+    },
+    {
+      "slug": "special-populations",
+      "title": "Special Populations — Missouri K-12 Education Reference",
+      "file": "special-populations.md"
+    },
+    {
+      "slug": "quick-start-cards",
+      "title": "Quick-Start Cards — Missouri K-12 Education Navigator",
+      "file": "quick-start-cards.md"
+    },
+    {
+      "slug": "administrators",
+      "title": "District Administration — Missouri K-12 Education Reference",
+      "file": "administrators.md"
+    },
+    {
+      "slug": "building-leaders",
+      "title": "Building Leaders — Missouri K-12 Education Reference",
+      "file": "building-leaders.md"
+    },
+    {
+      "slug": "school-counseling",
+      "title": "School Counseling — Missouri K-12 Education Reference",
+      "file": "school-counseling.md"
+    },
+    {
+      "slug": "school-staff",
+      "title": "School Support Staff — Missouri K-12 Education Reference",
+      "file": "school-staff.md"
+    },
+    {
+      "slug": "specialists",
+      "title": "Specialists — Missouri K-12 Education Reference",
+      "file": "specialists.md"
+    },
+    {
+      "slug": "students",
+      "title": "Students & Parents — Missouri K-12 Education Reference",
+      "file": "students.md"
+    },
+    {
+      "slug": "substitute-teachers",
+      "title": "Substitute Teacher Quick-Reference Guide",
+      "file": "substitute-teachers.md"
+    },
+    {
+      "slug": "teachers",
+      "title": "Teachers — Missouri K-12 Education Reference",
+      "file": "teachers.md"
+    },
+    {
+      "slug": "scenario-walkthroughs",
+      "title": "Scenario Walkthroughs — 33 Education Journeys",
+      "file": "scenario-walkthroughs.md"
+    },
+    {
+      "slug": "hearing-impairment",
+      "title": "Hearing Impairment in Education — Missouri Reference",
+      "file": "hearing-impairment.md"
+    },
+    {
+      "slug": "motor-impairment",
+      "title": "Motor Impairment in Education — Missouri Reference",
+      "file": "motor-impairment.md"
+    },
+    {
+      "slug": "vision-impairment",
+      "title": "Vision Impairment in Education — Missouri Reference",
+      "file": "vision-impairment.md"
+    },
+    {
+      "slug": "canonical-owners",
+      "title": "Canonical Topic Owners (v7 — Pod Structure)",
+      "file": "canonical-owners.md"
+    },
+    {
+      "slug": "changelog",
+      "title": "Changelog — Access to Education",
+      "file": "changelog.md"
+    },
+    {
+      "slug": "getting-started",
+      "title": "Getting Started",
+      "file": "getting-started.md"
+    }
+  ],
+  "tools": []
+}

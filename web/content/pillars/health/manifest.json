@@ -1,0 +1,59 @@
+{
+  "pillar": "health",
+  "repo": "dougdevitre/access-to-health",
+  "syncedAt": "ed3513a",
+  "docs": [
+    {
+      "slug": "apha-knowledgebase",
+      "title": "APHA Knowledge Base — 23 Topic Areas Synthesized",
+      "file": "apha-knowledgebase.md"
+    },
+    {
+      "slug": "apha-url-index",
+      "title": "APHA URL Index — Live Reference Links",
+      "file": "apha-url-index.md"
+    },
+    {
+      "slug": "fiscal-crisis-brief",
+      "title": "Fiscal Crisis Brief — 5-Pillar Unified Health Blueprint",
+      "file": "fiscal-crisis-brief.md"
+    },
+    {
+      "slug": "funding-guide",
+      "title": "Funding Guide — Federal, State, and Foundation Sources",
+      "file": "funding-guide.md"
+    },
+    {
+      "slug": "missouri-public-health",
+      "title": "Missouri Public Health — Infrastructure, Data, and Programs",
+      "file": "missouri-public-health.md"
+    },
+    {
+      "slug": "state-adaptation-template",
+      "title": "State Adaptation Template",
+      "file": "state-adaptation-template.md"
+    },
+    {
+      "slug": "audit",
+      "title": "Access to Health — Code Audit Report",
+      "file": "audit.md"
+    },
+    {
+      "slug": "changelog",
+      "title": "Changelog",
+      "file": "changelog.md"
+    },
+    {
+      "slug": "navigation",
+      "title": "Navigation Guide — Find What You Need",
+      "file": "navigation.md"
+    }
+  ],
+  "tools": [],
+  "skippedTools": [
+    {
+      "name": "access-to-health",
+      "path": "."
+    }
+  ]
+}
