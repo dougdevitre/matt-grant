@@ -88,7 +88,7 @@ export const PILLARS: Pillar[] = [
     sourceUrl: ghUrl("access-to-food"),
     kind: "resource",
     eyebrow: "Access to Food",
-    title: "Food &amp; nutrition resources for MO-02",
+    title: "Food & nutrition resources for MO-02",
     tagline: "Food-bank locators and SNAP/WIC navigation.",
     blurb:
       "A nonpartisan navigator for food access in MO-02 — finding food banks and understanding SNAP/WIC and community nutrition resources. Informational resource navigation only.",
@@ -107,6 +107,12 @@ export const PILLARS: Pillar[] = [
     blurb:
       "A nonpartisan public-health resource hub — role-based guidance grounded in published standards. Informational only; not medical advice.",
     ogHeadline: { line1: "Public-health", line2: "resources." },
+    // Hidden: the synced access-to-health content is a public-health advocacy/policy
+    // toolkit (explicit positions on guns, abortion, climate, immigration, race) — not
+    // neutral constituent-resource navigation, so it can't sit on the candidate's domain.
+    // Unlike food/justice (empty), this hub HAS content; flip off only after the source
+    // repo is reworked into nonpartisan, constituent-facing resources. See review.
+    hidden: true,
   },
   {
     slug: "justice",
