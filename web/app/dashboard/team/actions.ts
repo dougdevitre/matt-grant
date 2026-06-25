@@ -9,7 +9,7 @@ import { recordAccessChange } from "@/lib/audit";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { renderEmail, renderText } from "@/lib/email/layout";
 import { SITE_URL } from "@/lib/site";
-import { remindPendingInvites } from "@/lib/invites";
+import { remindPendingInvites, resendInvite } from "@/lib/invites";
 import { looksExternal } from "@/lib/externalEmail";
 
 export type InviteResult = { ok: boolean; message: string };
