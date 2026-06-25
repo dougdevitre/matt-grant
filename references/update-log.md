@@ -26,6 +26,37 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-06-24 -- v1.x -- Captain Onboarding & Training Guide
+
+**Changes:**
+- [added] workflows/captain-onboarding-training.md -- the captain's operating manual: development lifecycle, what a captain owns, onboarding (first-week checklist + orientation agenda + phase-mapped timeline), running a shift (adapted from volunteer-management), the weekly captain cadence (turns "review weekly" into a real agenda), archetype-aware coaching (one focus + one guardrail per archetype, linked to source), captain talking points tied to the four priorities, self-coaching tools, compliance, key principles
+- [updated] SKILL.md -- new row in the Workflow reference table
+- [updated] INDEX.md -- added to the "I need to build a volunteer leadership team" use case
+- [updated] workflows/README.md -- file-list bullet
+- [updated] commands/commands.md -- added `/captainonboarding`
+- [updated] references/glossary.md -- added "Captain Onboarding"
+
+**Verifications Performed:**
+- Cross-references resolve (captain-onboarding-training ↔ captain-archetypes development needs, team-pairing weekly review + ladder + compliance, volunteer-management shift/training, captain-roster health rules, candidate/strategic-plan phases + pillars, candidate/platform four priorities, artifacts/campaign-documents + messaging for voter-facing scripts)
+- Adapts rather than duplicates volunteer-management shift/training; summarizes-and-links archetype development needs rather than restating them
+- Talking points stay within documented priorities + family-court message; no invented policy, statutes, endorsements, or poll numbers; no PII fields
+- Mermaid diagram validated
+
+**Known Gaps:**
+- Coaching is a framework; effective use depends on the specific captain's background and learning style
+- Timeline is phase-mapped (not fixed dates) and any team counts are illustrative
+
+**Files Modified:**
+- workflows/captain-onboarding-training.md
+- SKILL.md
+- INDEX.md
+- workflows/README.md
+- commands/commands.md
+- references/glossary.md
+- references/update-log.md
+
+---
+
 ## 2026-06-24 -- v1.x -- Captain Roster Schema + MO-02 Field Plan + Artifact Spec
 
 **Changes:**
