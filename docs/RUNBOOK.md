@@ -31,9 +31,25 @@ The app uses a single **DynamoDB** table (on-demand billing; no servers, no conn
    cd web
    npm install
    npm run db:create-table   # one PK/SK table, PAY_PER_REQUEST
-   npm run db:seed           # illustrative sample data (optional)
+   npm run db:seed           # illustrative sample data — LOCAL DEV ONLY (optional)
    ```
-3. The app's IAM role/user needs `dynamodb:GetItem,PutItem,UpdateItem,Query,BatchWriteItem` on the table.
+3. The app's IAM role/user needs `dynamodb:GetItem,PutItem,UpdateItem,DeleteItem,Query,BatchWriteItem` on the table.
+
+> **Seeding is for local dev only — never production.** `db:seed` loads illustrative sample
+> donors, volunteers, tasks, etc. It refuses to run under `NODE_ENV=production` (override with
+> `ALLOW_SEED=1` only if you really mean it). Every seed row is tagged `seed: true` with a `seed-*`
+> sort key so it stays identifiable.
+>
+> **Removing seed data from a table** (e.g. a one-time production cleanup): the cleanup is a
+> deliberate, manual step — it is not wired into CI or the build.
+> ```bash
+> cd web
+> npm run db:clean-seed              # DRY RUN — lists what it would delete, writes nothing
+> CONFIRM=1 npm run db:clean-seed    # actually delete the seed rows
+> ```
+> It sweeps the seed partitions, deletes every `seed`-marked row, and clears any live task still
+> pointing at a deleted seed volunteer. Always dry-run first and confirm the table name in the
+> output before setting `CONFIRM=1`.
 
 ## 2. Clerk auth **[you]**
 
