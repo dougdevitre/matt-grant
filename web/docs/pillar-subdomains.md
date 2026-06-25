@@ -83,6 +83,28 @@ is a real issue slug and never collides with a resource-pillar label).
 2. `npm run sync:pillars -- --only <slug>` and commit the generated files.
 3. Add the subdomain in Amplify/Route 53. No further code changes per pillar.
 
+## Hidden hubs
+
+A pillar can carry `hidden: true` in `lib/pillars.ts`. It stays in the catalog (so the
+sync still tracks its repo and the host router treats its subdomain as *known* — a 404,
+not an unknown-subdomain warning), but it is dropped from every public surface (sitemap,
+static generation, OG cards, cross-links) and its hub/articles 404. `publicPillars` /
+`publicPillarSlugs` are the visible subset; `pillarSlugs` / `getPillar` stay all-inclusive.
+The contract is locked by `lib/pillars.test.ts`.
+
+Currently hidden, with the reason and the un-hide condition:
+
+| Hub | Why hidden | Un-hide when |
+|---|---|---|
+| `food` | Source repo imported **0 docs** (empty). | The `access-to-food` repo has real content and a sync imports it. |
+| `justice` | Source repo imported **0 docs** (empty). | The `access-to-justice` repo has real content and a sync imports it. |
+| `health` | Imported content is a public-health **advocacy/policy toolkit** — explicit positions on guns, abortion, climate, immigration, and race (`apha-knowledgebase.md`, `apha-url-index.md`, `fiscal-crisis-brief.md`, …). Off-mission for a nonpartisan constituent hub on the candidate's domain. | **`access-to-health` is reworked** into neutral, constituent-facing resources (no advocacy positions), reviewed against the framing guardrail above. |
+
+> **Repo-rework flag:** `access-to-health` needs to be repointed/rewritten toward neutral
+> MO-02 constituent health-resource navigation (where to find clinics, public-health
+> programs, Missouri-specific services) before its hub goes public. Hiding is visibility
+> only — the 9 committed docs stay tracked-but-unserved until then.
+
 ## Stability guardrails
 
 These keep the hardened paths from failing silently. Most are enforced in code; one

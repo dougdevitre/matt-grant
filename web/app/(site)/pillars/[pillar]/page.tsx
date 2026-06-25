@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PILLARS, pillarSlugs, getPillar } from "@/lib/pillars";
+import { publicPillars, publicPillarSlugs, getPillar } from "@/lib/pillars";
 import { getIssue } from "@/lib/issues";
 import { getManifest } from "@/lib/pillars-content";
 import { CAMPAIGN, MAIN_SITE_URL } from "@/lib/site";
@@ -13,7 +13,7 @@ import { PillarLink } from "@/components/PillarLink";
 // app/(site)/issues/[slug]/page.tsx.
 
 export function generateStaticParams() {
-  return pillarSlugs.map((pillar) => ({ pillar }));
+  return publicPillarSlugs.map((pillar) => ({ pillar }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ pillar: string }> }): Promise<Metadata> {
@@ -36,7 +36,7 @@ const apex = (path: string) => `${MAIN_SITE_URL}${path}`;
 export default async function PillarPage({ params }: { params: Promise<{ pillar: string }> }) {
   const { pillar: slug } = await params;
   const pillar = getPillar(slug);
-  if (!pillar) notFound();
+  if (!pillar || pillar.hidden) notFound();
 
   const manifest = getManifest(pillar.slug);
   const related = pillar.relatedIssue ? getIssue(pillar.relatedIssue) : undefined;
@@ -159,7 +159,7 @@ export default async function PillarPage({ params }: { params: Promise<{ pillar:
         <div className="mt-14 border-t border-line pt-8">
           <p className="eyebrow text-slate">More resource hubs</p>
           <div className="mt-4 flex flex-wrap gap-2">
-            {PILLARS.filter((p) => p.slug !== pillar.slug).map((p) => (
+            {publicPillars.filter((p) => p.slug !== pillar.slug).map((p) => (
               <a
                 key={p.slug}
                 href={`https://${p.subdomain}.mattgrantforcongress.org`}
