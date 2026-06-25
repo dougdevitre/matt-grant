@@ -3,9 +3,11 @@ import { PageHeader, HowTo } from "@/components/dashboard/Notice";
 import { InviteForm } from "@/components/dashboard/InviteForm";
 import { PartnerInviteForm } from "@/components/dashboard/PartnerInviteForm";
 import { RemindPendingButton } from "@/components/dashboard/RemindPendingButton";
+import { ResendInviteButton } from "@/components/dashboard/ResendInviteButton";
+import { InviteStatusBadge } from "@/components/dashboard/InviteStatusBadge";
 import { STAFF_ALLOWLIST, staffGate, clerkEnabled } from "@/lib/auth";
 import { listStaff } from "@/lib/staff";
-import { pendingInviteCount } from "@/lib/invites";
+import { listPendingInvites } from "@/lib/invites";
 import { listAccessChanges, listPreviewSwitches } from "@/lib/audit";
 import { can, INVITABLE_ROLES, ROLE_LABELS, ROLE_BADGE, isStaffRole, type Role } from "@/lib/rbac";
 import { revokeStaff, setMemberRole } from "./actions";
@@ -14,6 +16,7 @@ import { SubmitButton } from "@/components/dashboard/SubmitButton";
 
 const actionLabel: Record<string, string> = {
   invite: "invited",
+  invite_reminder: "resent invite to",
   role_change: "changed role",
   revoke: "removed",
 };
@@ -33,7 +36,19 @@ export default async function TeamPage() {
   const partners = active.filter((s) => s.role === "partner"); // Peace Room only
   const changes = await listAccessChanges(25);
   const previews = await listPreviewSwitches(25);
-  const pendingInvites = clerkEnabled ? await pendingInviteCount() : 0;
+
+  // Clerk is the source of truth for "not yet accepted": anyone still in the pending
+  // list hasn't signed in. We join it against our staff rows at render — no extra DB
+  // state — and also surface invites that exist only in Clerk (e.g. created in Clerk's
+  // own dashboard) so the whole "hasn't signed in" cohort is visible and nudgeable.
+  const pending = clerkEnabled ? await listPendingInvites() : [];
+  const pendingSet = new Set(pending.map((p) => p.email.toLowerCase()));
+  const accepted = (email: string) => (clerkEnabled ? !pendingSet.has(email.toLowerCase()) : true);
+  const known = new Set(
+    [...active.map((s) => s.email), ...partners.map((p) => p.email), ...STAFF_ALLOWLIST].map((e) => e.toLowerCase()),
+  );
+  const orphanPending = pending.filter((p) => !known.has(p.email.toLowerCase()));
+
   const roleName = (r?: string) => (r ? (ROLE_LABELS[r as Role] ?? r) : "—");
   const when = (iso: string) =>
     new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
@@ -57,11 +72,12 @@ export default async function TeamPage() {
         <div className="mt-6 card p-5">
           <p className="eyebrow text-slate">Pending invitations</p>
           <p className="mt-1 max-w-2xl text-sm text-slate">
-            People invited who haven&rsquo;t accepted yet. Send a branded reminder with a one-click accept link.
-            It&rsquo;s safe to click again — anyone reminded in the last 48 hours is skipped.
+            {pending.length} {pending.length === 1 ? "person hasn't" : "people haven't"} accepted yet. Resend to one
+            person from their row below, or nudge everyone at once here — it&rsquo;s safe to click again, since anyone
+            reminded in the last 48 hours is skipped.
           </p>
           <div className="mt-3">
-            <RemindPendingButton pending={pendingInvites} />
+            <RemindPendingButton pending={pending.length} />
           </div>
         </div>
       )}
@@ -88,6 +104,8 @@ export default async function TeamPage() {
                   <span className="text-ink">{s.name ? `${s.name} · ` : ""}{s.email}</span>
                   {s.invitedBy && <span className="block text-[0.65rem] text-slate">invited by {s.invitedBy}</span>}
                 </span>
+                {clerkEnabled && <InviteStatusBadge accepted={accepted(s.email)} />}
+                {clerkEnabled && !accepted(s.email) && <ResendInviteButton email={s.email} />}
                 <form action={setMemberRole} className="flex items-center gap-2">
                   <input type="hidden" name="email" value={s.email} />
                   <select
@@ -112,6 +130,31 @@ export default async function TeamPage() {
         )}
       </div>
 
+      {orphanPending.length > 0 && (
+        <div className="mt-8">
+          <p className="eyebrow text-slate">Invited directly in Clerk · not on the team yet</p>
+          <p className="mt-1 max-w-2xl text-sm text-slate">
+            Open invitations created outside this page (e.g. in the Clerk dashboard) that haven&rsquo;t been accepted.
+            They&rsquo;ll get a role and join a list above once they accept.
+          </p>
+          <ul className="mt-3 divide-y divide-line rounded-sm border border-line">
+            {orphanPending.map((p) => (
+              <li key={p.email} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
+                <span className="min-w-0 flex-1">
+                  <span className="text-ink">{p.email}</span>
+                  <span className="block text-[0.65rem] text-slate">
+                    {p.role ? `invited as ${roleName(p.role)} · ` : ""}
+                    {p.createdAt ? `invited ${when(new Date(p.createdAt).toISOString())}` : ""}
+                  </span>
+                </span>
+                <InviteStatusBadge accepted={false} />
+                <ResendInviteButton email={p.email} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="mt-12 border-t border-line pt-8">
         <p className="eyebrow text-brick">Coalition partners</p>
         <p className="mt-1 max-w-2xl text-sm text-slate">
@@ -129,6 +172,8 @@ export default async function TeamPage() {
                   <span className="text-ink">{p.name ? `${p.name} · ` : ""}{p.email}</span>
                   {p.invitedBy && <span className="block text-[0.65rem] text-slate">invited by {p.invitedBy}</span>}
                 </span>
+                {clerkEnabled && <InviteStatusBadge accepted={accepted(p.email)} />}
+                {clerkEnabled && !accepted(p.email) && <ResendInviteButton email={p.email} />}
                 <span className={`rounded-sm px-2 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow ${ROLE_BADGE.partner}`}>
                   Partner · Peace Room
                 </span>

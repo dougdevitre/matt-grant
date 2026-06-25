@@ -79,3 +79,30 @@ export async function renderOgCard(card: OgCard): Promise<ImageResponse> {
     },
   );
 }
+
+// Split a title into a roughly balanced two-line headline — the fallback when a
+// pillar has no explicit `ogHeadline`. Best-effort; word boundaries only.
+function splitHeadline(title: string): { line1: string; line2: string } {
+  const words = title.replace(/&amp;/g, "&").split(/\s+/);
+  if (words.length < 2) return { line1: title, line2: "" };
+  const mid = Math.ceil(words.length / 2);
+  return { line1: words.slice(0, mid).join(" "), line2: words.slice(mid).join(" ") };
+}
+
+// Per-pillar social card. Reuses renderOgCard so the brand (fonts, avatar,
+// tri-color rule) is identical to the apex card; only the eyebrow + headline
+// change. Resource framing only — never a policy claim (see lib/pillars.ts).
+export async function renderPillarOgCard(pillar: {
+  eyebrow: string;
+  title: string;
+  ogHeadline?: { line1: string; line2: string };
+}): Promise<ImageResponse> {
+  const headline = pillar.ogHeadline ?? splitHeadline(pillar.title);
+  return renderOgCard({
+    eyebrow: pillar.eyebrow.toUpperCase(),
+    line1: headline.line1,
+    line2: headline.line2,
+    name: "Matt Grant for Congress",
+    footer: "Constituent resources · MO-02",
+  });
+}

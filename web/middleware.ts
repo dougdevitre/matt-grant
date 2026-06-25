@@ -1,5 +1,10 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
+import { pillarOrVanityResponse } from "@/lib/pillar-middleware";
+
+// Host-based pillar/vanity routing (pillarOrVanityResponse) runs FIRST in both
+// branches below — see lib/pillar-middleware.ts for the rewrite/redirect logic
+// (kept Clerk-free there so it's unit-testable).
 
 // Dashboard + research read APIs + asset upload are staff-only. /community (the
 // supporter hub) and /my-giving (the donor portal) require sign-in — any signed-in
@@ -25,6 +30,8 @@ const clerkEnabled =
 // Escape hatch: set ALLOW_OPEN_DASHBOARD=true to intentionally show an open demo.
 export default clerkEnabled
   ? clerkMiddleware(async (auth, req) => {
+      const routed = pillarOrVanityResponse(req);
+      if (routed) return routed;
       if (!isProtectedRoute(req)) return;
       const { userId } = await auth();
       if (userId) return; // signed in — proceed (allowlist enforced in the dashboard layout + API routes)
@@ -38,6 +45,8 @@ export default clerkEnabled
       return NextResponse.redirect(signIn);
     })
   : (req: NextRequest) => {
+      const routed = pillarOrVanityResponse(req);
+      if (routed) return routed;
       const isProd = process.env.NODE_ENV === "production";
       const allowOpen = process.env.ALLOW_OPEN_DASHBOARD === "true";
       if (isProd && !allowOpen && isProtectedRoute(req)) {

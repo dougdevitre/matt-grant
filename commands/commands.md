@@ -97,6 +97,10 @@ Instant-generation triggers. When a user types any of these commands, generate t
 | `/endorseask [name]` | Endorsement request letter to a specific person or organization |
 | `/eventinvite [event]` | Event invitation (email + text message versions) |
 | `/volunteerask [name]` | Personalized volunteer recruitment message |
+| `/captaintypes` | The six team-captain archetypes with strengths, weaknesses, and best-fit roles (from `tactics/captain-archetypes.md`) |
+| `/captainmatch` | Captain↔volunteer↔supporter pairing matrices and roster worksheet (from `workflows/team-pairing.md`) |
+| `/captainroster` | Field-leadership roster data schema — CSV/JSON to store captains, archetypes, roles, co-captains, volunteers, and pipeline targets (from `tools/captain-roster.md`) |
+| `/captainonboarding` | Captain onboarding & training guide — first-week checklist, shift-running steps, weekly coaching cadence, and archetype-aware development (from `workflows/captain-onboarding-training.md`) |
 | `/communityintro [group]` | Introduction letter to a community organization |
 | `/mediakit` | Complete media kit (bio, headshot specs, issue summary, endorsement list, contact info) |
 | `/questionnaire [org]` | Candidate questionnaire response framework for an endorsing organization |
@@ -133,6 +137,7 @@ Instant-generation triggers. When a user types any of these commands, generate t
 | Command | Output |
 |---|---|
 | `/gotvplan` | Complete GOTV operations plan for the final 2 weeks |
+| `/voteabsentee` | Step-by-step absentee/early-voting guide for the MO-02 Aug 4, 2026 primary — three voting options, deadlines, notary rules, application walkthrough, photo ID, and county election authorities, sourced from `candidate/absentee-voting-guide.md` (mirrors the `/vote/absentee` page on the campaign site) |
 | `/electionday` | Election day operations timeline (5 AM to polls close) |
 | `/rallyrunofshow` | Rally or large event run-of-show document |
 | `/townhall` | Town hall event plan (format, logistics, Q&A prep) |

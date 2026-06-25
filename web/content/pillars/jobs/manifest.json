@@ -1,0 +1,88 @@
+{
+  "pillar": "jobs",
+  "repo": "dougdevitre/access-to-jobs",
+  "syncedAt": "f405a71",
+  "docs": [
+    {
+      "slug": "action-plan-template",
+      "title": "7-Day Action Plan Template",
+      "file": "action-plan-template.md"
+    },
+    {
+      "slug": "barrier-populations",
+      "title": "Barrier Populations Reference",
+      "file": "barrier-populations.md"
+    },
+    {
+      "slug": "cover-letter-template",
+      "title": "Cover Letter Template Reference",
+      "file": "cover-letter-template.md"
+    },
+    {
+      "slug": "hr-manager-toolkit",
+      "title": "HR Manager Toolkit",
+      "file": "hr-manager-toolkit.md"
+    },
+    {
+      "slug": "jobseeker-experience",
+      "title": "Job Seeker Experience Modules",
+      "file": "jobseeker-experience.md"
+    },
+    {
+      "slug": "local-area",
+      "title": "Local County Workforce Intelligence",
+      "file": "local-area.md"
+    },
+    {
+      "slug": "public-service-hiring",
+      "title": "Public Service & Government Applications Reference",
+      "file": "public-service-hiring.md"
+    },
+    {
+      "slug": "resume-template",
+      "title": "Resume Template Reference",
+      "file": "resume-template.md"
+    },
+    {
+      "slug": "staff-workflows",
+      "title": "Staff Workflow Modules",
+      "file": "staff-workflows.md"
+    },
+    {
+      "slug": "state-labor-market",
+      "title": "Missouri Labor Market Intelligence",
+      "file": "state-labor-market.md"
+    },
+    {
+      "slug": "state-programs",
+      "title": "Missouri WIOA Programs Reference",
+      "file": "state-programs.md"
+    },
+    {
+      "slug": "state-training-pathways",
+      "title": "Missouri Training + Credential Pathways",
+      "file": "state-training-pathways.md"
+    },
+    {
+      "slug": "workday-workflows",
+      "title": "Workday Integration Workflows",
+      "file": "workday-workflows.md"
+    },
+    {
+      "slug": "changelog",
+      "title": "Changelog",
+      "file": "changelog.md"
+    },
+    {
+      "slug": "deployment",
+      "title": "Deploying Access to Jobs to a New State",
+      "file": "deployment.md"
+    },
+    {
+      "slug": "security",
+      "title": "Security and Privacy",
+      "file": "security.md"
+    }
+  ],
+  "tools": []
+}

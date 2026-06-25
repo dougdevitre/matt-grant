@@ -6,6 +6,7 @@ Step-by-step operational guides for every phase of a campaign. Each workflow wal
 
 - [accessibility-inclusion.md](accessibility-inclusion.md) -- Making your campaign accessible to voters with disabilities, non-English speakers, and underserved communities
 - [campaign-plan-builder.md](campaign-plan-builder.md) -- Comprehensive template for building your full campaign plan
+- [captain-onboarding-training.md](captain-onboarding-training.md) -- Onboarding and developing team captains: first-week setup, running a shift, weekly coaching cadence, and archetype-aware development
 - [compliance-report-prep.md](compliance-report-prep.md) -- Pre-filing checklist for preparing and submitting campaign finance reports
 - [coordination-rules.md](coordination-rules.md) -- Understanding when outside-group activity crosses into illegal coordination
 - [donation-intake.md](donation-intake.md) -- Step-by-step process for receiving and recording every contribution
@@ -17,6 +18,7 @@ Step-by-step operational guides for every phase of a campaign. Each workflow wal
 - [opposition-research.md](opposition-research.md) -- Conducting ethical, legal opposition research on opponents and yourself
 - [post-election.md](post-election.md) -- What to do after the polls close: win, lose, or recount
 - [should-i-run.md](should-i-run.md) -- Structured decision framework for evaluating whether to run for office
+- [team-pairing.md](team-pairing.md) -- Matching captains to roles, volunteers to captains, and volunteers up the ladder to supporters, sponsors, and donors
 - [treasurer-setup.md](treasurer-setup.md) -- Everything your treasurer needs to set up systems, stay compliant, and avoid mistakes
 - [volunteer-management.md](volunteer-management.md) -- Recruiting, training, deploying, and retaining campaign volunteers
 - [voter-targeting.md](voter-targeting.md) -- Identifying, segmenting, and prioritizing the voters you need to reach

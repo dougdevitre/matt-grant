@@ -1,0 +1,28 @@
+{
+  "pillar": "housing",
+  "repo": "dougdevitre/access-to-housing",
+  "syncedAt": "58a758a",
+  "docs": [
+    {
+      "slug": "pod",
+      "title": "Pod: Brokerage Ops",
+      "file": "pod.md"
+    },
+    {
+      "slug": "changelog",
+      "title": "Changelog",
+      "file": "changelog.md"
+    },
+    {
+      "slug": "fair-housing",
+      "title": "Fair Housing Compliance Framework",
+      "file": "fair-housing.md"
+    },
+    {
+      "slug": "index",
+      "title": "Access to Housing",
+      "file": "index.md"
+    }
+  ],
+  "tools": []
+}

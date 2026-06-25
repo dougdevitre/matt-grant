@@ -1,0 +1,13 @@
+{
+  "pillar": "food",
+  "repo": "dougdevitre/access-to-food",
+  "syncedAt": "49ccbc0",
+  "docs": [],
+  "tools": [],
+  "skippedTools": [
+    {
+      "name": "access-to-food",
+      "path": "."
+    }
+  ]
+}

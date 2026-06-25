@@ -3,17 +3,33 @@
 // Illustrative only — not real donors, volunteers, or financials.
 import { ddb, TABLE, PK } from "../lib/db";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { SEED_SK_PREFIX } from "./seed-shared";
 
 const now = new Date().toISOString();
-const put = (Item: Record<string, unknown>) => ddb.send(new PutCommand({ TableName: TABLE, Item }));
+// Every seeded row carries `seed: true` so it stays identifiable even if the
+// `seed-*` sort-key scheme ever changes. See scripts/seed-shared.ts.
+const put = (Item: Record<string, unknown>) =>
+  ddb.send(new PutCommand({ TableName: TABLE, Item: { seed: true, ...Item } }));
 let n = 0;
-const uid = () => `seed-${++n}`;
+const uid = () => `${SEED_SK_PREFIX}${++n}`;
 
 async function main() {
   if (!TABLE) {
     console.error("Set DYNAMODB_TABLE.");
     process.exit(1);
   }
+
+  // Seeding loads illustrative sample data — it must never run against production.
+  // Prod and dev share the single table name, so NODE_ENV is the signal; ALLOW_SEED=1
+  // is an explicit escape hatch for the rare case of seeding a prod-mode local table.
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_SEED !== "1") {
+    console.error(
+      `Refusing to seed with NODE_ENV=production (table: ${TABLE}). ` +
+        "Seeding is for local dev only. Set ALLOW_SEED=1 to override.",
+    );
+    process.exit(1);
+  }
+  console.log("Seeding sample data into", TABLE);
 
   // Donors (contributions nested)
   await put({ PK: PK.donors, SK: uid(), name: "Eleanor Voss", email: "evoss@example.com", city: "Kirkwood", employer: "Voss Architecture", occupation: "Architect", contributions: [{ amountCents: 250000, method: "WinRed", election: "PRIMARY", receivedAt: now }], createdAt: now });
