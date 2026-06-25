@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Access to Business — Startup Intake Assessment</title>
+<style>
+  :root {
+    --bg: #f8f9fa;
+    --card: #ffffff;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --success: #059669;
+    --warning: #d97706;
+    --danger: #dc2626;
+    --accent: #7c3aed;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  .container { max-width: 640px; margin: 0 auto; padding: 24px 16px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+  h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; color: var(--text); }
+  .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px; }
+  .progress { display: flex; gap: 4px; margin-bottom: 24px; }
+  .progress-dot { height: 4px; flex: 1; border-radius: 2px; background: var(--border); transition: background 0.3s; }
+  .progress-dot.active { background: var(--primary); }
+  .progress-dot.done { background: var(--success); }
+  label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px; }
+  input, textarea, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; font-family: inherit; outline: none; transition: border-color 0.2s; }
+  input:focus, textarea:focus, select:focus { border-color: var(--primary); }
+  textarea { resize: vertical; min-height: 80px; }
+  .option-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .option-list { display: flex; flex-direction: column; gap: 8px; }
+  .option-btn { padding: 12px; border: 2px solid var(--border); border-radius: 8px; background: var(--card); cursor: pointer; text-align: center; font-size: 0.85rem; font-weight: 500; transition: all 0.2s; }
+  .option-btn:hover { border-color: var(--primary); background: #eff6ff; }
+  .option-btn.selected { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
+  .option-btn .icon { font-size: 1.3rem; display: block; margin-bottom: 4px; }
+  .option-btn.stage-btn { text-align: left; display: flex; align-items: center; gap: 10px; }
+  .option-btn.stage-btn .stage-icon { font-size: 1.3rem; }
+  .option-btn.stage-btn .stage-desc { font-weight: 400; color: var(--text-muted); }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-outline { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+  .btn-outline:hover { background: var(--bg); }
+  .btn-row { display: flex; justify-content: space-between; margin-top: 20px; }
+  .field-group { margin-bottom: 16px; }
+  .result-section { margin-bottom: 16px; }
+  .result-section h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 6px; }
+  .result-section p { font-size: 0.875rem; color: var(--text-muted); }
+  .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+  .badge-blue { background: #dbeafe; color: #1e40af; }
+  .badge-green { background: #d1fae5; color: #065f46; }
+  .badge-amber { background: #fef3c7; color: #92400e; }
+  .badge-purple { background: #ede9fe; color: #5b21b6; }
+  .command-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .command { background: var(--bg); padding: 4px 10px; border-radius: 6px; font-family: monospace; font-size: 0.8rem; color: var(--primary); }
+  .copy-block { background: #f1f5f9; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 0.8rem; white-space: pre-wrap; position: relative; margin-top: 8px; }
+  .copy-btn { position: absolute; top: 8px; right: 8px; background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px; font-size: 0.7rem; cursor: pointer; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Access to Business</h1>
+  <p class="subtitle">Startup Intake Assessment — let's figure out where to focus</p>
+  <div class="progress" id="progress"></div>
+  <div id="step-content"></div>
+  <div class="btn-row">
+    <div id="back-container"></div>
+    <div id="next-container"></div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var STAGES = [
+    { id: 0, label: "Idea", icon: "\uD83D\uDCA1", desc: "I have an idea but haven't started" },
+    { id: 1, label: "Pre-Revenue", icon: "\uD83D\uDD28", desc: "Building but no paying customers yet" },
+    { id: 2, label: "Early Revenue", icon: "\uD83D\uDCB0", desc: "A few paying customers" },
+    { id: 3, label: "Growth", icon: "\uD83D\uDCC8", desc: "Scaling and/or raising capital" },
+    { id: 4, label: "Scaling", icon: "\uD83D\uDE80", desc: "Series A+ or ops complexity" }
+  ];
+
+  var PRIORITIES = [
+    { id: "customers", label: "Get Customers", icon: "\uD83C\uDFAF" },
+    { id: "funding", label: "Raise Funding", icon: "\uD83C\uDFE6" },
+    { id: "product", label: "Build Product", icon: "\u2699\uFE0F" },
+    { id: "team", label: "Build Team", icon: "\uD83D\uDC65" }
+  ];
+
+  var TIME_OPTIONS = [
+    { id: "5min", label: "5 minutes", icon: "\u26A1" },
+    { id: "20min", label: "20 minutes", icon: "\u23F1" },
+    { id: "60min", label: "1 hour", icon: "\uD83D\uDD50" },
+    { id: "sprint", label: "Full sprint", icon: "\uD83C\uDFC3" }
+  ];
+
+  var totalSteps = 5;
+  var step = 0;
+  var data = { name: "", startup: "", stage: null, priority: null, time: null, challenge: "" };
+
+  function render() {
+    renderProgress();
+    renderStep();
+    renderButtons();
+  }
+
+  function renderProgress() {
+    var html = "";
+    for (var i = 0; i < totalSteps; i++) {
+      var cls = "progress-dot";
+      if (i === step) cls += " active";
+      else if (i < step) cls += " done";
+      html += '<div class="' + cls + '"></div>';
+    }
+    document.getElementById("progress").innerHTML = html;
+  }
+
+  function renderStep() {
+    var el = document.getElementById("step-content");
+    if (step === 0) {
+      el.innerHTML =
+        '<div class="card"><h2>Tell me about your startup</h2>' +
+        '<div class="field-group"><label>Your name</label>' +
+        '<input id="inp-name" value="' + esc(data.name) + '" placeholder="First name" /></div>' +
+        '<div class="field-group"><label>What\'s your startup? (one sentence)</label>' +
+        '<input id="inp-startup" value="' + esc(data.startup) + '" placeholder="e.g. A platform that helps co-parents document safely" /></div></div>';
+      document.getElementById("inp-name").addEventListener("input", function(e) { data.name = e.target.value; renderButtons(); });
+      document.getElementById("inp-startup").addEventListener("input", function(e) { data.startup = e.target.value; renderButtons(); });
+    } else if (step === 1) {
+      var html = '<div class="card"><h2>What stage are you at?</h2><div class="option-list">';
+      STAGES.forEach(function(s) {
+        var sel = data.stage === s.id ? " selected" : "";
+        html += '<div class="option-btn stage-btn' + sel + '" data-stage="' + s.id + '">' +
+          '<span class="stage-icon">' + s.icon + '</span>' +
+          '<div><strong>' + s.label + '</strong><br><span class="stage-desc">' + s.desc + '</span></div></div>';
+      });
+      html += '</div></div>';
+      el.innerHTML = html;
+      el.querySelectorAll("[data-stage]").forEach(function(btn) {
+        btn.addEventListener("click", function() {
+          data.stage = parseInt(this.getAttribute("data-stage"));
+          render();
+        });
+      });
+    } else if (step === 2) {
+      var html = '<div class="card"><h2>What matters most right now?</h2><div class="option-grid">';
+      PRIORITIES.forEach(function(p) {
+        var sel = data.priority === p.id ? " selected" : "";
+        html += '<div class="option-btn' + sel + '" data-priority="' + p.id + '"><span class="icon">' + p.icon + '</span>' + p.label + '</div>';
+      });
+      html += '</div></div>';
+      el.innerHTML = html;
+      el.querySelectorAll("[data-priority]").forEach(function(btn) {
+        btn.addEventListener("click", function() {
+          data.priority = this.getAttribute("data-priority");
+          render();
+        });
+      });
+    } else if (step === 3) {
+      var html = '<div class="card"><h2>How much time do you have?</h2><div class="option-grid">';
+      TIME_OPTIONS.forEach(function(t) {
+        var sel = data.time === t.id ? " selected" : "";
+        html += '<div class="option-btn' + sel + '" data-time="' + t.id + '"><span class="icon">' + t.icon + '</span>' + t.label + '</div>';
+      });
+      html += '</div>' +
+        '<div class="field-group" style="margin-top:16px"><label>Biggest challenge right now (optional)</label>' +
+        '<textarea id="inp-challenge" placeholder="e.g. I can\'t figure out pricing, I\'m scared to reach out to investors...">' + esc(data.challenge) + '</textarea></div></div>';
+      el.innerHTML = html;
+      el.querySelectorAll("[data-time]").forEach(function(btn) {
+        btn.addEventListener("click", function() {
+          data.time = this.getAttribute("data-time");
+          render();
+        });
+      });
+      document.getElementById("inp-challenge").addEventListener("input", function(e) { data.challenge = e.target.value; });
+    } else if (step === 4) {
+      var routing = getRouting();
+      var stageInfo = STAGES.filter(function(s) { return s.id === data.stage; })[0];
+      var priorityInfo = PRIORITIES.filter(function(p) { return p.id === data.priority; })[0];
+      var timeInfo = TIME_OPTIONS.filter(function(t) { return t.id === data.time; })[0];
+      var copyText = getCopyText();
+
+      var routeHtml = "";
+      routing.routes.forEach(function(r) {
+        routeHtml += '<div class="result-section"><h3>' + esc(r.title) + '</h3><p>' + esc(r.desc) + '</p></div>';
+      });
+      var cmdHtml = "";
+      routing.commands.forEach(function(c) {
+        cmdHtml += '<span class="command">' + esc(c) + '</span>';
+      });
+
+      el.innerHTML =
+        '<div class="card"><h2>Your Startup Profile</h2>' +
+        '<div class="result-section"><p><strong>' + esc(data.name) + '</strong> — ' + esc(data.startup) + '</p>' +
+        '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">' +
+        '<span class="badge badge-blue">' + stageInfo.icon + ' Stage ' + data.stage + ': ' + stageInfo.label + '</span>' +
+        '<span class="badge badge-green">' + priorityInfo.icon + ' ' + priorityInfo.label + '</span>' +
+        '<span class="badge badge-amber">' + timeInfo.icon + ' ' + timeInfo.label + '</span>' +
+        '</div></div></div>' +
+        '<div class="card"><h2>Recommended Path</h2>' + routeHtml +
+        '<div class="result-section"><h3>Start with these commands:</h3>' +
+        '<div class="command-list">' + cmdHtml + '</div></div></div>' +
+        '<div class="card"><h2>Copy to Claude</h2>' +
+        '<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:8px">Paste this into a new Claude conversation with Access to Business:</p>' +
+        '<div class="copy-block"><button class="copy-btn" id="copy-btn">Copy</button>' + esc(copyText) + '</div></div>';
+
+      document.getElementById("copy-btn").addEventListener("click", function() {
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(copyText);
+          this.textContent = "Copied!";
+          var btn = this;
+          setTimeout(function() { btn.textContent = "Copy"; }, 1500);
+        }
+      });
+    }
+  }
+
+  function renderButtons() {
+    var backEl = document.getElementById("back-container");
+    var nextEl = document.getElementById("next-container");
+
+    if (step > 0 && step < totalSteps) {
+      backEl.innerHTML = '<button class="btn btn-outline" id="btn-back">Back</button>';
+      document.getElementById("btn-back").addEventListener("click", function() { step--; render(); });
+    } else {
+      backEl.innerHTML = "";
+    }
+
+    if (step < totalSteps - 1) {
+      var disabled = !canNext();
+      nextEl.innerHTML = '<button class="btn btn-primary" id="btn-next"' + (disabled ? ' disabled' : '') + '>Next \u2192</button>';
+      document.getElementById("btn-next").addEventListener("click", function() {
+        if (canNext()) { step++; render(); }
+      });
+    } else if (step === totalSteps - 1) {
+      nextEl.innerHTML = "";
+    } else {
+      nextEl.innerHTML = '<button class="btn btn-primary" id="btn-restart">Start Over</button>';
+      document.getElementById("btn-restart").addEventListener("click", function() {
+        step = 0;
+        data = { name: "", startup: "", stage: null, priority: null, time: null, challenge: "" };
+        render();
+      });
+    }
+  }
+
+  function canNext() {
+    if (step === 0) return data.name && data.startup;
+    if (step === 1) return data.stage !== null;
+    if (step === 2) return data.priority !== null;
+    if (step === 3) return data.time !== null;
+    return true;
+  }
+
+  function getRouting() {
+    var s = data.stage;
+    var p = data.priority;
+    var routes = [];
+    var commands = [];
+
+    if (s === 0) {
+      routes.push({ title: "Start with Validation", desc: "Talk to 10 potential customers before writing code." });
+      commands.push("/validate", "/icp", "/focus validation");
+    } else if (s === 1 && p === "customers") {
+      routes.push({ title: "Get Your First 10 Customers", desc: "Focus on outreach and discovery calls." });
+      commands.push("/outreach", "/icp", "/sprint sales");
+    } else if (s === 1 && p === "funding") {
+      routes.push({ title: "Build Traction First", desc: "Investors want to see early signals before pre-seed." });
+      commands.push("/validate", "/metrics", "/binder");
+    } else if (s >= 2 && p === "funding") {
+      routes.push({ title: "Investor Binder Build", desc: "Build your 17-section investor binder." });
+      commands.push("/binder", "/score", "/pitch", "/deck");
+    } else if (p === "product") {
+      routes.push({ title: "Ship Fast, Validate Often", desc: "Build the smallest thing that tests your riskiest assumption." });
+      commands.push("/focus mvp", "/validate", "/sprint product");
+    } else if (p === "team") {
+      routes.push({ title: "Make Your First Hire", desc: "Define the role, set equity, and start recruiting." });
+      commands.push("/hire", "/cofounder", "/focus hiring");
+    } else {
+      routes.push({ title: "Build Momentum", desc: "Pick one thing and ship it today." });
+      commands.push("/start", "/focus", "/next");
+    }
+
+    if (data.time === "5min") commands.unshift("/focus");
+    if (data.time === "sprint") commands.unshift("/sprint");
+
+    var unique = [];
+    commands.forEach(function(c) { if (unique.indexOf(c) === -1) unique.push(c); });
+    return { routes: routes, commands: unique.slice(0, 5) };
+  }
+
+  function getCopyText() {
+    var stageLabel = STAGES.filter(function(s) { return s.id === data.stage; })[0];
+    var priorityLabel = PRIORITIES.filter(function(p) { return p.id === data.priority; })[0];
+    return "/start\nStartup: " + data.startup +
+      "\nStage: " + (stageLabel ? stageLabel.label : "Unknown") +
+      "\nPriority: " + (priorityLabel ? priorityLabel.label : "Unknown") +
+      "\nTime: " + data.time +
+      "\nChallenge: " + (data.challenge || "None specified");
+  }
+
+  function esc(str) {
+    var div = document.createElement("div");
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

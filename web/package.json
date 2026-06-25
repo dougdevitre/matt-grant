@@ -10,7 +10,9 @@
     "lint": "next lint",
     "db:create-table": "tsx scripts/create-table.ts",
     "db:seed": "tsx scripts/seed-dynamo.ts",
+    "db:clean-seed": "tsx scripts/delete-seed.ts",
     "brand": "node scripts/brand-assets.mjs",
+    "sync:pillars": "node scripts/sync-pillars.mjs",
     "print-tracker": "tsx scripts/generate-print-tracker.ts",
     "test": "vitest run",
     "test:a11y": "playwright test"
@@ -27,6 +29,7 @@
     "@turf/boolean-point-in-polygon": "^7.1.0",
     "fast-xml-parser": "^4.5.1",
     "maplibre-gl": "^4.7.1",
+    "mermaid": "^11.15.0",
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

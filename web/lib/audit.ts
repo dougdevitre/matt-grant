@@ -9,7 +9,7 @@ import { ddb, TABLE, newId, dbConfigured } from "@/lib/db";
 const AUDIT_PK = "AUDIT#access";
 const AUDIT_PREVIEW_PK = "AUDIT#preview";
 
-export type AuditAction = "invite" | "role_change" | "revoke" | "preview_enter" | "preview_exit";
+export type AuditAction = "invite" | "invite_reminder" | "role_change" | "revoke" | "preview_enter" | "preview_exit";
 export type AuditEntry = {
   at: string;
   actor: string; // who acted ("system" if unknown)

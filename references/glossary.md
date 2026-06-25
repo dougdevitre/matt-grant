@@ -18,6 +18,10 @@ Concise definitions of 65+ terms commonly encountered in US political campaigns.
 
 **Canvassing** -- Door-to-door voter contact, typically involving scripted conversations to identify supporters, persuade undecided voters, or mobilize known supporters.
 
+**Captain Archetype** -- A recognizable volunteer-leader style defined by its strengths and weaknesses (e.g., the Organizer, Connector, Workhorse, Mentor, Closer, Strategist). Used to match leaders to the captain roles that fit them and to pair complementary co-captains.
+
+**Captain Onboarding** -- The structured process of bringing a new volunteer leader into a captain role: naming the role and team, identifying their archetype and development goal, walking their governing playbook, and coaching them through running their first shifts. Mirrors volunteer onboarding but focused on leadership and team management.
+
 **Caucus** -- A meeting-based method of selecting party nominees or delegates, as opposed to a primary election. Rules vary significantly by state and party.
 
 **Conduit** -- An organization that receives earmarked contributions and forwards them to a designated candidate. ActBlue and WinRed are prominent examples.
@@ -29,6 +33,8 @@ Concise definitions of 65+ terms commonly encountered in US political campaigns.
 **Dark Money** -- Political spending by nonprofit organizations (often 501(c)(4)s) that are not required to disclose their donors publicly.
 
 **Disclaimer** -- A legally required notice on campaign communications identifying who paid for them (e.g., "Paid for by Smith for Congress").
+
+**Donor Ambassador** -- A trusted, networked volunteer who introduces and gathers contributions from their own network (a form of legal bundling). The top rung of the volunteer-to-donor pipeline; reimbursing them for a contribution would be an illegal straw-donor scheme.
 
 **Earmarking** -- Directing a contribution to a specific candidate through an intermediary or conduit.
 
@@ -82,6 +88,8 @@ Concise definitions of 65+ terms commonly encountered in US political campaigns.
 
 **Principal Campaign Committee** -- The main authorized committee of a candidate, designated to receive contributions and make expenditures on the candidate's behalf.
 
+**Regional Coordinator** -- A field-organization layer above team captains, responsible for a geographic area (e.g., a county) and the captains working within it. Reports to the campaign manager or field director.
+
 **Residency Requirement** -- The legal requirement that a candidate reside within the jurisdiction of the office sought, for a specified period before the election.
 
 **Runoff Election** -- A second election held when no candidate receives the required threshold of votes (often a majority) in the initial election.
@@ -97,6 +105,8 @@ Concise definitions of 65+ terms commonly encountered in US political campaigns.
 **Surrogate** -- A person who speaks or appears publicly on behalf of a candidate, such as an elected official, celebrity, or community leader.
 
 **Swing Voters** -- Voters who do not consistently support one party and may be persuaded to vote for either side. A key target of persuasion efforts.
+
+**Team Captain** -- A volunteer leader who recruits, trains, and manages a small team (typically 5-10 volunteers) for a specific function (canvassing, phone banking, events) or geographic area. Also called a precinct captain, block captain, or neighborhood organizer.
 
 **Vote Goal** -- The specific number of votes a campaign calculates it needs to win, based on projected turnout, partisan performance, and historical data.
 

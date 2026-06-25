@@ -56,6 +56,16 @@ Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026
 - [workflows/volunteer-management.md](workflows/volunteer-management.md) -- Recruiting, training, and retaining volunteers
 - [workflows/gotv-plan.md](workflows/gotv-plan.md) -- Get Out The Vote operations
 - [tactics/ballot-chase-program.md](tactics/ballot-chase-program.md) -- Tracking and chasing ballots
+- [candidate/absentee-voting-guide.md](candidate/absentee-voting-guide.md) -- Supporter/voter guide to voting early or absentee in MO-02: the three options, deadlines, notary rules, application walkthrough, and county election authorities (mirrors the `/vote/absentee` page)
+
+## "I need to build a volunteer leadership team"
+
+- [tactics/captain-archetypes.md](tactics/captain-archetypes.md) -- Six team-captain leader types by strength and weakness, plus the seven captain roles
+- [workflows/team-pairing.md](workflows/team-pairing.md) -- Pair captains with volunteers, and move volunteers up to supporters, sponsors, and donors
+- [tools/captain-roster.md](tools/captain-roster.md) -- CSV/JSON schema to store and maintain the captain roster (archetypes, roles, co-captains, volunteers, pipeline targets)
+- [candidate/captain-field-plan.md](candidate/captain-field-plan.md) -- Applies the captain framework to Matt Grant's real MO-02 field program (counts illustrative)
+- [workflows/captain-onboarding-training.md](workflows/captain-onboarding-training.md) -- Onboard a new captain, run weekly captain meetings, coach to each archetype's development needs, and lead captains through developing their own volunteers
+- [workflows/volunteer-management.md](workflows/volunteer-management.md) -- Recruiting, training, and retaining the volunteers your captains lead
 
 ## "I need compliance help"
 

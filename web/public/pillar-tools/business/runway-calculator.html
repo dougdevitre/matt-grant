@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Startup Runway Calculator</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1117;
+    color: #e2e4e9;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 640px; margin: 0 auto; }
+  h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+  .subtitle {
+    text-align: center;
+    color: #8b8fa3;
+    font-size: 0.9rem;
+    margin-bottom: 32px;
+  }
+  .card {
+    background: #1a1d27;
+    border: 1px solid #2a2d3a;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #c0c3ce;
+  }
+  .input-group { margin-bottom: 16px; }
+  .input-group label {
+    display: block;
+    font-size: 0.85rem;
+    color: #8b8fa3;
+    margin-bottom: 6px;
+  }
+  .input-group input[type="number"] {
+    width: 100%;
+    padding: 12px 14px;
+    background: #12141c;
+    border: 1px solid #2a2d3a;
+    border-radius: 8px;
+    color: #e2e4e9;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .input-group input[type="number"]:focus { border-color: #6366f1; }
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .result-item {
+    background: #12141c;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .result-item.full { grid-column: 1 / -1; }
+  .result-label {
+    font-size: 0.8rem;
+    color: #8b8fa3;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .result-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+  }
+  .runway-bar-container {
+    background: #12141c;
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .runway-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #8b8fa3;
+    margin-bottom: 8px;
+  }
+  .runway-bar {
+    height: 20px;
+    background: #2a2d3a;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .runway-bar-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.4s ease, background 0.4s ease;
+  }
+  .green { background: #22c55e; }
+  .yellow { background: #eab308; }
+  .red { background: #ef4444; }
+  .color-green { color: #22c55e; }
+  .color-yellow { color: #eab308; }
+  .color-red { color: #ef4444; }
+  .slider-group { margin-bottom: 16px; }
+  .slider-group label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #8b8fa3;
+    margin-bottom: 8px;
+  }
+  .slider-group label span { color: #6366f1; font-weight: 600; }
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    background: #2a2d3a;
+    border-radius: 3px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #6366f1;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #6366f1;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+  }
+  .whatif-result {
+    background: #12141c;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    margin-top: 12px;
+  }
+  .whatif-result .result-value { font-size: 1.25rem; }
+  .disclaimer {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #555;
+    margin-top: 24px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Startup Runway Calculator</h1>
+  <p class="subtitle">Know exactly how long your cash will last</p>
+
+  <div class="card">
+    <h2>Your Numbers</h2>
+    <div class="input-group">
+      <label for="cash">Current Cash Balance ($)</label>
+      <input type="number" id="cash" placeholder="e.g. 500000" oninput="calculate()">
+    </div>
+    <div class="input-group">
+      <label for="burn">Monthly Burn Rate ($)</label>
+      <input type="number" id="burn" placeholder="e.g. 40000" oninput="calculate()">
+    </div>
+    <div class="input-group">
+      <label for="revenue">Monthly Revenue ($)</label>
+      <input type="number" id="revenue" placeholder="e.g. 10000" value="0" oninput="calculate()">
+    </div>
+  </div>
+
+  <div class="card" id="resultsCard" style="display:none;">
+    <h2>Runway Analysis</h2>
+    <div class="results-grid">
+      <div class="result-item">
+        <div class="result-label">Net Burn / Mo</div>
+        <div class="result-value" id="netBurn">--</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Months of Runway</div>
+        <div class="result-value" id="months">--</div>
+      </div>
+      <div class="result-item full">
+        <div class="result-label">Cash Runs Out</div>
+        <div class="result-value" id="endDate">--</div>
+      </div>
+    </div>
+    <div class="runway-bar-container">
+      <div class="runway-bar-label">
+        <span>Now</span>
+        <span id="barLabel">-- months</span>
+      </div>
+      <div class="runway-bar">
+        <div class="runway-bar-fill" id="barFill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="whatifCard" style="display:none;">
+    <h2>What If? Adjust Burn Rate</h2>
+    <div class="slider-group">
+      <label>Adjusted Monthly Burn <span id="sliderVal">$0</span></label>
+      <input type="range" id="burnSlider" min="0" max="200000" step="1000" oninput="whatif()">
+    </div>
+    <div class="whatif-result">
+      <div class="result-label">Adjusted Runway</div>
+      <div class="result-value" id="whatifMonths">--</div>
+    </div>
+    <div class="whatif-result" style="margin-top:8px;">
+      <div class="result-label">Adjusted End Date</div>
+      <div class="result-value" id="whatifDate">--</div>
+    </div>
+  </div>
+
+  <p class="disclaimer">For planning purposes only. Not financial advice.</p>
+</div>
+
+<script>
+function fmt(n) {
+  return '$' + Math.round(n).toLocaleString();
+}
+
+function getColorClass(months) {
+  if (months < 6) return { text: 'color-red', bar: 'red' };
+  if (months < 12) return { text: 'color-yellow', bar: 'yellow' };
+  return { text: 'color-green', bar: 'green' };
+}
+
+function endDateStr(months) {
+  if (months === Infinity) return 'Never (profitable)';
+  var d = new Date();
+  d.setMonth(d.getMonth() + Math.floor(months));
+  d.setDate(d.getDate() + Math.round((months % 1) * 30));
+  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
+function calculate() {
+  var cash = parseFloat(document.getElementById('cash').value) || 0;
+  var burn = parseFloat(document.getElementById('burn').value) || 0;
+  var revenue = parseFloat(document.getElementById('revenue').value) || 0;
+  if (cash <= 0 || burn <= 0) {
+    document.getElementById('resultsCard').style.display = 'none';
+    document.getElementById('whatifCard').style.display = 'none';
+    return;
+  }
+  document.getElementById('resultsCard').style.display = '';
+  document.getElementById('whatifCard').style.display = '';
+
+  var net = burn - revenue;
+  var months = net <= 0 ? Infinity : cash / net;
+  var monthsDisplay = net <= 0 ? 'Infinite' : months.toFixed(1);
+
+  document.getElementById('netBurn').textContent = net <= 0 ? 'Cash-flow positive' : fmt(net);
+
+  var colors = months === Infinity ? { text: 'color-green', bar: 'green' } : getColorClass(months);
+
+  var mEl = document.getElementById('months');
+  mEl.textContent = monthsDisplay;
+  mEl.className = 'result-value ' + colors.text;
+
+  document.getElementById('endDate').textContent = endDateStr(months);
+  document.getElementById('endDate').className = 'result-value ' + colors.text;
+
+  var pct = months === Infinity ? 100 : Math.min(100, (months / 24) * 100);
+  var fill = document.getElementById('barFill');
+  fill.style.width = pct + '%';
+  fill.className = 'runway-bar-fill ' + colors.bar;
+  document.getElementById('barLabel').textContent = months === Infinity ? 'Profitable' : monthsDisplay + ' months';
+
+  var slider = document.getElementById('burnSlider');
+  slider.max = Math.max(burn * 2, 10000);
+  slider.value = burn;
+  whatif();
+}
+
+function whatif() {
+  var cash = parseFloat(document.getElementById('cash').value) || 0;
+  var revenue = parseFloat(document.getElementById('revenue').value) || 0;
+  var adjBurn = parseFloat(document.getElementById('burnSlider').value) || 0;
+
+  document.getElementById('sliderVal').textContent = fmt(adjBurn);
+
+  var net = adjBurn - revenue;
+  var months = net <= 0 ? Infinity : cash / net;
+  var colors = months === Infinity ? { text: 'color-green', bar: 'green' } : getColorClass(months);
+
+  var mEl = document.getElementById('whatifMonths');
+  mEl.textContent = months === Infinity ? 'Infinite' : months.toFixed(1) + ' months';
+  mEl.className = 'result-value ' + colors.text;
+
+  document.getElementById('whatifDate').textContent = endDateStr(months);
+  document.getElementById('whatifDate').className = 'result-value ' + colors.text;
+}
+</script>
+</body>
+</html>

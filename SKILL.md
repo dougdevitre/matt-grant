@@ -152,7 +152,9 @@ Load only what is needed for the current task:
 | `candidate/profile.md` | User asks about Matt Grant, his bio, career, values, contact info, or how to donate |
 | `candidate/platform.md` | User asks about Matt Grant's priorities, positions, or the CHILD Protection Act |
 | `candidate/strategic-plan.md` | User asks how Matt Grant plans to win MO-02 — theory of victory, timeline, fundraising/field targets, GOTV, messaging |
+| `candidate/captain-field-plan.md` | User asks how Matt Grant organizes his MO-02 field team — captain coverage by county, which archetypes to deploy where, volunteer→supporter pipeline targets. Applies `tactics/captain-archetypes.md` to the real district; counts are illustrative placeholders |
 | `candidate/library-print-and-produce-guide.md` | User (or a supporter) asks how to print campaign materials, make yard/window signs, banners, swag, or video, where to print cheaply, or how to post/distribute materials legally — covers St. Louis County Library mobile printing + creative lab and Missouri sign/electioneering rules |
+| `candidate/absentee-voting-guide.md` | User (or a supporter/voter) asks how to vote early, vote absentee, or vote by mail in MO-02 for the August 4, 2026 primary — covers the three voting options, deadlines, notary rules, the absentee application walkthrough, photo ID, and the St. Louis County / St. Charles County election authorities. Mirrors the `/vote/absentee` page on the campaign site |
 
 **Core reference files:**
 
@@ -214,6 +216,8 @@ Load only what is needed for the current task:
 | `workflows/opposition-research.md` | User needs to research opponent or prepare for attacks on themselves |
 | `workflows/coordination-rules.md` | User asks about working with PACs, Super PACs, party committees, or outside groups |
 | `workflows/volunteer-management.md` | User needs to recruit, organize, or manage volunteers; legal boundaries on volunteering |
+| `workflows/team-pairing.md` | User wants to pair captains with volunteers and move volunteers up to supporters, sponsors, and donors — matching matrices, complementary co-captains, and the volunteer→donor ladder |
+| `workflows/captain-onboarding-training.md` | User is a new captain or a manager onboarding/coaching captains — first-week setup, running a shift, the weekly captain cadence, archetype-aware coaching, captain talking points, and self-coaching tools |
 | `workflows/gotv-plan.md` | User is planning Get Out The Vote operations, election day logistics, or early vote strategy |
 | `workflows/post-election.md` | User needs guidance on post-election obligations — win, lose, recount, debt, surplus, termination |
 | `workflows/accessibility-inclusion.md` | User asks about ADA compliance, multilingual outreach, or reaching underserved communities |
@@ -223,6 +227,7 @@ Load only what is needed for the current task:
 | File | Load When |
 |---|---|
 | `tools/contribution-tracker.md` | User needs a data schema for tracking donations (CSV/JSON), or needs limit-check logic |
+| `tools/captain-roster.md` | User needs a data schema (CSV/JSON) to store the field-leadership roster — captains, archetypes, roles, co-captains, volunteers, and supporter-pipeline targets. The storable form of the `workflows/team-pairing.md` worksheet |
 | `tools/expenditure-tracker.md` | User needs a data schema for tracking spending (CSV/JSON), or budget tracking template |
 | `tools/disclaimer-generator.md` | User needs to generate "Paid for by" text for print, TV, radio, digital, or email communications |
 | `tools/print-tracker.md` | User asks what the campaign prints, which template produces a given printed piece, the print queue/inventory/status, or whether a piece needs a disclaimer — a letter-sized print tracker mapping every item to its template |
@@ -278,6 +283,7 @@ Load only what is needed for the current task:
 | `tactics/ballot-chase-program.md` | User asks about early vote tracking, absentee ballot chasing, ballot curing, or election day chase operations. The operational heart of GOTV. |
 | `tactics/scheduling-advance.md` | User asks about candidate time management, event logistics, briefing memos, or advance work. Includes optimal weekly time allocation. |
 | `tactics/voter-personas.md` | User needs to understand WHO they're talking to. Generates 4–6 psychographic voter profiles with tailored messages, channels, and asks per persona. |
+| `tactics/captain-archetypes.md` | User asks about types of team captains / volunteer leaders, their strengths and weaknesses, or which captain fits which role. Six archetypes + seven captain roles; pairs with `workflows/team-pairing.md`. |
 | `tactics/primary-general-strategy.md` | User needs primary strategy, general election pivot plan, or is deciding how to message differently for primary vs. general electorates. |
 | `tactics/candidate-performance.md` | User needs delivery coaching (voice, body language, camera presence), media training, candidate wellness/burnout prevention, or family resilience planning. |
 | `tactics/election-protection.md` | User needs election lawyer guidance, poll watcher program, recount preparation, provisional ballot strategy, or election day boiler room operations. |
