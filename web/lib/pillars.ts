@@ -30,6 +30,11 @@ export type Pillar = {
   // Two-line headline for the per-pillar social card (lib/og.tsx). Resource
   // language only — never a policy claim. Falls back to a split of `title`.
   ogHeadline?: { line1: string; line2: string };
+  // Hidden from all public surfaces (sitemap, SSG, OG, cross-links) and 404s on
+  // its hub/subdomain. The catalog entry stays so the sync still tracks the repo;
+  // flip this off once the hub has real, on-topic constituent content. Used for
+  // hubs whose source repo has no importable content yet.
+  hidden?: boolean;
 };
 
 const repo = (name: string) => `dougdevitre/${name}`;
@@ -83,11 +88,12 @@ export const PILLARS: Pillar[] = [
     sourceUrl: ghUrl("access-to-food"),
     kind: "resource",
     eyebrow: "Access to Food",
-    title: "Food &amp; nutrition resources for MO-02",
+    title: "Food & nutrition resources for MO-02",
     tagline: "Food-bank locators and SNAP/WIC navigation.",
     blurb:
       "A nonpartisan navigator for food access in MO-02 — finding food banks and understanding SNAP/WIC and community nutrition resources. Informational resource navigation only.",
     ogHeadline: { line1: "Food &", line2: "nutrition help." },
+    hidden: true, // source repo has no importable content yet — see review
   },
   {
     slug: "health",
@@ -101,6 +107,12 @@ export const PILLARS: Pillar[] = [
     blurb:
       "A nonpartisan public-health resource hub — role-based guidance grounded in published standards. Informational only; not medical advice.",
     ogHeadline: { line1: "Public-health", line2: "resources." },
+    // Hidden: the synced access-to-health content is a public-health advocacy/policy
+    // toolkit (explicit positions on guns, abortion, climate, immigration, race) — not
+    // neutral constituent-resource navigation, so it can't sit on the candidate's domain.
+    // Unlike food/justice (empty), this hub HAS content; flip off only after the source
+    // repo is reworked into nonpartisan, constituent-facing resources. See review.
+    hidden: true,
   },
   {
     slug: "justice",
@@ -115,6 +127,7 @@ export const PILLARS: Pillar[] = [
       "A nonpartisan navigator for legal aid in MO-02 — self-representation guides and help finding legal resources. Informational only; not legal advice.",
     relatedIssue: "family-courts",
     ogHeadline: { line1: "Legal-aid", line2: "navigation." },
+    hidden: true, // source repo has no importable content yet — see review
   },
   {
     slug: "business",
@@ -147,6 +160,13 @@ export const PILLARS: Pillar[] = [
 
 export const pillarSlugs = PILLARS.map((p) => p.slug);
 export const getPillar = (slug: string) => PILLARS.find((p) => p.slug === slug);
+
+// Public-facing subset: hidden hubs are excluded from sitemap, static generation,
+// OG images, and cross-links, and their hub pages 404. `pillarSlugs`/`getPillar`
+// stay all-inclusive so the sync + host routing still recognize hidden slugs (their
+// subdomain/path 404s rather than warning as an unknown subdomain).
+export const publicPillars = PILLARS.filter((p) => !p.hidden);
+export const publicPillarSlugs = publicPillars.map((p) => p.slug);
 
 // Host label → pillar. Used by middleware (host rewrite) and by the chrome to
 // detect when it is rendering on a pillar subdomain. Case-insensitive; ignores
