@@ -20,6 +20,8 @@ Concise definitions of 65+ terms commonly encountered in US political campaigns.
 
 **Captain Archetype** -- A recognizable volunteer-leader style defined by its strengths and weaknesses (e.g., the Organizer, Connector, Workhorse, Mentor, Closer, Strategist). Used to match leaders to the captain roles that fit them and to pair complementary co-captains.
 
+**Captain Onboarding** -- The structured process of bringing a new volunteer leader into a captain role: naming the role and team, identifying their archetype and development goal, walking their governing playbook, and coaching them through running their first shifts. Mirrors volunteer onboarding but focused on leadership and team management.
+
 **Caucus** -- A meeting-based method of selecting party nominees or delegates, as opposed to a primary election. Rules vary significantly by state and party.
 
 **Conduit** -- An organization that receives earmarked contributions and forwards them to a designated candidate. ActBlue and WinRed are prominent examples.

@@ -6,6 +6,7 @@ Step-by-step operational guides for every phase of a campaign. Each workflow wal
 
 - [accessibility-inclusion.md](accessibility-inclusion.md) -- Making your campaign accessible to voters with disabilities, non-English speakers, and underserved communities
 - [campaign-plan-builder.md](campaign-plan-builder.md) -- Comprehensive template for building your full campaign plan
+- [captain-onboarding-training.md](captain-onboarding-training.md) -- Onboarding and developing team captains: first-week setup, running a shift, weekly coaching cadence, and archetype-aware development
 - [compliance-report-prep.md](compliance-report-prep.md) -- Pre-filing checklist for preparing and submitting campaign finance reports
 - [coordination-rules.md](coordination-rules.md) -- Understanding when outside-group activity crosses into illegal coordination
 - [donation-intake.md](donation-intake.md) -- Step-by-step process for receiving and recording every contribution
