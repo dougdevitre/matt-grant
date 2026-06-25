@@ -45,7 +45,7 @@ export function InviteForm() {
       {ext && (
         <label className="mt-3 flex items-start gap-2 rounded-sm border border-gold/50 bg-gold/10 px-3 py-2 text-xs text-[#7a5a12]">
           <input type="checkbox" name="confirmExternal" className="mt-0.5" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
-          <span><strong>Heads up:</strong> <span className="font-mono">{email.split("@")[1]}</span> looks like {KIND_NOTE[ext]}. Inviting them grants <strong>internal dashboard access</strong> at the selected role once they sign up. Check this box to confirm that's intended.</span>
+          <span><strong>Heads up:</strong> <span className="font-mono">{email.split("@")[1]}</span> looks like {KIND_NOTE[ext]}. Inviting them grants <strong>internal dashboard access</strong> at the selected role once they sign up. Check this box to confirm that&apos;s intended.</span>
         </label>
       )}
       <ul className="mt-2 space-y-0.5 text-xs text-slate">
