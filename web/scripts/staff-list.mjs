@@ -11,22 +11,24 @@
 //   --remove a@b.com,c@d.com   → soft-removes those STAFF rows (status="removed")
 //                                and demotes their Clerk role to "supporter".
 //
-// Run it in CloudShell (AWS creds automatic). Clerk key is OPTIONAL — with it, each
-// row is annotated signed-up vs pending and --remove can also demote in Clerk:
+// Run it in CloudShell (AWS creds automatic). The Clerk key is OPTIONAL but enables the
+// signed-up/pending annotation and the Clerk-demote half of --remove. It is read from
+// CLERK_SECRET_KEY, or — when that's unset — from AWS SSM Parameter Store (SecureString
+// /matt-grant/clerk-secret-key, override the name with CLERK_SECRET_PARAM), so CloudShell
+// never has to export the secret:
 //
-//   cd ~/role-audit   # or anywhere with the two @aws-sdk packages installed
-//   DYNAMODB_TABLE=matt-grant AWS_REGION=us-east-1 \
-//     [CLERK_SECRET_KEY=sk_live_...] node staff-list.mjs
+//   aws ssm put-parameter --name /matt-grant/clerk-secret-key --type SecureString --value sk_live_...
+//   cd ~/role-audit   # needs @aws-sdk/client-dynamodb, lib-dynamodb, and client-ssm
+//   DYNAMODB_TABLE=matt-grant AWS_REGION=us-east-1 node staff-list.mjs
 //
 //   # after reviewing, to prune (writes!):
-//   DYNAMODB_TABLE=matt-grant AWS_REGION=us-east-1 CLERK_SECRET_KEY=sk_live_... \
-//     node staff-list.mjs --remove tips@latimes.com,publisher@nytimes.com
+//   DYNAMODB_TABLE=matt-grant AWS_REGION=us-east-1 node staff-list.mjs --remove tips@latimes.com,publisher@nytimes.com
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 
 const TABLE = process.env.DYNAMODB_TABLE;
-const CLERK_KEY = process.env.CLERK_SECRET_KEY; // optional
+let CLERK_KEY = process.env.CLERK_SECRET_KEY; // optional; resolved (env → SSM) in main()
 if (!TABLE) {
   console.error("Set DYNAMODB_TABLE=... (plus AWS creds). CLERK_SECRET_KEY is optional.");
   process.exit(2);
@@ -87,9 +89,26 @@ async function loadStaff() {
   return rows;
 }
 
+// --- Clerk key resolution: env first, else AWS SSM Parameter Store (SecureString) ----
+// Lets CloudShell skip exporting the secret. Dynamic import so the SSM SDK is only needed
+// when actually falling back, and a missing param/permission degrades (warn) not throws.
+async function resolveClerkKey() {
+  if (process.env.CLERK_SECRET_KEY) return process.env.CLERK_SECRET_KEY;
+  const name = process.env.CLERK_SECRET_PARAM ?? "/matt-grant/clerk-secret-key";
+  try {
+    const { SSMClient, GetParameterCommand } = await import("@aws-sdk/client-ssm");
+    const ssm = new SSMClient({ region: process.env.AWS_REGION ?? "us-east-1" });
+    const r = await ssm.send(new GetParameterCommand({ Name: name, WithDecryption: true }));
+    return r.Parameter?.Value || undefined;
+  } catch (e) {
+    console.warn(`(Clerk key: env unset and SSM ${name} unavailable: ${e.message})`);
+    return undefined;
+  }
+}
+
 // --- Clerk (optional read + the demote half of --remove) ----------------------------
 const API = "https://api.clerk.com/v1";
-const ch = { authorization: `Bearer ${CLERK_KEY}`, "content-type": "application/json" };
+const ch = { authorization: "", "content-type": "application/json" }; // bearer set in main()
 
 async function loadClerkEmails() {
   if (!CLERK_KEY) return null; // signed-up annotation unavailable
@@ -147,6 +166,9 @@ function parseRemoveArg() {
 }
 
 async function main() {
+  CLERK_KEY = await resolveClerkKey();
+  if (CLERK_KEY) ch.authorization = `Bearer ${CLERK_KEY}`;
+
   const removeList = parseRemoveArg();
   const [staff, clerkEmails] = await Promise.all([loadStaff(), loadClerkEmails().catch((e) => {
     console.warn(`(Clerk annotation unavailable: ${e.message})`);

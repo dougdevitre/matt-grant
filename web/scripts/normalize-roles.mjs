@@ -11,24 +11,37 @@
 // whose raw value differs from its canonical role are touched. Never touches the audit
 // log (that's history) or any non-legacy value.
 //
-// Run in CloudShell (AWS creds automatic). Both env vars recommended; each half is
-// skipped if its credential is absent.
+// Run in CloudShell (AWS creds automatic). Each half is skipped if its credential is
+// absent. The Clerk key is read from CLERK_SECRET_KEY, or — when unset — from AWS SSM
+// Parameter Store (SecureString /matt-grant/clerk-secret-key, override CLERK_SECRET_PARAM).
 //
 //   cd ~/role-audit
 //   # 1) preview (no writes):
-//   CLERK_SECRET_KEY=sk_live_... DYNAMODB_TABLE=matt-grant AWS_REGION=us-east-1 node normalize-roles.mjs
+//   DYNAMODB_TABLE=matt-grant AWS_REGION=us-east-1 node normalize-roles.mjs
 //   # 2) apply:
-//   CLERK_SECRET_KEY=sk_live_... DYNAMODB_TABLE=matt-grant AWS_REGION=us-east-1 node normalize-roles.mjs --apply
+//   DYNAMODB_TABLE=matt-grant AWS_REGION=us-east-1 node normalize-roles.mjs --apply
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 
-const CLERK_KEY = process.env.CLERK_SECRET_KEY; // needed for the Clerk half
+let CLERK_KEY = process.env.CLERK_SECRET_KEY; // for the Clerk half; resolved (env → SSM) in main()
 const TABLE = process.env.DYNAMODB_TABLE; // needed for the STAFF half
 const APPLY = process.argv.slice(2).includes("--apply");
-if (!CLERK_KEY && !TABLE) {
-  console.error("Set CLERK_SECRET_KEY and/or DYNAMODB_TABLE (plus AWS creds). Add --apply to write.");
-  process.exit(2);
+
+// --- Clerk key resolution: env first, else AWS SSM Parameter Store (SecureString) ----
+// Dynamic import so the SSM SDK is only needed when falling back; missing param → undefined.
+async function resolveClerkKey() {
+  if (process.env.CLERK_SECRET_KEY) return process.env.CLERK_SECRET_KEY;
+  const name = process.env.CLERK_SECRET_PARAM ?? "/matt-grant/clerk-secret-key";
+  try {
+    const { SSMClient, GetParameterCommand } = await import("@aws-sdk/client-ssm");
+    const ssm = new SSMClient({ region: process.env.AWS_REGION ?? "us-east-1" });
+    const r = await ssm.send(new GetParameterCommand({ Name: name, WithDecryption: true }));
+    return r.Parameter?.Value || undefined;
+  } catch (e) {
+    console.warn(`(Clerk key: env unset and SSM ${name} unavailable: ${e.message})`);
+    return undefined;
+  }
 }
 
 // Canonical role model — MIRROR of web/lib/rbac.ts (kept inline; plain-node ESM).
@@ -38,7 +51,7 @@ const asRole = (v) => (typeof v === "string" ? (ROLES.includes(v) ? v : (ALIASES
 const isLegacyAlias = (v) => typeof v === "string" && v in ALIASES; // member/organizer
 
 const API = "https://api.clerk.com/v1";
-const ch = { authorization: `Bearer ${CLERK_KEY}`, "content-type": "application/json" };
+const ch = { authorization: "", "content-type": "application/json" }; // bearer set in main()
 const ddb = DynamoDBDocumentClient.from(
   new DynamoDBClient({ region: process.env.AWS_REGION ?? "us-east-1" }),
 );
@@ -108,6 +121,13 @@ async function setStaffRole(email, role) {
 }
 
 async function main() {
+  CLERK_KEY = await resolveClerkKey();
+  if (CLERK_KEY) ch.authorization = `Bearer ${CLERK_KEY}`;
+  if (!CLERK_KEY && !TABLE) {
+    console.error("Set CLERK_SECRET_KEY (or SSM param) and/or DYNAMODB_TABLE (plus AWS creds). Add --apply to write.");
+    process.exit(2);
+  }
+
   console.log(`Normalize legacy role values — ${APPLY ? "APPLY (writing)" : "DRY RUN (no writes)"}\n` + "=".repeat(52));
 
   const clerk = CLERK_KEY ? await findClerkLegacy() : [];
