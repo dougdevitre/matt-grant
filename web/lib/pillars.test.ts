@@ -3,11 +3,12 @@ import { PILLARS, publicPillars, publicPillarSlugs, pillarSlugs, getPillar } fro
 
 // The `hidden` flag keeps a pillar in the catalog (so the sync still tracks its
 // repo) while removing it from every public surface and 404-ing its hub. These
-// assertions lock that contract so a hub with no real content can't leak live.
+// assertions lock that contract so a hub with no real content (food, justice) — or
+// off-mission content unfit for the candidate's domain (health) — can't leak live.
 describe("pillar visibility (hidden flag)", () => {
-  const HIDDEN = ["food", "justice"];
+  const HIDDEN = ["food", "justice", "health"];
 
-  it("marks food and justice hidden", () => {
+  it("marks food, justice, and health hidden", () => {
     for (const slug of HIDDEN) expect(getPillar(slug)?.hidden, slug).toBe(true);
   });
 
