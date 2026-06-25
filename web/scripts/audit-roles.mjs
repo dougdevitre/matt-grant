@@ -13,26 +13,42 @@
 //   • DynamoDB DONOR rows         — no role; the "donor" tier is DERIVED from net gifts
 //   • Audit log (AUDIT#access)    — append-only HISTORY; NOT current state (shown FYI only)
 //
-// It ONLY READS. It never writes, migrates, or deletes. Run it locally:
+// It ONLY READS. It never writes, migrates, or deletes. Run it locally / in CloudShell:
 //
-//   cd web
+//   cd web   # (or ~/role-audit)
 //   CLERK_SECRET_KEY=sk_live_... DYNAMODB_TABLE=your-table AWS_REGION=us-east-1 \
 //     node scripts/audit-roles.mjs
 //
-// (AWS creds come from the usual chain: AWS_PROFILE / AWS_ACCESS_KEY_ID+SECRET / SSO.)
+// The Clerk key is read from CLERK_SECRET_KEY, or — when unset — from AWS SSM Parameter
+// Store (SecureString /matt-grant/clerk-secret-key, override with CLERK_SECRET_PARAM), so
+// CloudShell can run it with just DYNAMODB_TABLE set. (AWS creds come from the usual chain:
+// AWS_PROFILE / AWS_ACCESS_KEY_ID+SECRET / SSO.)
 // Then paste the output back and we'll reconcile it into roles-and-permissions.md.
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 
-const CLERK_KEY = process.env.CLERK_SECRET_KEY;
+let CLERK_KEY = process.env.CLERK_SECRET_KEY; // resolved (env → SSM) in main()
 const TABLE = process.env.DYNAMODB_TABLE;
-if (!CLERK_KEY || !TABLE) {
-  console.error(
-    "Set CLERK_SECRET_KEY=sk_... and DYNAMODB_TABLE=... (plus AWS creds) and re-run.\n" +
-      "  cd web && CLERK_SECRET_KEY=sk_... DYNAMODB_TABLE=tbl node scripts/audit-roles.mjs",
-  );
+if (!TABLE) {
+  console.error("Set DYNAMODB_TABLE=... (plus AWS creds) and re-run. CLERK_SECRET_KEY may come from SSM.");
   process.exit(2);
+}
+
+// --- Clerk key resolution: env first, else AWS SSM Parameter Store (SecureString) ----
+// Dynamic import so the SSM SDK is only needed when falling back; missing param → undefined.
+async function resolveClerkKey() {
+  if (process.env.CLERK_SECRET_KEY) return process.env.CLERK_SECRET_KEY;
+  const name = process.env.CLERK_SECRET_PARAM ?? "/matt-grant/clerk-secret-key";
+  try {
+    const { SSMClient, GetParameterCommand } = await import("@aws-sdk/client-ssm");
+    const ssm = new SSMClient({ region: process.env.AWS_REGION ?? "us-east-1" });
+    const r = await ssm.send(new GetParameterCommand({ Name: name, WithDecryption: true }));
+    return r.Parameter?.Value || undefined;
+  } catch (e) {
+    console.warn(`(Clerk key: env unset and SSM ${name} unavailable: ${e.message})`);
+    return undefined;
+  }
 }
 
 // --- Canonical role model — MIRROR of web/lib/rbac.ts (the source of truth). -------
@@ -49,7 +65,7 @@ const isUnknownRaw = (v) => v != null && v !== "" && asRole(v) === null;
 
 // --- Clerk REST (read-only) ---------------------------------------------------------
 const API = "https://api.clerk.com/v1";
-const headers = { authorization: `Bearer ${CLERK_KEY}`, "content-type": "application/json" };
+const headers = { authorization: "", "content-type": "application/json" }; // bearer set in main()
 const clerkGet = async (path) => {
   const r = await fetch(`${API}${path}`, { headers });
   if (!r.ok) throw new Error(`${path} → ${r.status} ${await r.text().catch(() => "")}`);
@@ -142,6 +158,16 @@ function fmt(v) {
 }
 
 async function main() {
+  CLERK_KEY = await resolveClerkKey();
+  if (!CLERK_KEY) {
+    console.error(
+      "No Clerk key: set CLERK_SECRET_KEY=sk_..., or store it in SSM\n" +
+        "  aws ssm put-parameter --name /matt-grant/clerk-secret-key --type SecureString --value sk_live_...",
+    );
+    process.exit(2);
+  }
+  headers.authorization = `Bearer ${CLERK_KEY}`;
+
   console.log("Role-consistency audit — READ ONLY (no writes)\n" + "=".repeat(48));
   console.log(`Canonical roles (web/lib/rbac.ts): ${ROLES.join(", ")}`);
   console.log(`Legacy aliases: ${Object.entries(ALIASES).map(([k, v]) => `${k}→${v}`).join(", ")}\n`);
