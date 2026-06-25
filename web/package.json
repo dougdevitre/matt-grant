@@ -10,6 +10,7 @@
     "lint": "next lint",
     "db:create-table": "tsx scripts/create-table.ts",
     "db:seed": "tsx scripts/seed-dynamo.ts",
+    "db:clean-seed": "tsx scripts/delete-seed.ts",
     "brand": "node scripts/brand-assets.mjs",
     "sync:pillars": "node scripts/sync-pillars.mjs",
     "print-tracker": "tsx scripts/generate-print-tracker.ts",
