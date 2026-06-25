@@ -100,6 +100,7 @@ Instant-generation triggers. When a user types any of these commands, generate t
 | `/captaintypes` | The six team-captain archetypes with strengths, weaknesses, and best-fit roles (from `tactics/captain-archetypes.md`) |
 | `/captainmatch` | Captain↔volunteer↔supporter pairing matrices and roster worksheet (from `workflows/team-pairing.md`) |
 | `/captainroster` | Field-leadership roster data schema — CSV/JSON to store captains, archetypes, roles, co-captains, volunteers, and pipeline targets (from `tools/captain-roster.md`) |
+| `/captainonboarding` | Captain onboarding & training guide — first-week checklist, shift-running steps, weekly coaching cadence, and archetype-aware development (from `workflows/captain-onboarding-training.md`) |
 | `/communityintro [group]` | Introduction letter to a community organization |
 | `/mediakit` | Complete media kit (bio, headshot specs, issue summary, endorsement list, contact info) |
 | `/questionnaire [org]` | Candidate questionnaire response framework for an endorsing organization |
