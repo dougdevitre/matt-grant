@@ -33,7 +33,7 @@ function wrap(text, max) {
 const SECTIONS = [
   ["The problem", "Too many children are caught in a family-court system that can protect insiders instead of kids. When dockets stay closed and courts aren't held accountable, families pay the price — and children lose. Eliminating corruption in the family courts is the cause at the center of Matt Grant's candidacy."],
   ["The solution — the CHILD Protection Act of 2027", "Corruption Hiding Inside Legal Dockets. The proposal calls for federal oversight that ties Title IV-D federal grant money to state family-court compliance — using the federal grant program as the lever for accountability in state family courts. Clean, accountable courts keep the federal check; corrupt ones don't."],
-  ["Why Matt", "A neighbor, a dad, and a problem-solver with 23 years in the courtroom. He has already taken this fight to federal court — a matter of public record. Matt doesn't just talk; he takes action, and he's running for Congress to put Missouri's children first."],
+  ["Why Matt", "A neighbor, a dad, and a problem-solver with 25 years in the courtroom. He has already taken this fight to federal court — a matter of public record. Matt doesn't just talk; he takes action, and he's running for Congress to put Missouri's children first."],
   ["The ask", "Endorse the reform, stand as an issue ally, or help amplify it to Missouri families."],
 ];
 

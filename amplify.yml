@@ -8,6 +8,11 @@ applications:
         preBuild:
           commands:
             - npm ci
+            # Compliance guardrail: blocks the deploy if a required FEC/CAN-SPAM
+            # disclaimer is missing or a claim-integrity rule regresses. Enforces
+            # docs/compliance-baseline.md. Runs in web/ (appRoot). Educational
+            # automation, not legal advice.
+            - npm run compliance
             # Amplify injects app env vars into the BUILD env but not the SSR
             # runtime. Materialize the server-side vars into .env.production so
             # the Next.js server (and middleware) can read them at runtime.
