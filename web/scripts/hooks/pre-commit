@@ -1,0 +1,33 @@
+#!/bin/sh
+# Compliance pre-commit hook for Matt Grant for Congress.
+# Runs the content-compliance guardrail (FEC/CAN-SPAM disclaimers + claim
+# integrity) before a commit lands. Mirrors the CI gate in amplify.yml so
+# regressions are caught locally first.
+#
+# Install:  ln -sf ../../web/scripts/hooks/pre-commit .git/hooks/pre-commit
+#   (or)    cp web/scripts/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+#
+# Only runs when staged changes touch web/ content. Skips cleanly if node
+# isn't available so it never blocks a commit for the wrong reason.
+
+if ! git diff --cached --name-only | grep -q '^web/'; then
+  exit 0
+fi
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "⚠️  compliance hook skipped: node not found"
+  exit 0
+fi
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root/web" || exit 0
+
+echo "Running compliance guardrail…"
+if ! node scripts/compliance-check.mjs; then
+  echo ""
+  echo "❌ Commit blocked by compliance guardrail. Fix the items above"
+  echo "   (see docs/compliance-baseline.md) or, to bypass intentionally,"
+  echo "   commit with --no-verify."
+  exit 1
+fi
+exit 0

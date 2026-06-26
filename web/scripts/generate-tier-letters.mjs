@@ -40,7 +40,7 @@ Jefferson City, MO 65101
 Dear Senator ${s.last}:
 
 I'm Matt Grant — a neighbor, a dad, and a problem-solver running for the U.S.
-House in Missouri's 2nd District. After 23 years in the courtroom, I'm running
+House in Missouri's 2nd District. After 25 years in the courtroom, I'm running
 on one fight no one else is having: cleaning up our family courts so they
 protect children instead of insiders.
 

@@ -15,7 +15,7 @@ export const PRESS_TOPICS: TopicCluster[] = [
     angle: "Introduce the candidate — a neighbor, a dad, and a problem-solver.",
     questions: [
       "You describe yourself as a neighbor, a dad, and a problem-solver — what made you decide to run for Congress in MO-02 now?",
-      "How do 23 years in the courtroom shape the way you'd approach the job?",
+      "How do 25 years in the courtroom shape the way you'd approach the job?",
       "What's the one thing you most want voters in the district to know about you before August 4?",
     ],
   },
