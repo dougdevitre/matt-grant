@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { VolunteerRow } from "@/lib/queries";
 import { isIn } from "@/lib/engagement";
-import { updateVolunteer, markVolunteerContacted } from "@/app/dashboard/actions";
+import { updateVolunteer, markVolunteerContacted, setVolunteerCaptain } from "@/app/dashboard/actions";
 import { SubmitButton } from "@/components/dashboard/SubmitButton";
 
 const STATUSES = ["NEW", "CONTACTED", "ACTIVE", "INACTIVE"] as const;
@@ -27,33 +27,37 @@ function contactedLabel(iso: string | null): string | null {
 
 // donorEmails: addresses present in the donor list, to flag volunteers who have
 // also given. Array (not Set) so it can cross the server→client boundary.
-export function VolunteerBoard({ rows, taskCounts, donorEmails = [] }: { rows: VolunteerRow[]; taskCounts?: Record<string, number>; donorEmails?: string[] }) {
+export function VolunteerBoard({ rows, taskCounts, donorEmails = [], me = null }: { rows: VolunteerRow[]; taskCounts?: Record<string, number>; donorEmails?: string[]; me?: string | null }) {
   const [status, setStatus] = useState("ALL");
   const [interest, setInterest] = useState("ALL");
   const [q, setQ] = useState("");
+  const [mine, setMine] = useState(false);
   const donorSet = useMemo(() => new Set(donorEmails), [donorEmails]);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return rows.filter((v) => {
+      if (mine && me && v.captainEmail !== me) return false;
       if (status !== "ALL" && v.status !== status) return false;
       if (interest !== "ALL") {
         const tags = v.interestTags?.length ? v.interestTags : v.interests ? v.interests.split(",").map((s) => s.trim()) : [];
         if (!tags.some((t) => t.toLowerCase() === interest.toLowerCase())) return false;
       }
       if (needle) {
-        const hay = [v.name, v.city, v.email, v.phone, v.interests, v.notes, v.assignedTo].filter(Boolean).join(" ").toLowerCase();
+        const hay = [v.name, v.city, v.email, v.phone, v.interests, v.notes, v.assignedTo, v.captainEmail].filter(Boolean).join(" ").toLowerCase();
         if (!hay.includes(needle)) return false;
       }
       return true;
     });
-  }, [rows, status, interest, q]);
+  }, [rows, status, interest, q, mine, me]);
 
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
     for (const v of rows) c[v.status] = (c[v.status] ?? 0) + 1;
     return c;
   }, [rows]);
+
+  const mineCount = useMemo(() => (me ? rows.filter((v) => v.captainEmail === me).length : 0), [rows, me]);
 
   return (
     <>
@@ -78,6 +82,12 @@ export function VolunteerBoard({ rows, taskCounts, donorEmails = [] }: { rows: V
             <option key={i} value={i}>{i}</option>
           ))}
         </select>
+        {me && (
+          <label className="flex items-center gap-1.5 font-mono text-xs text-slate" title="Show only volunteers you've claimed to your team">
+            <input type="checkbox" checked={mine} onChange={(e) => setMine(e.target.checked)} />
+            My volunteers ({mineCount})
+          </label>
+        )}
         <span className="font-mono text-xs text-slate">
           {filtered.length} of {rows.length}
         </span>
@@ -160,6 +170,21 @@ export function VolunteerBoard({ rows, taskCounts, donorEmails = [] }: { rows: V
                     ✓ Mark contacted today
                   </SubmitButton>
                 </form>
+
+                {/* Team ownership — captain claim / release */}
+                {v.captainEmail && v.captainEmail !== me ? (
+                  <p className="mt-2 font-mono text-[0.65rem] text-slate" title={v.captainEmail}>
+                    Captain: <span className="text-ink">{v.captainEmail}</span>
+                  </p>
+                ) : (
+                  <form action={setVolunteerCaptain} className="mt-2">
+                    <input type="hidden" name="id" value={v.id} />
+                    <input type="hidden" name="action" value={v.captainEmail === me ? "release" : "claim"} />
+                    <SubmitButton pendingText="Saving…" className="text-xs font-semibold text-field hover:underline disabled:opacity-50">
+                      {v.captainEmail === me ? "↩ Release from my team" : "＋ Claim to my team"}
+                    </SubmitButton>
+                  </form>
+                )}
               </div>
             );
           })}
