@@ -33,7 +33,7 @@ const ITEMS = [
   ["D-40", "I'm coming to your county. Every voice counts.", "EVERY COUNTY"],
   ["D-39", "Now someone is fighting for our kids.", "CHILDREN FIRST"],
   ["D-38", "Service isn't a slogan — it's a habit.", "PROVEN SERVICE"],
-  ["D-37", "23 years winning by building coalitions.", "REAL RESULTS"],
+  ["D-37", "25 years winning by building coalitions.", "REAL RESULTS"],
   ["D-36", "Term limits break the cycle. I'll go first.", "TERM LIMITS"],
   ["D-35", "Find it. Cut it. Then lower the rates.", "LOWER TAXES"],
   ["D-34", "Smaller government, done right.", "SMALLER GOVERNMENT"],

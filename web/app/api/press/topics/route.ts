@@ -10,7 +10,7 @@ const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5-20251001";
 
 // Faithful platform context handed to the model so questions stay grounded.
 const PLATFORM = `Matt Grant — candidate, U.S. House MO-02, primary August 4, 2026.
-Identity: a neighbor, a dad, and a problem-solver; 23 years in the courtroom.
+Identity: a neighbor, a dad, and a problem-solver; 25 years in the courtroom.
 Four priorities:
 ${PRIORITIES.map((p) => `- ${p.title}: ${p.short}`).join("\n")}
 Signature issue: putting children first; the proposed CHILD Protection Act; clean family courts.

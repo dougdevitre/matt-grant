@@ -24,8 +24,8 @@ export default function HomePage() {
               <span className="text-goldlight">children</span> first.
             </h1>
             <p className="mt-6 max-w-xl text-lg text-paper/80">
-              Matt Grant is a neighbor, a dad, and a problem-solver. Twenty-three years in the
-              courtroom taught him how to bring people together and get results — and he&apos;s running
+              Matt Grant is a neighbor, a dad, and a problem-solver. Twenty-five years practicing
+              law as a litigator taught him how to bring people together and get results — and he&apos;s running
               for Congress to do exactly that.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -142,7 +142,7 @@ export default function HomePage() {
           <div>
             <p className="eyebrow text-goldlight">Meet Matt</p>
             <h2 className="mt-3 text-4xl font-semibold sm:text-5xl">
-              From three public schools to a 23-year legal career — and now, public service.
+              From three public schools to 25 years practicing law as a litigator — and now, public service.
             </h2>
             <p className="mt-5 text-lg text-paper/80">
               Matt learned the value of hard work, integrity, and community early — earning the rank
