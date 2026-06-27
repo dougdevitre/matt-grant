@@ -31,6 +31,7 @@ const GROUPS: Group[] = [
       { href: "/dashboard/volunteers", label: "Volunteers", icon: "volunteers", cap: "manageVolunteers" },
       { href: "/dashboard/events", label: "Events", icon: "tasks", cap: "manageEvents" },
       { href: "/dashboard/tasks", label: "Task board", icon: "tasks", cap: "manageTasks" },
+      { href: "/dashboard/influencers", label: "Influencers", icon: "targets", cap: "manageTasks" },
     ],
   },
   {
