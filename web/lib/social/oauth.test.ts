@@ -1,4 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+
+// Pin dbConfigured=false so ensureFresh's saveConnection() is a no-op (matches
+// keyless CI). The Amplify build injects DYNAMODB_TABLE (dbConfigured true), so
+// saveConnection attempts a real DynamoDB write that fails → ensureFresh returns
+// the STALE connection → the "refreshes within skew" test sees 'stale' not
+// 'fresh'. (Not a time bug — the relative now+2d vs 7d skew holds at any clock.)
+vi.mock("@/lib/db", () => ({ TABLE: "", dbConfigured: false, ddb: { send: async () => ({}) }, PK: {}, newId: () => "test" }));
+
 import { xProvider } from "@/lib/social/oauth/x";
 import { linkedinProvider } from "@/lib/social/oauth/linkedin";
 import { tiktokProvider } from "@/lib/social/oauth/tiktok";

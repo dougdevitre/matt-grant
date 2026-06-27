@@ -1,6 +1,16 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { cronAuthorized } from "@/lib/cron-auth";
 import { _clearSecretCache } from "@/lib/ssm";
+
+// Env-honoring getSecret: returns process.env first (so the "configured" tests
+// that set CRON_SECRET still work) and NEVER falls through to live SSM. Without
+// this, in the credentialed Amplify build getSecret pulls the real /matt-grant/
+// CRON_SECRET, so the "not configured" test passes for the wrong reason (testing
+// a wrong token, not the unset path) — silently invalidated.
+vi.mock("@/lib/ssm", () => ({
+  getSecret: async (n: string) => process.env[n] || undefined,
+  _clearSecretCache: () => {},
+}));
 
 // getSecret reads process.env first, so setting CRON_SECRET configures the gate
 // in-test (mirrors the env-first pattern in publish.test.ts).
