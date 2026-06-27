@@ -23,9 +23,46 @@ export function NavMenu({
 }) {
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const pendingFocus = useRef<null | "first" | "last">(null);
   const menuId = useId();
 
   const active = group.children.some((c) => pathname === c.href || pathname.startsWith(`${c.href}/`));
+
+  const links = () => Array.from(panelRef.current?.querySelectorAll<HTMLAnchorElement>("a") ?? []);
+  const focusAt = (i: number) => {
+    const l = links();
+    if (l.length) l[((i % l.length) + l.length) % l.length].focus();
+  };
+
+  // After the panel opens via keyboard, move focus to the requested end.
+  useEffect(() => {
+    if (open && pendingFocus.current) focusAt(pendingFocus.current === "first" ? 0 : -1);
+    pendingFocus.current = null;
+  }, [open]);
+
+  // Roving arrow-key navigation, mirroring native menu semantics.
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const items = links();
+    const idx = items.indexOf(document.activeElement as HTMLAnchorElement);
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (!open) { pendingFocus.current = "first"; setOpen(true); } else focusAt(idx + 1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!open) { pendingFocus.current = "last"; setOpen(true); } else focusAt(idx - 1);
+    } else if (e.key === "Home" && open) {
+      e.preventDefault();
+      focusAt(0);
+    } else if (e.key === "End" && open) {
+      e.preventDefault();
+      focusAt(-1);
+    } else if (e.key === "Escape" && open) {
+      setOpen(false);
+      triggerRef.current?.focus();
+    }
+  };
 
   // Close on outside pointer/focus or Escape — only while open.
   useEffect(() => {
@@ -50,12 +87,14 @@ export function NavMenu({
       className="relative"
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
+      onKeyDown={onKeyDown}
       // Close when focus leaves the whole group (tabbing past the last child).
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false);
       }}
     >
       <button
+        ref={triggerRef}
         type="button"
         aria-haspopup="true"
         aria-expanded={open}
@@ -80,6 +119,7 @@ export function NavMenu({
       {open && (
         <div
           id={menuId}
+          ref={panelRef}
           className="absolute left-0 top-[calc(100%+18px)] z-50 min-w-[200px] rounded-sm border border-line bg-paper py-2 shadow-card"
         >
           {group.children.map((child) => {

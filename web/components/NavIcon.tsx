@@ -33,6 +33,17 @@ const PATHS: Record<string, ReactNode> = {
       <path d="M7 9.5h7M7 12.5h7M7 15.5h4" />
     </>
   ),
+  // Donate → a heart
+  donate: <path d="M12 20s-6.5-4.2-6.5-9A3.5 3.5 0 0 1 12 8.2 3.5 3.5 0 0 1 18.5 11c0 4.8-6.5 9-6.5 9z" />,
+  // Volunteer → two people
+  volunteer: (
+    <>
+      <circle cx="9" cy="8" r="2.6" />
+      <path d="M4 18.5a5 5 0 0 1 10 0" />
+      <path d="M15.5 6.4a2.6 2.6 0 0 1 0 5.2" />
+      <path d="M16 13.6a5 5 0 0 1 4 4.9" />
+    </>
+  ),
 };
 
 export function NavIcon({ id, className }: { id?: string; className?: string }) {
