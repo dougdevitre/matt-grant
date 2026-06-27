@@ -1,6 +1,7 @@
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { AskMatt } from "@/components/AskMatt";
+import { MobileActionBar } from "@/components/MobileActionBar";
 import { clerkEnabled } from "@/lib/auth";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
@@ -15,6 +16,9 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <SiteHeader clerkEnabled={clerkEnabled} />
       <main id="main">{children}</main>
       <SiteFooter />
+      {/* Spacer so the footer clears the fixed mobile action bar. */}
+      <div aria-hidden className="h-14 lg:hidden" />
+      <MobileActionBar />
       <AskMatt />
     </>
   );

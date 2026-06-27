@@ -95,7 +95,7 @@ export function AskMatt() {
         onClick={toggle}
         aria-expanded={open}
         aria-label="Ask Matt — make your plan to vote"
-        className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full border border-paper/20 bg-ink py-2 pl-2 pr-4 text-paper shadow-card transition-transform hover:scale-[1.03] motion-reduce:transition-none"
+        className="fixed bottom-[76px] right-5 z-50 flex items-center gap-2 rounded-full border border-paper/20 bg-ink py-2 pl-2 pr-4 text-paper shadow-card transition-transform hover:scale-[1.03] motion-reduce:transition-none lg:bottom-5"
       >
         {!seen && !open && (
           <span className="absolute -right-0.5 -top-0.5 flex h-3 w-3" aria-hidden>
@@ -117,7 +117,7 @@ export function AskMatt() {
           role="dialog"
           aria-label="Ask Matt"
           tabIndex={-1}
-          className="fixed bottom-20 right-5 z-50 flex max-h-[80vh] w-[min(92vw,360px)] flex-col overflow-hidden rounded-lg border border-line bg-paper shadow-card outline-none motion-safe:animate-rise-in"
+          className="fixed bottom-[136px] right-5 z-50 flex max-h-[80vh] w-[min(92vw,360px)] flex-col overflow-hidden rounded-lg border border-line bg-paper shadow-card outline-none motion-safe:animate-rise-in lg:bottom-20"
         >
           {/* header */}
           <div className="relative shrink-0 bg-ink px-5 py-4 text-paper">
