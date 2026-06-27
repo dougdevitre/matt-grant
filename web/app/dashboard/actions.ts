@@ -119,6 +119,28 @@ export async function updateVolunteer(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
+// A captain claims a volunteer onto their team (or releases them). Stores the
+// captain's stable email so the "My volunteers" filter scopes reliably — distinct
+// from the freeform `assignedTo` label. action=release clears the claim.
+export async function setVolunteerCaptain(formData: FormData) {
+  const { role, email } = await staffGate();
+  if (!can(role, "manageVolunteers")) throw new Error("Forbidden");
+  requireDb();
+  const id = str(formData, "id");
+  if (!id) return;
+  const captainEmail = str(formData, "action") === "release" ? null : email ?? null;
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: PK.volunteers, SK: id },
+      UpdateExpression: "SET captainEmail = :c",
+      ExpressionAttributeValues: { ":c": captainEmail },
+    }),
+  );
+  revalidatePath("/dashboard/volunteers");
+  revalidatePath("/dashboard");
+}
+
 // Stamp the last-contacted time, and advance a brand-new lead to CONTACTED
 // (never downgrade an ACTIVE/INACTIVE one). `current` is the card's status.
 export async function markVolunteerContacted(formData: FormData) {

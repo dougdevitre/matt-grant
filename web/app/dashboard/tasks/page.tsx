@@ -1,4 +1,5 @@
 import { getTasks, getVolunteers } from "@/lib/queries";
+import { suggestVolunteers } from "@/lib/matching";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { addTask, setTaskStatus, setTaskVolunteer } from "@/app/dashboard/actions";
 
@@ -19,6 +20,14 @@ const catColor: Record<string, string> = {
 export default async function TasksPage() {
   const [{ connected, rows }, vols] = await Promise.all([getTasks(), getVolunteers()]);
   const volunteers = vols.rows;
+  // Current task load per volunteer + best-fit suggestions for each open,
+  // unassigned task (interest match + status + load-balance; see lib/matching).
+  const loads: Record<string, number> = {};
+  for (const t of rows) if (t.volunteerId) loads[t.volunteerId] = (loads[t.volunteerId] ?? 0) + 1;
+  const suggestionsByTask: Record<string, ReturnType<typeof suggestVolunteers>> = {};
+  for (const t of rows) {
+    if (!t.volunteerId && t.status !== "DONE") suggestionsByTask[t.id] = suggestVolunteers(t, volunteers, loads, 3);
+  }
   const input = "rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink focus:border-field";
   const volOptions = volunteers.map((v) => (
     <option key={v.id} value={`${v.id}|${v.name}`}>{v.name}</option>
@@ -99,6 +108,25 @@ export default async function TasksPage() {
                         </form>
                       )}
                     </div>
+                    {suggestionsByTask[t.id]?.length ? (
+                      <div className="mt-2">
+                        <p className="font-mono text-[0.55rem] uppercase tracking-eyebrow text-slate">Suggested</p>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {suggestionsByTask[t.id].map(({ v, fit }) => (
+                            <form key={v.id} action={setTaskVolunteer}>
+                              <input type="hidden" name="id" value={t.id} />
+                              <input type="hidden" name="volunteer" value={`${v.id}|${v.name}`} />
+                              <button
+                                title={fit.reasons.join(" · ")}
+                                className="rounded-full border border-field/40 bg-field/5 px-2 py-0.5 text-[0.65rem] text-field hover:bg-field/15"
+                              >
+                                + {v.name}
+                              </button>
+                            </form>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
                     <form action={setTaskVolunteer} className="mt-2 flex gap-2">
                       <input type="hidden" name="id" value={t.id} />
                       <select

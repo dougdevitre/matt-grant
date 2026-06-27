@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { getVolunteer, getTasks } from "@/lib/queries";
+import { signVolunteerToken } from "@/lib/volunteer-link";
 import { PageHeader } from "@/components/dashboard/Notice";
 import { updateVolunteer, markVolunteerContacted, updateVolunteerNotes } from "@/app/dashboard/actions";
 
@@ -31,6 +33,12 @@ export default async function VolunteerDetailPage({ params }: { params: Promise<
   if (!v) notFound();
   const { rows: allTasks } = await getTasks();
   const tasks = allTasks.filter((t) => t.volunteerId === v.id);
+  // Private magic-link the captain can send so this volunteer sees & updates
+  // their tasks without a login. Null when VOLUNTEER_LINK_SECRET is unset.
+  const token = await signVolunteerToken(v.id);
+  const reqHeaders = await headers();
+  const origin = `${reqHeaders.get("x-forwarded-proto") ?? "https"}://${reqHeaders.get("host") ?? ""}`;
+  const taskLink = token ? `${origin}/my-tasks/${token}` : null;
 
   return (
     <>
@@ -113,6 +121,21 @@ export default async function VolunteerDetailPage({ params }: { params: Promise<
                 </li>
               ))}
             </ul>
+          )}
+          {taskLink && (
+            <div className="mt-5 border-t border-line pt-4">
+              <p className="eyebrow text-slate">Volunteer task link</p>
+              <p className="mt-1 text-xs text-slate">
+                Private link (no login) — send it to {v.name.split(" ")[0]} so they can view &amp; update their tasks.
+              </p>
+              <input
+                readOnly
+                value={taskLink}
+                aria-label="Volunteer task link"
+                className="mt-2 w-full rounded-sm border border-line bg-paper px-2 py-1.5 font-mono text-[0.7rem] text-ink"
+              />
+              <a href={taskLink} className="mt-1 inline-block font-mono text-xs font-semibold text-field hover:underline">Open ↗</a>
+            </div>
           )}
         </div>
       </div>
