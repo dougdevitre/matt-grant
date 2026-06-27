@@ -26,7 +26,8 @@ export const CAMPAIGN = {
 // groups carry no own href. "Home" is intentionally omitted — the logo links
 // home — and "Donate" lives only in the standout CTA button, not the nav list.
 export type NavLink = { href: string; label: string };
-export type NavGroup = { label: string; children: readonly NavLink[] };
+// `icon` keys into the civic glyph set in components/NavIcon.tsx.
+export type NavGroup = { label: string; icon?: string; children: readonly NavLink[] };
 export type NavEntry = NavLink | NavGroup;
 
 export function isNavGroup(entry: NavEntry): entry is NavGroup {
@@ -36,6 +37,7 @@ export function isNavGroup(entry: NavEntry): entry is NavGroup {
 export const NAV: readonly NavEntry[] = [
   {
     label: "About",
+    icon: "about",
     children: [
       { href: "/about", label: "About Matt" },
       { href: "/issues", label: "Issues" },
@@ -44,6 +46,7 @@ export const NAV: readonly NavEntry[] = [
   },
   {
     label: "Get Involved",
+    icon: "getInvolved",
     children: [
       { href: "/act", label: "Take Action" },
       { href: "/events", label: "Events" },
@@ -52,6 +55,7 @@ export const NAV: readonly NavEntry[] = [
   },
   {
     label: "Vote",
+    icon: "vote",
     children: [
       { href: "/vote", label: "How to Vote" },
       { href: "/vote/absentee", label: "Vote by Mail" },
@@ -59,6 +63,7 @@ export const NAV: readonly NavEntry[] = [
   },
   {
     label: "News",
+    icon: "news",
     children: [
       { href: "/media", label: "Media" },
       { href: "/press", label: "Press" },
