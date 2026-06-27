@@ -258,6 +258,16 @@ export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean })
         </nav>
 
         <div className="hidden items-center gap-4 lg:flex">
+          {daysUntil !== null && daysUntil > 0 && (
+            <span className="hidden items-baseline gap-1.5 border-r border-line pr-4 xl:flex">
+              {/* Full phrase for screen readers; the compact pieces are decorative. */}
+              <span className="sr-only">
+                {daysUntil} {daysUntil === 1 ? "day" : "days"} until the primary, {CAMPAIGN.electionLabel}
+              </span>
+              <span aria-hidden className="font-mono text-[10px] uppercase tracking-[0.14em] text-slate">Primary</span>
+              <span aria-hidden className="font-display text-sm font-semibold text-brick">{daysUntil}d</span>
+            </span>
+          )}
           {clerkEnabled && (
             <>
               <SignedOut>
