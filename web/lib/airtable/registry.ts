@@ -29,7 +29,7 @@ export const AIRTABLE_BASES = {
   },
   issues: {
     id: "appbfBEbX8XH3bv4w",
-    tables: {},
+    tables: { submissions: "tbl63kV5OGFj5bD6c" },
   },
 } as const;
 
