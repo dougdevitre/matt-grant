@@ -64,6 +64,23 @@ export function NavMenu({
     }
   };
 
+  // Hover intent: close on a short delay (cancelled if the pointer returns) so
+  // crossing the gap to the panel or a small overshoot doesn't dismiss the menu.
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelClose = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = null;
+  };
+  const openNow = () => {
+    cancelClose();
+    setOpen(true);
+  };
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimer.current = setTimeout(() => setOpen(false), 120);
+  };
+  useEffect(() => cancelClose, []);
+
   // Close on outside pointer/focus or Escape — only while open.
   useEffect(() => {
     if (!open) return;
@@ -85,8 +102,8 @@ export function NavMenu({
     <div
       ref={wrap}
       className="relative"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={openNow}
+      onMouseLeave={scheduleClose}
       onKeyDown={onKeyDown}
       // Close when focus leaves the whole group (tabbing past the last child).
       onBlur={(e) => {
@@ -117,11 +134,12 @@ export function NavMenu({
       </button>
 
       {open && (
-        <div
-          id={menuId}
-          ref={panelRef}
-          className="absolute left-0 top-[calc(100%+18px)] z-50 min-w-[200px] rounded-sm border border-line bg-paper py-2 shadow-card"
-        >
+        // Outer container sits flush under the trigger (top-full) and pads down
+        // 18px — a transparent HOVER BRIDGE so moving the cursor onto an item
+        // never crosses dead space that would dismiss the menu. The visible card
+        // is the inner div.
+        <div id={menuId} ref={panelRef} className="absolute left-0 top-full z-50 pt-[18px]">
+          <div className="min-w-[200px] rounded-sm border border-line bg-paper py-2 shadow-card">
           {group.children.map((child) => {
             const childActive = pathname === child.href || pathname.startsWith(`${child.href}/`);
             const thumb = ctaThumbForHref(child.href);
@@ -139,6 +157,7 @@ export function NavMenu({
               </Link>
             );
           })}
+          </div>
         </div>
       )}
     </div>
