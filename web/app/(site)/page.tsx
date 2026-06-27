@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Countdown } from "@/components/Countdown";
 import { Reveal } from "@/components/Reveal";
 import { HeroVideo } from "@/components/HeroVideo";
+import { CtaButton } from "@/components/CtaButton";
 import { CAMPAIGN, PRIORITIES, VALUES, ASSETS_CDN } from "@/lib/site";
 
 export default function HomePage() {
@@ -32,9 +33,9 @@ export default function HomePage() {
               <Link href="/sign-up" className="btn-primary">
                 Join the community
               </Link>
-              <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-gold">
+              <CtaButton href={CAMPAIGN.donateUrl} external context="donate" className="btn-gold">
                 Donate now
-              </a>
+              </CtaButton>
               <Link href="/about" className="btn-ghost border-paper/30 text-paper hover:border-paper">
                 Meet Matt
               </Link>
@@ -221,9 +222,9 @@ export default function HomePage() {
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link href="/sign-up" className="btn-primary">Join the community</Link>
-            <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-gold">
+            <CtaButton href={CAMPAIGN.donateUrl} external context="donate" className="btn-gold">
               Donate now
-            </a>
+            </CtaButton>
           </div>
         </div>
       </section>
