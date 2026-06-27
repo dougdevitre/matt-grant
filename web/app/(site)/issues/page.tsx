@@ -3,6 +3,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { ISSUES } from "@/lib/issues";
 import { ASSETS_CDN } from "@/lib/site";
+import { IssueSubmitForm } from "@/components/IssueSubmitForm";
+import { IssueBoard } from "@/components/IssueBoard";
 
 export const metadata: Metadata = {
   title: "Issues",
@@ -49,6 +51,15 @@ export default function IssuesPage() {
             </div>
           </Link>
         ))}
+      </div>
+
+      {/* Community submission board — supporters add the topics that matter to
+          them; nothing is public until a human approves it in Airtable. */}
+      <div className="mt-20 border-t border-line pt-16 sm:mt-24 sm:pt-20">
+        <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
+          <IssueSubmitForm />
+          <IssueBoard />
+        </div>
       </div>
     </section>
   );
