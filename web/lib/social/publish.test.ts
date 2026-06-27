@@ -5,6 +5,15 @@ import { _clearSecretCache } from "@/lib/ssm";
 // YouTube renders a Short via ffmpeg; mock the render so CI never encodes video.
 vi.mock("@/lib/social/video", () => ({ renderStillToMp4: vi.fn(async () => Buffer.from("FAKEMP4")) }));
 
+// Env-honoring getSecret: each describe sets its channel token in process.env
+// (env wins), and the "without credentials" block relies on getSecret returning
+// undefined when env is unset. Without this mock, the credentialed Amplify build
+// pulls real channel tokens from SSM → that block flips to "api" mode and fails.
+vi.mock("@/lib/ssm", () => ({
+  getSecret: async (n: string) => process.env[n] || undefined,
+  _clearSecretCache: () => {},
+}));
+
 // A resumable-session init response: 200 with a Location header pointing at the
 // upload URL.
 function sessionRes(location: string): Response {
