@@ -24,6 +24,23 @@ const BASE_ID = process.env.AIRTABLE_ISSUES_BASE_ID || AIRTABLE_BASES.issues.id;
 const TABLE_ID = process.env.AIRTABLE_ISSUES_TABLE_ID || AIRTABLE_BASES.issues.tables.submissions;
 const API = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`;
 
+// Single source of truth for the Airtable field + status names this bridge
+// reads/writes. Centralized so a rename happens in one place, and so the read
+// path can DETECT a field-name drift instead of silently going empty (see the
+// drift guard in listPublishedTopics).
+const FIELD = {
+  topic: "Topic",
+  details: "Details",
+  submitterName: "Submitter Name",
+  city: "City",
+  email: "Email",
+  phone: "Phone",
+  smsOptIn: "SMS Opt-In",
+  status: "Status",
+} as const;
+const STATUS_PENDING = "Pending";
+const STATUS_APPROVED = "Approved";
+
 export type IssueSubmission = {
   topic: string;
   details: string;
@@ -67,14 +84,14 @@ export async function createSubmission(s: IssueSubmission): Promise<void> {
     body: JSON.stringify({
       typecast: true,
       fields: {
-        Topic: s.topic,
-        Details: s.details,
-        "Submitter Name": s.name || "",
-        City: s.city || "",
-        Email: s.email || "",
-        Phone: s.phone || "",
-        "SMS Opt-In": Boolean(s.smsOptIn),
-        Status: "Pending",
+        [FIELD.topic]: s.topic,
+        [FIELD.details]: s.details,
+        [FIELD.submitterName]: s.name || "",
+        [FIELD.city]: s.city || "",
+        [FIELD.email]: s.email || "",
+        [FIELD.phone]: s.phone || "",
+        [FIELD.smsOptIn]: Boolean(s.smsOptIn),
+        [FIELD.status]: STATUS_PENDING,
       },
     }),
   });
@@ -98,7 +115,7 @@ export async function listPublishedTopics(
   try {
     const params = new URLSearchParams({
       pageSize: String(Math.min(limit, 100)),
-      filterByFormula: "{Status} = 'Approved'",
+      filterByFormula: `{${FIELD.status}} = '${STATUS_APPROVED}'`,
     });
     const res = await fetch(`${API}?${params.toString()}`, {
       headers: { Authorization: `Bearer ${key}` },
@@ -106,19 +123,29 @@ export async function listPublishedTopics(
     });
     if (!res.ok) return { configured: true, topics: [] };
     const data = (await res.json()) as { records?: AirtableRecord[] };
-    const topics = (data.records ?? [])
+    const records = data.records ?? [];
+    const topics = records
       .map((rec): PublishedTopic | null => {
-        const topic = str(rec.fields["Topic"]);
+        const topic = str(rec.fields[FIELD.topic]);
         if (!topic) return null; // skip blank/incomplete rows
         return {
           id: rec.id,
           topic,
-          details: str(rec.fields["Details"]),
+          details: str(rec.fields[FIELD.details]),
           submittedAt: (rec.createdTime ?? "").slice(0, 10),
         };
       })
       .filter((t): t is PublishedTopic => t != null)
       .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
+    // Drift guard: Approved rows came back but none carried a Topic → the
+    // "Topic" field was almost certainly renamed in Airtable. Turn what is
+    // otherwise a silently-empty public board into a logged, debuggable signal.
+    if (records.length > 0 && topics.length === 0) {
+      console.warn(
+        `[issue-board] ${records.length} Approved row(s) returned but 0 mapped — ` +
+          `check the "${FIELD.topic}" field name in the Airtable base.`,
+      );
+    }
     return { configured: true, topics };
   } catch {
     return { configured: true, topics: [] };
