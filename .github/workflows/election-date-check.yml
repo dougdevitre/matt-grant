@@ -1,0 +1,26 @@
+name: election-date-check
+
+# Non-blocking guard for CAMPAIGN.electionDate, which the dynamic nav depends on
+# (countdown + GOTV "Plan your vote" CTA). Runs weekly: if the date has lapsed
+# (or is within 21 days), it warns/fails the scheduled run — GitHub emails the
+# repo owner on a failed scheduled workflow — so a stale date is surfaced rather
+# than discovered live. Deliberately NOT part of PR CI, so it never blocks merges.
+
+on:
+  schedule:
+    - cron: "0 13 * * 1" # Mondays 13:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: web
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm run check:election

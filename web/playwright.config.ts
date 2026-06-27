@@ -16,7 +16,13 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   reporter: process.env.CI ? "github" : "list",
   use: { baseURL },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    // Safari's engine, scoped to the nav interaction specs — that's where engine
+    // differences bite (backdrop-filter containing blocks, position:fixed,
+    // safe-area, AVIF). The broad axe route scan stays on chromium (engine-agnostic).
+    { name: "webkit", use: { ...devices["Desktop Safari"] }, testMatch: /nav-menu\.spec\.ts/ },
+  ],
   // Only boot a local server when scanning localhost; a deployed URL is already up.
   ...(remoteBase
     ? {}
