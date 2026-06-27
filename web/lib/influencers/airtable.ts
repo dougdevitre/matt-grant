@@ -5,11 +5,12 @@
 // to an empty list when the key is absent (keyless builds) or the token lacks
 // access to this base. The dashboard /influencers page renders the result.
 import { getSecret } from "@/lib/ssm";
+import { AIRTABLE_BASES } from "@/lib/airtable/registry";
 
-// Defaults to the "Matt Grant for Congress - Master Database" base + Influential
-// Voters table; override via env if they ever move.
-const BASE_ID = process.env.AIRTABLE_INFLUENCERS_BASE_ID || "apptae7sUEwqFO2tX";
-const TABLE_ID = process.env.AIRTABLE_INFLUENCERS_TABLE_ID || "tblBcd7uz3WLHzce2";
+// Master Database base + Influential Voters table, from the central registry.
+// Env-overridable if they ever move; one workspace token reads every base.
+const BASE_ID = process.env.AIRTABLE_INFLUENCERS_BASE_ID || AIRTABLE_BASES.masterDb.id;
+const TABLE_ID = process.env.AIRTABLE_INFLUENCERS_TABLE_ID || AIRTABLE_BASES.masterDb.tables.influentialVoters;
 
 export type InfluencerRow = {
   id: string;
