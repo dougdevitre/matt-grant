@@ -4,6 +4,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // throttle branch of commitToIssue without Next's request context or DynamoDB.
 const { send } = vi.hoisted(() => ({ send: vi.fn() }));
 const { rateLimit } = vi.hoisted(() => ({ rateLimit: vi.fn() }));
+const { createSubmission, issueBoardConfigured } = vi.hoisted(() => ({
+  createSubmission: vi.fn(),
+  issueBoardConfigured: vi.fn(),
+}));
 
 vi.mock("next/headers", () => ({
   headers: async () => ({ get: () => "203.0.113.9" }),
@@ -21,8 +25,12 @@ vi.mock("@/lib/email/send", () => ({ sendEmail: vi.fn(), sesEnabled: false }));
 vi.mock("@/lib/email/templates", () => ({
   volunteerWelcome: () => ({ subject: "s", html: "h", text: "t" }),
 }));
+vi.mock("@/lib/issue-board/airtable", () => ({ createSubmission, issueBoardConfigured }));
+vi.mock("@/lib/site", () => ({ CAMPAIGN: { email: "mattgrantforcongress@gmail.com" } }));
+vi.mock("@/lib/sms/send", () => ({ toE164: () => null }));
+vi.mock("@/lib/sms/consent", () => ({ recordConsent: vi.fn() }));
 
-import { commitToIssue } from "./actions";
+import { commitToIssue, submitTopic } from "./actions";
 
 const form = () => {
   const fd = new FormData();
@@ -35,6 +43,68 @@ const form = () => {
 beforeEach(() => {
   vi.clearAllMocks();
   send.mockResolvedValue({});
+  issueBoardConfigured.mockResolvedValue(true);
+  createSubmission.mockResolvedValue(undefined);
+});
+
+const topicForm = () => {
+  const fd = new FormData();
+  fd.set("topic", "Veterans' access to care");
+  fd.set("details", "This matters to my family and our neighborhood.");
+  fd.set("email", "pat@example.com");
+  return fd;
+};
+
+describe("submitTopic", () => {
+  it("honeypot filled → fakes success and never writes to Airtable", async () => {
+    const fd = topicForm();
+    fd.set("company", "spam-bot inc");
+    const res = await submitTopic(null, fd);
+    expect(res.ok).toBe(true);
+    expect(createSubmission).not.toHaveBeenCalled();
+  });
+
+  it("missing topic → rejects before any write", async () => {
+    rateLimit.mockResolvedValue({ allowed: true, count: 1, limit: 5, resetAt: 0 });
+    const fd = topicForm();
+    fd.delete("topic");
+    const res = await submitTopic(null, fd);
+    expect(res.ok).toBe(false);
+    expect(createSubmission).not.toHaveBeenCalled();
+  });
+
+  it("board not configured → honest error, no write", async () => {
+    issueBoardConfigured.mockResolvedValue(false);
+    const res = await submitTopic(null, topicForm());
+    expect(res.ok).toBe(false);
+    expect(createSubmission).not.toHaveBeenCalled();
+  });
+
+  it("over the rate limit → refuses and never submits", async () => {
+    rateLimit.mockResolvedValue({ allowed: false, count: 6, limit: 5, resetAt: 0 });
+    const res = await submitTopic(null, topicForm());
+    expect(res.ok).toBe(false);
+    expect(res.message).toMatch(/too many/i);
+    expect(createSubmission).not.toHaveBeenCalled();
+  });
+
+  it("valid + under the limit → submits to Airtable as a pending topic", async () => {
+    rateLimit.mockResolvedValue({ allowed: true, count: 1, limit: 5, resetAt: 0 });
+    const res = await submitTopic(null, topicForm());
+    expect(res.ok).toBe(true);
+    expect(createSubmission).toHaveBeenCalledOnce();
+    expect(createSubmission).toHaveBeenCalledWith(
+      expect.objectContaining({ topic: "Veterans' access to care", email: "pat@example.com" }),
+    );
+  });
+
+  it("Airtable write throws → surfaces an error to the supporter", async () => {
+    rateLimit.mockResolvedValue({ allowed: true, count: 1, limit: 5, resetAt: 0 });
+    createSubmission.mockRejectedValue(new Error("airtable 422"));
+    const res = await submitTopic(null, topicForm());
+    expect(res.ok).toBe(false);
+    expect(res.message).toMatch(/went wrong/i);
+  });
 });
 
 describe("commitToIssue rate limiting", () => {
