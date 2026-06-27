@@ -24,3 +24,17 @@ export function primaryAction(phase: CampaignPhase, role: string | null): Primar
   }
   return { label: "Donate", href: CAMPAIGN.donateUrl, external: true, context: "donate" };
 }
+
+// A secondary ask shown alongside the primary. During GOTV the primary becomes
+// turnout, so Donate is kept as a quieter secondary — fundraising never drops
+// out of the header in the most expensive stretch. Null when not needed (the
+// primary already is the donate ask).
+export function secondaryAction(phase: CampaignPhase, role: string | null): PrimaryAction | null {
+  if (phase !== "gotv") return null;
+  return {
+    label: role === "donor" ? "Give again" : "Donate",
+    href: CAMPAIGN.donateUrl,
+    external: true,
+    context: "donate",
+  };
+}
