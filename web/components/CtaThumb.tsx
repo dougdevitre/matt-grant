@@ -6,10 +6,12 @@ import type { CtaThumb as CtaThumbData } from "@/lib/cta-manifest.generated";
 export function CtaThumb({
   thumb,
   size = 24,
+  circle = false,
   className = "",
 }: {
   thumb: CtaThumbData;
   size?: number;
+  circle?: boolean;
   className?: string;
 }) {
   return (
@@ -24,7 +26,7 @@ export function CtaThumb({
         height={thumb.h}
         loading="lazy"
         decoding="async"
-        className={`shrink-0 rounded-sm object-cover ${className}`}
+        className={`shrink-0 object-cover ${circle ? "rounded-full" : "rounded-sm"} ${className}`}
         style={{ width: size, height: size }}
       />
     </picture>
