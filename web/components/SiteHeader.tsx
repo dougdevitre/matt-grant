@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs";
 import { CAMPAIGN, NAV, mainHref, isNavGroup } from "@/lib/site";
 import { asRole, homeFor } from "@/lib/rbac";
@@ -13,6 +13,86 @@ import { NavMenu } from "@/components/NavMenu";
 import { CtaThumb } from "@/components/CtaThumb";
 import { NavIcon } from "@/components/NavIcon";
 import { ctaThumbForHref } from "@/lib/cta-images";
+import { campaignPhase, type CampaignPhase } from "@/lib/campaign-phase";
+import { primaryAction } from "@/lib/nav-actions";
+
+// The header's primary call-to-action, resolved from campaign phase + role.
+// `external` actions (WinRed) keep the headshot thumbnail; internal ones (e.g.
+// the GOTV "Plan your vote") are SPA links, subdomain-corrected via mainHref.
+function PrimaryCta({
+  phase,
+  role,
+  onSubdomain,
+  className,
+  onClick,
+}: {
+  phase: CampaignPhase;
+  role: string | null;
+  onSubdomain: boolean;
+  className?: string;
+  onClick?: () => void;
+}) {
+  const a = primaryAction(phase, role);
+  return (
+    <CtaButton
+      href={a.external ? a.href : mainHref(a.href, onSubdomain)}
+      external={a.external}
+      context={a.context}
+      className={className}
+      onClick={onClick}
+    >
+      {a.label}
+    </CtaButton>
+  );
+}
+
+// Same CTA, but reads the signed-in visitor's role so donors see "Give again".
+// Only mounted inside <SignedIn>, so useUser() always has a provider.
+function SignedInPrimaryCta(props: { phase: CampaignPhase; onSubdomain: boolean; className?: string; onClick?: () => void }) {
+  const { user } = useUser();
+  const role = asRole((user?.publicMetadata as { role?: unknown } | undefined)?.role);
+  return <PrimaryCta {...props} role={role} />;
+}
+
+// Resolves the right CTA for the auth context: role-aware when Clerk is on,
+// otherwise the plain phase-aware default.
+function HeaderPrimaryCta({
+  clerkEnabled,
+  ...props
+}: {
+  clerkEnabled: boolean;
+  phase: CampaignPhase;
+  onSubdomain: boolean;
+  className?: string;
+  onClick?: () => void;
+}) {
+  if (!clerkEnabled) return <PrimaryCta {...props} role={null} />;
+  return (
+    <>
+      <SignedOut>
+        <PrimaryCta {...props} role={null} />
+      </SignedOut>
+      <SignedIn>
+        <SignedInPrimaryCta {...props} />
+      </SignedIn>
+    </>
+  );
+}
+
+// Slim "days to the primary" strip. daysUntil is null until the client computes
+// it (keeps SSR/first-render identical — no hydration mismatch), so it simply
+// doesn't render until mounted; it also hides once the election has passed.
+function CountdownStrip({ daysUntil }: { daysUntil: number | null }) {
+  if (daysUntil === null || daysUntil <= 0) return null;
+  return (
+    <div className="mb-1 flex items-baseline gap-2 border-b border-line/60 px-1 pb-3 pt-1">
+      <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-slate">Primary · {CAMPAIGN.electionLabel}</span>
+      <span className="ml-auto font-display text-base font-semibold text-brick">
+        {daysUntil} {daysUntil === 1 ? "day" : "days"}
+      </span>
+    </div>
+  );
+}
 
 // Role-aware "your account" link. Reads publicMetadata.role (exposed to the client
 // by design) and points each tier at their own home via the canonical homeFor()
@@ -40,6 +120,16 @@ export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean })
     setOpen(false);
     setOpenGroup(null);
   };
+  // Campaign phase drives the primary CTA (Donate vs. "Plan your vote" in the
+  // GOTV stretch) and the countdown. Computed on the client so SSR and the first
+  // client render match — defaults to "campaign" until mounted, then corrects.
+  const [phase, setPhase] = useState<CampaignPhase>("campaign");
+  const [daysUntil, setDaysUntil] = useState<number | null>(null);
+  useEffect(() => {
+    const p = campaignPhase(Date.now(), CAMPAIGN.electionDate);
+    setPhase(p.phase);
+    setDaysUntil(p.daysUntil);
+  }, []);
   // On a pillar subdomain, main-site links must point back at the apex (a
   // relative "/about" would 404 on the subdomain). On the apex this is a no-op,
   // so client-side SPA navigation is preserved.
@@ -94,9 +184,7 @@ export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean })
               </SignedIn>
             </>
           )}
-          <CtaButton href={CAMPAIGN.donateUrl} external context="donate">
-            Donate
-          </CtaButton>
+          <HeaderPrimaryCta clerkEnabled={clerkEnabled} phase={phase} onSubdomain={onSubdomain} />
         </div>
 
         <button
@@ -112,6 +200,7 @@ export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean })
       {open && (
         <div className="border-t border-line bg-paper lg:hidden">
           <nav className="container-page flex flex-col py-2">
+            <CountdownStrip daysUntil={daysUntil} />
             {NAV.map((entry) => {
               if (!isNavGroup(entry)) {
                 const active = pathname === entry.href || pathname.startsWith(`${entry.href}/`);
@@ -205,9 +294,13 @@ export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean })
               </div>
             )}
 
-            <CtaButton href={CAMPAIGN.donateUrl} external context="donate" className="btn-primary mt-4">
-              Donate
-            </CtaButton>
+            <HeaderPrimaryCta
+              clerkEnabled={clerkEnabled}
+              phase={phase}
+              onSubdomain={onSubdomain}
+              className="btn-primary mt-4"
+              onClick={closeDrawer}
+            />
           </nav>
         </div>
       )}
