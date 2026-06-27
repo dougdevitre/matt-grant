@@ -95,17 +95,22 @@ export async function submitTopic(_prev: TopicResult | null, formData: FormData)
 
   const topic = String(formData.get("topic") ?? "").trim();
   const details = String(formData.get("details") ?? "").trim();
-  const name = String(formData.get("name") ?? "").trim();
-  const city = String(formData.get("city") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim();
-  const phone = String(formData.get("phone") ?? "").trim();
+  // Cap the optional metadata fields server-side. The form's maxLength is
+  // client-only and trivially bypassed by POSTing the action directly, so without
+  // this a bot could shove multi-MB strings into Airtable + the moderation email.
+  const name = String(formData.get("name") ?? "").trim().slice(0, 100);
+  const city = String(formData.get("city") ?? "").trim().slice(0, 100);
+  const email = String(formData.get("email") ?? "").trim().slice(0, 254);
+  const phone = String(formData.get("phone") ?? "").trim().slice(0, 40);
   const smsOptIn = !!String(formData.get("smsOptIn") ?? "").trim();
 
   if (!topic) return { ok: false, message: "Add a short topic so we know what matters to you." };
   if (topic.length > 140) return { ok: false, message: "Please keep the topic under 140 characters." };
   if (!details) return { ok: false, message: "Tell us a little about why this matters to you." };
   if (details.length > 2000) return { ok: false, message: "Please keep your note under 2,000 characters." };
-  if (email && !email.includes("@")) return { ok: false, message: "Please enter a valid email address." };
+  // Email is optional; if given, require a real-ish shape (one @, a dotted domain).
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if (email && !emailValid) return { ok: false, message: "Please enter a valid email address." };
 
   if (!(await issueBoardConfigured())) {
     return { ok: false, message: "Our submission board isn't connected yet — email mattgrantforcongress@gmail.com and we'll add your topic." };
@@ -122,7 +127,11 @@ export async function submitTopic(_prev: TopicResult | null, formData: FormData)
 
   try {
     await createSubmission({ topic, details, name, city, email, phone, smsOptIn });
-  } catch {
+  } catch (err) {
+    // Surface the real cause server-side (e.g. a renamed Airtable field → 422)
+    // so a silent moderation outage is debuggable; the supporter sees a friendly
+    // message, never the internals.
+    console.error("[issue submit] Airtable write failed:", err);
     return { ok: false, message: "Something went wrong submitting your topic. Please try again, or email mattgrantforcongress@gmail.com." };
   }
 
@@ -167,9 +176,11 @@ export async function submitTopic(_prev: TopicResult | null, formData: FormData)
   if (sesEnabled) {
     try {
       await sendEmail({
+        // Only set replyTo from a validated address; strip CR/LF from the subject
+        // so a topic can't inject extra email headers.
         to: CAMPAIGN.email,
-        replyTo: email || undefined,
-        subject: `New issue topic to review: ${topic.slice(0, 80)}`,
+        replyTo: emailValid ? email : undefined,
+        subject: `New issue topic to review: ${topic.replace(/[\r\n]+/g, " ").slice(0, 80)}`,
         html: `<p><strong>${esc(topic)}</strong></p><p>${esc(details).replace(/\n/g, "<br>")}</p><p>From: ${esc(name) || "—"}${city ? `, ${esc(city)}` : ""}<br>Email: ${esc(email) || "—"} · Phone: ${esc(phone) || "—"}</p><p>Approve or reject it in the Issues Airtable base.</p>`,
         text: `${topic}\n\n${details}\n\nFrom: ${name || "—"}${city ? `, ${city}` : ""}\nEmail: ${email || "—"} · Phone: ${phone || "—"}\n\nApprove or reject it in the Issues Airtable base.`,
       });

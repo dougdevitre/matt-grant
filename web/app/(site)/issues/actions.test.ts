@@ -105,6 +105,28 @@ describe("submitTopic", () => {
     expect(res.ok).toBe(false);
     expect(res.message).toMatch(/went wrong/i);
   });
+
+  it("malformed email → rejected before any write", async () => {
+    rateLimit.mockResolvedValue({ allowed: true, count: 1, limit: 5, resetAt: 0 });
+    const fd = topicForm();
+    fd.set("email", "not-an-email");
+    const res = await submitTopic(null, fd);
+    expect(res.ok).toBe(false);
+    expect(res.message).toMatch(/valid email/i);
+    expect(createSubmission).not.toHaveBeenCalled();
+  });
+
+  it("oversized name/city → capped server-side before the write", async () => {
+    rateLimit.mockResolvedValue({ allowed: true, count: 1, limit: 5, resetAt: 0 });
+    const fd = topicForm();
+    fd.set("name", "a".repeat(5000));
+    fd.set("city", "b".repeat(5000));
+    const res = await submitTopic(null, fd);
+    expect(res.ok).toBe(true);
+    const arg = createSubmission.mock.calls[0][0];
+    expect(arg.name.length).toBe(100);
+    expect(arg.city.length).toBe(100);
+  });
 });
 
 describe("commitToIssue rate limiting", () => {
