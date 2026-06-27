@@ -56,6 +56,7 @@ export const PK = {
   inviteReminders: "INVITEREMINDER", // per-email reminder bookkeeping (SK = email; remindedAt, count)
   events: "EVENT", // campaign events/appearances (SK = `${startISO}#${id}`; chronological)
   eventIngest: "EVENTINGEST", // inbound-email → event dedupe keys (idempotency, SK = sha256)
+  eventRsvps: "EVENTRSVP", // RSVPs for Airtable-sourced events (no DynamoDB item; SK = `${eventId}#${id}`)
   districtInsights: "DISTRICTINSIGHT", // cached per-district demographics + AI blurb (SK = districtKey)
 } as const;
 

@@ -150,7 +150,9 @@ export async function getEvent(id: string): Promise<EventRow | null> {
   // there first so /events/[id] detail pages work; fall back to the DynamoDB store.
   if (await airtableEventsConfigured()) {
     const fromAirtable = await getEventFromAirtable(id);
-    if (fromAirtable) return fromAirtable;
+    // Airtable events have no embedded signups — hydrate them from the RSVP
+    // partition so the public count + capacity check work.
+    if (fromAirtable) return { ...fromAirtable, signups: await listEventRsvps(id) };
   }
   const raw = await findRaw(id);
   return raw ? rawToRow(raw) : null;
@@ -267,8 +269,7 @@ export async function addSignup(
   id: string,
   input: { name: string; email?: string; phone?: string; role?: string; count?: number },
 ): Promise<boolean> {
-  const raw = await findRaw(id);
-  if (!raw) return false;
+  if (!dbConfigured || !id) return false;
   const signup: Signup = {
     id: newId(),
     name: clip(input.name, 120),
@@ -278,15 +279,54 @@ export async function addSignup(
     count: Math.max(1, Math.min(20, Number(input.count) || 1)),
     createdAt: new Date().toISOString(),
   };
+  const raw = await findRaw(id);
+  if (raw) {
+    // DynamoDB-native event: append to the embedded signups[] (unchanged path).
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: PK.events, SK: String(raw.SK) },
+        UpdateExpression: "SET signups = list_append(if_not_exists(signups, :empty), :s), updatedAt = :u",
+        ExpressionAttributeValues: { ":empty": [], ":s": [signup], ":u": new Date().toISOString() },
+      }),
+    );
+    return true;
+  }
+  // Airtable-sourced event (no DynamoDB item): store the RSVP in its own partition,
+  // keyed by event id, so it persists and counts on the public page.
   await ddb.send(
-    new UpdateCommand({
+    new PutCommand({
       TableName: TABLE,
-      Key: { PK: PK.events, SK: String(raw.SK) },
-      UpdateExpression: "SET signups = list_append(if_not_exists(signups, :empty), :s), updatedAt = :u",
-      ExpressionAttributeValues: { ":empty": [], ":s": [signup], ":u": new Date().toISOString() },
+      Item: { PK: PK.eventRsvps, SK: `${id}#${signup.id}`, eventId: id, ...signup },
     }),
   );
   return true;
+}
+
+// RSVPs for an Airtable-sourced event (its own partition). Returns the embedded
+// Signup shape so callers reuse the same goingCount/signupCount logic.
+export async function listEventRsvps(eventId: string): Promise<Signup[]> {
+  if (!dbConfigured || !eventId) return [];
+  try {
+    const r = await ddb.send(
+      new QueryCommand({
+        TableName: TABLE,
+        KeyConditionExpression: "PK = :p AND begins_with(SK, :sk)",
+        ExpressionAttributeValues: { ":p": PK.eventRsvps, ":sk": `${eventId}#` },
+      }),
+    );
+    return ((r.Items ?? []) as Record<string, unknown>[]).map((it) => ({
+      id: String(it.id),
+      name: String(it.name ?? ""),
+      email: (it.email as string) ?? null,
+      phone: (it.phone as string) ?? null,
+      role: (it.role as string) ?? null,
+      count: Number(it.count) || 1,
+      createdAt: String(it.createdAt ?? ""),
+    }));
+  } catch {
+    return [];
+  }
 }
 
 // Claim one notification channel for an event idempotently. Returns true the FIRST
