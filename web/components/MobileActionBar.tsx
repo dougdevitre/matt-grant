@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { CAMPAIGN } from "@/lib/site";
+import { CAMPAIGN, mainHref } from "@/lib/site";
+import { useOnSubdomain } from "@/lib/use-on-subdomain";
 import { NavIcon } from "@/components/NavIcon";
 import { campaignPhase, type CampaignPhase } from "@/lib/campaign-phase";
 
@@ -23,6 +24,9 @@ export function MobileActionBar() {
     setPhase(campaignPhase(Date.now(), CAMPAIGN.electionDate).phase);
   }, []);
   const emphasis = phase === "gotv" ? "vote" : "donate";
+  // On a pillar subdomain, internal links must absolutize back to the apex
+  // (a relative "/act" would 404 on the subdomain) — same as the rest of the nav.
+  const onSubdomain = useOnSubdomain();
 
   return (
     <nav
@@ -46,7 +50,7 @@ export function MobileActionBar() {
             {inner}
           </a>
         ) : (
-          <Link key={a.key} href={a.href} className={`relative ${cls}`}>
+          <Link key={a.key} href={mainHref(a.href, onSubdomain)} className={`relative ${cls}`}>
             {inner}
           </Link>
         );
