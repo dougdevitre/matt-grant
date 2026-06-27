@@ -13,14 +13,17 @@ applications:
             # docs/compliance-baseline.md. Runs in web/ (appRoot). Educational
             # automation, not legal advice.
             - npm run compliance
-            # Deploy gate: typecheck + tests. Amplify deploys on push regardless
-            # of GitHub CI status, and `next build` does NOT typecheck .test.ts —
-            # so a tsc error or failing test could otherwise reach prod (this bit
-            # us once: a semantic merge conflict in a .test.ts that CI caught but
-            # Amplify shipped). Both run keyless-equivalent (the suite mocks
-            # getSecret), so they're safe in the credentialed build env.
+            # Deploy gate: typecheck. Amplify deploys on push regardless of GitHub
+            # CI status, and `next build` does NOT typecheck .test.ts — so a tsc
+            # error can otherwise reach prod (this bit us once: a semantic merge
+            # conflict in matching.test.ts that CI caught but Amplify shipped).
+            # `tsc --noEmit` is deterministic and env-independent, so it's safe in
+            # the credentialed Amplify build env. We deliberately DON'T run the
+            # vitest suite here: the Amplify build injects app env vars + AWS creds,
+            # which flip non-hermetic tests (e.g. "store not connected", time-skew)
+            # onto live paths and fail the build. GitHub CI runs the full suite
+            # keyless on every PR — that's the real test gate.
             - npx tsc --noEmit
-            - npm run test
             # Amplify injects app env vars into the BUILD env but not the SSR
             # runtime. Materialize the server-side vars into .env.production so
             # the Next.js server (and middleware) can read them at runtime.
