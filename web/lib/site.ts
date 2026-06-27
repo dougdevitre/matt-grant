@@ -20,18 +20,57 @@ export const CAMPAIGN = {
   paidForBy: "Paid for by the Matt Grant for Congress Committee.",
 } as const;
 
-export const NAV = [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About Matt" },
-  { href: "/issues", label: "Issues" },
-  { href: "/vote", label: "Vote" },
-  { href: "/events", label: "Events" },
-  { href: "/act", label: "Take Action" },
-  { href: "/donate", label: "Donate" },
-  { href: "/media", label: "Media" },
-  { href: "/press", label: "Press" },
-  { href: "/contact", label: "Contact" },
+// Primary navigation, grouped into parent → child menus to keep the bar
+// uncrowded. A NavGroup renders as a dropdown (desktop) / accordion (mobile);
+// the parent's destination is its first child (e.g. "About Matt" → /about), so
+// groups carry no own href. "Home" is intentionally omitted — the logo links
+// home — and "Donate" lives only in the standout CTA button, not the nav list.
+export type NavLink = { href: string; label: string };
+export type NavGroup = { label: string; children: readonly NavLink[] };
+export type NavEntry = NavLink | NavGroup;
+
+export function isNavGroup(entry: NavEntry): entry is NavGroup {
+  return "children" in entry;
+}
+
+export const NAV: readonly NavEntry[] = [
+  {
+    label: "About",
+    children: [
+      { href: "/about", label: "About Matt" },
+      { href: "/issues", label: "Issues" },
+      { href: "/contact", label: "Contact" },
+    ],
+  },
+  {
+    label: "Get Involved",
+    children: [
+      { href: "/act", label: "Take Action" },
+      { href: "/events", label: "Events" },
+      { href: "/community", label: "Community" },
+    ],
+  },
+  {
+    label: "Vote",
+    children: [
+      { href: "/vote", label: "How to Vote" },
+      { href: "/vote/absentee", label: "Vote by Mail" },
+    ],
+  },
+  {
+    label: "News",
+    children: [
+      { href: "/media", label: "Media" },
+      { href: "/press", label: "Press" },
+    ],
+  },
 ] as const;
+
+// Flattened leaf links — consumed by the footer/sitemap, which want every
+// destination as a simple list rather than the grouped tree.
+export const NAV_LINKS: readonly NavLink[] = NAV.flatMap((entry) =>
+  isNavGroup(entry) ? [...entry.children] : [entry],
+);
 
 export const SITE_URL = "https://mattgrantforcongress.org";
 
