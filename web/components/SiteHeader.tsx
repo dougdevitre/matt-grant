@@ -8,6 +8,7 @@ import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs";
 import { CAMPAIGN, NAV, mainHref } from "@/lib/site";
 import { asRole, homeFor } from "@/lib/rbac";
 import { useOnSubdomain } from "@/lib/use-on-subdomain";
+import { CtaButton } from "@/components/CtaButton";
 
 // Role-aware "your account" link. Reads publicMetadata.role (exposed to the client
 // by design) and points each tier at their own home via the canonical homeFor()
@@ -80,9 +81,9 @@ export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean })
               </SignedIn>
             </>
           )}
-          <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
+          <CtaButton href={CAMPAIGN.donateUrl} external context="donate">
             Donate
-          </a>
+          </CtaButton>
         </div>
 
         <button
@@ -127,9 +128,9 @@ export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean })
                 </SignedIn>
               </>
             )}
-            <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary mt-4">
+            <CtaButton href={CAMPAIGN.donateUrl} external context="donate" className="btn-primary mt-4">
               Donate
-            </a>
+            </CtaButton>
           </nav>
         </div>
       )}
