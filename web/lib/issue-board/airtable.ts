@@ -16,10 +16,12 @@
 //   SMS Opt-In    — Checkbox
 //   Status        — Single select: Pending · Approved · Rejected  (new rows = Pending)
 import { getSecret } from "@/lib/ssm";
+import { AIRTABLE_BASES } from "@/lib/airtable/registry";
 
-// Defaults to the Issues base + table Doug created; override via env if they move.
-const BASE_ID = process.env.AIRTABLE_ISSUES_BASE_ID || "appbfBEbX8XH3bv4w";
-const TABLE_ID = process.env.AIRTABLE_ISSUES_TABLE_ID || "tbl63kV5OGFj5bD6c";
+// Issues base + submissions table, from the central registry; override via env
+// if they ever move. One workspace token reads every base.
+const BASE_ID = process.env.AIRTABLE_ISSUES_BASE_ID || AIRTABLE_BASES.issues.id;
+const TABLE_ID = process.env.AIRTABLE_ISSUES_TABLE_ID || AIRTABLE_BASES.issues.tables.submissions;
 const API = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`;
 
 export type IssueSubmission = {
