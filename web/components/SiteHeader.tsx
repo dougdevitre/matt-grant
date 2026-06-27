@@ -155,6 +155,27 @@ export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean })
     setOpenGroup(null);
   }, [pathname]);
 
+  // Focus trap: keep Tab/Shift+Tab cycling within the open drawer instead of
+  // leaking to the page behind it. Re-queries each keystroke so it stays correct
+  // as accordion groups expand/collapse.
+  const onPanelKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key !== "Tab") return;
+    const f = panelRef.current?.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])',
+    );
+    if (!f || f.length === 0) return;
+    const first = f[0];
+    const last = f[f.length - 1];
+    const activeEl = document.activeElement;
+    if (e.shiftKey && (activeEl === first || activeEl === panelRef.current)) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && activeEl === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+
   // While the drawer is open: lock body scroll, move focus into the panel, and
   // close on Escape. All undone on close so the page behaves normally again.
   useEffect(() => {
@@ -250,6 +271,10 @@ export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean })
           id="mobile-drawer"
           ref={panelRef}
           tabIndex={-1}
+          onKeyDown={onPanelKeyDown}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Site menu"
           className="fixed inset-x-0 bottom-0 top-[68px] z-40 overflow-y-auto border-t border-line bg-paper outline-none motion-safe:animate-rise-in lg:hidden"
         >
           <nav className="container-page flex flex-col py-2 pb-10">
