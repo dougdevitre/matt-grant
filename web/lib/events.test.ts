@@ -6,7 +6,7 @@ const { send } = vi.hoisted(() => ({ send: vi.fn() }));
 vi.mock("@/lib/db", () => ({
   ddb: { send },
   TABLE: "test-table",
-  PK: { events: "EVENT" },
+  PK: { events: "EVENT", eventRsvps: "EVENTRSVP" },
   newId: () => "fixed-id",
   dbConfigured: true,
 }));
@@ -148,9 +148,12 @@ describe("setEventStatus / deleteEvent / setEventNotify / addSignup", () => {
     expect(upd.input.ExpressionAttributeValues[":s"][0]).toMatchObject({ name: "Jo", count: 20 });
   });
 
-  it("addSignup returns false for an unknown event", async () => {
-    withItems();
-    expect(await addSignup("missing", { name: "Jo" })).toBe(false);
+  it("addSignup persists an RSVP for a non-DynamoDB (Airtable) event", async () => {
+    withItems(); // no matching DynamoDB event → Airtable-sourced path
+    expect(await addSignup("airtable-rec", { name: "Jo" })).toBe(true);
+    const put = oneOf("PutCommand");
+    expect(put.input.Item.PK).toBe("EVENTRSVP");
+    expect(put.input.Item).toMatchObject({ eventId: "airtable-rec", name: "Jo" });
   });
 });
 
