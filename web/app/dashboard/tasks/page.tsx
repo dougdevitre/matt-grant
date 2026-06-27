@@ -2,6 +2,7 @@ import { getTasks, getVolunteers } from "@/lib/queries";
 import { suggestVolunteers } from "@/lib/matching";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { addTask, setTaskStatus, setTaskVolunteer } from "@/app/dashboard/actions";
+import { listTaskTemplates } from "@/lib/task-templates";
 
 const COLUMNS = [
   { key: "TODO", label: "To do", next: "DOING", nextLabel: "Start →" },
@@ -32,6 +33,13 @@ export default async function TasksPage() {
   const volOptions = volunteers.map((v) => (
     <option key={v.id} value={`${v.id}|${v.name}`}>{v.name}</option>
   ));
+  // Airtable task-template library (read-only; [] when AIRTABLE_API_KEY unset),
+  // grouped by dashboard category for the "start from a template" picker.
+  const templates = await listTaskTemplates();
+  const templatesByCat = templates.reduce<Record<string, typeof templates>>((acc, t) => {
+    (acc[t.category] ??= []).push(t);
+    return acc;
+  }, {});
 
   return (
     <>
@@ -50,7 +58,7 @@ export default async function TasksPage() {
       />
 
       <form action={addTask} className="card mb-6 flex flex-wrap items-end gap-3 p-4">
-        <input name="title" required placeholder="New task…" className={`${input} min-w-[16rem] flex-1`} />
+        <input name="title" placeholder="New task… (or pick a template →)" className={`${input} min-w-[16rem] flex-1`} />
         <select name="category" aria-label="Task category" className={input} defaultValue="Field">
           {["Field", "Finance", "Comms", "Compliance", "Ops"].map((c) => (
             <option key={c}>{c}</option>
@@ -61,6 +69,18 @@ export default async function TasksPage() {
             <option key={p} value={p}>{p}</option>
           ))}
         </select>
+        {templates.length > 0 && (
+          <select name="template" aria-label="Start from a template" className={input} defaultValue="">
+            <option value="">— or start from a template —</option>
+            {Object.entries(templatesByCat).map(([cat, list]) => (
+              <optgroup key={cat} label={cat}>
+                {list.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        )}
         <select name="volunteer" aria-label="Assign to volunteer" className={input} defaultValue="">
           <option value="">Unassigned</option>
           {volOptions}

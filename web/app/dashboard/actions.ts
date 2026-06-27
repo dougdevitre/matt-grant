@@ -7,6 +7,7 @@ import { staffGate } from "@/lib/auth";
 import { can, type Capability } from "@/lib/rbac";
 import { recordContribution } from "@/lib/donors";
 import { dismissOnboarding } from "@/lib/onboarding";
+import { getTaskTemplate } from "@/lib/task-templates";
 
 // Hide the "Start here" guide for the signed-in staffer (a per-user UI
 // preference — no capability needed beyond being signed in).
@@ -215,7 +216,22 @@ export async function updateVolunteerProfile(formData: FormData) {
 export async function addTask(formData: FormData) {
   await authorize("manageTasks");
   requireDb();
-  const title = str(formData, "title");
+  let title = str(formData, "title");
+  let category = str(formData, "category") ?? "Field";
+  let priority = str(formData, "priority") ?? "MEDIUM";
+  let detail: string | undefined;
+  // Start-from-template: pull title/category/priority/detail from the Airtable
+  // task-template library so a new task inherits its role/geo/effort context.
+  const templateId = str(formData, "template");
+  if (templateId) {
+    const tpl = await getTaskTemplate(templateId);
+    if (tpl) {
+      title = title || tpl.name;
+      category = tpl.category;
+      priority = tpl.priority;
+      detail = tpl.detail;
+    }
+  }
   if (!title) return;
   // Optional volunteer assignment: the select submits "id|name"; store both so
   // the task can show who's doing it without a join. Blank = unassigned.
@@ -234,8 +250,9 @@ export async function addTask(formData: FormData) {
         PK: PK.tasks,
         SK: newId(),
         title,
-        category: str(formData, "category") ?? "Field",
-        priority: str(formData, "priority") ?? "MEDIUM",
+        detail,
+        category,
+        priority,
         status: "TODO",
         volunteerId,
         volunteerName,
