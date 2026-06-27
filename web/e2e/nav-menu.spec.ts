@@ -35,7 +35,11 @@ test.describe("desktop dropdown", () => {
 test.describe("mobile drawer", () => {
   test.use({ viewport: PHONE });
 
-  test("traps focus while open and closes on Escape", async ({ page }) => {
+  test("traps focus while open and closes on Escape", async ({ page, browserName }) => {
+    // WebKit's default tab order (like Safari without Full Keyboard Access)
+    // excludes links/buttons, so Tab can't be driven through the drawer there.
+    // The trap logic is engine-independent; verified on Chromium.
+    test.skip(browserName === "webkit", "Safari default tab order excludes links");
     await page.goto("/");
     await page.getByRole("button", { name: "Toggle menu" }).click();
     const drawer = page.locator("#mobile-drawer");
