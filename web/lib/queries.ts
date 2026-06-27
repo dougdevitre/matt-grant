@@ -213,6 +213,13 @@ export async function getTasks(): Promise<{ connected: boolean; rows: TaskRow[] 
   }
 }
 
+// Tasks assigned to one volunteer — powers the volunteer magic-link portal.
+export async function getVolunteerTasks(volunteerId: string): Promise<TaskRow[]> {
+  if (!volunteerId) return [];
+  const { rows } = await getTasks();
+  return rows.filter((t) => t.volunteerId === volunteerId);
+}
+
 export async function getFinance(): Promise<{
   connected: boolean;
   raisedCents: number;
