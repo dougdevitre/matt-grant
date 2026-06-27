@@ -95,6 +95,7 @@ export function AskMatt() {
         onClick={toggle}
         aria-expanded={open}
         aria-label="Ask Matt — make your plan to vote"
+        data-hide-on-drawer
         className="fixed bottom-[76px] right-5 z-50 flex items-center gap-2 rounded-full border border-paper/20 bg-ink py-2 pl-2 pr-4 text-paper shadow-card transition-transform hover:scale-[1.03] motion-reduce:transition-none lg:bottom-5"
       >
         {!seen && !open && (
@@ -111,12 +112,13 @@ export function AskMatt() {
       {open && (
         <>
           {/* click-outside catcher (transparent) */}
-          <button aria-hidden tabIndex={-1} onClick={() => setOpen(false)} className="fixed inset-0 z-40 cursor-default" />
+          <button aria-hidden tabIndex={-1} onClick={() => setOpen(false)} data-hide-on-drawer className="fixed inset-0 z-40 cursor-default" />
         <div
           ref={panelRef}
           role="dialog"
           aria-label="Ask Matt"
           tabIndex={-1}
+          data-hide-on-drawer
           className="fixed bottom-[136px] right-5 z-50 flex max-h-[80vh] w-[min(92vw,360px)] flex-col overflow-hidden rounded-lg border border-line bg-paper shadow-card outline-none motion-safe:animate-rise-in lg:bottom-20"
         >
           {/* header */}

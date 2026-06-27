@@ -80,6 +80,9 @@
 
 @layer utilities {
   .text-balance { text-wrap: balance; }
+  /* Fixed widgets opt out while the mobile drawer is open (set on <body> by
+     SiteHeader) so they don't float over the menu. */
+  body[data-drawer-open] [data-hide-on-drawer] { display: none; }
   .bg-grid {
     background-image:
       linear-gradient(rgba(15,37,64,0.05) 1px, transparent 1px),
