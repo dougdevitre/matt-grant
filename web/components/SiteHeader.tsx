@@ -182,6 +182,9 @@ export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean })
     if (!open) return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    // Signal other fixed widgets (e.g. the Ask Matt FAB) to hide behind the
+    // drawer — they're decoupled components, so a body attribute bridges them.
+    document.body.setAttribute("data-drawer-open", "true");
     panelRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -193,6 +196,7 @@ export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean })
     document.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = prevOverflow;
+      document.body.removeAttribute("data-drawer-open");
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);

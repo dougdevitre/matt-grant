@@ -50,6 +50,15 @@ test.describe("mobile drawer", () => {
     await expect(drawer).toBeHidden();
   });
 
+  test("hides the Ask Matt FAB while open", async ({ page }) => {
+    await page.goto("/");
+    const fab = page.getByRole("button", { name: /Ask Matt/ });
+    await expect(fab).toBeVisible();
+    await page.getByRole("button", { name: "Toggle menu" }).click();
+    await expect(page.locator("#mobile-drawer")).toBeVisible();
+    await expect(fab).toBeHidden();
+  });
+
   test("opens with the current section pre-expanded", async ({ page }) => {
     await page.goto("/issues"); // /issues lives under the "About" group
     await page.getByRole("button", { name: "Toggle menu" }).click();
@@ -57,6 +66,9 @@ test.describe("mobile drawer", () => {
   });
 
   test("open drawer has no serious/critical a11y violations", async ({ page }) => {
+    // Scan with motion reduced so axe sees the settled panel, not a frame
+    // mid-fade (where it would briefly read as translucent over the hero).
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
     await page.getByRole("button", { name: "Toggle menu" }).click();
     await expect(page.locator("#mobile-drawer")).toBeVisible();
