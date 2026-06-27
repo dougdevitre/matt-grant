@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { primaryAction } from "@/lib/nav-actions";
+import { primaryAction, secondaryAction } from "@/lib/nav-actions";
 
 describe("primaryAction", () => {
   it("pushes turnout for everyone during GOTV", () => {
@@ -21,5 +21,12 @@ describe("primaryAction", () => {
       expect(primaryAction("campaign", role).label).toBe("Donate");
     }
     expect(primaryAction("past", null).label).toBe("Donate");
+  });
+
+  it("keeps Donate as a secondary ask only during GOTV", () => {
+    expect(secondaryAction("campaign", null)).toBeNull();
+    expect(secondaryAction("past", "donor")).toBeNull();
+    expect(secondaryAction("gotv", null)).toMatchObject({ label: "Donate", external: true });
+    expect(secondaryAction("gotv", "donor")?.label).toBe("Give again");
   });
 });

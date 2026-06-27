@@ -92,6 +92,8 @@ test.describe("phase-aware CTA (GOTV)", () => {
     await page.goto("/");
     const header = page.locator("header");
     await expect(header.getByRole("link", { name: "Plan your vote" })).toBeVisible();
+    // Donate stays as a secondary ask in the header during GOTV.
+    await expect(header.getByRole("link", { name: "Donate", exact: true })).toBeVisible();
 
     // On mobile, the bottom action bar should emphasize Vote (brick) in GOTV.
     await page.setViewportSize(PHONE);

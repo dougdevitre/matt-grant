@@ -14,7 +14,7 @@ import { CtaThumb } from "@/components/CtaThumb";
 import { NavIcon } from "@/components/NavIcon";
 import { ctaThumbForHref } from "@/lib/cta-images";
 import { campaignPhase, type CampaignPhase } from "@/lib/campaign-phase";
-import { primaryAction } from "@/lib/nav-actions";
+import { primaryAction, secondaryAction } from "@/lib/nav-actions";
 
 // The header's primary call-to-action, resolved from campaign phase + role.
 // `external` actions (WinRed) keep the headshot thumbnail; internal ones (e.g.
@@ -24,31 +24,47 @@ function PrimaryCta({
   role,
   onSubdomain,
   className,
+  secondaryClassName,
   onClick,
 }: {
   phase: CampaignPhase;
   role: string | null;
   onSubdomain: boolean;
   className?: string;
+  secondaryClassName?: string;
   onClick?: () => void;
 }) {
   const a = primaryAction(phase, role);
+  const secondary = secondaryAction(phase, role);
   return (
-    <CtaButton
-      href={a.external ? a.href : mainHref(a.href, onSubdomain)}
-      external={a.external}
-      context={a.context}
-      className={className}
-      onClick={onClick}
-    >
-      {a.label}
-    </CtaButton>
+    <>
+      <CtaButton
+        href={a.external ? a.href : mainHref(a.href, onSubdomain)}
+        external={a.external}
+        context={a.context}
+        className={className}
+        onClick={onClick}
+      >
+        {a.label}
+      </CtaButton>
+      {secondary && (
+        <a
+          href={secondary.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={onClick}
+          className={secondaryClassName ?? "text-sm font-semibold text-slate transition-colors hover:text-ink"}
+        >
+          {secondary.label}
+        </a>
+      )}
+    </>
   );
 }
 
 // Same CTA, but reads the signed-in visitor's role so donors see "Give again".
 // Only mounted inside <SignedIn>, so useUser() always has a provider.
-function SignedInPrimaryCta(props: { phase: CampaignPhase; onSubdomain: boolean; className?: string; onClick?: () => void }) {
+function SignedInPrimaryCta(props: { phase: CampaignPhase; onSubdomain: boolean; className?: string; secondaryClassName?: string; onClick?: () => void }) {
   const { user } = useUser();
   const role = asRole((user?.publicMetadata as { role?: unknown } | undefined)?.role);
   return <PrimaryCta {...props} role={role} />;
@@ -64,6 +80,7 @@ function HeaderPrimaryCta({
   phase: CampaignPhase;
   onSubdomain: boolean;
   className?: string;
+  secondaryClassName?: string;
   onClick?: () => void;
 }) {
   if (!clerkEnabled) return <PrimaryCta {...props} role={null} />;
@@ -381,6 +398,7 @@ export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean })
               phase={phase}
               onSubdomain={onSubdomain}
               className="btn-primary mt-4"
+              secondaryClassName="mt-2 text-center text-sm font-semibold text-slate transition-colors hover:text-ink"
               onClick={closeDrawer}
             />
           </nav>
