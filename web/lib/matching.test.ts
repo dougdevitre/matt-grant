@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { taskInterests, scoreVolunteer, suggestVolunteers } from "@/lib/matching";
+import { taskInterests, taskSkills, taskMode, scoreVolunteer, suggestVolunteers } from "@/lib/matching";
 import type { TaskRow, VolunteerRow } from "@/lib/queries";
 
 const task = (over: Partial<TaskRow> = {}): TaskRow => ({
@@ -8,7 +8,7 @@ const task = (over: Partial<TaskRow> = {}): TaskRow => ({
 });
 const vol = (over: Partial<VolunteerRow> = {}): VolunteerRow => ({
   id: "v", name: "V", email: null, phone: null, city: null, interests: null, interestTags: [],
-  notes: null, status: "ACTIVE", assignedTo: null, captainEmail: null, lastContactedAt: null, createdAt: "", ...over,
+  notes: null, status: "ACTIVE", assignedTo: null, captainEmail: null, zip: null, mode: null, skills: [], availability: [], lastContactedAt: null, createdAt: "", ...over,
 });
 
 describe("taskInterests", () => {
@@ -42,5 +42,21 @@ describe("suggestVolunteers", () => {
     const out = suggestVolunteers(task({ title: "Knock doors" }), [b, a], {}, 3);
     expect(out[0].v.id).toBe("a");
     expect(out.find((s) => s.v.id === "b")).toBeUndefined();
+  });
+});
+
+describe("structured profile signals", () => {
+  it("infers a required skill from the task", () => {
+    expect(taskSkills(task({ title: "Drive supporters to the polls" }))).toContain("Driving");
+  });
+  it("reads task mode from keywords", () => {
+    expect(taskMode(task({ title: "Knock doors in turf 3" }))).toBe("In-person");
+    expect(taskMode(task({ title: "Make GOTV calls", detail: "phone bank" }))).toBe("Digital");
+  });
+  it("rewards a skill + mode match over a bare volunteer", () => {
+    const t = task({ title: "Drive vans on election day" });
+    const base = scoreVolunteer(t, vol({}));
+    const fit = scoreVolunteer(t, vol({ skills: ["Driving"], mode: "In-person" }));
+    expect(fit.score).toBeGreaterThan(base.score);
   });
 });

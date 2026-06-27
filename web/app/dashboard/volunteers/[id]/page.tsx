@@ -4,7 +4,8 @@ import { headers } from "next/headers";
 import { getVolunteer, getTasks } from "@/lib/queries";
 import { signVolunteerToken } from "@/lib/volunteer-link";
 import { PageHeader } from "@/components/dashboard/Notice";
-import { updateVolunteer, markVolunteerContacted, updateVolunteerNotes } from "@/app/dashboard/actions";
+import { updateVolunteer, markVolunteerContacted, updateVolunteerNotes, updateVolunteerProfile } from "@/app/dashboard/actions";
+import { VOLUNTEER_MODES, VOLUNTEER_AVAILABILITY, VOLUNTEER_SKILLS } from "@/lib/volunteer-profile";
 
 export const dynamic = "force-dynamic";
 
@@ -102,6 +103,40 @@ export default async function VolunteerDetailPage({ params }: { params: Promise<
             <input type="hidden" name="id" value={v.id} />
             <input type="hidden" name="current" value={v.status} />
             <button type="submit" className="text-sm font-semibold text-field hover:underline">✓ Mark contacted today</button>
+          </form>
+
+          {/* Matching profile — feeds the task-board "Suggested" assignees. */}
+          <form action={updateVolunteerProfile} className="mt-6 space-y-3 border-t border-line pt-5">
+            <p className="eyebrow text-slate">Matching profile</p>
+            <input type="hidden" name="id" value={v.id} />
+            <div className="flex gap-2">
+              <input name="zip" defaultValue={v.zip ?? ""} inputMode="numeric" maxLength={5} placeholder="ZIP" aria-label="ZIP" className="w-24 rounded-sm border border-line bg-white px-2 py-1.5 text-sm text-ink" />
+              <select name="mode" defaultValue={v.mode ?? ""} aria-label="Participation mode" className="flex-1 rounded-sm border border-line bg-white px-2 py-1.5 text-sm text-ink">
+                <option value="">Mode — any</option>
+                {VOLUNTEER_MODES.map((m) => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+            <fieldset>
+              <legend className="text-xs text-slate">Availability</legend>
+              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                {VOLUNTEER_AVAILABILITY.map((a) => (
+                  <label key={a} className="flex items-center gap-1 text-xs text-ink">
+                    <input type="checkbox" name="availability" value={a} defaultChecked={v.availability?.includes(a)} /> {a}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend className="text-xs text-slate">Skills</legend>
+              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                {VOLUNTEER_SKILLS.map((s) => (
+                  <label key={s} className="flex items-center gap-1 text-xs text-ink">
+                    <input type="checkbox" name="skills" value={s} defaultChecked={v.skills?.includes(s)} /> {s}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <button type="submit" className="btn-ghost px-3 py-1.5 text-sm">Save profile</button>
           </form>
         </div>
 
