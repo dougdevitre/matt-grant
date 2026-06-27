@@ -6,6 +6,7 @@ import { CAMPAIGN, mainHref } from "@/lib/site";
 import { useOnSubdomain } from "@/lib/use-on-subdomain";
 import { NavIcon } from "@/components/NavIcon";
 import { campaignPhase, type CampaignPhase } from "@/lib/campaign-phase";
+import { track } from "@/lib/analytics";
 
 // Persistent bottom action bar (phones only) — one tap to the campaign's three
 // conversion goals without opening the menu. The phase-relevant action is
@@ -45,12 +46,13 @@ export function MobileActionBar() {
             {a.label}
           </>
         );
+        const onClick = () => track("quick_action_click", { action: a.key });
         return a.external ? (
-          <a key={a.key} href={a.href} target="_blank" rel="noopener noreferrer" className={`relative ${cls}`}>
+          <a key={a.key} href={a.href} target="_blank" rel="noopener noreferrer" onClick={onClick} className={`relative ${cls}`}>
             {inner}
           </a>
         ) : (
-          <Link key={a.key} href={mainHref(a.href, onSubdomain)} className={`relative ${cls}`}>
+          <Link key={a.key} href={mainHref(a.href, onSubdomain)} onClick={onClick} className={`relative ${cls}`}>
             {inner}
           </Link>
         );

@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ctaThumb } from "@/lib/cta-images";
+import { track } from "@/lib/analytics";
 
 // A strong call-to-action button with an optional context-aware thumbnail.
 //
@@ -37,6 +40,15 @@ export function CtaButton({
 }: CtaButtonProps) {
   const thumb = ctaThumb(context);
 
+  const handleClick = () => {
+    track("cta_click", {
+      label: typeof children === "string" ? children : (context ?? "cta"),
+      context: context ?? "",
+      external,
+    });
+    onClick?.();
+  };
+
   const inner = (
     <>
       {thumb && (
@@ -62,13 +74,13 @@ export function CtaButton({
 
   if (external) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={className} onClick={onClick}>
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className} onClick={handleClick}>
         {inner}
       </a>
     );
   }
   return (
-    <Link href={href} className={className} onClick={onClick}>
+    <Link href={href} className={className} onClick={handleClick}>
       {inner}
     </Link>
   );
