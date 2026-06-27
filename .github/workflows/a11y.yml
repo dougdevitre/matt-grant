@@ -1,10 +1,15 @@
 name: a11y
 
-# Accessibility scan (Playwright + axe) of the public site. Separate from the
-# required `ci` gate so findings are visible without blocking unrelated merges
-# until the route list is tuned — promote to required once public pages are clean.
+# Accessibility scan (Playwright + axe) of the public site, plus the nav
+# interaction specs (e2e/nav-menu.spec.ts). Public routes are clean, so this is
+# now treated as a gate: it runs on every PR AND on push to main, so a
+# regression that slips past a PR (e.g. a stale-check race on a fast-forward)
+# is still caught on main. Not yet wired into branch protection — main ships by
+# fast-forward, where the gate is enforced by waiting for this check green.
 
 on:
+  push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
