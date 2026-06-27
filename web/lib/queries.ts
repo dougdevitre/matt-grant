@@ -50,6 +50,7 @@ export type VolunteerRow = {
   notes: string | null;
   status: string;
   assignedTo: string | null;
+  captainEmail: string | null;
   lastContactedAt: string | null;
   createdAt: string;
 };
@@ -148,6 +149,7 @@ export async function getVolunteers(): Promise<{ connected: boolean; rows: Volun
         notes: (v.notes as string) ?? null,
         status: String(v.status ?? "NEW"),
         assignedTo: (v.assignedTo as string) ?? null,
+        captainEmail: (v.captainEmail as string) ?? null,
         lastContactedAt: (v.lastContactedAt as string) ?? null,
         createdAt: String(v.createdAt ?? ""),
       }))
@@ -175,6 +177,7 @@ export async function getVolunteer(id: string): Promise<VolunteerRow | null> {
       notes: (v.notes as string) ?? null,
       status: String(v.status ?? "NEW"),
       assignedTo: (v.assignedTo as string) ?? null,
+      captainEmail: (v.captainEmail as string) ?? null,
       lastContactedAt: (v.lastContactedAt as string) ?? null,
       createdAt: String(v.createdAt ?? ""),
     };

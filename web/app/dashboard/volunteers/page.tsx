@@ -7,7 +7,7 @@ import { VolunteerBoard } from "@/components/dashboard/VolunteerBoard";
 import { VolunteerImport } from "@/components/dashboard/VolunteerImport";
 
 export default async function VolunteersPage() {
-  const { role } = await staffGate();
+  const { role, email } = await staffGate();
   const [{ connected, rows }, tasks] = await Promise.all([getVolunteers(), getTasks()]);
   // How many tasks each volunteer is assigned (for the card badge + detail link).
   const taskCounts: Record<string, number> = {};
@@ -47,7 +47,7 @@ export default async function VolunteersPage() {
           No volunteers yet. Leads from the public <span className="font-mono">/contact</span> form land here — or import a list above.
         </div>
       ) : (
-        <VolunteerBoard rows={rows} taskCounts={taskCounts} donorEmails={donorEmails} />
+        <VolunteerBoard rows={rows} taskCounts={taskCounts} donorEmails={donorEmails} me={email} />
       )}
     </>
   );
