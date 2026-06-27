@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs";
 import { CAMPAIGN, NAV, mainHref, isNavGroup } from "@/lib/site";
 import { asRole, homeFor } from "@/lib/rbac";
@@ -135,7 +135,52 @@ export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean })
   // so client-side SPA navigation is preserved.
   const onSubdomain = useOnSubdomain();
 
+  // The group whose section the visitor is currently in — pre-expanded when the
+  // drawer opens so they land oriented rather than on a wall of collapsed rows.
+  const activeGroupLabel =
+    NAV.find(
+      (e) => isNavGroup(e) && e.children.some((c) => pathname === c.href || pathname.startsWith(`${c.href}/`)),
+    )?.label ?? null;
+  const openDrawer = () => {
+    setOpen(true);
+    setOpenGroup(activeGroupLabel);
+  };
+
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Close the drawer on navigation (covers tapping a link and the back button).
+  useEffect(() => {
+    setOpen(false);
+    setOpenGroup(null);
+  }, [pathname]);
+
+  // While the drawer is open: lock body scroll, move focus into the panel, and
+  // close on Escape. All undone on close so the page behaves normally again.
+  useEffect(() => {
+    if (!open) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    panelRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        setOpenGroup(null);
+        toggleRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
   return (
+    // The drawer is a sibling of <header>, NOT a child: the header's
+    // backdrop-blur (a backdrop-filter) establishes a containing block for
+    // fixed descendants, which would clamp the fixed drawer to the 68px bar.
+    <>
     <header className="sticky top-0 z-50 border-b border-line/80 bg-paper/85 backdrop-blur-md">
       <div className="container-page flex h-[68px] items-center justify-between gap-4">
         <Link href={mainHref("/", onSubdomain)} className="flex items-center" onClick={() => setOpen(false)} aria-label="Matt Grant for Congress — home">
@@ -188,18 +233,26 @@ export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean })
         </div>
 
         <button
+          ref={toggleRef}
           className="lg:hidden btn-ghost px-3 py-2"
           aria-label="Toggle menu"
           aria-expanded={open}
-          onClick={() => (open ? closeDrawer() : setOpen(true))}
+          aria-controls="mobile-drawer"
+          onClick={() => (open ? closeDrawer() : openDrawer())}
         >
           {open ? "Close" : "Menu"}
         </button>
       </div>
+      </header>
 
       {open && (
-        <div className="border-t border-line bg-paper lg:hidden">
-          <nav className="container-page flex flex-col py-2">
+        <div
+          id="mobile-drawer"
+          ref={panelRef}
+          tabIndex={-1}
+          className="fixed inset-x-0 bottom-0 top-[68px] z-40 overflow-y-auto border-t border-line bg-paper outline-none motion-safe:animate-rise-in lg:hidden"
+        >
+          <nav className="container-page flex flex-col py-2 pb-10">
             <CountdownStrip daysUntil={daysUntil} />
             {NAV.map((entry) => {
               if (!isNavGroup(entry)) {
@@ -304,6 +357,6 @@ export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean })
           </nav>
         </div>
       )}
-    </header>
+    </>
   );
 }
