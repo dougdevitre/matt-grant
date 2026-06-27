@@ -12,6 +12,7 @@
     "db:seed": "tsx scripts/seed-dynamo.ts",
     "db:clean-seed": "tsx scripts/delete-seed.ts",
     "brand": "node scripts/brand-assets.mjs",
+    "cta": "node scripts/cta-images.mjs",
     "sync:pillars": "node scripts/sync-pillars.mjs",
     "print-tracker": "tsx scripts/generate-print-tracker.ts",
     "test": "vitest run",
