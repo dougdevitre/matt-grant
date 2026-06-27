@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { CAMPAIGN, NAV, LEGAL, mainHref } from "@/lib/site";
+import { CAMPAIGN, NAV_LINKS, LEGAL, mainHref } from "@/lib/site";
 
 // Server component (no host at render time), so footer links to the main site are
 // always absolute to the apex. That's correct on every pillar subdomain and on the
@@ -34,7 +34,7 @@ export function SiteFooter() {
         <div>
           <h3 className="eyebrow text-paper/60">Campaign</h3>
           <ul className="mt-4 space-y-2 text-sm">
-            {NAV.map((item) => (
+            {NAV_LINKS.map((item) => (
               <li key={item.href}>
                 <Link href={apex(item.href)} className="text-paper/80 hover:text-goldlight">
                   {item.label}
