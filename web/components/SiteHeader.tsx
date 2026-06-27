@@ -10,6 +10,8 @@ import { asRole, homeFor } from "@/lib/rbac";
 import { useOnSubdomain } from "@/lib/use-on-subdomain";
 import { CtaButton } from "@/components/CtaButton";
 import { NavMenu } from "@/components/NavMenu";
+import { CtaThumb } from "@/components/CtaThumb";
+import { ctaThumbForHref } from "@/lib/cta-images";
 
 // Role-aware "your account" link. Reads publicMetadata.role (exposed to the client
 // by design) and points each tier at their own home via the canonical homeFor()
@@ -142,16 +144,20 @@ export function SiteHeader({ clerkEnabled = false }: { clerkEnabled?: boolean })
                   </button>
                   {expanded && (
                     <div className="pb-2">
-                      {entry.children.map((child) => (
-                        <Link
-                          key={child.href}
-                          href={mainHref(child.href, onSubdomain)}
-                          onClick={closeDrawer}
-                          className="block py-2 pl-4 text-sm font-semibold text-slate hover:text-ink"
-                        >
-                          {child.label}
-                        </Link>
-                      ))}
+                      {entry.children.map((child) => {
+                        const thumb = ctaThumbForHref(child.href);
+                        return (
+                          <Link
+                            key={child.href}
+                            href={mainHref(child.href, onSubdomain)}
+                            onClick={closeDrawer}
+                            className="flex items-center gap-2.5 py-2 pl-4 text-sm font-semibold text-slate hover:text-ink"
+                          >
+                            {thumb && <CtaThumb thumb={thumb} size={22} className="ring-1 ring-line" />}
+                            <span>{child.label}</span>
+                          </Link>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

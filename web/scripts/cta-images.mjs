@@ -25,16 +25,29 @@ const MANIFEST_TS = path.join(ROOT, "lib", "cta-manifest.generated.ts");
 const BUDGET_BYTES = 12_000; // hard cap per derivative; build fails if exceeded
 const SIZE = 144; // intrinsic px of the square thumbnail (covers retina at ≤72px display)
 
-// Curated CTA masters. `position` is the sharp crop gravity used to keep the
-// most important part of a non-square master (e.g. "north" keeps a face). Add an
-// entry here + a derivative is generated; wiring it to a CTA is done in
-// lib/cta-images.ts. Keep this list small and intentional.
+// Curated CTA masters. `extract` (optional) pre-crops a square region of a
+// busy/landscape master — {left, top, size} in source pixels — before the
+// downscale, so we keep just the iconic part (a face, the shield). `position`
+// is the fallback crop gravity when no extract is given. Add an entry here + a
+// derivative is generated; wiring it to a CTA is done in lib/cta-images.ts.
 const MANIFEST = [
   {
     key: "donate",
     master: "avatar-circle.png",
     alt: "Matt Grant",
     position: "centre",
+  },
+  {
+    key: "act",
+    master: "flyer-service-before-self.png",
+    alt: "Take action with Matt Grant",
+    extract: { left: 70, top: 150, size: 360 }, // Matt's face + flag
+  },
+  {
+    key: "issues",
+    master: "infographic.png",
+    alt: "Matt Grant's priorities for Missouri",
+    extract: { left: 1250, top: 95, size: 300 }, // the campaign shield
   },
 ];
 
@@ -54,10 +67,14 @@ async function build() {
 
     // Square cover-crop at SIZE, EXIF baked + metadata stripped (sharp drops
     // metadata by default on re-encode). One pipeline reused for both formats.
-    const base = () =>
-      sharp(src, { failOn: "none" })
-        .rotate()
-        .resize(SIZE, SIZE, { fit: "cover", position: item.position ?? "centre" });
+    const base = () => {
+      const p = sharp(src, { failOn: "none" }).rotate();
+      if (item.extract) {
+        const { left, top, size } = item.extract;
+        p.extract({ left, top, width: size, height: size });
+      }
+      return p.resize(SIZE, SIZE, { fit: "cover", position: item.position ?? "centre" });
+    };
 
     const avif = await base().avif({ quality: 60, effort: 6 }).toBuffer();
     const webp = await base().webp({ quality: 72, effort: 6 }).toBuffer();
