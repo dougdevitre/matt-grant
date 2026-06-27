@@ -10,6 +10,11 @@ vi.mock("@/lib/db", () => ({
   newId: () => "fixed-id",
   dbConfigured: true,
 }));
+// Force the keyless (DynamoDB) path: listUpcomingEvents/getEvent delegate to the
+// Airtable source when getSecret("AIRTABLE_API_KEY") resolves. Without this mock
+// these tests pass in CI (no AWS) but FAIL for any dev whose shell has AWS creds,
+// since getSecret then pulls the real key from SSM and flips to the Airtable path.
+vi.mock("@/lib/ssm", () => ({ getSecret: vi.fn(async () => undefined) }));
 
 import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import {
