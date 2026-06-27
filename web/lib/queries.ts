@@ -51,6 +51,10 @@ export type VolunteerRow = {
   status: string;
   assignedTo: string | null;
   captainEmail: string | null;
+  zip: string | null;
+  mode: string | null;
+  skills: string[];
+  availability: string[];
   lastContactedAt: string | null;
   createdAt: string;
 };
@@ -150,6 +154,10 @@ export async function getVolunteers(): Promise<{ connected: boolean; rows: Volun
         status: String(v.status ?? "NEW"),
         assignedTo: (v.assignedTo as string) ?? null,
         captainEmail: (v.captainEmail as string) ?? null,
+        zip: (v.zip as string) ?? null,
+        mode: (v.mode as string) ?? null,
+        skills: Array.isArray(v.skills) ? (v.skills as string[]) : [],
+        availability: Array.isArray(v.availability) ? (v.availability as string[]) : [],
         lastContactedAt: (v.lastContactedAt as string) ?? null,
         createdAt: String(v.createdAt ?? ""),
       }))
@@ -178,6 +186,10 @@ export async function getVolunteer(id: string): Promise<VolunteerRow | null> {
       status: String(v.status ?? "NEW"),
       assignedTo: (v.assignedTo as string) ?? null,
       captainEmail: (v.captainEmail as string) ?? null,
+      zip: (v.zip as string) ?? null,
+      mode: (v.mode as string) ?? null,
+      skills: Array.isArray(v.skills) ? (v.skills as string[]) : [],
+      availability: Array.isArray(v.availability) ? (v.availability as string[]) : [],
       lastContactedAt: (v.lastContactedAt as string) ?? null,
       createdAt: String(v.createdAt ?? ""),
     };

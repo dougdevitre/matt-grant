@@ -186,6 +186,32 @@ export async function updateVolunteerNotes(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
+// Capture a volunteer's structured matching profile (ZIP, mode, skills,
+// availability) used by the task-board suggester. Names aliased — "zip"/"mode"
+// are DynamoDB reserved words.
+export async function updateVolunteerProfile(formData: FormData) {
+  await authorize("manageVolunteers");
+  requireDb();
+  const id = str(formData, "id");
+  if (!id) return;
+  const zip = String(formData.get("zip") ?? "").replace(/\D/g, "").slice(0, 5) || null;
+  const mode = str(formData, "mode") ?? null;
+  const skills = formData.getAll("skills").map(String).slice(0, 20);
+  const availability = formData.getAll("availability").map(String).slice(0, 10);
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: PK.volunteers, SK: id },
+      UpdateExpression: "SET #z = :z, #m = :m, #sk = :sk, #av = :av",
+      ExpressionAttributeNames: { "#z": "zip", "#m": "mode", "#sk": "skills", "#av": "availability" },
+      ExpressionAttributeValues: { ":z": zip, ":m": mode, ":sk": skills, ":av": availability },
+    }),
+  );
+  revalidatePath(`/dashboard/volunteers/${id}`);
+  revalidatePath("/dashboard/volunteers");
+  revalidatePath("/dashboard");
+}
+
 export async function addTask(formData: FormData) {
   await authorize("manageTasks");
   requireDb();
