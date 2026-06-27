@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { CAMPAIGN, VALUES, ASSETS_CDN } from "@/lib/site";
 import { ISSUES } from "@/lib/issues";
+import { CtaButton } from "@/components/CtaButton";
 
 export const metadata: Metadata = {
   title: "About Matt",
@@ -132,9 +133,9 @@ export default function AboutPage() {
           Like where Matt stands? Help put him in Congress.
         </h2>
         <div className="mt-7 flex flex-wrap justify-center gap-3">
-          <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
+          <CtaButton href={CAMPAIGN.donateUrl} external context="donate">
             Donate now
-          </a>
+          </CtaButton>
           <Link href="/contact" className="btn-ink">Volunteer</Link>
         </div>
       </section>

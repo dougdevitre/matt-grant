@@ -6,6 +6,7 @@ import { can } from "@/lib/rbac";
 import { myGiving } from "@/lib/donorStatus";
 import { dollars } from "@/lib/money";
 import { CAMPAIGN } from "@/lib/site";
+import { CtaButton } from "@/components/CtaButton";
 
 // The donor portal: a logged-in donor's PRIVATE view of their OWN giving — total,
 // gift count, and each contribution. Self-scoped to gate.email (myGiving reads only
@@ -81,7 +82,7 @@ export default async function MyGivingPage() {
           </div>
 
           <div className="mt-8">
-            <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">Give again</a>
+            <CtaButton href={CAMPAIGN.donateUrl} external context="donate">Give again</CtaButton>
             <Link href="/community" className="btn-ghost ml-3">Our Community</Link>
           </div>
         </>
@@ -91,9 +92,9 @@ export default async function MyGivingPage() {
           <p className="mt-1 text-sm text-slate">
             When you contribute, your gifts will appear here — usually right after our payment processor confirms them.
           </p>
-          <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary mt-4 inline-block">
+          <CtaButton href={CAMPAIGN.donateUrl} external context="donate" className="btn-primary mt-4">
             Donate
-          </a>
+          </CtaButton>
         </div>
       )}
     </div>

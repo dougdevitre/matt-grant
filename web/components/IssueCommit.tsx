@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { CAMPAIGN } from "@/lib/site";
+import { CtaButton } from "@/components/CtaButton";
 import { commitToIssue, type CommitResult } from "@/app/(site)/issues/actions";
 
 const WAYS = ["Share it with friends", "Talk to my neighbors", "Volunteer", "Host a conversation", "Chip in"];
@@ -19,7 +20,7 @@ export function IssueCommit({ slug, issueLabel }: { slug: string; issueLabel: st
         <p className="mt-3 text-sm text-slate">Here&apos;s how to make it count right now:</p>
         <div className="mt-5 flex flex-wrap gap-3">
           <Link href="/media" className="btn-ink">Get graphics &amp; captions</Link>
-          <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">Chip in</a>
+          <CtaButton href={CAMPAIGN.donateUrl} external context="donate">Chip in</CtaButton>
         </div>
       </div>
     );

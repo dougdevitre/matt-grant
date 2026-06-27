@@ -6,6 +6,7 @@ import { CAMPAIGN, SITE_URL } from "@/lib/site";
 import { IssueCommit } from "@/components/IssueCommit";
 import { IssueActionPlan } from "@/components/IssueActionPlan";
 import { IssueChecklist } from "@/components/IssueChecklist";
+import { CtaButton } from "@/components/CtaButton";
 
 export function generateStaticParams() {
   return issueSlugs.map((slug) => ({ slug }));
@@ -173,7 +174,7 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
                 Share on Facebook
               </a>
               <Link href="/media" className="btn-ghost">Graphics &amp; captions</Link>
-              <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">Donate</a>
+              <CtaButton href={CAMPAIGN.donateUrl} external context="donate">Donate</CtaButton>
             </div>
           </div>
         </div>

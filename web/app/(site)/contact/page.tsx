@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { ContactForm } from "@/components/ContactForm";
+import { CtaButton } from "@/components/CtaButton";
 import { CAMPAIGN, ASSETS_CDN } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -60,9 +61,9 @@ export default function ContactPage() {
               <p className="eyebrow text-goldlight">The fastest way to help</p>
               <h2 className="mt-2 font-display text-2xl font-semibold">Donate today.</h2>
               <p className="mt-2 text-paper/80">Funds doors, calls, and mail before {CAMPAIGN.electionLabel}.</p>
-              <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-gold mt-5 w-full">
+              <CtaButton href={CAMPAIGN.donateUrl} external context="donate" className="btn-gold mt-5 w-full">
                 Donate on WinRed
-              </a>
+              </CtaButton>
             </div>
           </div>
         </aside>
