@@ -1,8 +1,7 @@
-// Lightweight volunteer↔task fit scoring from the data we already have today:
-// the volunteer's stated interests, status, and current task load. No schema
-// change, no external calls — deterministic and unit-testable. Powers the
-// "Suggested" assignees on the task board. As volunteer records gain structured
-// skill/availability/ZIP (the Airtable taxonomy), extend scoreVolunteer here.
+// Volunteer↔task fit scoring. Combines the volunteer's interests, status, and
+// current load with their structured profile (mode, skills, ZIP/city) when set.
+// No external calls — deterministic and unit-testable. Powers the "Suggested"
+// assignees on the task board.
 import type { TaskRow, VolunteerRow } from "@/lib/queries";
 
 // Task title/category/detail keywords → the public interest tags volunteers pick
@@ -16,6 +15,21 @@ const KEYWORD_INTEREST: Array<[RegExp, string]> = [
   [/donat|fundrais|chip ?in|finance|treasur/i, "Donate"],
 ];
 
+// Task keywords → a required skill (matched against the volunteer's skills).
+const KEYWORD_SKILL: Array<[RegExp, string]> = [
+  [/driv|transport|\bride\b|deliver|haul/i, "Driving"],
+  [/writ|letter|\bnote\b|caption|copy|op-?ed|editor/i, "Writing"],
+  [/design|graphic|flyer|logo|canva/i, "Design"],
+  [/speak|forum|surrogate|present|emcee|debate/i, "Public speaking"],
+  [/spanish|bilingual|translat/i, "Bilingual"],
+  [/data|enter|crm|spreadsheet|votebuilder|minivan|dialer/i, "Tech"],
+  [/host|party|hospitality|greet|setup|clean ?up/i, "Hospitality"],
+];
+
+// Whether a task reads as in-person vs digital (for mode preference).
+const IN_PERSON = /door|canvass|knock|sign|yard|event|host|town ?hall|table|parade|poll|rally|literature|turf|walk|deliver|drive|ride/i;
+const DIGITAL = /call|phone|\btext\b|social|post|email|donat|graphic|caption|data ?entry|dialer|crm|share|remote/i;
+
 type TaskLike = Pick<TaskRow, "title" | "category" | "detail">;
 
 /** Interests a task implies, inferred from its title/category/detail. */
@@ -24,6 +38,23 @@ export function taskInterests(task: TaskLike): string[] {
   const out = new Set<string>();
   for (const [re, interest] of KEYWORD_INTEREST) if (re.test(hay)) out.add(interest);
   return [...out];
+}
+
+/** Skills a task implies (matched against the volunteer's skills). */
+export function taskSkills(task: TaskLike): string[] {
+  const hay = `${task.title} ${task.detail ?? ""} ${task.category}`;
+  const out = new Set<string>();
+  for (const [re, skill] of KEYWORD_SKILL) if (re.test(hay)) out.add(skill);
+  return [...out];
+}
+
+/** "In-person" | "Digital" | null — null when ambiguous (both or neither). */
+export function taskMode(task: TaskLike): "In-person" | "Digital" | null {
+  const hay = `${task.title} ${task.detail ?? ""} ${task.category}`;
+  const inP = IN_PERSON.test(hay);
+  const dig = DIGITAL.test(hay);
+  if (inP === dig) return null;
+  return inP ? "In-person" : "Digital";
 }
 
 export type Fit = { score: number; reasons: string[] };
@@ -61,6 +92,37 @@ export function scoreVolunteer(task: TaskLike, v: VolunteerRow, load = 0): Fit {
   if (load > 0) {
     score -= Math.min(load, 6) * 8;
     reasons.push(`${load} task${load === 1 ? "" : "s"} already`);
+  }
+
+  // Mode preference (digital vs in-person), when the task reads clearly and the
+  // volunteer stated a preference.
+  const tMode = taskMode(task);
+  if (tMode && v.mode) {
+    if (v.mode === "Either" || v.mode === tMode) {
+      score += 15;
+      reasons.push(`mode: ${tMode.toLowerCase()}`);
+    } else {
+      score -= 12;
+    }
+  }
+
+  // Skill match (structured profile).
+  const need = taskSkills(task);
+  const have = v.skills ?? [];
+  const matchedSkills = need.filter((s) => have.includes(s));
+  if (matchedSkills.length) {
+    score += 25 * matchedSkills.length;
+    reasons.push(`skill: ${matchedSkills.join(", ")}`);
+  }
+
+  // Geography — a light nudge when the task names the volunteer's ZIP/city.
+  const geoHay = `${task.title} ${task.detail ?? ""}`.toLowerCase();
+  if (v.zip && geoHay.includes(v.zip)) {
+    score += 12;
+    reasons.push("local (ZIP)");
+  } else if (v.city && v.city.length > 2 && geoHay.includes(v.city.toLowerCase())) {
+    score += 8;
+    reasons.push(`local: ${v.city}`);
   }
 
   return { score, reasons };
