@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import type { NavGroup } from "@/lib/site";
 import { mainHref } from "@/lib/site";
+import { ctaThumbForHref } from "@/lib/cta-images";
+import { CtaThumb } from "@/components/CtaThumb";
 
 // Accessible desktop dropdown for one nav group. Opens on hover AND on
 // keyboard/click (aria-expanded + aria-haspopup); closes on Escape, on
@@ -80,16 +82,18 @@ export function NavMenu({
         >
           {group.children.map((child) => {
             const childActive = pathname === child.href || pathname.startsWith(`${child.href}/`);
+            const thumb = ctaThumbForHref(child.href);
             return (
               <Link
                 key={child.href}
                 href={mainHref(child.href, onSubdomain)}
                 onClick={() => setOpen(false)}
-                className={`block px-4 py-2 text-sm font-semibold transition-colors hover:bg-line/40 hover:text-ink ${
+                className={`flex items-center gap-2.5 px-4 py-2 text-sm font-semibold transition-colors hover:bg-line/40 hover:text-ink ${
                   childActive ? "text-ink" : "text-slate"
                 }`}
               >
-                {child.label}
+                {thumb && <CtaThumb thumb={thumb} size={22} className="ring-1 ring-line" />}
+                <span>{child.label}</span>
               </Link>
             );
           })}

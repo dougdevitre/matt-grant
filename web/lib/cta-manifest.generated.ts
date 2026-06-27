@@ -7,6 +7,20 @@ export const CTA_THUMBS = {
     "h": 144,
     "avif": "/cta/donate-144.avif",
     "webp": "/cta/donate-144.webp"
+  },
+  "act": {
+    "alt": "Take action with Matt Grant",
+    "w": 144,
+    "h": 144,
+    "avif": "/cta/act-144.avif",
+    "webp": "/cta/act-144.webp"
+  },
+  "issues": {
+    "alt": "Matt Grant's priorities for Missouri",
+    "w": 144,
+    "h": 144,
+    "avif": "/cta/issues-144.avif",
+    "webp": "/cta/issues-144.webp"
   }
 } as const satisfies Record<string, CtaThumb>;
 export type CtaThumbKey = keyof typeof CTA_THUMBS;

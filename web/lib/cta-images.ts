@@ -10,13 +10,19 @@ import { CTA_THUMBS, type CtaThumb, type CtaThumbKey } from "./cta-manifest.gene
 // There is never a broken image; adding an image is purely additive.
 const CTA_IMAGE_BY_CONTEXT: Partial<Record<string, CtaThumbKey>> = {
   donate: "donate",
-  // Phase 2 — generate these in scripts/cta-images.mjs, then uncomment:
-  // act: "act",
-  // issues: "issues",
+  act: "act",
+  issues: "issues",
 };
 
 export function ctaThumb(context?: string): CtaThumb | null {
   if (!context) return null;
   const key = CTA_IMAGE_BY_CONTEXT[context];
   return (key && CTA_THUMBS[key]) || null;
+}
+
+// Derives a context key from a route so nav links can opt into a thumbnail
+// without hardcoding the mapping at every call site: "/act" → "act",
+// "/issues" → "issues", "/vote/absentee" → "vote" (no image → text-only).
+export function ctaThumbForHref(href: string): CtaThumb | null {
+  return ctaThumb(href.split("/").filter(Boolean)[0]);
 }
