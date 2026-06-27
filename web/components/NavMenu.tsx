@@ -6,6 +6,7 @@ import type { NavGroup } from "@/lib/site";
 import { mainHref } from "@/lib/site";
 import { ctaThumbForHref } from "@/lib/cta-images";
 import { CtaThumb } from "@/components/CtaThumb";
+import { NavIcon } from "@/components/NavIcon";
 
 // Accessible desktop dropdown for one nav group. Opens on hover AND on
 // keyboard/click (aria-expanded + aria-haspopup); closes on Escape, on
@@ -60,10 +61,11 @@ export function NavMenu({
         aria-expanded={open}
         aria-controls={menuId}
         onClick={() => setOpen((v) => !v)}
-        className={`relative flex items-center gap-1 text-sm font-semibold transition-colors hover:text-ink ${
+        className={`relative flex items-center gap-1.5 text-sm font-semibold transition-colors hover:text-ink ${
           active ? "text-ink" : "text-slate"
         }`}
       >
+        <NavIcon id={group.icon} className="h-[18px] w-[18px]" />
         {group.label}
         <svg
           aria-hidden="true"
