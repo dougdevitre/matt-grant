@@ -9,11 +9,12 @@
 // READ path. See lib/events.ts where listUpcomingEvents/getEvent delegate here.
 import { getSecret } from "@/lib/ssm";
 import { isEventType, type EventRow, type EventType } from "@/lib/events/types";
+import { AIRTABLE_BASES } from "@/lib/airtable/registry";
 
-// Base/table default to the campaign's "Matt Grant for Congress — Volunteer
-// Engagement" base + Events table; override via env if they ever move.
-const BASE_ID = process.env.AIRTABLE_BASE_ID || "appAmtan3qWZE7iGR";
-const TABLE_ID = process.env.AIRTABLE_EVENTS_TABLE_ID || "tblujaq4mmzZdfR3s";
+// Volunteer Engagement base + Events table, from the central registry; override
+// via env if they ever move. One workspace token reads every base.
+const BASE_ID = process.env.AIRTABLE_BASE_ID || AIRTABLE_BASES.volunteer.id;
+const TABLE_ID = process.env.AIRTABLE_EVENTS_TABLE_ID || AIRTABLE_BASES.volunteer.tables.events;
 
 // Airtable "Event Type" single-select → repo EventType. Anything unmapped → "other".
 const TYPE_MAP: Record<string, EventType> = {
