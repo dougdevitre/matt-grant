@@ -7,6 +7,7 @@ import {
   isEventType, isEventStatus,
   type EventType, type EventStatus, type EventLocation, type Signup, type EventStaffer, type EventPriority, type EventChecklistItem, type EventRow, type PublicEvent, type EventInput, type EventNotifyResult,
 } from "@/lib/events/types";
+import { airtableEventsConfigured, listUpcomingEventsFromAirtable, getEventFromAirtable } from "@/lib/events/airtable";
 
 // Campaign events / appearances. One DynamoDB partition (PK="EVENT") with
 // SK=`${startISO}#${id}` so a Query returns them in chronological order and an
@@ -145,6 +146,12 @@ async function findRaw(id: string): Promise<Record<string, unknown> | null> {
 }
 
 export async function getEvent(id: string): Promise<EventRow | null> {
+  // When Airtable drives the public site, record ids are Airtable rec ids — resolve
+  // there first so /events/[id] detail pages work; fall back to the DynamoDB store.
+  if (await airtableEventsConfigured()) {
+    const fromAirtable = await getEventFromAirtable(id);
+    if (fromAirtable) return fromAirtable;
+  }
   const raw = await findRaw(id);
   return raw ? rawToRow(raw) : null;
 }
@@ -164,6 +171,9 @@ export async function listEvents(): Promise<{ connected: boolean; rows: EventRow
 
 // Upcoming events via a key-range query (SK >= now). publishedOnly for the public page.
 export async function listUpcomingEvents(opts?: { limit?: number; publishedOnly?: boolean }): Promise<EventRow[]> {
+  // Airtable is the public source of truth when configured (staff edit it no-code);
+  // otherwise fall back to the DynamoDB event store. Same EventRow shape either way.
+  if (await airtableEventsConfigured()) return listUpcomingEventsFromAirtable(opts);
   if (!dbConfigured) return [];
   try {
     const now = new Date().toISOString();
