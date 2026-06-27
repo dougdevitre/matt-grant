@@ -11,6 +11,11 @@ export const metadata: Metadata = {
   description: "The four fights Matt Grant is running on for Missouri's 2nd District: family-court reform, term limits, a smaller government, and lower taxes.",
 };
 
+// Make the ISR contract explicit: regenerate the page (incl. the approved-topics
+// board) at most every 5 minutes, independent of the inner fetch's revalidate
+// tag. So a topic approved in Airtable goes public within ~5 min.
+export const revalidate = 300;
+
 export default function IssuesPage() {
   return (
     <section className="container-page py-16 sm:py-24">
