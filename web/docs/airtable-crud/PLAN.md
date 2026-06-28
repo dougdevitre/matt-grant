@@ -77,17 +77,27 @@ Table: `Submissions` (`tbl63kV5OGFj5bD6c`, renamed from "Table 1").
 | `/dashboard` moderation (new) | dashboard | (moderated in Airtable UI) | R(all), U(Status/Details), D(spam) |
 
 - [x] Rename `Table 1` → `Submissions`
-- [x] Create `Front-End Access` control table in Issues base
-- [ ] Seed `Front-End Access` rows for Submissions (public + dashboard)
-- [ ] `client.ts` + `access.ts` foundation
-- [ ] Route public create/read through `access.ts`
-- [ ] Dashboard moderation queue (R/U/D) wired through the guarded route
+- [x] Create `Front-End Access` control table in Issues base + seed rows (public C+R; dashboard R+U+D)
+- [x] `client.ts` + `access.ts` foundation
+- [x] Route public create/read through `access.ts`
+- [x] Dashboard moderation queue (R/U/D): `/dashboard/issues` + actions + IssueModeration component;
+      `moderateIssues` capability (admin+captain) + sidebar link
 
-## Phase 2 — Master Database (`apptae7sUEwqFO2tX`)
+## Phase 2 — Master Database (`apptae7sUEwqFO2tX`) — DONE in code
 
-Table: Influential Voters (`tblBcd7uz3WLHzce2`). Read-only today on `/dashboard/influencers`.
-Target: R + U (Outreach Stage, Owner, Next Action, Follow-up Date, Outcome, Alignment, Notes), C, optional D.
-`Editable Fields` keeps writes scoped to the outreach pipeline, not the synced mailing data.
+Table: Influential Voters (`tblBcd7uz3WLHzce2`).
+
+- [x] `Front-End Access` control table (`tblcgIpv6EJgfuR1Y`) + row: `Influential Voters · dashboard`
+      = Read + Update; `Editable Fields` = Outreach Stage, Owner, Next Action, Follow-up Date, Outcome,
+      Alignment, Notes (synced mailing data stays read-only). Create/Delete off.
+- [x] Registry `accessTable` for masterDb.
+- [x] `lib/influencers/airtable.ts` refactored onto client+access; read gated; `updateInfluencer()`
+      gated by dashboard Update + `filterEditableFields`. Option lists in client-safe
+      `lib/influencers/edit-options.ts` (avoids dragging server-only into the client bundle).
+- [x] `manageInfluencers` capability (admin+captain); inline-edit UI in `InfluencerTable` +
+      `app/dashboard/influencers/actions.ts`. Editing needs the cap AND the control-table Update toggle.
+
+Future option: enable Create/Delete (add contacts / remove) by checking those boxes + adding the UI.
 
 ## Phase 3 — Social Media (`appwrqSIsxaZ9Ltun`) — greenfield
 

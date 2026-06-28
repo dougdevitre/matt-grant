@@ -17,6 +17,7 @@
 export const AIRTABLE_BASES = {
   masterDb: {
     id: "apptae7sUEwqFO2tX",
+    accessTable: "tblcgIpv6EJgfuR1Y",
     tables: { influentialVoters: "tblBcd7uz3WLHzce2" },
   },
   volunteer: {
