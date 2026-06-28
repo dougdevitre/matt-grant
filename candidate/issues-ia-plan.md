@@ -84,4 +84,4 @@ Extend the current `PRIORITIES` into a richer typed structure (keep `id`/slug, `
 - **P2:** the other three child pages + the `/issues` index.
 - **P3:** rewire nav + home cards + trim the About page (+ redirect).
 
-_Paid for by the Matt Grant for Congress Committee._
+_Paid for by Matt Grant for Congress._

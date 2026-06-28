@@ -43,4 +43,4 @@ Paste me these and I'll load SSM + Amplify + redeploy + verify — no dashboards
 5. **Walgreens affId** when it arrives.
 6. **WinRed webhook** + **Clerk prod/domain** as larger follow-ups.
 
-_Paid for by the Matt Grant for Congress Committee._
+_Paid for by Matt Grant for Congress._

@@ -85,6 +85,6 @@ The palette mirrors `web/lib/theme.ts` (single source of truth). If the site pal
 
 ## Notes
 
-- Letterhead facts (committee name, address, phone, email, tagline, promise) are constants at the top of `brand_letter.py`. The compliant *"Paid for by the Matt Grant for Congress Committee."* footer prints on every page.
+- Letterhead facts (committee name, address, phone, email, tagline, promise) are constants at the top of `brand_letter.py`. The compliant *"Paid for by Matt Grant for Congress."* footer prints on every page.
 - Output PDFs are build artifacts and are not committed.
 - Content is values- and action-based and should stay faithful to `candidate/profile.md` and `candidate/platform.md` — do not add positions, claims, numbers, or endorsements beyond the documented facts.

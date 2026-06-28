@@ -8,7 +8,7 @@ We're asking voters to trust Matt Grant with their voice in Congress. Trust star
 
 ## Who runs this site, and who pays for it
 
-This website and its communications are produced and paid for by the **Matt Grant for Congress Committee**, the principal campaign committee for Matt Grant's candidacy for the U.S. House of Representatives, Missouri's 2nd District, in the August 4, 2026 primary. Every public communication carries the line **"Paid for by the Matt Grant for Congress Committee."**
+This website and its communications are produced and paid for by the **Matt Grant for Congress Committee**, the principal campaign committee for Matt Grant's candidacy for the U.S. House of Representatives, Missouri's 2nd District, in the August 4, 2026 primary. Every public communication carries the line **"Paid for by Matt Grant for Congress."**
 
 ## How we're funded and how we report it
 
@@ -37,5 +37,5 @@ We will not engage in voter suppression, disinformation, fake endorsements, astr
 
 ---
 
-*Paid for by the Matt Grant for Congress Committee.*
-*701 Market Street, Suite 110, PMB 1709, St. Louis, MO 63101 · mattgrantforcongress@gmail.com · (314) 255-7760*
+*Paid for by Matt Grant for Congress.*
+*1625 Mason Knoll Rd, St. Louis, MO 63131 · mattgrantforcongress@gmail.com · (314) 255-7760*

@@ -204,4 +204,4 @@ window is compressed — Foundation/Building work runs in parallel and ships fas
 > Secretary of State for ballot access) for guidance specific to your situation. All quantitative
 > figures in this plan are illustrative planning placeholders, not predictions or real data.
 
-_Paid for by the Matt Grant for Congress Committee._
+_Paid for by Matt Grant for Congress._

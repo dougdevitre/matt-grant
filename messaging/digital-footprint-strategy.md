@@ -61,7 +61,7 @@ Domination is as much about *not* shipping weak posts as shipping strong ones. T
 - **Hashtags** — within the recommended range and under the platform cap.
 - **CTA** — one clear ask is present.
 - **Media** — an image is attached (posts with media reach further).
-- **Compliance** — the FEC **"Paid for by the Matt Grant for Congress Committee"** line is present. An on-brand graphic carries it automatically; on character-limited formats the FEC's *Adapted Disclaimer* (shortened sponsor ID + link to the full disclaimer) applies. *(Verified 2026-06-22 against fec.gov.)*
+- **Compliance** — the FEC **"Paid for by Matt Grant for Congress"** line is present. An on-brand graphic carries it automatically; on character-limited formats the FEC's *Adapted Disclaimer* (shortened sponsor ID + link to the full disclaimer) applies. *(Verified 2026-06-22 against fec.gov.)*
 
 ---
 

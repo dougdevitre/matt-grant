@@ -106,4 +106,4 @@ originals keep their names under `private/raw/` and get clean names only when pr
 - **School data + shapefiles** — `private/data/` (recommended; staff-only) or public for the map?
 - **The "without logo" deck PDF** (6.3 MB) — `private/raw/` master only, or also a public download?
 
-_Paid for by the Matt Grant for Congress Committee._
+_Paid for by Matt Grant for Congress._

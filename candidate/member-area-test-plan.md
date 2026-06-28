@@ -76,4 +76,4 @@ Run on the live site (`…amplifyapp.com`). Expected results in **bold**.
   **supporter** member tier (volunteers log in for toolkits/streaks), that's a separate, open-sign-up
   experience — happy to plan it.
 
-_Paid for by the Matt Grant for Congress Committee._
+_Paid for by Matt Grant for Congress._
