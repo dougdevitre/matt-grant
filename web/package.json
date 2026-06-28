@@ -19,7 +19,8 @@
     "test:a11y": "playwright test",
     "compliance": "node scripts/compliance-check.mjs",
     "check:election": "node scripts/check-election-date.mjs",
-    "airtable:drift": "tsx scripts/check-airtable-access.ts"
+    "airtable:drift": "tsx scripts/check-airtable-access.ts",
+    "games:content-lint": "tsx scripts/games-content-lint.ts"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.700.0",
