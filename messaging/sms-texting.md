@@ -163,6 +163,84 @@ Run through this before every campaign send. This combines federal telemarketing
 
 ---
 
+## 5. Website Opt-In Form Copy
+
+Drop-in copy for an SMS sign-up form on the campaign website. The consent checkbox reuses the one-line opt-in notice from Section 2 — do not write a second version; keep the two identical so your displayed consent language matches what you record.
+
+### Form layout
+
+```
+[ HEADING ]      Get text updates from Matt Grant for Congress
+
+[ SUBHEAD ]      Be the first to hear about events, volunteer days, and
+                 ways to help win MO-02.
+
+[ FIELD ]        First name        [____________]
+[ FIELD ]        Mobile number     [____________]
+
+[ CHECKBOX ]     [ ] (use the Section 2 opt-in notice, verbatim)
+
+[ BUTTON ]       Sign me up
+```
+
+### Microcopy
+
+| Element | Copy |
+|---|---|
+| Checkbox helper (under the box) | Required to receive texts. You can reply STOP anytime. |
+| Submit button | Sign me up |
+| Success / confirmation state | Thanks! Watch for a text from Matt Grant for Congress to confirm. Reply YES to start receiving updates. |
+| Error (no consent checked) | Please check the box to agree to receive campaign texts. |
+| Error (invalid number) | Please enter a valid U.S. mobile number. |
+
+**Implementation notes:** Keep the consent checkbox **unchecked by default** (no pre-ticked boxes). Capture and store the consent timestamp, the exact notice text shown, and the form URL with each submission (see Section 2 recordkeeping). Consent must not be a condition of donating, so do not place this checkbox inside the donation flow as a requirement.
+
+---
+
+## 6. Keyword Auto-Responder Sequence
+
+A double opt-in keyword flow for the toll-free number. New subscribers text a keyword to join, confirm once, then receive a welcome. STOP and HELP behavior is defined in Sections 3-4 — wire those existing replies in rather than authoring new ones.
+
+```mermaid
+flowchart TD
+    A[Person texts JOIN to the number] --> B[Send confirmation request]
+    B --> C{Reply YES?}
+    C -->|Yes| D[Mark consent + send Welcome message]
+    C -->|No reply / other| E[Do not subscribe; no further texts]
+    D --> F[Subscriber receives campaign updates]
+    F --> G{Replies STOP?}
+    G -->|Yes| H[Honor opt-out -- see Sections 3-4]
+```
+
+### Keyword definitions
+
+| Keyword | Action | Auto-reply |
+|---|---|---|
+| `JOIN` (or `MATT`) | Start double opt-in | Confirmation request (below) |
+| `YES` | Confirm subscription | Welcome message (below) |
+| `HELP` | Return contact info | Use the HELP auto-reply in Section 3 |
+| `STOP` | Unsubscribe | Honor immediately + permanent suppression (Section 4) |
+
+### Confirmation request (sent after JOIN)
+
+```
+Matt Grant for Congress: Reply YES to confirm you want recurring campaign
+texts. Msg & data rates may apply. Reply HELP for help, STOP to cancel.
+Paid for by Matt Grant for Congress.
+```
+
+### Welcome message (sent after YES)
+
+```
+Welcome to Team Matt Grant! You'll get updates on events, volunteering,
+and our campaign for MO-02. Get involved: [link]. Paid for by Matt Grant
+for Congress. Reply STOP to opt out.
+```
+
+**Notes:** Only mark a number as consented after the explicit YES confirmation — texting JOIN alone is the request, not the consent of record. Log the keyword, the inbound timestamp, and the confirmation reply for your opt-in records.
+
+---
+
 ## Cross-References
 
 - `tools/disclaimer-generator.md` — Full "Paid for by" disclaimer rules across every medium, including SMS/MMS.
