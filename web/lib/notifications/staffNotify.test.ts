@@ -7,6 +7,8 @@ vi.mock("@/lib/email/send", () => ({ sendEmail: (...a: unknown[]) => sendEmail(.
 const listStaff = vi.fn();
 vi.mock("@/lib/staff", () => ({ listStaff: () => listStaff() }));
 vi.mock("@/lib/auth", () => ({ STAFF_ALLOWLIST: ["boss@x.com"] }));
+const emailsMuting = vi.fn();
+vi.mock("@/lib/notifications/prefs", () => ({ emailsMuting: (...a: unknown[]) => emailsMuting(...a) }));
 
 import {
   notifyModeratorsNewIssue,
@@ -30,6 +32,7 @@ const toOf = (i = 0) => {
 beforeEach(() => {
   sendEmail.mockReset().mockResolvedValue({ sent: true });
   listStaff.mockReset().mockResolvedValue(STAFF);
+  emailsMuting.mockReset().mockResolvedValue(new Set()); // nobody opted out by default
 });
 
 describe("role-targeted staff notifications", () => {
@@ -60,6 +63,19 @@ describe("role-targeted staff notifications", () => {
   it("no recipients → no send", async () => {
     listStaff.mockResolvedValue([]); // no captains, and captain notify doesn't use the allowlist
     await notifyCaptainsNewVolunteer({ name: "X" });
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("drops a recipient who opted out of that notification type", async () => {
+    emailsMuting.mockResolvedValue(new Set(["cap@x.com"])); // captain muted issue_moderation
+    await notifyModeratorsNewIssue({ topic: "x" });
+    expect(emailsMuting).toHaveBeenCalledWith("issue_moderation");
+    expect(toOf()).toEqual(["admin@x.com", "boss@x.com"]); // captain filtered out
+  });
+
+  it("does not send when every recipient has opted out", async () => {
+    emailsMuting.mockResolvedValue(new Set(["cap@x.com"]));
+    await notifyCaptainsNewVolunteer({ name: "Dana" }); // only captain is a recipient
     expect(sendEmail).not.toHaveBeenCalled();
   });
 
