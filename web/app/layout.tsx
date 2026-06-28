@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { clerkEnabled } from "@/lib/auth";
 import { CAMPAIGN } from "@/lib/site";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { ErrorReporter } from "@/components/ErrorReporter";
 import "./globals.css";
 
 const display = Fraunces({
@@ -65,6 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
       <body>
         {children}
+        <ErrorReporter />
         {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
       </body>
     </html>
