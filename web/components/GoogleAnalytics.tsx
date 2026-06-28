@@ -26,6 +26,8 @@ export function GoogleAnalytics({ gaId }: { gaId: string }) {
       isFirst.current = false; // landing page_view is sent by gtag config
       return;
     }
+    // Keep staff dashboard traffic out of the campaign's analytics.
+    if (pathname.startsWith("/dashboard")) return;
     const w = window as Window & { gtag?: (...args: unknown[]) => void };
     if (typeof w.gtag !== "function") return;
     w.gtag("event", "page_view", {
@@ -35,12 +37,16 @@ export function GoogleAnalytics({ gaId }: { gaId: string }) {
     });
   }, [pathname]);
 
+  // Don't load GA at all on dashboard routes (e.g. a staff member landing there).
+  if (pathname.startsWith("/dashboard")) return null;
+
   return (
     <>
       <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="afterInteractive" />
       <Script id="ga4-init" strategy="afterInteractive">
         {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
+gtag('consent', 'default', {ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'granted'});
 gtag('js', new Date());
 gtag('config', '${gaId}');`}
       </Script>
