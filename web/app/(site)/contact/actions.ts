@@ -11,6 +11,7 @@ import { toE164 } from "@/lib/sms/send";
 import { recordConsent } from "@/lib/sms/consent";
 import { saveProfile, cleanZip } from "@/lib/profile";
 import { notifyCaptainsNewVolunteer } from "@/lib/notifications/staffNotify";
+import { mirrorVolunteerToAirtable } from "@/lib/volunteers/airtable";
 
 export type ContactResult = { ok: boolean; message: string };
 
@@ -97,10 +98,11 @@ export async function submitContact(_prev: ContactResult | null, formData: FormD
       : newId();
   const now = new Date().toISOString();
   try {
-    await ddb.send(
+    const res = await ddb.send(
       new UpdateCommand({
         TableName: TABLE,
         Key: { PK: PK.volunteers, SK: dedupeKey },
+        ReturnValues: "ALL_NEW",
         // Latest submission wins for contact details; status + createdAt are set
         // once and never reset — an ACTIVE volunteer who re-submits stays ACTIVE.
         UpdateExpression:
@@ -143,6 +145,38 @@ export async function submitContact(_prev: ContactResult | null, formData: FormD
       } catch {
         /* best-effort */
       }
+    }
+    // Mirror the lead into the Airtable Volunteers roster so contact-form signups
+    // appear there too (not just /join). Door "Get Updates" (the neutral floor);
+    // upsert on the stored Airtable id to avoid duplicate rows. Best-effort.
+    const existingAirtableId = (res.Attributes?.airtableId as string) ?? null;
+    const mirrorMessage = [interests ? `Interested in: ${interests}` : "", message].filter(Boolean).join("\n\n");
+    const mirroredId = await mirrorVolunteerToAirtable(
+      {
+        name,
+        email,
+        phone,
+        city,
+        zip,
+        door: "Get Updates",
+        smsOptIn,
+        message: mirrorMessage || undefined,
+        source,
+        signedUpDate: now.slice(0, 10),
+      },
+      existingAirtableId,
+    ).catch(() => null);
+    if (mirroredId && mirroredId !== existingAirtableId) {
+      await ddb
+        .send(
+          new UpdateCommand({
+            TableName: TABLE,
+            Key: { PK: PK.volunteers, SK: dedupeKey },
+            UpdateExpression: "SET airtableId = :aid",
+            ExpressionAttributeValues: { ":aid": mirroredId },
+          }),
+        )
+        .catch(() => {});
     }
     await notify({ name, email, phone, city, interests, message });
     return { ok: true, message: "Thank you! The campaign will be in touch soon. Onward to August 4." };
