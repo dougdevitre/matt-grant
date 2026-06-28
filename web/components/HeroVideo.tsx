@@ -28,7 +28,7 @@ export function HeroVideo() {
       muted
       loop
       playsInline
-      preload="auto"
+      preload="metadata"
       aria-hidden
     >
       <source src={SRC} type="video/mp4" />

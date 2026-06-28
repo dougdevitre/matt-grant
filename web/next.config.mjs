@@ -22,6 +22,11 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    // Emit AVIF (then WebP) — without this Next serves only WebP, leaving the
+    // "next-gen formats" savings on the table for the homepage infographic,
+    // portraits, the arch, and every other next/image across the site. The
+    // optimizer (sharp) negotiates per request and caches the result.
+    formats: ["image/avif", "image/webp"],
     // Allow next/image to optimize the public brand assets served from CloudFront.
     remotePatterns: [{ protocol: "https", hostname: "d5jzyan9wboi3.cloudfront.net" }],
   },
