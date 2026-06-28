@@ -13,6 +13,14 @@ applications:
             # docs/compliance-baseline.md. Runs in web/ (appRoot). Educational
             # automation, not legal advice.
             - npm run compliance
+            # Airtable governance drift gate: verifies each base's "Front-End Access"
+            # control table still matches what the app was built against (lib/airtable/
+            # governance-manifest.ts). Catches the silent fail-closed kind of breakage —
+            # a renamed/deleted control row, a flipped checkbox, or a base dropped from
+            # the PAT allowlist. Resilient: no AIRTABLE_API_KEY or a transient/network
+            # error → WARNS and exits 0 (won't block a deploy on Airtable availability);
+            # only genuine drift or an auth/permission error fails the build.
+            - npm run airtable:drift
             # Deploy gate: typecheck. Amplify deploys on push regardless of GitHub
             # CI status, and `next build` does NOT typecheck .test.ts — so a tsc
             # error can otherwise reach prod (this bit us once: a semantic merge

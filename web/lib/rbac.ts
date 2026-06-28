@@ -96,6 +96,8 @@ export type Capability =
   | "draftSms" // compose SMS broadcasts (captain may draft)
   | "messageIndividuals" // 1:1 SMS inbox: text individuals, reply, moderate, register texters
   | "manageEvents" // event calendar: create/edit/publish appearances (publish fires email+SMS)
+  | "moderateIssues" // issue board: read all submissions, approve/reject/edit, delete spam
+  | "manageInfluencers" // influencer worklist: edit outreach pipeline (stage/outcome/next action/etc.)
   // admin only
   | "editFinance"
   | "viewDonorDetail" // full donor list incl. PII / editing
@@ -131,6 +133,8 @@ const MATRIX: Record<Role, Capability[]> = {
     "draftSms",
     "messageIndividuals",
     "manageEvents",
+    "moderateIssues",
+    "manageInfluencers",
     "editFinance",
     "viewDonorDetail",
     "viewCompliance",
@@ -158,6 +162,8 @@ const MATRIX: Record<Role, Capability[]> = {
     "draftSms",
     "messageIndividuals",
     "manageEvents",
+    "moderateIssues",
+    "manageInfluencers",
     "viewPeaceRoom",
     "contributePeaceRoom",
     "viewCommunity",

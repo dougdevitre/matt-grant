@@ -3,6 +3,7 @@ import { suggestVolunteers } from "@/lib/matching";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { addTask, setTaskStatus, setTaskVolunteer } from "@/app/dashboard/actions";
 import { listTaskTemplates } from "@/lib/task-templates";
+import { requireCap } from "@/lib/auth";
 
 const COLUMNS = [
   { key: "TODO", label: "To do", next: "DOING", nextLabel: "Start →" },
@@ -19,6 +20,7 @@ const catColor: Record<string, string> = {
 };
 
 export default async function TasksPage() {
+  await requireCap("manageTasks");
   const [{ connected, rows }, vols] = await Promise.all([getTasks(), getVolunteers()]);
   const volunteers = vols.rows;
   // Current task load per volunteer + best-fit suggestions for each open,
