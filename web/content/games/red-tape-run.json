@@ -1,0 +1,62 @@
+{
+  "copy": {
+    "gameId": "red-tape-run",
+    "issueSlug": "family-courts",
+    "eyebrow": "Children First",
+    "title": "Red Tape Run",
+    "tagline": "Dodge the procedural abuse. Grab the reforms. Get kids a fair shot.",
+    "howTo": [
+      "Run the family-court gauntlet — tap or press Space to jump.",
+      "Jump over the procedural abuses; each hit chips your integrity.",
+      "Stay on the ground to grab reforms — accountability and transparency.",
+      "Spam-jump and you miss the reforms; never jump and the abuses grind you down."
+    ],
+    "itemLabels": {
+      "abuse": [
+        "Endless continuance",
+        "Sealed docket",
+        "Conflict of interest",
+        "Lost filing",
+        "Gatekeeping motion",
+        "Pay-to-play fee",
+        "Runaround",
+        "Red tape"
+      ],
+      "reform": [
+        "Open record",
+        "Oversight",
+        "Transparency",
+        "Clean docket",
+        "Accountability"
+      ]
+    },
+    "endLines": [
+      "Dodge the abuse, pick up the reforms.",
+      "Accountability and transparency get kids a fair hearing.",
+      "Vigilance, not red tape."
+    ],
+    "shareText": "I dodged the procedural abuse and grabbed the reforms in Red Tape Run — accountability for family courts. Beat my score."
+  },
+  "config": {
+    "roundTicks": 1350,
+    "scrollSpeed": 6,
+    "integrityStart": 100,
+    "hitDamage": 20,
+    "jumpVelocity": 22,
+    "gravity": 2,
+    "clearHeight": 40,
+    "grabHeight": 15,
+    "minGap": 70,
+    "maxGap": 150,
+    "items": {
+      "abuse": { "weight": 5 },
+      "reform": { "weight": 4 }
+    },
+    "scoring": {
+      "reformValue": 1200,
+      "clearBonus": 700,
+      "survivalPerTick": 8,
+      "combo": { "stepEvery": 4, "stepValue": 0.25, "maxSteps": 4 }
+    }
+  }
+}

@@ -10,7 +10,7 @@ import { z } from "zod";
 // lib/site.ts (the single source of truth the compliance gate enforces), so there is
 // no hard-coded disclaimer literal here to drift.
 
-export const GAME_IDS = ["cut-and-save", "org-chart", "rotation", "clarity-companion"] as const;
+export const GAME_IDS = ["cut-and-save", "org-chart", "rotation", "clarity-companion", "red-tape-run"] as const;
 export type GameId = (typeof GAME_IDS)[number];
 
 // Reject "Judge Smith", "Hon. Doe", "Honorable Roberts" and bare proper-name pairs in

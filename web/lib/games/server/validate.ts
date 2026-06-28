@@ -3,6 +3,7 @@ import { buildCutAndSave, cutSaveConfig, type CutSaveInput } from "@/lib/games/c
 import { buildOrgChart, orgChartConfig, type OrgChartInput } from "@/lib/games/org-chart";
 import { buildRotation, rotationConfig, type RotationInput } from "@/lib/games/rotation";
 import { buildClarityCompanion, clarityConfig, type ClarityInput } from "@/lib/games/clarity-companion";
+import { buildRedTapeRun, redTapeRunConfig, type RedTapeRunInput } from "@/lib/games/red-tape-run";
 
 // Server-side score validation = the SAME replay() the client ran, re-run from
 // (seed, inputs). If the recomputed total doesn't match what the client reported
@@ -48,6 +49,14 @@ const VALIDATORS: Record<string, Validator> = {
       seed,
       inputs as InputEvent<ClarityInput>[],
       clarityConfig.roundTicks,
+    ).score,
+  "red-tape-run": (seed, inputs) =>
+    replay(
+      buildRedTapeRun(),
+      redTapeRunConfig,
+      seed,
+      inputs as InputEvent<RedTapeRunInput>[],
+      redTapeRunConfig.roundTicks,
     ).score,
 };
 
