@@ -39,13 +39,16 @@ export const GAMES: GameMeta[] = [
     blurb: "Rotate at the service sweet spot — too early wastes ramp, too late is careerism.",
     enabled: true,
   },
+  // Red Tape Run takes the Children First slot. It replaces the earlier "Clarity
+  // Companion" record-triage concept (retired — its lib code remains for reference but
+  // it's off the menu and its route is removed).
   {
-    id: "clarity-companion",
-    title: "Clarity Companion",
+    id: "red-tape-run",
+    title: "Red Tape Run",
     issue: "Children First",
     issueSlug: "family-courts",
-    blurb: "Open the public record, protect the child — transparency and privacy together.",
-    enabled: false,
+    blurb: "Dodge the procedural abuses in family court and grab the reforms — a fair shot for kids.",
+    enabled: true,
   },
 ];
 
