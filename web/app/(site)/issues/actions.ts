@@ -10,6 +10,7 @@ import { CAMPAIGN } from "@/lib/site";
 import { toE164 } from "@/lib/sms/send";
 import { recordConsent } from "@/lib/sms/consent";
 import { createSubmission, issueBoardConfigured } from "@/lib/issue-board/airtable";
+import { notifyModeratorsNewIssue, notifyCaptainsNewVolunteer } from "@/lib/notifications/staffNotify";
 
 export type CommitResult = { ok: boolean; message: string };
 
@@ -74,6 +75,8 @@ export async function commitToIssue(_prev: CommitResult | null, formData: FormDa
       /* lead saved even if the welcome email fails */
     }
   }
+  // Alert captains to follow up with the new volunteer (best-effort).
+  await notifyCaptainsNewVolunteer({ name, email, interests });
 
   return { ok: true, message: `You're in — thank you for standing with Matt on ${issueLabel}.` };
 }
@@ -188,6 +191,8 @@ export async function submitTopic(_prev: TopicResult | null, formData: FormData)
       /* best-effort */
     }
   }
+  // 4) Alert the moderators (admins + captains) by role so the queue gets worked (best-effort).
+  await notifyModeratorsNewIssue({ topic, name, city });
 
   return { ok: true, message: "Thank you — your topic was submitted for review. We read every one before it's posted." };
 }
