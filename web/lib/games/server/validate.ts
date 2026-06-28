@@ -1,5 +1,6 @@
 import { replay, type InputEvent, type ScoreBreakdown } from "@/lib/games/engine";
 import { buildCutAndSave, cutSaveConfig, type CutSaveInput } from "@/lib/games/cut-and-save";
+import { buildOrgChart, orgChartConfig, type OrgChartInput } from "@/lib/games/org-chart";
 
 // Server-side score validation = the SAME replay() the client ran, re-run from
 // (seed, inputs). If the recomputed total doesn't match what the client reported
@@ -21,6 +22,14 @@ const VALIDATORS: Record<string, Validator> = {
       seed,
       inputs as InputEvent<CutSaveInput>[],
       cutSaveConfig.roundTicks,
+    ).score,
+  "org-chart": (seed, inputs) =>
+    replay(
+      buildOrgChart(),
+      orgChartConfig,
+      seed,
+      inputs as InputEvent<OrgChartInput>[],
+      orgChartConfig.roundTicks,
     ).score,
 };
 
