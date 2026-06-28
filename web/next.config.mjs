@@ -8,15 +8,17 @@ const nextConfig = {
   reactStrictMode: true,
   // Pin tracing to this app so a stray parent lockfile doesn't confuse Next.
   outputFileTracingRoot: __dirname,
-  // @ffmpeg-installer/ffmpeg dynamically requires its platform sub-package and
-  // ships a native binary — keep it a runtime require from node_modules (not
-  // webpack-bundled) so resolution works and the binary is traced into the
-  // serverless function. Used by lib/social/video.ts for the YouTube Short render.
   // sharp ships native binaries (used at runtime by the asset-library upload route to
-  // compress images, and at build time by scripts/*.mjs). Keep it external so the
-  // platform binary resolves and is traced into the serverless function rather than
-  // webpack-bundled — same reasoning as ffmpeg above.
-  serverExternalPackages: ["@ffmpeg-installer/ffmpeg", "sharp"],
+  // compress images + the next/image optimizer, and at build time by scripts/*.mjs).
+  // Keep it external so the platform binary resolves and is traced into the serverless
+  // function rather than webpack-bundled.
+  //
+  // @ffmpeg-installer is deliberately NOT external here: its ~35 MB binary pushed the
+  // Amplify SSR compute bundle past the hard 220 MiB cap (deploys failed). lib/social/
+  // video.ts now loads it via a computed specifier so it isn't traced/bundled at all;
+  // it resolves from node_modules only where present (local/tests). See the bundle note
+  // there. Re-home video rendering to a dedicated Lambda to restore it in production.
+  serverExternalPackages: ["sharp"],
   eslint: {
     // Lint is run separately; don't fail production builds on lint.
     ignoreDuringBuilds: true,
