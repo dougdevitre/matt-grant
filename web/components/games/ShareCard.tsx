@@ -30,6 +30,10 @@ const FLAG_LABEL: Record<string, string> = {
   both_upheld: "Accountability + privacy upheld",
   no_child_exposed: "No child exposed",
   nothing_over_sealed: "Nothing over-sealed",
+  // Red Tape Run
+  unscathed: "Dodged every abuse",
+  made_it: "Made it through",
+  reformer: "Grabbed the reforms",
 };
 
 // Flags that represent a failure/warning are shown with a ✗, not a ✓.
