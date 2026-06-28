@@ -179,8 +179,8 @@ campaign. Follow these rules.
 
 ### Always
 
-- **Keep the disclaimer.** Never crop or cover the **"Paid for by the Matt Grant for Congress
-  Committee."** line. It's legally required on public campaign materials.
+- **Keep the disclaimer.** Never crop or cover the **"Paid for by Matt Grant for Congress."** line.
+  It's legally required on public campaign materials.
 - **Get permission before posting.** Put yard and window signs only on **private property with the
   owner's OK** — your own home, or a supporter's, with their consent. Ask first, every time.
 - **Be honest.** Share only Matt's published platform (the *Four Priorities* and the proposed CHILD

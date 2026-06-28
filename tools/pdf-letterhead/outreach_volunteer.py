@@ -78,7 +78,7 @@ CONTENT = {
     "sign_meta": [
         "<b>Matt Grant</b>",
         "Candidate, U.S. Representative — Missouri 2nd Congressional District",
-        "Matt Grant for Congress Committee",
+        "Matt Grant for Congress",
     ],
     # QR band on, with the three-way action set defined above.
     "action_band": True,

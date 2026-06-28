@@ -1,6 +1,6 @@
 # Matt Grant for Congress: Use-Case Index
 
-Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026 · Matt Grant for Congress Committee. Find what you need by starting with what you are trying to do.
+Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026 · Matt Grant for Congress. Find what you need by starting with what you are trying to do.
 
 ---
 

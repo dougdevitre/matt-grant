@@ -93,7 +93,7 @@ function buildCard(quote, eyebrow, W, H) {
   <rect x="${W / 2 - 0.07 * W}" y="${Math.round(divY)}" width="${0.14 * W}" height="${0.006 * H}" fill="${C.red}"/>
   <text x="${W / 2}" y="${0.90 * H}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="${0.034 * W}" font-weight="700" fill="${C.white}">MATT GRANT FOR CONGRESS · MO-02</text>
   <text x="${W / 2}" y="${0.935 * H}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="${0.042 * W}" font-weight="800" fill="${C.red}">AUGUST 4, 2026</text>
-  <text x="${W / 2}" y="${0.965 * H}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="${0.019 * W}" fill="${C.muted}">mattgrantforcongress.org · Paid for by the Matt Grant for Congress Committee.</text>
+  <text x="${W / 2}" y="${0.965 * H}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="${0.019 * W}" fill="${C.muted}">mattgrantforcongress.org · Paid for by Matt Grant for Congress.</text>
 </svg>`;
 }
 

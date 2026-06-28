@@ -73,16 +73,16 @@ WINRED_DONATE = (
 QR_INTRO = "Scan to make your plan to vote, get involved, or chip in."
 
 # ------------------------------------------------------------- campaign facts
-COMMITTEE = "Matt Grant for Congress Committee"
+COMMITTEE = "Matt Grant for Congress"
 NAMEPLATE = "MATT GRANT"
 SUBPLATE  = "FOR CONGRESS"
 TAGLINE   = "A neighbor, a dad, and a problem-solver."
 PROMISE   = "Putting Missouri’s children first."
-ADDR_1    = "701 Market Street, Suite 110, PMB 1709"
-ADDR_2    = "St. Louis, MO 63101"
+ADDR_1    = "1625 Mason Knoll Rd"
+ADDR_2    = "St. Louis, MO 63131"
 EMAIL     = "mattgrantforcongress@gmail.com"
 PHONE     = "(314) 255-7760"
-DISCLAIM  = "Paid for by the Matt Grant for Congress Committee."
+DISCLAIM  = "Paid for by Matt Grant for Congress."
 
 
 def draw_tracked(c, x, y, text, font, size, color, tracking, right=False):
@@ -250,7 +250,7 @@ def draw_footer(c: Canvas, doc):
 
 def on_page(c, doc):
     c.setTitle(getattr(doc, "title", None) or "Matt Grant for Congress — Letter")
-    c.setAuthor("Matt Grant for Congress Committee")
+    c.setAuthor("Matt Grant for Congress")
     draw_masthead(c, doc)
     draw_footer(c, doc)
 
@@ -559,7 +559,7 @@ CONTENT = {
     "sign_meta": [
         "<b>Matt Grant</b>",
         "Candidate, U.S. Representative — Missouri 2nd Congressional District",
-        "Matt Grant for Congress Committee",
+        "Matt Grant for Congress",
     ],
 }
 

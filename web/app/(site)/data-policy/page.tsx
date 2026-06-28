@@ -5,7 +5,7 @@ import { PolicyPage } from "@/components/PolicyPage";
 export const metadata: Metadata = {
   title: "Data Policy",
   description:
-    "How the Matt Grant for Congress Committee collects, uses, and protects your information. We collect only what we need and never sell it.",
+    "How the Matt Grant for Congress collects, uses, and protects your information. We collect only what we need and never sell it.",
 };
 
 export default function DataPolicyPage() {
@@ -14,7 +14,7 @@ export default function DataPolicyPage() {
       eyebrow="Your privacy"
       title="Data Policy"
       updated="June 18, 2026"
-      intro="The Matt Grant for Congress Committee respects the people who support this campaign. This policy explains what information we collect, why, how we protect it, and the choices you have. We collect only what we need to run a campaign for Missouri's 2nd Congressional District, and we never sell your information."
+      intro="The Matt Grant for Congress respects the people who support this campaign. This policy explains what information we collect, why, how we protect it, and the choices you have. We collect only what we need to run a campaign for Missouri's 2nd Congressional District, and we never sell your information."
     >
       <h2>What we collect</h2>
       <ul>
