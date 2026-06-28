@@ -1,10 +1,10 @@
 # Data Policy
 
-*Draft for review — Matt Grant for Congress Committee. Last updated: June 18, 2026.*
+*Draft for review — Matt Grant for Congress. Last updated: June 18, 2026.*
 
 > **Reviewer notes (remove before publishing):** This is a plain-language privacy/data policy drawn from what the app actually collects today — the contact form (`app/(site)/contact/actions.ts` → DynamoDB), donor records (`app/dashboard/donors`), email via SES (`lib/email/`), and the Walgreens print hand-off. Verify each statement against actual data flows and have counsel review before publishing. Placeholders are marked `[[ ]]`.
 
-The Matt Grant for Congress Committee ("the campaign," "we") respects the people who support this campaign. This policy explains what information we collect, why, how we protect it, and the choices you have. We collect only what we need to run a campaign for Missouri's 2nd Congressional District, and **we never sell your information.**
+The Matt Grant for Congress ("the campaign," "we") respects the people who support this campaign. This policy explains what information we collect, why, how we protect it, and the choices you have. We collect only what we need to run a campaign for Missouri's 2nd Congressional District, and **we never sell your information.**
 
 ## What we collect
 

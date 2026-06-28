@@ -34,7 +34,7 @@ DEFAULT_OUT = os.path.normpath(os.path.join(HERE, "..", "..", "candidate", "lett
 SIGN_META = [
     "<b>Matt Grant</b>",
     "Candidate, U.S. Representative — Missouri 2nd Congressional District",
-    "Matt Grant for Congress Committee",
+    "Matt Grant for Congress",
 ]
 
 # Primary committee name per segment (for the "Where We Align" paragraph/title).

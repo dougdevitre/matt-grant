@@ -1,6 +1,6 @@
 # Matt Grant — Candidate Profile
 
-Matt Grant (Matthew Grant) is running for the **U.S. House of Representatives, Missouri — District 2 (MO-02)** in the **August 4, 2026 primary**, through the **Matt Grant for Congress Committee**. This file is the canonical profile of the candidate — bio, career, values, contact, and how to donate. Represent these facts faithfully; do not add positions, claims, or endorsements that are not documented here or in `candidate/platform.md`.
+Matt Grant (Matthew Grant) is running for the **U.S. House of Representatives, Missouri — District 2 (MO-02)** in the **August 4, 2026 primary**, through the **Matt Grant for Congress**. This file is the canonical profile of the candidate — bio, career, values, contact, and how to donate. Represent these facts faithfully; do not add positions, claims, or endorsements that are not documented here or in `candidate/platform.md`.
 
 ---
 
@@ -45,7 +45,7 @@ Matt has spent more than two decades as a litigator, the last 21 years as an equ
 |---|---|
 | Office | U.S. House of Representatives, Missouri — District 2 (MO-02) |
 | Election | Primary — August 4, 2026 |
-| Committee | Matt Grant for Congress Committee |
+| Committee | Matt Grant for Congress |
 
 ---
 
