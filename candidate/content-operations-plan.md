@@ -77,4 +77,4 @@ high-res in `private/raw/` and only put export-ready files in `public/`.
 3. **A 30-second launch/ad video** + the CHILD-Act explainer.
 4. **High-res headshot + vector logo** into `private/raw/`, then regenerate the brand kit crisp.
 
-_Paid for by the Matt Grant for Congress Committee._
+_Paid for by Matt Grant for Congress._

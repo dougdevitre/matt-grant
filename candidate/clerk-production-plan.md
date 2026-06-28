@@ -62,4 +62,4 @@ Re-run the Phase-A table on the prod domain, plus:
 - **You own (Clerk dashboard / registrar):** create the prod instance, add DNS, set invite-only, and
   invite users — plus the domain decision.
 
-_Paid for by the Matt Grant for Congress Committee._
+_Paid for by Matt Grant for Congress._

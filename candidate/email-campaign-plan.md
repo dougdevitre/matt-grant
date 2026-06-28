@@ -47,7 +47,7 @@ press/news roundups · endorsement announcements · volunteer mobilization.
 
 - **CAN-SPAM:** valid physical address ✓, working unsubscribe honored promptly ✓, accurate
   from/subject lines, no deceptive headers. (All in the shell already.)
-- **FEC:** every email carries **"Paid for by the Matt Grant for Congress Committee."** ✓
+- **FEC:** every email carries **"Paid for by Matt Grant for Congress."** ✓
 - **Consent:** broadcast only to opted-in addresses; transactional receipts exempt. Educational, not legal advice.
 
 ## 5. Automation / triggers
@@ -73,4 +73,4 @@ confirm step and a send log in DynamoDB.
 - **P4:** WinRed donation webhook → thank-you; EventBridge-scheduled GOTV/issue series.
 - **P5:** the dashboard composer + send log + simple segments.
 
-_Paid for by the Matt Grant for Congress Committee._
+_Paid for by Matt Grant for Congress._

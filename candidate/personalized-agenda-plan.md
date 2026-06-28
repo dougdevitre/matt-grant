@@ -40,4 +40,4 @@ the platform — actions are organizing steps, no fabricated facts.
    handout, in addition to browser print.
 6. **Dashboard view** — staff see which areas/issues supporters are activating around.
 
-_Paid for by the Matt Grant for Congress Committee._
+_Paid for by Matt Grant for Congress._

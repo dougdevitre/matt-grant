@@ -152,4 +152,4 @@ the DNS records. Update `metadataBase` in `web/app/layout.tsx` if the canonical 
 - [ ] secrets-sync Action run is green; Vercel env has the research vars
 - [ ] (when entered) rural counties shade by turnout with a cited `sourceUrl`
 
-_Paid for by the Matt Grant for Congress Committee._
+_Paid for by Matt Grant for Congress._

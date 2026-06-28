@@ -55,7 +55,7 @@ Matt has spent more than two decades as a litigator, the last 21 years as an equ
 |---|---|
 | Email | mattgrantforcongress@gmail.com |
 | Phone | (314) 255-7760 |
-| Mailing address | 701 Market Street, Suite 110, PMB 1709, St. Louis, MO 63101 |
+| Mailing address | 1625 Mason Knoll Rd, St. Louis, MO 63131 |
 
 ---
 
@@ -65,7 +65,7 @@ Contribute through WinRed:
 
 <https://secure.winred.com/matt-grant-for-congress/donate-today>
 
-All contributions are subject to federal contribution limits and prohibited-source rules. See `federal/contribution-limits.md` and `federal/prohibited-contributions.md`, and process every contribution per `workflows/donation-intake.md`. Public solicitations must carry the committee's "Paid for by the Matt Grant for Congress Committee" disclaimer — generate the exact text with `tools/disclaimer-generator.md`.
+All contributions are subject to federal contribution limits and prohibited-source rules. See `federal/contribution-limits.md` and `federal/prohibited-contributions.md`, and process every contribution per `workflows/donation-intake.md`. Public solicitations must carry the committee's "Paid for by Matt Grant for Congress" disclaimer — generate the exact text with `tools/disclaimer-generator.md`.
 
 ---
 

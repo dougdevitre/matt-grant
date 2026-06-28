@@ -53,4 +53,4 @@ You asked specifically about Clerk metadata. Two options, and a recommended hybr
 - Least privilege: organizers operate the field program without touching money or PII.
 - Auditable: roles are assigned/visible in `/dashboard/team`.
 
-_Paid for by the Matt Grant for Congress Committee._
+_Paid for by Matt Grant for Congress._

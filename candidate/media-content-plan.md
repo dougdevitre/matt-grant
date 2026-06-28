@@ -68,4 +68,4 @@ The canonical index is **`web/lib/socialPosts.ts`** (50 posts) + **`BRAND_DOWNLO
 `web/lib/site.ts` (downloadable artwork). Both are mirrored to `public/social/manifest.json` in S3
 for the API/MCP to consume. Regenerate the manifest after editing the posts.
 
-_Paid for by the Matt Grant for Congress Committee._
+_Paid for by Matt Grant for Congress._

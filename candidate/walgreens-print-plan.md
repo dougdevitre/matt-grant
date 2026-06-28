@@ -5,7 +5,7 @@ local Walgreens the same day** — turning the digital Media library into physic
 flyers, and palm cards with no design work on their end.
 
 > Compliance note (educational, not legal advice): printed campaign materials are "public
-> communications" and must carry the **"Paid for by the Matt Grant for Congress Committee."**
+> communications" and must carry the **"Paid for by Matt Grant for Congress."**
 > disclaimer — our assets already do. Because the **supporter pays Walgreens directly** at pickup,
 > the print is their own volunteer activity, not a campaign expenditure; if the *committee* ever pays
 > for prints, that's an expenditure/in-kind question for the treasurer/counsel. Confirm before
@@ -112,4 +112,4 @@ Stand up the **sandbox**: register the app, drop `WALGREENS_API_KEY` + `WALGREEN
 and ship a read-only `POST /api/print/products` route so we can confirm the product catalog + sizes
 before building the renderer. Everything else builds on that.
 
-_Paid for by the Matt Grant for Congress Committee._
+_Paid for by Matt Grant for Congress._
