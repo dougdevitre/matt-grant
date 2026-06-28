@@ -2,6 +2,8 @@ import { getVolunteers } from "@/lib/queries";
 import { optedInSet } from "@/lib/sms/consent";
 import { listBlocked } from "@/lib/sms/moderation";
 import { toE164 } from "@/lib/sms/send";
+import { listClerkContactsByRole } from "@/lib/clerkAudiences";
+import { ROLE_LABELS, type Role } from "@/lib/rbac";
 
 // Resolve SMS broadcast recipients. Unlike email, the audience is gated on
 // recorded opt-in: every candidate number is intersected with optedInSet(), so
@@ -20,13 +22,17 @@ export function isSmsGroup(v: string): v is SmsGroup {
   return (SMS_GROUPS as readonly string[]).includes(v);
 }
 
-export function smsAudienceLabel(groups: SmsGroup[]): string {
-  return groups.map((g) => SMS_GROUP_LABELS[g]).join(" + ") || "—";
+export function smsAudienceLabel(groups: SmsGroup[], roles: Role[] = []): string {
+  const parts = groups.map((g) => SMS_GROUP_LABELS[g]);
+  for (const r of roles) parts.push(`Role: ${ROLE_LABELS[r]}`);
+  return parts.join(" + ") || "—";
 }
 
-// E.164 phones from the chosen groups, filtered to opted-in, minus blocked
-// numbers, and de-duplicated. (The drain re-checks opt-in + block at send too.)
-export async function resolveSmsRecipients(groups: SmsGroup[]): Promise<string[]> {
+// E.164 phones from the chosen groups + Clerk roles, filtered to opted-in, minus blocked
+// numbers, and de-duplicated. Role recipients are gated on opt-in BY CONSTRUCTION too — a
+// Clerk account with role X is only texted if its phone is in the consent ledger. (The drain
+// re-checks opt-in + block at send.)
+export async function resolveSmsRecipients(groups: SmsGroup[], roles: Role[] = []): Promise<string[]> {
   const [opted, blocked] = await Promise.all([optedInSet(), listBlocked()]);
   const blockedSet = new Set(blocked.map((b) => b.phone));
   const out = new Set<string>();
@@ -38,6 +44,12 @@ export async function resolveSmsRecipients(groups: SmsGroup[]): Promise<string[]
     const vols = (await getVolunteers()).rows;
     for (const v of vols) {
       const e = toE164(v.phone);
+      if (e && opted.has(e)) add(e);
+    }
+  }
+  for (const role of roles) {
+    for (const c of await listClerkContactsByRole(role)) {
+      const e = c.phone ? toE164(c.phone) : null;
       if (e && opted.has(e)) add(e);
     }
   }
