@@ -24,6 +24,7 @@ export const AIRTABLE_BASES = {
     id: "appAmtan3qWZE7iGR",
     accessTable: "tblAfRmVuSEayP3Iy",
     tables: {
+      volunteers: "tblXwe6xlpgXJjGaM",
       events: "tblujaq4mmzZdfR3s",
       contactLists: "tblODeXZVb36giy0x",
       taskTemplates: "tblbPnBB2pv38kIC4",

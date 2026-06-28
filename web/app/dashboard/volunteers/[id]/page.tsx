@@ -50,6 +50,11 @@ export default async function VolunteerDetailPage({ params }: { params: Promise<
         <span className={`rounded-sm px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow ${badge[v.status] ?? "bg-line text-slate"}`}>
           {v.status}
         </span>
+        {v.door === "Team Captain" && (
+          <span className="rounded-sm bg-brick/10 px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow text-brick">
+            Captain applicant
+          </span>
+        )}
       </PageHeader>
 
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
@@ -60,6 +65,8 @@ export default async function VolunteerDetailPage({ params }: { params: Promise<
             <Row label="Email" value={v.email} />
             <Row label="Phone" value={v.phone} />
             <Row label="City" value={v.city} />
+            <Row label="Commitment" value={v.commitment} />
+            <Row label="Roles" value={v.roles.length ? v.roles.join(", ") : null} />
             <Row label="Interests" value={v.interests} />
             <Row label="Owner" value={v.assignedTo} />
             <Row label="Last contacted" value={v.lastContactedAt ? fmt(v.lastContactedAt) : null} />
@@ -132,8 +139,8 @@ export default async function VolunteerDetailPage({ params }: { params: Promise<
               <legend className="text-xs text-slate">Skills</legend>
               <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
                 {VOLUNTEER_SKILLS.map((s) => (
-                  <label key={s} className="flex items-center gap-1 text-xs text-ink">
-                    <input type="checkbox" name="skills" value={s} defaultChecked={v.skills?.includes(s)} /> {s}
+                  <label key={s.name} className="flex items-center gap-1 text-xs text-ink">
+                    <input type="checkbox" name="skills" value={s.name} defaultChecked={v.skills?.includes(s.name)} /> {s.label}
                   </label>
                 ))}
               </div>

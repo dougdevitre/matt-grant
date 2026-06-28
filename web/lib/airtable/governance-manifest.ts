@@ -22,8 +22,9 @@ export type GovernedSurface = {
   read: boolean;
   update: boolean;
   delete: boolean;
-  /** "ui" = an in-app editor exists; "read" = read-only consumer; "excluded" = app must not touch. */
-  surface: "ui" | "read" | "excluded";
+  /** "ui" = an in-app editor (reads + writes); "write" = write-only intake (e.g. a public
+   *  signup that creates but never reads back); "read" = read-only consumer; "excluded" = app must not touch. */
+  surface: "ui" | "write" | "read" | "excluded";
 };
 
 const crud = (base: BaseKey, table: string, audience: Audience, c: boolean, r: boolean, u: boolean, d: boolean, surface: GovernedSurface["surface"]): GovernedSurface =>
@@ -41,6 +42,9 @@ export const GOVERNANCE: GovernedSurface[] = [
   crud("socialMedia", "Content Pillars", "dashboard", false, true, false, false, "read"),
   crud("socialMedia", "Campaigns", "dashboard", false, true, false, false, "read"),
   crud("socialMedia", "Assets", "dashboard", false, true, false, false, "read"),
+  // Volunteer — Volunteers roster (public /join creates; no public read/update/delete.
+  // The dashboard reads/manages people via DynamoDB, so no dashboard row here.)
+  crud("volunteer", "Volunteers", "public", true, false, false, false, "write"),
   // Volunteer — editors
   crud("volunteer", "Task Templates", "dashboard", true, true, true, true, "ui"),
   crud("volunteer", "Canvass Turf", "dashboard", true, true, true, true, "ui"),

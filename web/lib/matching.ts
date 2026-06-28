@@ -15,15 +15,17 @@ const KEYWORD_INTEREST: Array<[RegExp, string]> = [
   [/donat|fundrais|chip ?in|finance|treasur/i, "Donate"],
 ];
 
-// Task keywords → a required skill (matched against the volunteer's skills).
+// Task keywords → a required skill. Values are the CANONICAL Airtable skill names
+// (see lib/volunteer/taxonomy.ts) so they match the structured skills a /join
+// signup stores on the volunteer record.
 const KEYWORD_SKILL: Array<[RegExp, string]> = [
-  [/driv|transport|\bride\b|deliver|haul/i, "Driving"],
+  [/driv|transport|\bride\b|deliver|haul/i, "Driving (license + vehicle)"],
   [/writ|letter|\bnote\b|caption|copy|op-?ed|editor/i, "Writing"],
-  [/design|graphic|flyer|logo|canva/i, "Design"],
+  [/design|graphic|flyer|logo|canva/i, "Graphic / social design"],
   [/speak|forum|surrogate|present|emcee|debate/i, "Public speaking"],
-  [/spanish|bilingual|translat/i, "Bilingual"],
-  [/data|enter|crm|spreadsheet|votebuilder|minivan|dialer/i, "Tech"],
-  [/host|party|hospitality|greet|setup|clean ?up/i, "Hospitality"],
+  [/spanish|bilingual|translat/i, "Bilingual (Spanish)"],
+  [/data|enter|crm|spreadsheet|votebuilder|minivan|dialer/i, "Tech / app use"],
+  [/host|party|hospitality|greet|setup|clean ?up/i, "Hospitality / hosting"],
 ];
 
 // Whether a task reads as in-person vs digital (for mode preference).

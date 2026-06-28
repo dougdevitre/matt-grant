@@ -71,6 +71,11 @@ describe("governance manifest", () => {
         expect(g.read, `${g.table} ui needs read`).toBe(true);
         expect(g.create || g.update || g.delete, `${g.table} ui needs a write op`).toBe(true);
       }
+      if (g.surface === "write") {
+        // Write-only intake (e.g. public signup): creates but must NOT read back.
+        expect(g.create || g.update || g.delete, `${g.table} write needs a write op`).toBe(true);
+        expect(g.read, `${g.table} write must not read`).toBe(false);
+      }
       if (g.surface === "excluded") {
         expect([g.create, g.read, g.update, g.delete].some(Boolean), `${g.table} excluded must be all-off`).toBe(false);
       }

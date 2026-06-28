@@ -1,0 +1,201 @@
+import Link from "next/link";
+import type { Metadata } from "next";
+import { CAMPAIGN } from "@/lib/site";
+import { JoinUpdatesForm } from "@/components/join/JoinUpdatesForm";
+import { JoinPledgeForm } from "@/components/join/JoinPledgeForm";
+
+export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Join the movement — Matt Grant for Congress",
+  description:
+    "Four ways to join the campaign to restore public trust in MO-02: get updates, volunteer, pledge to give, or lead a team. Pick your level.",
+};
+
+// True if a Clerk session exists. Wrapped so keyless/demo builds still render the
+// page (CTAs then point straight at the detail forms).
+async function isSignedIn(): Promise<boolean> {
+  try {
+    const { auth } = await import("@clerk/nextjs/server");
+    const { userId } = await auth();
+    return !!userId;
+  } catch {
+    return false;
+  }
+}
+
+type Door = {
+  key: string;
+  glyph: string;
+  name: string;
+  tagline: string;
+  give: string;
+  account: string;
+  cta: string;
+  href: string;
+  external?: boolean;
+  accent: string; // border/title accent
+};
+
+export default async function JoinPage() {
+  const signedIn = await isSignedIn();
+  const volunteerHref = signedIn ? "/join/volunteer" : "/sign-up?redirect_url=/join/volunteer";
+  const captainHref = signedIn ? "/join/captain" : "/sign-up?redirect_url=/join/captain";
+
+  const doors: Door[] = [
+    {
+      key: "updates",
+      glyph: "✉",
+      name: "Get Updates",
+      tagline: "Stay in the loop by email and text.",
+      give: "Your email or phone",
+      account: "No account needed",
+      cta: "Keep me posted",
+      href: "#updates",
+      accent: "text-field",
+    },
+    {
+      key: "volunteer",
+      glyph: "✊",
+      name: "Volunteer",
+      tagline: "Give time — doors, calls, events, and more.",
+      give: "A few hours + your skills",
+      account: "Free account",
+      cta: signedIn ? "Build my profile" : "Sign up to volunteer",
+      href: volunteerHref,
+      accent: "text-brick",
+    },
+    {
+      key: "pledge",
+      glyph: "◈",
+      name: "Donor Pledge",
+      tagline: "Commit to chip in before August 4.",
+      give: "Dollars, via WinRed",
+      account: "No account needed",
+      cta: "Make my pledge",
+      href: "#pledge",
+      accent: "text-gold",
+    },
+    {
+      key: "captain",
+      glyph: "★",
+      name: "Team Captain",
+      tagline: "Recruit and lead a crew of volunteers.",
+      give: "Leadership + ongoing time",
+      account: "Account + quick review",
+      cta: signedIn ? "Apply to lead" : "Sign up to lead",
+      href: captainHref,
+      accent: "text-ink",
+    },
+  ];
+
+  // Comparison rows — what each level does / unlocks.
+  const rows: { label: string; cells: [string, string, string, string] }[] = [
+    { label: "What you do", cells: ["Follow along", "Do the work", "Fund the work", "Lead the work"] },
+    { label: "Time", cells: ["None", "Flexible — 1 hr to weekly", "None", "Ongoing, 5+ hrs/wk"] },
+    { label: "Account", cells: ["No", "Yes — free", "No", "Yes — free"] },
+    { label: "We capture", cells: ["Contact + ZIP", "Skills, roles, availability", "Pledge intent", "All of Volunteer + why you lead"] },
+    { label: "You get", cells: ["Email & SMS updates", "Matched to local action", "Donor thank-yous", "A team + captain training"] },
+  ];
+
+  return (
+    <section className="container-page py-16 sm:py-20">
+      <p className="eyebrow text-brick">Join the movement</p>
+      <h1 className="mt-3 max-w-3xl text-4xl font-semibold sm:text-5xl">
+        Four ways to help win MO-02.
+      </h1>
+      <p className="mt-4 max-w-2xl text-lg text-slate">
+        From staying informed to leading a team — pick the level that fits you. You can always do more later;
+        every path adds to the same movement to restore public trust in Missouri&apos;s 2nd District.
+      </p>
+
+      {/* The menu of choices */}
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {doors.map((d) => (
+          <div key={d.key} className="card flex flex-col p-6">
+            <span className={`font-mono text-2xl ${d.accent}`} aria-hidden>
+              {d.glyph}
+            </span>
+            <p className="mt-3 font-display text-lg font-semibold">{d.name}</p>
+            <p className="mt-1 text-sm text-slate">{d.tagline}</p>
+            <dl className="mt-4 space-y-1 text-xs text-slate">
+              <div className="flex gap-1">
+                <dt className="font-semibold text-ink">Give:</dt>
+                <dd>{d.give}</dd>
+              </div>
+              <div className="flex gap-1">
+                <dt className="font-semibold text-ink">Access:</dt>
+                <dd>{d.account}</dd>
+              </div>
+            </dl>
+            {d.href.startsWith("#") ? (
+              <a href={d.href} className="btn-primary mt-5 text-center">
+                {d.cta}
+              </a>
+            ) : (
+              <Link href={d.href} className="btn-primary mt-5 text-center">
+                {d.cta}
+              </Link>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Comparison chart — full detail, desktop */}
+      <div className="mt-12 hidden overflow-hidden rounded-sm border border-line lg:block">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-paper">
+            <tr>
+              <th className="px-4 py-3 font-semibold text-ink">Compare</th>
+              {doors.map((d) => (
+                <th key={d.key} className="px-4 py-3 font-display font-semibold text-ink">
+                  {d.name}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.label} className="border-t border-line">
+                <th scope="row" className="px-4 py-3 font-semibold text-slate">
+                  {r.label}
+                </th>
+                {r.cells.map((c, i) => (
+                  <td key={i} className="px-4 py-3 text-ink">
+                    {c}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Inline: Get Updates */}
+      <div id="updates" className="mt-16 scroll-mt-24">
+        <p className="eyebrow text-field">Get Updates</p>
+        <h2 className="mt-2 text-2xl font-semibold">Stay in the loop.</h2>
+        <p className="mt-1 max-w-prose text-sm text-slate">
+          The fastest way in — we&apos;ll send you the case for change, events near you, and how to help.
+        </p>
+        <div className="mt-5 max-w-2xl rounded-sm border border-line bg-paper p-6">
+          <JoinUpdatesForm />
+        </div>
+      </div>
+
+      {/* Inline: Donor Pledge */}
+      <div id="pledge" className="mt-16 scroll-mt-24">
+        <p className="eyebrow text-gold">Donor Pledge</p>
+        <h2 className="mt-2 text-2xl font-semibold">Pledge to chip in.</h2>
+        <p className="mt-1 max-w-prose text-sm text-slate">
+          Tell us you&apos;re in, then complete your gift on WinRed. Every dollar funds doors, calls, and mail
+          before {CAMPAIGN.electionLabel}.
+        </p>
+        <div className="mt-5 max-w-2xl rounded-sm border border-line bg-paper p-6">
+          <JoinPledgeForm />
+        </div>
+      </div>
+
+      <p className="mt-14 text-xs text-slate">{CAMPAIGN.paidForBy}</p>
+    </section>
+  );
+}
