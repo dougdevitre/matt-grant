@@ -59,7 +59,7 @@ export default function MediaPage() {
       </div>
       <p className="mt-8 text-xs text-slate">
         Messages reflect Matt&apos;s published platform. When you post, please keep the
-        &ldquo;{`Paid for by the Matt Grant for Congress Committee`}.&rdquo; line where required.
+        &ldquo;{CAMPAIGN.paidForBy}&rdquo; line where required.
       </p>
     </section>
   );

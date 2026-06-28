@@ -31,9 +31,9 @@ function mustExist(path) {
 // 1. Central disclaimer string is the single source of truth ------------------
 const site = mustExist("lib/site.ts");
 if (site) {
-  if (!/paidForBy:\s*"Paid for by the Matt Grant for Congress Committee\."/.test(site))
+  if (!/paidForBy:\s*"Paid for by Matt Grant for Congress\."/.test(site))
     fail("lib/site.ts: CAMPAIGN.paidForBy must be the exact authorized-committee disclaimer.");
-  if (!/committee:\s*"Matt Grant for Congress Committee"/.test(site))
+  if (!/committee:\s*"Matt Grant for Congress"/.test(site))
     fail("lib/site.ts: CAMPAIGN.committee changed — update guardrail + all surfaces.");
 }
 
@@ -119,7 +119,7 @@ for (const f of walk(".")) {
   const rel = f.replace(/^\.\//, "");
   if (allowHardcoded.has(rel) || allowHardcodedRe.test(rel)) continue;
   const c = read(f);
-  if (c && /Paid for by the Matt Grant for Congress Committee/.test(stripComments(c)) && !/CAMPAIGN\.paidForBy/.test(c)) {
+  if (c && /Paid for by Matt Grant for Congress/.test(stripComments(c)) && !/CAMPAIGN\.paidForBy/.test(c)) {
     // Descriptive prose mentions are fine; flag only as a drift warning.
     warn(`${rel}: hard-codes the disclaimer string instead of CAMPAIGN.paidForBy (drift risk if committee name changes).`);
   }

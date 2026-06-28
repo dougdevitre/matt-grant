@@ -146,6 +146,6 @@ office, school board to Congress.
 
 <div align="center">
 
-**Paid for by the Matt Grant for Congress Committee.**
+**Paid for by Matt Grant for Congress.**
 
 </div>

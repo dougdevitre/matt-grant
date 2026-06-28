@@ -10,6 +10,7 @@
 // as such, not claims about Matt's actual numbers.
 
 import { CHANNELS, composeText, type ChannelId } from "@/lib/social/channels";
+import { CAMPAIGN } from "@/lib/site";
 
 // ── Content scoring ──────────────────────────────────────────────────────────
 
@@ -84,7 +85,7 @@ export function scoreContent(input: ContentInput): ContentScore {
   }
 
   if (!input.hasDisclaimer) {
-    issues.push({ severity: "error", message: 'Missing the "Paid for by the Matt Grant for Congress Committee" disclaimer. Required on public campaign communications.' });
+    issues.push({ severity: "error", message: `Missing the "${CAMPAIGN.paidForBy}" disclaimer. Required on public campaign communications.` });
     score -= 25;
   }
 

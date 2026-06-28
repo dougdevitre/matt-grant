@@ -3,7 +3,7 @@
 // web-safe fallbacks, restrained red/white/blue, generous whitespace, an
 // editorial card style, and a refined masthead + footer. Table-based + inline
 // styles for Outlook/Gmail/Apple Mail. CAN-SPAM + FEC built in.
-import { CAMPAIGN } from "@/lib/site";
+import { CAMPAIGN, SOCIALS } from "@/lib/site";
 
 const CDN = "https://d5jzyan9wboi3.cloudfront.net";
 
@@ -92,6 +92,16 @@ export function renderEmail(o: EmailOpts): string {
   const unsub = o.unsubscribeUrl
     ? `<br><a href="${o.unsubscribeUrl}" style="color:${C.muted};text-decoration:underline;">Unsubscribe</a> &nbsp;·&nbsp; <a href="{{preferences_url}}" style="color:${C.muted};text-decoration:underline;">Update preferences</a>`
     : "";
+  // Social links as text (email clients strip SVG/inline icons). Driven off the
+  // shared SOCIALS list so every template stays in sync with the site footer.
+  const socialRow = SOCIALS.length
+    ? `<p style="margin:0 0 14px;font-family:${SANS};font-size:12px;line-height:1.8;color:${C.muted};">`
+      + `Follow Matt: `
+      + SOCIALS.map(
+          (s) => `<a href="${s.url}" target="_blank" style="color:${C.blue};text-decoration:none;font-weight:600;">${s.short}</a>`,
+        ).join(`<span style="color:${C.hair};">&nbsp;·&nbsp;</span>`)
+      + `</p>`
+    : "";
 
   return `<!doctype html>
 <html lang="en"><head>
@@ -136,6 +146,7 @@ ${preheader}
       <tr><td class="px" style="padding:28px 40px 32px;background:${C.white};">
         <p style="margin:0 0 12px;font-family:${SANS};font-size:13px;font-weight:700;letter-spacing:0.3px;color:${C.navy};">${CAMPAIGN.candidate} for Congress</p>
         <p style="margin:0 0 14px;font-family:${SANS};font-size:12px;line-height:1.6;color:${C.muted};">${CAMPAIGN.address}</p>
+        ${socialRow}
         <p style="margin:0;font-family:${SANS};font-size:11px;line-height:1.7;color:${C.muted};">
           ${CAMPAIGN.paidForBy}${unsub}
         </p>
@@ -152,7 +163,8 @@ export function renderText(opts: { title: string; lines: string[]; buttonUrl?: s
   const parts = [opts.title, "", ...(opts.greeting ? ["Hi {{first_name}},", ""] : []), ...opts.lines];
   if (opts.buttonUrl) parts.push("", opts.buttonUrl);
   parts.push("", "—", `${CAMPAIGN.candidate} for Congress`, CAMPAIGN.address, CAMPAIGN.paidForBy);
-  if (opts.unsubscribeUrl) parts.push(`Unsubscribe: ${opts.unsubscribeUrl}`);
+  parts.push("", "Follow Matt:", ...SOCIALS.map((s) => `${s.short}: ${s.url}`));
+  if (opts.unsubscribeUrl) parts.push("", `Unsubscribe: ${opts.unsubscribeUrl}`);
   return parts.join("\n");
 }
 
