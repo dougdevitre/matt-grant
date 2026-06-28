@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { pillarRewritePath, issueVanityRedirect, unknownPillarSubdomain, ISSUE_VANITY } from "./pillar-routing";
+import {
+  pillarRewritePath,
+  issueVanityRedirect,
+  unknownPillarSubdomain,
+  reservedSubdomainRewrite,
+  ISSUE_VANITY,
+  RESERVED_SUBDOMAINS,
+} from "./pillar-routing";
 import { pillarForHost, pillarSlugs } from "./pillars";
 import { issueSlugs } from "./issues";
 import { pillarHref } from "./site";
@@ -95,6 +102,42 @@ describe("unknownPillarSubdomain", () => {
     expect(unknownPillarSubdomain("education.example.com")).toBeNull();
     expect(unknownPillarSubdomain("localhost")).toBeNull();
     expect(unknownPillarSubdomain(null)).toBeNull();
+  });
+});
+
+describe("reservedSubdomainRewrite (games.)", () => {
+  it("rewrites the games subdomain root to /games", () => {
+    expect(reservedSubdomainRewrite("games.mattgrantforcongress.org", "/")).toBe("/games");
+  });
+
+  it("preserves the path under /games", () => {
+    expect(reservedSubdomainRewrite("games.mattgrantforcongress.org", "/cut-and-save")).toBe("/games/cut-and-save");
+  });
+
+  it("is case-insensitive and ignores a port", () => {
+    expect(reservedSubdomainRewrite("Games.MattGrantForCongress.org:3000", "/x")).toBe("/games/x");
+  });
+
+  it("never hijacks API calls or already-prefixed paths", () => {
+    expect(reservedSubdomainRewrite("games.mattgrantforcongress.org", "/api/games/score")).toBeNull();
+    expect(reservedSubdomainRewrite("games.mattgrantforcongress.org", "/games")).toBeNull();
+    expect(reservedSubdomainRewrite("games.mattgrantforcongress.org", "/games/cut-and-save")).toBeNull();
+  });
+
+  it("passes the apex, pillars, vanity labels, and unknown hosts through", () => {
+    expect(reservedSubdomainRewrite("mattgrantforcongress.org", "/")).toBeNull();
+    expect(reservedSubdomainRewrite("education.mattgrantforcongress.org", "/")).toBeNull();
+    expect(reservedSubdomainRewrite("taxes.mattgrantforcongress.org", "/")).toBeNull();
+    expect(reservedSubdomainRewrite("nope.mattgrantforcongress.org", "/")).toBeNull();
+    expect(reservedSubdomainRewrite(null, "/")).toBeNull();
+  });
+
+  it("is not flagged as an unknown subdomain (no drift warning) and never collides with a pillar/vanity label", () => {
+    for (const label of Object.keys(RESERVED_SUBDOMAINS)) {
+      expect(unknownPillarSubdomain(`${label}.mattgrantforcongress.org`)).toBeNull();
+      expect(pillarSlugs).not.toContain(label);
+      expect(ISSUE_VANITY[label]).toBeUndefined();
+    }
   });
 });
 

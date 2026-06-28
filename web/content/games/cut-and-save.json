@@ -1,0 +1,65 @@
+{
+  "copy": {
+    "gameId": "cut-and-save",
+    "issueSlug": "lower-taxes",
+    "eyebrow": "Lower Taxes",
+    "title": "Cut & Save",
+    "tagline": "Cut waste to fund relief — without the gimmicks.",
+    "howTo": [
+      "Tap WASTE to cut it and fund tax relief.",
+      "Leave ESSENTIALS alone — cutting them hurts families.",
+      "Some line items pay for themselves — don't gut them.",
+      "Skip the Borrow button: it explodes into debt."
+    ],
+    "itemLabels": {
+      "waste": [
+        "Duplicate contract",
+        "No-bid overrun",
+        "Empty leased office",
+        "Abandoned IT project",
+        "Improper payment"
+      ],
+      "essential": [
+        "School lunch program",
+        "Veterans' clinic",
+        "Child safety inspections",
+        "Disaster relief fund"
+      ],
+      "decoy": [
+        "Waste-audit office",
+        "Fraud-recovery unit",
+        "Inspector general"
+      ]
+    },
+    "endLines": [
+      "Relief comes from cutting waste first.",
+      "Gut the essentials or borrow, and families pay.",
+      "Efficiency, not gimmicks."
+    ],
+    "shareText": "I cut the waste and funded tax relief in Cut & Save — without harming families or borrowing. Beat my score."
+  },
+  "config": {
+    "roundTicks": 1350,
+    "spawnEveryTicks": 18,
+    "itemLifeTicks": 60,
+    "reliefTarget": 250000,
+    "taxFloor": 12,
+    "taxRange": 88,
+    "combo": { "stepEvery": 3, "stepValue": 0.25, "maxSteps": 4 },
+    "essentialHarmPenalty": 6000,
+    "decoyDebuffTicks": 150,
+    "decoyYieldFactor": 0.4,
+    "borrow": {
+      "instantTaxRelief": 15,
+      "debtAdded": 14000,
+      "compoundEveryTicks": 90,
+      "compoundRate": 0.18
+    },
+    "items": {
+      "waste": { "weight": 6, "minValue": 3000, "maxValue": 9000 },
+      "essential": { "weight": 3, "minValue": 4000, "maxValue": 8000 },
+      "decoy": { "weight": 2, "minValue": 2000, "maxValue": 5000 }
+    },
+    "bonuses": { "noFamilyHarmed": 20000, "noBorrow": 15000 }
+  }
+}

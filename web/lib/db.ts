@@ -58,6 +58,7 @@ export const PK = {
   eventIngest: "EVENTINGEST", // inbound-email → event dedupe keys (idempotency, SK = sha256)
   eventRsvps: "EVENTRSVP", // RSVPs for Airtable-sourced events (no DynamoDB item; SK = `${eventId}#${id}`)
   districtInsights: "DISTRICTINSIGHT", // cached per-district demographics + AI blurb (SK = districtKey)
+  gameScores: "GAMESCORE", // arcade leaderboard (anon; SK = `${gameId}#${paddedScore}#${id}`, no PII)
 } as const;
 
 export function newId(): string {

@@ -1,5 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { pillarRewritePath, issueVanityRedirect, unknownPillarSubdomain } from "./pillar-routing";
+import {
+  pillarRewritePath,
+  issueVanityRedirect,
+  unknownPillarSubdomain,
+  reservedSubdomainRewrite,
+} from "./pillar-routing";
 
 // The host-based routing pre-check shared by both branches of middleware.ts
 // (Clerk-enabled and the fail-closed fallback). Kept in its own module — free of
@@ -26,12 +31,24 @@ export function pillarRewrite(req: NextRequest): NextResponse | null {
   return NextResponse.rewrite(url);
 }
 
+// Reserved subdomains (games.) are served by the same app: rewrite the host's label
+// to its internal route prefix (e.g. /games). Internal rewrite — the address bar
+// stays on the subdomain — exactly like the pillar rewrite. /api/* and already-
+// prefixed paths pass through.
+export function reservedRewrite(req: NextRequest): NextResponse | null {
+  const target = reservedSubdomainRewrite(req.headers.get("host"), req.nextUrl.pathname);
+  if (!target) return null;
+  const url = req.nextUrl.clone();
+  url.pathname = target;
+  return NextResponse.rewrite(url);
+}
+
 // Combined pre-check: vanity redirect first (it short-circuits before the rewrite —
 // the labels never overlap, but redirect-before-rewrite keeps the intent obvious),
 // then the pillar rewrite. Returns the response to send immediately, or null to let
 // the rest of the middleware (auth gating) run.
 export function pillarOrVanityResponse(req: NextRequest): NextResponse | null {
-  const routed = issueVanity(req) ?? pillarRewrite(req);
+  const routed = issueVanity(req) ?? reservedRewrite(req) ?? pillarRewrite(req);
   if (routed) return routed;
   // Nothing matched. If this was an unrecognized subdomain of the apex (wildcard DNS
   // routes every label here), warn so catalog/DNS drift or a typo is visible in logs.
