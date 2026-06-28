@@ -47,6 +47,9 @@ export const GOVERNANCE: GovernedSurface[] = [
   crud("volunteer", "Volunteers", "public", true, false, false, false, "write"),
   // Volunteer — editors
   crud("volunteer", "Task Templates", "dashboard", true, true, true, true, "ui"),
+  // Volunteer — community hub reads Active+visible task templates to match volunteers
+  // to actions (read-only; /community is signed-in but on the public website surface).
+  crud("volunteer", "Task Templates", "public", false, true, false, false, "read"),
   crud("volunteer", "Canvass Turf", "dashboard", true, true, true, true, "ui"),
   crud("volunteer", "Contact Lists", "dashboard", true, true, true, true, "ui"),
   crud("volunteer", "Roles", "dashboard", true, true, true, true, "ui"),
