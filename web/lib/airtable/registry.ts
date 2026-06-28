@@ -57,11 +57,11 @@ export const AIRTABLE_BASES = {
   // (viewFinanceTotals to read/propose, editFinance to approve/transition).
   // See app/api/budget/*, lib/budget/*, and governance-manifest.ts.
   budget: {
-    id: "appiuSYCexFUmGIOr",
-    accessTable: "tblI3aWGwDXhHaNGO",
+    id: "appySScovNNRRMaci",
+    accessTable: "tblGqmiwU2OIwBBwQ",
     tables: {
-      items: "tblehIxTL9TLTTQ0e",
-      expenseRequests: "tblpXHQerkk8OYqt3",
+      items: "tblDOoTrvt5EvqzJm",
+      expenseRequests: "tblRSEefxaYDPb8Ai",
     },
   },
 } as const;
