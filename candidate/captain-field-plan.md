@@ -103,4 +103,4 @@ Map captains onto the documented [phased timeline](strategic-plan.md#3-phased-ti
 
 ---
 
-*Built on [tactics/captain-archetypes.md](../tactics/captain-archetypes.md), [workflows/team-pairing.md](../workflows/team-pairing.md), and [tools/captain-roster.md](../tools/captain-roster.md). Grounded in [candidate/strategic-plan.md](strategic-plan.md) and [candidate/data-and-map-plan.md](data-and-map-plan.md). Paid for by the Matt Grant for Congress Committee.*
+*Built on [tactics/captain-archetypes.md](../tactics/captain-archetypes.md), [workflows/team-pairing.md](../workflows/team-pairing.md), and [tools/captain-roster.md](../tools/captain-roster.md). Grounded in [candidate/strategic-plan.md](strategic-plan.md) and [candidate/data-and-map-plan.md](data-and-map-plan.md). Paid for by Matt Grant for Congress.*

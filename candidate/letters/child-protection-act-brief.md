@@ -30,4 +30,4 @@ action, and he's running for Congress to put Missouri's children first.
 
 > Reach the campaign: mattgrantforcongress@gmail.com · (314) 255-7760 · mattgrantforcongress.org
 
-_Primary · August 4, 2026 · Paid for by the Matt Grant for Congress Committee._
+_Primary · August 4, 2026 · Paid for by Matt Grant for Congress._

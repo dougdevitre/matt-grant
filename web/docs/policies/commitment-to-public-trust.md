@@ -28,5 +28,5 @@ If we ever fall short of this commitment, hold us to it: **mattgrantforcongress@
 
 ---
 
-*Paid for by the Matt Grant for Congress Committee.*
-*701 Market Street, Suite 110, PMB 1709, St. Louis, MO 63101 · mattgrantforcongress@gmail.com · (314) 255-7760*
+*Paid for by Matt Grant for Congress.*
+*1625 Mason Knoll Rd, St. Louis, MO 63131 · mattgrantforcongress@gmail.com · (314) 255-7760*

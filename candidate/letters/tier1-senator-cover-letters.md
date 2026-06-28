@@ -53,7 +53,7 @@ Matt Grant
 Candidate, U.S. House — Missouri's 2nd District
 mattgrantforcongress@gmail.com · (314) 255-7760
 
-Paid for by the Matt Grant for Congress Committee.
+Paid for by Matt Grant for Congress.
 ```
 
 ---
@@ -99,7 +99,7 @@ Matt Grant
 Candidate, U.S. House — Missouri's 2nd District
 mattgrantforcongress@gmail.com · (314) 255-7760
 
-Paid for by the Matt Grant for Congress Committee.
+Paid for by Matt Grant for Congress.
 ```
 
 ---
@@ -145,7 +145,7 @@ Matt Grant
 Candidate, U.S. House — Missouri's 2nd District
 mattgrantforcongress@gmail.com · (314) 255-7760
 
-Paid for by the Matt Grant for Congress Committee.
+Paid for by Matt Grant for Congress.
 ```
 
 ---
@@ -191,7 +191,7 @@ Matt Grant
 Candidate, U.S. House — Missouri's 2nd District
 mattgrantforcongress@gmail.com · (314) 255-7760
 
-Paid for by the Matt Grant for Congress Committee.
+Paid for by Matt Grant for Congress.
 ```
 
 ---
@@ -237,7 +237,7 @@ Matt Grant
 Candidate, U.S. House — Missouri's 2nd District
 mattgrantforcongress@gmail.com · (314) 255-7760
 
-Paid for by the Matt Grant for Congress Committee.
+Paid for by Matt Grant for Congress.
 ```
 
 ---
@@ -283,7 +283,7 @@ Matt Grant
 Candidate, U.S. House — Missouri's 2nd District
 mattgrantforcongress@gmail.com · (314) 255-7760
 
-Paid for by the Matt Grant for Congress Committee.
+Paid for by Matt Grant for Congress.
 ```
 
 ---
@@ -329,7 +329,7 @@ Matt Grant
 Candidate, U.S. House — Missouri's 2nd District
 mattgrantforcongress@gmail.com · (314) 255-7760
 
-Paid for by the Matt Grant for Congress Committee.
+Paid for by Matt Grant for Congress.
 ```
 
 ---
@@ -375,7 +375,7 @@ Matt Grant
 Candidate, U.S. House — Missouri's 2nd District
 mattgrantforcongress@gmail.com · (314) 255-7760
 
-Paid for by the Matt Grant for Congress Committee.
+Paid for by Matt Grant for Congress.
 ```
 
 ---
@@ -421,7 +421,7 @@ Matt Grant
 Candidate, U.S. House — Missouri's 2nd District
 mattgrantforcongress@gmail.com · (314) 255-7760
 
-Paid for by the Matt Grant for Congress Committee.
+Paid for by Matt Grant for Congress.
 ```
 
 ---
@@ -467,7 +467,7 @@ Matt Grant
 Candidate, U.S. House — Missouri's 2nd District
 mattgrantforcongress@gmail.com · (314) 255-7760
 
-Paid for by the Matt Grant for Congress Committee.
+Paid for by Matt Grant for Congress.
 ```
 
 ---
@@ -513,7 +513,7 @@ Matt Grant
 Candidate, U.S. House — Missouri's 2nd District
 mattgrantforcongress@gmail.com · (314) 255-7760
 
-Paid for by the Matt Grant for Congress Committee.
+Paid for by Matt Grant for Congress.
 ```
 
 ---
@@ -559,7 +559,7 @@ Matt Grant
 Candidate, U.S. House — Missouri's 2nd District
 mattgrantforcongress@gmail.com · (314) 255-7760
 
-Paid for by the Matt Grant for Congress Committee.
+Paid for by Matt Grant for Congress.
 ```
 
-_Paid for by the Matt Grant for Congress Committee._
+_Paid for by Matt Grant for Congress._

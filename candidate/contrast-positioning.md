@@ -96,4 +96,4 @@ the incumbent's posture can't easily match:
 
 _Frameworks drawn from `messaging/positioning-framework.md`, `tactics/primary-general-strategy.md`,
 `tactics/issue-response-engine.md`, and `workflows/campaign-plan-builder.md`. Educational campaign
-strategy — not legal advice. Paid for by the Matt Grant for Congress Committee._
+strategy — not legal advice. Paid for by Matt Grant for Congress._

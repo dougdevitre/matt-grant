@@ -160,4 +160,4 @@ result into the map's `precincts` source, and the 3D columns become real instead
    a second `fill-extrusion`/choropleth layer.
 
 _Frameworks from `workflows/voter-targeting.md`, `tactics/voter-personas.md`, and
-`tactics/ballot-chase-program.md`. Paid for by the Matt Grant for Congress Committee._
+`tactics/ballot-chase-program.md`. Paid for by Matt Grant for Congress._

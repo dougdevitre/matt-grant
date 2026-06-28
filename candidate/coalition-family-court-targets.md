@@ -16,7 +16,7 @@ allies, and amplification.
 > - **Confirm alignment & party** before approaching; in a primary, prioritize accordingly. Nothing
 >   here asserts any official supports Matt — these are *targets to approach*, not confirmed allies.
 > - **Compliance:** keep all outreach FEC-compliant; every public communication carries the
->   "Paid for by the Matt Grant for Congress Committee." line. Educational, not legal advice.
+>   "Paid for by Matt Grant for Congress." line. Educational, not legal advice.
 
 ## Why these targets
 
@@ -122,4 +122,4 @@ Committed) — its `outreach-pipeline.json` schema imports cleanly into Airtable
   `mo-committees.md` — seed data, "last verified April 2026."
 - **To verify:** senate.mo.gov (rosters, committees), house.mo.gov, the 2025 enacted MO-02 map.
 
-_Paid for by the Matt Grant for Congress Committee._
+_Paid for by Matt Grant for Congress._

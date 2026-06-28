@@ -101,4 +101,4 @@ moment.
 - Never imply a branded/AI scene is a real photo (no "at a rally" captions on generated art).
 - Disclaimer line stays visible; images never cover the "Paid for by…" footer.
 
-_Paid for by the Matt Grant for Congress Committee._
+_Paid for by Matt Grant for Congress._

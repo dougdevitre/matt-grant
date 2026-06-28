@@ -69,4 +69,4 @@ placeholder stands in.
 - Dashboard numbers (goals, vote math) are **illustrative planning placeholders**, not predictions.
 - Compliance tooling is educational, not legal advice — verify with the FEC and Missouri Ethics Commission.
 
-_Paid for by the Matt Grant for Congress Committee._
+_Paid for by Matt Grant for Congress._

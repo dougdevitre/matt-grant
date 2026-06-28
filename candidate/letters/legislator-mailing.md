@@ -103,4 +103,4 @@ To change the list, edit [`senate-targets.csv`](senate-targets.csv) (the `alignm
 
 ---
 
-> **EDUCATIONAL / NONPARTISAN NOTE.** This is campaign outreach material presented faithfully to Matt Grant's documented positions (`candidate/platform.md`). Personalization uses public, verifiable attributes of each office-holder. It is not legal advice. Verify all roster data against the official Missouri Senate directory before mailing. _Paid for by the Matt Grant for Congress Committee._
+> **EDUCATIONAL / NONPARTISAN NOTE.** This is campaign outreach material presented faithfully to Matt Grant's documented positions (`candidate/platform.md`). Personalization uses public, verifiable attributes of each office-holder. It is not legal advice. Verify all roster data against the official Missouri Senate directory before mailing. _Paid for by Matt Grant for Congress._

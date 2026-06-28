@@ -6,7 +6,7 @@ Library's mobile printing service and creative lab, for little more than the cos
 covers **what to print, how to print it, and how to use it responsibly and legally.**
 
 > **Compliance note (educational, not legal advice):** Printed and broadcast campaign materials are
-> "public communications" and must carry the **"Paid for by the Matt Grant for Congress Committee."**
+> "public communications" and must carry the **"Paid for by Matt Grant for Congress."**
 > disclaimer — our official assets already include it, so print them as-is and don't crop it off.
 > Because the **supporter pays the library directly** for materials at pickup, this is the
 > supporter's own volunteer activity, not a campaign expenditure. If the *committee* ever pays for
@@ -240,7 +240,7 @@ campaign. Follow these rules.
 - ☐ Picked up within **48 hours** (mobile print) / brought approved materials (creative lab)
 
 **Before I post or hand out anything**
-- ☐ The **"Paid for by the Matt Grant for Congress Committee."** line is intact
+- ☐ The **"Paid for by Matt Grant for Congress."** line is intact
 - ☐ I have the property owner's **permission** to post
 - ☐ Nothing is on a **roadside / right-of-way / utility pole / public property**
 - ☐ On election day, everything stays **25+ feet from the polling place door**

@@ -50,7 +50,7 @@ Matt Grant
 Candidate, U.S. House — Missouri's 2nd District
 {{campaign_email}} · {{campaign_phone}}
 
-Paid for by the Matt Grant for Congress Committee.
+Paid for by Matt Grant for Congress.
 ```
 
 ## Variable map
@@ -69,4 +69,4 @@ Paid for by the Matt Grant for Congress Committee.
   the `mo-gov` `policy-brief.md` format is a good skeleton).
 - Log every send in the outreach pipeline (mo-gov `outreach-pipeline.json` → Airtable).
 
-_Paid for by the Matt Grant for Congress Committee._
+_Paid for by Matt Grant for Congress._
