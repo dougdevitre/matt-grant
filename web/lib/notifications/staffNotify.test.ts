@@ -14,6 +14,7 @@ import {
   notifyModeratorsNewIssue,
   notifyCaptainsNewVolunteer,
   notifyAdminsNewDonation,
+  notifyAdminsCaptainApplication,
   sendRoleWelcome,
 } from "./staffNotify";
 
@@ -51,6 +52,13 @@ describe("role-targeted staff notifications", () => {
     await notifyAdminsNewDonation({ name: "Pat", amount: 50, email: "pat@x.com" });
     expect(toOf()).toEqual(["admin@x.com", "boss@x.com"]);
     expect((sendEmail.mock.calls[0][0] as { subject: string }).subject).toContain("$50.00");
+  });
+
+  it("captain application → admins + allowlist admin (not captains/volunteers)", async () => {
+    await notifyAdminsCaptainApplication({ name: "Lee", email: "lee@x.com", city: "Kirkwood", note: "I run our PTA." });
+    expect(emailsMuting).toHaveBeenCalledWith("captain_application");
+    expect(toOf()).toEqual(["admin@x.com", "boss@x.com"]);
+    expect((sendEmail.mock.calls[0][0] as { subject: string }).subject).toContain("Lee");
   });
 
   it("role welcome → the staffer, subject names the role", async () => {
