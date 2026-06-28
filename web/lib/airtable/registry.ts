@@ -51,6 +51,19 @@ export const AIRTABLE_BASES = {
     accessTable: "tblqV5hSjBdJRtpSS",
     tables: { submissions: "tbl63kV5OGFj5bD6c" },
   },
+  // Campaign Expense Budget Builder — planning catalog + expense-approval pipeline.
+  // Front-end writes are governed by the base's Front-End Access control table
+  // (fail-closed), AND the dashboard's RBAC gates every budget route on top
+  // (viewFinanceTotals to read/propose, editFinance to approve/transition).
+  // See app/api/budget/*, lib/budget/*, and governance-manifest.ts.
+  budget: {
+    id: "appiuSYCexFUmGIOr",
+    accessTable: "tblI3aWGwDXhHaNGO",
+    tables: {
+      items: "tblehIxTL9TLTTQ0e",
+      expenseRequests: "tblpXHQerkk8OYqt3",
+    },
+  },
 } as const;
 
 /** A key into AIRTABLE_BASES (e.g. "issues", "volunteer"). */
