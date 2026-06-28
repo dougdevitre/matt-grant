@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { ContactForm } from "@/components/ContactForm";
 import { CtaButton } from "@/components/CtaButton";
 import { CAMPAIGN, ASSETS_CDN } from "@/lib/site";
@@ -19,6 +20,20 @@ export default function ContactPage() {
           This race is won one neighbor at a time. Tell us how you&apos;d like to help and we&apos;ll plug you
           in — or reach the campaign directly.
         </p>
+
+        {/* Steer people who want to get involved to the structured /join flows;
+            keep this page for general inquiries, press, and direct contact. */}
+        <div className="mt-6 flex flex-col gap-3 rounded-sm border border-brick/30 bg-brick/5 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-display text-lg font-semibold text-ink">Ready to join the movement?</p>
+            <p className="mt-1 text-sm text-slate">
+              Get updates, volunteer, pledge to give, or lead a team — pick your level.
+            </p>
+          </div>
+          <Link href="/join" className="btn-primary shrink-0 text-center">
+            See the ways to join →
+          </Link>
+        </div>
       </div>
 
       <div className="mt-12 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
