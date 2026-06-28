@@ -2,19 +2,36 @@ import { spawn } from "node:child_process";
 import { writeFile, readFile, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import ffmpeg from "@ffmpeg-installer/ffmpeg";
 
 // Render a still graphic into a short vertical MP4 for YouTube Shorts. YouTube has
 // no image-post API (only videos.insert), so the composer's /api/graphics PNG is
 // held for a few seconds, scaled/padded to 1080×1920, and encoded H.264 + silent
-// AAC using the bundled static ffmpeg binary (a child process). Returns the MP4
-// bytes for a resumable upload.
+// AAC using a static ffmpeg binary (a child process). Returns the MP4 bytes for a
+// resumable upload.
 //
-// Operational note: ffmpeg adds bundle/cold-start/`/tmp` weight to the Amplify SSR
-// Lambda. A single-still encode is light (~1–3s). If bundle limits bite, move this
-// to a dedicated render Lambda or AWS MediaConvert (out of scope here).
+// BUNDLE NOTE: the ffmpeg binary is ~35 MB and was pushing the Amplify SSR compute
+// bundle past its hard 220 MiB cap (deploys were failing). We now load it LAZILY via
+// a COMPUTED specifier so the bundler/tracer can't see it — the binary stays OUT of
+// the deployed function. It still resolves from node_modules locally + in tests; in
+// the deployed function it's intentionally absent, so render reports a clear
+// "unavailable" error (callers in publish.ts already catch render failures). The
+// durable fix is to move rendering to a dedicated Lambda / AWS MediaConvert — tracked
+// as a follow-up so this feature comes back without the bundle cost.
 
 export const SHORT_SECONDS = 7;
+
+let ffmpegPathCache: string | null | undefined;
+async function ffmpegPath(): Promise<string | null> {
+  if (ffmpegPathCache !== undefined) return ffmpegPathCache;
+  try {
+    const spec = ["@ffmpeg-installer", "ffmpeg"].join("/"); // computed → not statically traced/bundled
+    const mod = (await import(/* webpackIgnore: true */ spec)) as { default?: { path?: string }; path?: string };
+    ffmpegPathCache = mod.default?.path ?? mod.path ?? null;
+  } catch {
+    ffmpegPathCache = null; // not bundled in this deployment → feature unavailable
+  }
+  return ffmpegPathCache;
+}
 
 /** Build the ffmpeg args that turn a still into a held vertical Short. Exported for tests. */
 export function ffmpegArgs(inPath: string, outPath: string, seconds = SHORT_SECONDS): string[] {
@@ -28,9 +45,13 @@ export function ffmpegArgs(inPath: string, outPath: string, seconds = SHORT_SECO
   ];
 }
 
-function runFfmpeg(args: string[]): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const proc = spawn(ffmpeg.path, args, { stdio: ["ignore", "ignore", "pipe"] });
+async function runFfmpeg(args: string[]): Promise<void> {
+  const bin = await ffmpegPath();
+  if (!bin) {
+    throw new Error("video rendering is unavailable in this deployment (ffmpeg binary not bundled)");
+  }
+  await new Promise<void>((resolve, reject) => {
+    const proc = spawn(bin, args, { stdio: ["ignore", "ignore", "pipe"] });
     let stderr = "";
     proc.stderr?.on("data", (d) => (stderr += String(d)));
     proc.on("error", reject);
