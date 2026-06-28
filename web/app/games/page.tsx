@@ -26,6 +26,13 @@ export default async function GamesHome() {
           A quick civic mini-game for each of Matt Grant&apos;s four priorities for Missouri&apos;s 2nd District. Each
           plays in under a minute — and the winning strategy is the point.
         </p>
+        <p className="mt-4 rounded-lg border border-line bg-white px-4 py-3 text-sm text-ink shadow-card">
+          <span className="font-semibold">Play any one game free.</span>{" "}
+          <Link href="/sign-up" className="text-brick underline hover:text-ink">
+            Become a member — free —
+          </Link>{" "}
+          to unlock all four.
+        </p>
       </header>
 
       <ul className="grid gap-5 sm:grid-cols-2">
