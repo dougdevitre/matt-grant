@@ -116,11 +116,13 @@ export async function saveVolunteerSignup(input: VolunteerIntake): Promise<Intak
   // win; status + createdAt are set once (an ACTIVE volunteer who re-submits stays).
   const dedupeKey = email ? `e:${email.toLowerCase()}` : phone ? `p:${phone.replace(/\D/g, "")}` : newId();
 
+  let existingAirtableId: string | null = null;
   try {
-    await ddb.send(
+    const res = await ddb.send(
       new UpdateCommand({
         TableName: TABLE,
         Key: { PK: PK.volunteers, SK: dedupeKey },
+        ReturnValues: "ALL_NEW",
         UpdateExpression:
           "SET #n = :n, email = :em, phone = :ph, city = :ci, zip = :zip, #mode = :mode, skills = :sk, " +
           "availability = :av, #roles = :ro, commitment = :co, door = :door, interests = :in, interestTags = :tags, " +
@@ -156,6 +158,9 @@ export async function saveVolunteerSignup(input: VolunteerIntake): Promise<Intak
         },
       }),
     );
+    // Existing Airtable row id (if this email/phone signed up before) so the mirror
+    // PATCHes that row instead of creating a duplicate.
+    existingAirtableId = (res.Attributes?.airtableId as string) ?? null;
   } catch {
     return { ok: false, message: `Something went wrong saving your info. Please email ${CAMPAIGN.email}.` };
   }
@@ -174,25 +179,42 @@ export async function saveVolunteerSignup(input: VolunteerIntake): Promise<Intak
   }
 
   // Mirror into the Airtable Volunteers roster (linked to Roles/Skills/Commitment).
-  await mirrorVolunteerToAirtable({
-    name,
-    email,
-    phone,
-    city,
-    zip,
-    door,
-    commitmentLevel,
-    roleInterests: roles,
-    skills,
-    mode,
-    availability,
-    smsOptIn: input.smsOptIn,
-    pledgeAmount,
-    captainNote,
-    message,
-    source,
-    signedUpDate,
-  }).catch(() => null);
+  // Upsert: PATCH the existing row when we have one, else CREATE and persist the new
+  // id back onto the DynamoDB item so a future re-submit updates the same row.
+  const mirroredId = await mirrorVolunteerToAirtable(
+    {
+      name,
+      email,
+      phone,
+      city,
+      zip,
+      door,
+      commitmentLevel,
+      roleInterests: roles,
+      skills,
+      mode,
+      availability,
+      smsOptIn: input.smsOptIn,
+      pledgeAmount,
+      captainNote,
+      message,
+      source,
+      signedUpDate,
+    },
+    existingAirtableId,
+  ).catch(() => null);
+  if (mirroredId && mirroredId !== existingAirtableId) {
+    await ddb
+      .send(
+        new UpdateCommand({
+          TableName: TABLE,
+          Key: { PK: PK.volunteers, SK: dedupeKey },
+          UpdateExpression: "SET airtableId = :aid",
+          ExpressionAttributeValues: { ":aid": mirroredId },
+        }),
+      )
+      .catch(() => {});
+  }
 
   await notify({ name, email, phone, city, door, message }).catch(() => {});
 
