@@ -26,14 +26,19 @@ const FLAG_LABEL: Record<string, string> = {
   no_careerism: "No careerism",
   no_churn: "No wasted ramp",
   served_the_sweet_spot: "Served the sweet spot",
+  // Clarity Companion
+  both_upheld: "Accountability + privacy upheld",
+  no_child_exposed: "No child exposed",
+  nothing_over_sealed: "Nothing over-sealed",
 };
 
 // Flags that represent a failure/warning are shown with a ✗, not a ✓.
-const NEGATIVE_FLAGS = new Set(["service_collapsed", "bloat_wins", "overcut"]);
+const NEGATIVE_FLAGS = new Set(["service_collapsed", "bloat_wins", "overcut", "balance_broken"]);
 const NEGATIVE_LABEL: Record<string, string> = {
   service_collapsed: "Service collapsed",
   bloat_wins: "Bloat won — over the band",
   overcut: "Overcut — under the band",
+  balance_broken: "Balance broken — a meter collapsed",
 };
 
 export function ShareCard({ title, score, shareText, flags }: ShareCardProps) {
