@@ -81,6 +81,14 @@ applications:
         build:
           commands:
             - npm run build
+            # Strip the webpack build cache from the DEPLOYED artifact. `files: **/*`
+            # under baseDirectory `.next` otherwise ships `.next/cache` (hundreds of
+            # MB) inside the SSR bundle, which pushed the build output past Amplify's
+            # ~230 MB cap and FAILED deploy #313 ("build output ... exceeds the max
+            # allowed size"). The cache is only a build-time accelerator; it is never
+            # needed at runtime. node_modules caching (below) is unaffected; only the
+            # incremental .next cache is sacrificed, costing a little build time.
+            - rm -rf .next/cache
       artifacts:
         baseDirectory: .next
         files:
