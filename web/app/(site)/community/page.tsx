@@ -146,7 +146,7 @@ export default async function CommunityPage() {
       </div>
 
       <p className="mt-10 text-xs text-slate">
-        Paid for by the Matt Grant for Congress Committee. You&apos;re seeing the supporter community —
+        {CAMPAIGN.paidForBy} You&apos;re seeing the supporter community —
         campaign operations stay private to the team.
       </p>
     </section>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { reportError } from "@/lib/report-error";
+import { CAMPAIGN } from "@/lib/site";
 
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
@@ -21,7 +22,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
           <button onClick={reset} className="btn-primary">Try again</button>
           <Link href="/" className="btn-ghost">Back to home</Link>
         </div>
-        <p className="mt-12 text-xs text-slate">Paid for by the Matt Grant for Congress Committee.</p>
+        <p className="mt-12 text-xs text-slate">{CAMPAIGN.paidForBy}</p>
       </div>
     </main>
   );

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { TOPICS, getPreferences, verifyUnsubToken } from "@/lib/subscribers";
 import { savePreferences } from "./actions";
+import { CAMPAIGN } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Email preferences", robots: { index: false, follow: false } };
@@ -84,7 +85,7 @@ export default async function UnsubscribePage({
 
       <p className="mt-8 max-w-prose text-xs text-slate">
         Transactional messages you request — like a donation receipt or a reply to your message — are always
-        delivered. Paid for by the Matt Grant for Congress Committee.
+        delivered. {CAMPAIGN.paidForBy}
       </p>
     </section>
   );

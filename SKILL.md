@@ -3,7 +3,7 @@ name: matt-grant-for-congress
 description: >
   Matt Grant's personal campaign, compliance, and strategy skill for his run
   for the U.S. House of Representatives, Missouri — District 2 (MO-02), in the
-  August 4, 2026 primary, run by the Matt Grant for Congress Committee. Use this
+  August 4, 2026 primary, run by the Matt Grant for Congress committee (FEC C00945394). Use this
   skill for anything related to Matt Grant's campaign — his profile, platform,
   priorities (eliminating family-court corruption, term limits, smaller federal
   government, lower taxes), the proposed CHILD Protection Act, his strategic plan
@@ -31,11 +31,11 @@ description: >
 
 ## Purpose
 
-This skill powers **Matt Grant's campaign for the U.S. House of Representatives, Missouri — District 2 (MO-02)**, in the **August 4, 2026 primary**, operated by the **Matt Grant for Congress Committee**. It serves as Matt's personal campaign brain: his candidate profile, platform, strategic plan, fundraising, field, GOTV, and messaging — see the `candidate/` folder for the Grant-specific files (`candidate/profile.md`, `candidate/platform.md`, `candidate/strategic-plan.md`).
+This skill powers **Matt Grant's campaign for the U.S. House of Representatives, Missouri — District 2 (MO-02)**, in the **August 4, 2026 primary**, operated by the **Matt Grant for Congress** committee (FEC C00945394). It serves as Matt's personal campaign brain: his candidate profile, platform, strategic plan, fundraising, field, GOTV, and messaging — see the `candidate/` folder for the Grant-specific files (`candidate/profile.md`, `candidate/platform.md`, `candidate/strategic-plan.md`).
 
 It also retains the full, general get-elected capability set so the same tooling can help any person in the United States run a legally compliant, strategically sound campaign for public office — from school board to Congress. Every compliance response is grounded in verifiable law and agency sources. When in doubt, route to the authoritative agency rather than guess. The tooling itself is nonpartisan: it documents Matt Grant's own stated positions faithfully, but it does not editorialize, fabricate data, or invent endorsements.
 
-**Matt Grant — quick reference:** Matt Grant for Congress Committee · MO-02 · primary August 4, 2026 · mattgrantforcongress@gmail.com · (314) 255-7760 · 701 Market Street, Suite 110, PMB 1709, St. Louis, MO 63101 · Donate (WinRed): https://secure.winred.com/matt-grant-for-congress/donate-today
+**Matt Grant — quick reference:** Matt Grant for Congress (FEC committee C00945394) · MO-02 · primary August 4, 2026 · mattgrantforcongress@gmail.com · (314) 255-7760 · 1625 Mason Knoll Rd, St. Louis, MO 63131 · Donate (WinRed): https://secure.winred.com/matt-grant-for-congress/donate-today · Required FEC disclaimer (verbatim): Paid for by Matt Grant for Congress.
 
 ---
 

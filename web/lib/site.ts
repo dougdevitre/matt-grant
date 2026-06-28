@@ -6,7 +6,7 @@ export const CAMPAIGN = {
   office: "U.S. House of Representatives",
   district: "Missouri — District 2",
   districtShort: "MO-02",
-  committee: "Matt Grant for Congress Committee",
+  committee: "Matt Grant for Congress", // FEC registered committee name (C00945394)
   electionDate: "2026-08-04T00:00:00-05:00", // Missouri primary, Aug 4 2026
   electionLabel: "August 4, 2026",
   tagline: "A neighbor, a dad, and a problem-solver.",
@@ -14,11 +14,40 @@ export const CAMPAIGN = {
   email: "mattgrantforcongress@gmail.com",
   phone: "(314) 255-7760",
   phoneHref: "tel:+13142557760",
-  address: "701 Market Street, Suite 110, PMB 1709, St. Louis, MO 63101",
+  address: "1625 Mason Knoll Rd, St. Louis, MO 63131", // FEC mailing address of record
   donateUrl:
     "https://secure.winred.com/matt-grant-for-congress/donate-today?sc=winred-directory&money_bomb=false&recurring=false",
-  paidForBy: "Paid for by the Matt Grant for Congress Committee.",
+  // FEC-required disclaimer — exact wording. Used verbatim on the site; do not reword.
+  paidForBy: "Paid for by Matt Grant for Congress.",
 } as const;
+
+// FEC registration (public record). The profile link doubles as the campaign's
+// transparency anchor in the footer.
+export const FEC = {
+  committeeId: "C00945394",
+  profileUrl: "https://www.fec.gov/data/committee/C00945394/",
+} as const;
+
+// Official campaign social accounts, surfaced as the footer icon row.
+//
+// Verified handles only — do NOT guess. The footer renders ONLY entries with a
+// non-empty `url`, so add an account by filling its url (X/Twitter is listed
+// Active in the Social Media base but has no URL yet, so it's omitted here until
+// confirmed). Mirror any change into the Channels table (appwrqSIsxaZ9Ltun).
+export type SocialId =
+  | "x" | "facebook" | "facebookPersonal" | "facebookGroup" | "instagram" | "youtube" | "tiktok" | "linkedin";
+// `label` = full accessible name (footer icon aria/title); `short` = compact text
+// label for plaintext/HTML email footers where icons can't render.
+export type SocialLink = { id: SocialId; label: string; short: string; url: string };
+
+export const SOCIALS: readonly SocialLink[] = [
+  { id: "facebook", label: "Matt Grant for Congress on Facebook", short: "Facebook", url: "https://www.facebook.com/profile.php?id=61580463410412" },
+  { id: "facebookPersonal", label: "Matt Grant on Facebook", short: "Facebook (personal)", url: "https://www.facebook.com/MatthewRGrant" },
+  { id: "facebookGroup", label: "Stop Missouri Corruption (Facebook Group)", short: "Stop Missouri Corruption", url: "https://www.facebook.com/groups/4086143434976312/" },
+  { id: "instagram", label: "Matt Grant on Instagram", short: "Instagram", url: "https://www.instagram.com/matthewrgrant/" },
+  { id: "linkedin", label: "Matt Grant for Congress on LinkedIn", short: "LinkedIn", url: "https://www.linkedin.com/company/matt-grant-for-congress" },
+  { id: "youtube", label: "Matt Grant for Congress on YouTube", short: "YouTube", url: "https://www.youtube.com/@matthewgrantforcongress" },
+] as const;
 
 // Primary navigation, grouped into parent → child menus to keep the bar
 // uncrowded. A NavGroup renders as a dropdown (desktop) / accordion (mobile);

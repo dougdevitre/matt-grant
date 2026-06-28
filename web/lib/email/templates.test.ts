@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { EMAIL_TEMPLATES, donationThankYou } from "./templates";
+import { SOCIALS } from "@/lib/site";
 
 // Tokens that staff legitimately fill at send time. Anything OUTSIDE this set in
 // a rendered template is a stray/misspelled placeholder that would ship literal
@@ -53,6 +54,15 @@ describe("EMAIL_TEMPLATES", () => {
       it(t.kind === "broadcast" ? "includes an unsubscribe link (broadcast/bulk)" : "omits unsubscribe (transactional/triggered)", () => {
         const hasUnsub = email.html.includes("{{unsubscribe_url}}") && email.text.includes("{{unsubscribe_url}}");
         expect(hasUnsub).toBe(t.kind === "broadcast");
+      });
+
+      it("carries the shared social-links footer (html + text)", () => {
+        // Every template inherits the layout footer, so the social row must appear
+        // in both parts. Assert every account's URL is present, not just a label.
+        for (const s of SOCIALS) {
+          expect(email.html).toContain(s.url);
+          expect(email.text).toContain(s.url);
+        }
       });
     });
   }
