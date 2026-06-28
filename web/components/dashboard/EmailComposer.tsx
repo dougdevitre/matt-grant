@@ -16,16 +16,20 @@ const topicLabel: Record<string, string> = {
 
 export type ContactCounts = Record<ContactGroup, number>;
 
+export type SavedTemplateOption = { id: string; name: string; role: Role | null; vars: Record<string, string> };
+
 export function EmailComposer({
   broadcasts,
   counts,
   segments = [],
+  saved = [],
   canSend,
   disabled,
 }: {
   broadcasts: BroadcastMeta[];
   counts: ContactCounts;
   segments?: { value: string; label: string; count: number; group: string }[];
+  saved?: SavedTemplateOption[];
   canSend: boolean;
   disabled: boolean;
 }) {
@@ -97,6 +101,17 @@ export function EmailComposer({
   };
   const run = (action: (f: FormData) => Promise<SendState>) => start(async () => setRes(await action(fd())));
 
+  // Load a saved template: it rides the generic "announcement" broadcast — prefill its fields
+  // and pre-select the template's default audience role.
+  const loadSaved = (id: string) => {
+    const t = saved.find((s) => s.id === id);
+    if (!t) return;
+    setKey("announcement");
+    setVars({ ...t.vars });
+    setRoleSel(t.role ? [t.role] : []);
+    setRes(null);
+  };
+
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_24rem]">
     <div className="card p-6">
@@ -115,6 +130,17 @@ export function EmailComposer({
               <option key={b.key} value={b.key}>{b.label}</option>
             ))}
           </select>
+          {saved.length > 0 && (
+            <select
+              value=""
+              onChange={(e) => { if (e.target.value) loadSaved(e.target.value); }}
+              className={`${field} mt-2`}
+              aria-label="Load a saved template"
+            >
+              <option value="">Load a saved template…</option>
+              {saved.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          )}
           {tpl && (
             <p className="mt-1 text-xs text-slate">
               {tpl.description} · sends to the{" "}

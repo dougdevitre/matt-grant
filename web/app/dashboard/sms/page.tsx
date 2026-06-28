@@ -6,6 +6,7 @@ import { can } from "@/lib/rbac";
 import { smsEnabled } from "@/lib/sms/send";
 import { smsAudienceCounts, SMS_GROUP_LABELS } from "@/lib/sms/audiences";
 import { listSmsCampaigns } from "@/lib/sms/campaigns";
+import { listSavedTemplates } from "@/lib/notifications/messageTemplates";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export default async function SmsPage() {
   if (!can(role, "draftSms")) redirect("/dashboard?denied=sms");
   const canSend = can(role, "sendSms");
 
-  const [counts, sent, enabled] = await Promise.all([smsAudienceCounts(), listSmsCampaigns(15), smsEnabled()]);
+  const [counts, sent, enabled, saved] = await Promise.all([smsAudienceCounts(), listSmsCampaigns(15), smsEnabled(), listSavedTemplates("sms")]);
   const groups = [
     { value: "subscribers", label: SMS_GROUP_LABELS.subscribers, count: counts.subscribers },
     { value: "volunteers", label: SMS_GROUP_LABELS.volunteers, count: counts.volunteers },
@@ -45,7 +46,7 @@ export default async function SmsPage() {
         </div>
       )}
 
-      <SmsComposer groups={groups} canSend={canSend} disabled={!enabled} />
+      <SmsComposer groups={groups} saved={saved} canSend={canSend} disabled={!enabled} />
 
       <div className="mt-8">
         <p className="eyebrow text-slate">Recent sends</p>

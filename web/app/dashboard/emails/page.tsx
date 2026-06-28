@@ -9,6 +9,7 @@ import { listStaff } from "@/lib/staff";
 import { sesEnabled } from "@/lib/email/send";
 import { listCampaigns } from "@/lib/campaigns";
 import { BROADCAST_META } from "@/lib/email/broadcasts";
+import { listSavedTemplates } from "@/lib/notifications/messageTemplates";
 import { segmentCounts, WAYS_TO_HELP, WAY_TARGET_LABELS } from "@/lib/profile";
 import { ISSUE_AXES } from "@/lib/integrations/research/issues";
 
@@ -29,7 +30,7 @@ export default async function EmailsPage() {
   if (!can(role, "draftEmailCampaign")) redirect("/dashboard?denied=campaign");
   const canSend = can(role, "sendEmailCampaign");
 
-  const [v, d, staff, sent, segCounts] = await Promise.all([getVolunteers(), getDonors(), listStaff(), listCampaigns(15), segmentCounts()]);
+  const [v, d, staff, sent, segCounts, saved] = await Promise.all([getVolunteers(), getDonors(), listStaff(), listCampaigns(15), segmentCounts(), listSavedTemplates("email")]);
   const activeStaff = staff.filter((s) => s.status === "active");
   const counts = {
     volunteers: v.rows.filter((x) => x.email).length,
@@ -75,7 +76,7 @@ export default async function EmailsPage() {
         </div>
       )}
 
-      <EmailComposer broadcasts={BROADCAST_META} counts={counts} segments={segments} canSend={canSend} disabled={!sesEnabled} />
+      <EmailComposer broadcasts={BROADCAST_META} counts={counts} segments={segments} saved={saved} canSend={canSend} disabled={!sesEnabled} />
 
       <div className="mt-8">
         <p className="eyebrow text-slate">Recent sends</p>
