@@ -35,7 +35,7 @@ OUTPUT_DIR = os.path.join(LETTERS, "output")
 SIGN_META = [
     "<b>Matt Grant</b>",
     "Candidate, U.S. Representative — Missouri 2nd Congressional District",
-    "Matt Grant for Congress Committee",
+    "Matt Grant for Congress",
 ]
 
 # Per-segment display name + output-file slug.

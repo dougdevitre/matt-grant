@@ -1,6 +1,6 @@
 # Our Commitment to Restoring Public Trust
 
-*Draft for review — Matt Grant for Congress Committee. Last updated: June 18, 2026.*
+*Draft for review — Matt Grant for Congress. Last updated: June 18, 2026.*
 
 > **Reviewer notes (remove before publishing):** This is a values statement, not a legal document. It draws on the documented platform in `candidate/platform.md` (family-court accountability / CHILD Protection Act, term limits, leaner government, cutting waste). Keep it faithful to stated positions — do not add new policy promises. Confirm tone with the candidate.
 

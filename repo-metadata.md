@@ -10,7 +10,7 @@ Copy-paste these values into the GitHub repo settings for the Matt Grant for Con
 
 **Description (max 350 chars):**
 ```
-Campaign, compliance, and strategy skill for Matt Grant's run for U.S. House, Missouri District 2 (MO-02) — primary August 4, 2026. Matt Grant for Congress Committee. Includes his profile, platform, and strategic plan, built on a nonpartisan get-elected toolkit (FEC + Missouri coverage, 96 commands).
+Campaign, compliance, and strategy skill for Matt Grant's run for U.S. House, Missouri District 2 (MO-02) — primary August 4, 2026. Matt Grant for Congress. Includes his profile, platform, and strategic plan, built on a nonpartisan get-elected toolkit (FEC + Missouri coverage, 96 commands).
 ```
 
 **Website:** `https://secure.winred.com/matt-grant-for-congress/donate-today`
@@ -61,7 +61,7 @@ Donate: secure.winred.com/matt-grant-for-congress/donate-today
 
 **Colors:** Use the campaign palette — clean, readable, high-contrast. Keep imagery focused on the candidate and the MO-02 message.
 
-**Required disclaimer:** Any public-facing graphic or paid communication must carry the committee's "Paid for by" disclaimer. Use `tools/disclaimer-generator.md` to generate the correct text for the Matt Grant for Congress Committee.
+**Required disclaimer:** Any public-facing graphic or paid communication must carry the committee's "Paid for by" disclaimer. Use `tools/disclaimer-generator.md` to generate the correct text for the Matt Grant for Congress.
 
 ---
 
@@ -181,7 +181,7 @@ git commit -m "v1.0.0: Matt Grant for Congress campaign skill (MO-02, Aug 4 2026
 
 Initial release of the Matt Grant for Congress campaign skill — Matt's run for
 U.S. House, Missouri District 2 (MO-02), primary August 4, 2026, operated by the
-Matt Grant for Congress Committee.
+Matt Grant for Congress.
 
 Includes the candidate/ files (profile, platform, strategic plan) on top of a
 nonpartisan get-elected toolkit covering FEC + Missouri compliance, fundraising,

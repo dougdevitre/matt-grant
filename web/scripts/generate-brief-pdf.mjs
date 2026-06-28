@@ -64,7 +64,7 @@ function buildSvg() {
   <line x1="${M}" y1="${H - 230}" x2="${W - M}" y2="${H - 230}" stroke="${C.muted}" stroke-opacity="0.5" stroke-width="3"/>
   <text x="${M}" y="${H - 175}" font-family="Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="${C.ink}">mattgrantforcongress@gmail.com · (314) 255-7760 · mattgrantforcongress.org</text>
   <text x="${M}" y="${H - 120}" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="800" fill="${C.red}">PRIMARY · AUGUST 4, 2026</text>
-  <text x="${M}" y="${H - 78}" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="${C.slate}">Paid for by the Matt Grant for Congress Committee.</text>
+  <text x="${M}" y="${H - 78}" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="${C.slate}">Paid for by Matt Grant for Congress.</text>
 </svg>`;
 }
 
