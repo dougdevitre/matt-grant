@@ -29,7 +29,7 @@ export const GAMES: GameMeta[] = [
     issue: "Smaller Government",
     issueSlug: "smaller-government",
     blurb: "Right-size Washington to the target band — don't gut it, don't let it bloat.",
-    enabled: false,
+    enabled: true,
   },
   {
     id: "rotation",
