@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { sendTestSms, sendSmsCampaign, type SmsSendState } from "@/app/dashboard/sms/actions";
 import { SMS_TEMPLATES, getSmsTemplate, withCompliance, smsSegments } from "@/lib/sms/templates";
+import { ROLES, ROLE_LABELS, type Role } from "@/lib/rbac";
 
 const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-field";
 
@@ -22,6 +23,7 @@ export function SmsComposer({
   const [key, setKey] = useState(SMS_TEMPLATES[0]?.key ?? "");
   const [vars, setVars] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<string[]>(["subscribers"]);
+  const [roleSel, setRoleSel] = useState<Role[]>([]);
   const [testTo, setTestTo] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
   const [res, setRes] = useState<SmsSendState | null>(null);
@@ -34,11 +36,13 @@ export function SmsComposer({
 
   const setVar = (n: string, v: string) => setVars((p) => ({ ...p, [n]: v }));
   const toggle = (v: string) => setSelected((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]));
+  const toggleRole = (r: Role) => setRoleSel((cur) => (cur.includes(r) ? cur.filter((x) => x !== r) : [...cur, r]));
 
   const fd = () => {
     const f = new FormData();
     f.set("templateKey", key);
     selected.forEach((g) => f.append("groups", g));
+    roleSel.forEach((r) => f.append("roleGroups", r));
     f.set("scheduledAt", scheduledAt);
     f.set("testTo", testTo);
     tpl?.fields.forEach((fld) => f.set(fld.name, vars[fld.name] ?? ""));
@@ -110,7 +114,27 @@ export function SmsComposer({
               );
             })}
           </div>
-          <p className="mt-2 font-mono text-xs text-slate">~{reach} recipient{reach === 1 ? "" : "s"} (before de-dupe)</p>
+          {/* By Clerk account role — opted-in numbers only, resolved at send time. */}
+          <label className="mt-3 block text-xs font-semibold text-slate">By account role (opted-in only)</label>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {ROLES.map((r) => {
+              const on = roleSel.includes(r);
+              return (
+                <button
+                  type="button"
+                  key={r}
+                  onClick={() => toggleRole(r)}
+                  className={`rounded-sm border px-3 py-1.5 text-xs font-semibold transition-colors ${on ? "border-ink bg-ink text-paper" : "border-line bg-white text-ink hover:border-ink"}`}
+                >
+                  {ROLE_LABELS[r]}
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-2 font-mono text-xs text-slate">
+            ~{reach} recipient{reach === 1 ? "" : "s"} (before de-dupe)
+            {roleSel.length > 0 && <span> + opted-in accounts by role (counted at send)</span>}
+          </p>
         </div>
 
         {/* Test to a number */}

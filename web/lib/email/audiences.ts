@@ -2,8 +2,9 @@ import { getVolunteers, getDonors } from "@/lib/queries";
 import { listStaff } from "@/lib/staff";
 import { segmentEmails, isWayToHelp, type WayToHelp } from "@/lib/profile";
 import { isIssueId, type IssueId } from "@/lib/integrations/research/issues";
-import { TEAM_GROUPS, type ContactGroup } from "@/lib/email/audienceGroups";
-import { STAFF_ROLES } from "@/lib/rbac";
+import { TEAM_GROUPS, STAFF_ROLE_SET, type ContactGroup } from "@/lib/email/audienceGroups";
+import { STAFF_ROLES, type Role } from "@/lib/rbac";
+import { listClerkContactsByRole } from "@/lib/clerkAudiences";
 import type { Recipient } from "@/lib/campaigns";
 
 // Resolve the recipient list for a set of contact groups (+ an optional supporter
@@ -29,7 +30,11 @@ const firstNameOf = (name?: string | null): string | undefined => (name ?? "").t
 
 export type ResolvedAudience = { recipients: Recipient[]; internal: boolean };
 
-export async function resolveRecipients(groups: ContactGroup[], segment?: string): Promise<ResolvedAudience> {
+export async function resolveRecipients(
+  groups: ContactGroup[],
+  segment?: string,
+  roles: Role[] = [],
+): Promise<ResolvedAudience> {
   const byEmail = new Map<string, Recipient>();
   const add = (email?: string | null, firstName?: string) => {
     const e = email?.trim().toLowerCase();
@@ -46,6 +51,11 @@ export async function resolveRecipients(groups: ContactGroup[], segment?: string
     (await listStaff()).filter((s) => s.status === "active" && roles.has(s.role)).forEach((s) => add(s.email));
   }
 
+  // Target by Clerk RBAC role (publicMetadata.role) — distinct from the data-record groups.
+  for (const role of roles) {
+    (await listClerkContactsByRole(role)).forEach((c) => add(c.email, firstNameOf(c.firstName)));
+  }
+
   let externalSegment = false;
   if (segment?.startsWith("issue:") && isIssueId(segment.slice(6))) {
     (await segmentEmails({ issue: segment.slice(6) as IssueId })).forEach((e) => add(e));
@@ -55,7 +65,11 @@ export async function resolveRecipients(groups: ContactGroup[], segment?: string
     externalSegment = true;
   }
 
+  // Internal (bypass topic opt-outs) only when EVERY selected source is staff/team and there's
+  // no external segment — an external role (donor/supporter/partner) makes the whole send external.
   const hasExternalGroup = groups.some((g) => !TEAM_GROUPS.has(g));
-  const internal = groups.length > 0 && !hasExternalGroup && !externalSegment;
+  const hasExternalRole = roles.some((r) => !STAFF_ROLE_SET.has(r));
+  const selected = groups.length > 0 || roles.length > 0 || externalSegment;
+  const internal = selected && !hasExternalGroup && !hasExternalRole && !externalSegment;
   return { recipients: [...byEmail.values()], internal };
 }
