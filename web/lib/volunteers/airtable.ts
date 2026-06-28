@@ -209,6 +209,24 @@ export async function mirrorVolunteerStatusToAirtable(
   }
 }
 
+/**
+ * Project an opt-out (email unsubscribe-all / SMS STOP) — or a re-subscribe — onto
+ * the mirrored Airtable row's "Opted Out" checkbox, so staff working the roster
+ * don't contact someone who asked not to be. Backend plumbing like the status
+ * mirror; best-effort no-op without a recId.
+ */
+export async function mirrorVolunteerOptOutToAirtable(
+  recId: string | null | undefined,
+  optedOut: boolean,
+): Promise<void> {
+  if (!recId) return;
+  try {
+    await updateRecords(BASE.id, TABLE_ID, [{ id: recId, fields: { "Opted Out": optedOut } }], true);
+  } catch (err) {
+    console.warn("[volunteers] Airtable opt-out mirror failed:", err instanceof Error ? err.message : err);
+  }
+}
+
 /** Test seam — drop the link-id caches so a test re-reads the lookup tables. */
 export function _clearLinkCache(): void {
   cache.clear();
