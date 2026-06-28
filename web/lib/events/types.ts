@@ -97,6 +97,9 @@ export type EventRow = {
   createdBy: string;
   createdAt: string;
   updatedAt: string | null;
+  // Airtable record id of this event's mirror row (lib/events/airtable.ts), when the
+  // dashboard→Airtable content mirror is active. null/absent = not yet mirrored.
+  airtableRecId?: string | null;
 };
 
 // Public-safe projection — strips signup PII and internal bookkeeping.
