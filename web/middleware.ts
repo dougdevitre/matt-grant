@@ -15,6 +15,11 @@ const isProtectedRoute = createRouteMatcher([
   "/dashboard(.*)",
   "/community(.*)",
   "/my-giving(.*)",
+  // The /join menu + the lightweight Get-Updates / Donor-Pledge forms are PUBLIC.
+  // Only the account-backed detail forms (volunteer profile, captain application)
+  // require sign-in — primary CTAs route new users through /sign-up first.
+  "/join/volunteer(.*)",
+  "/join/captain(.*)",
   "/go",
   "/api/research/member(.*)",
   "/api/assets(.*)",

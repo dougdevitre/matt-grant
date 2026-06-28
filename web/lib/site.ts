@@ -48,6 +48,7 @@ export const NAV: readonly NavEntry[] = [
     label: "Get Involved",
     icon: "getInvolved",
     children: [
+      { href: "/join", label: "Join the Movement" },
       { href: "/act", label: "Take Action" },
       { href: "/events", label: "Events" },
       { href: "/community", label: "Community" },

@@ -32,7 +32,8 @@ test.describe("desktop dropdown", () => {
     await page.goto("/");
     await page.getByRole("button", { name: "Get Involved" }).focus();
     await page.keyboard.press("ArrowDown");
-    await expect(page.locator("header").getByRole("link", { name: "Take Action" })).toBeFocused();
+    // ArrowDown lands on the first item in the Get Involved dropdown — "Join the Movement".
+    await expect(page.locator("header").getByRole("link", { name: "Join the Movement" })).toBeFocused();
   });
 });
 

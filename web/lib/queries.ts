@@ -55,6 +55,10 @@ export type VolunteerRow = {
   mode: string | null;
   skills: string[];
   availability: string[];
+  // Structured taxonomy from the /join signup (mirrors the Airtable roster).
+  roles: string[]; // Role Interests (canonical Airtable role names)
+  commitment: string | null; // Commitment Level
+  door: string | null; // which /join door they came through (e.g. "Team Captain")
   lastContactedAt: string | null;
   createdAt: string;
 };
@@ -158,6 +162,9 @@ export async function getVolunteers(): Promise<{ connected: boolean; rows: Volun
         mode: (v.mode as string) ?? null,
         skills: Array.isArray(v.skills) ? (v.skills as string[]) : [],
         availability: Array.isArray(v.availability) ? (v.availability as string[]) : [],
+        roles: Array.isArray(v.roles) ? (v.roles as string[]) : [],
+        commitment: (v.commitment as string) ?? null,
+        door: (v.door as string) ?? null,
         lastContactedAt: (v.lastContactedAt as string) ?? null,
         createdAt: String(v.createdAt ?? ""),
       }))
@@ -190,6 +197,9 @@ export async function getVolunteer(id: string): Promise<VolunteerRow | null> {
       mode: (v.mode as string) ?? null,
       skills: Array.isArray(v.skills) ? (v.skills as string[]) : [],
       availability: Array.isArray(v.availability) ? (v.availability as string[]) : [],
+      roles: Array.isArray(v.roles) ? (v.roles as string[]) : [],
+      commitment: (v.commitment as string) ?? null,
+      door: (v.door as string) ?? null,
       lastContactedAt: (v.lastContactedAt as string) ?? null,
       createdAt: String(v.createdAt ?? ""),
     };
