@@ -10,6 +10,7 @@ import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { renderEmail, renderText } from "@/lib/email/layout";
 import { SITE_URL } from "@/lib/site";
 import { remindPendingInvites, resendInvite } from "@/lib/invites";
+import { sendRoleWelcome } from "@/lib/notifications/staffNotify";
 import { looksExternal } from "@/lib/externalEmail";
 
 export type InviteResult = { ok: boolean; message: string };
@@ -197,6 +198,8 @@ export async function setMemberRole(formData: FormData): Promise<void> {
     await setClerkRoleByEmail(email, role);
     if (prevRole !== role) {
       await recordAccessChange({ at: new Date().toISOString(), actor: actor || "system", target: email, action: "role_change", role, prevRole });
+      // Email the staffer their new role-specific "here's your access" welcome (best-effort).
+      await sendRoleWelcome(email, role);
     }
     revalidatePath("/dashboard/team");
   }
