@@ -5,6 +5,7 @@ import { recordContribution } from "@/lib/donors";
 import { normalizeWinred, extractWinredToken, classifyWinredEvent } from "@/lib/winred";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { donationThankYou } from "@/lib/email/templates";
+import { notifyAdminsNewDonation } from "@/lib/notifications/staffNotify";
 import { getSecret } from "@/lib/ssm";
 
 // WinRed donation webhook: records each contribution to the donor partition and
@@ -118,6 +119,8 @@ export async function POST(req: NextRequest) {
     } catch {
       /* recorded already; receipt is non-critical */
     }
+    // Notify admins by role of the new gift (best-effort; the function self-guards).
+    await notifyAdminsNewDonation({ name: rec.name, amount: rec.amount, email: rec.email, city: rec.city, recurring: rec.recurring });
   }
 
   // On a new gift, promote a public supporter to the `donor` role so they get the

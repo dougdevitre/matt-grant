@@ -10,6 +10,7 @@ import { CAMPAIGN } from "@/lib/site";
 import { toE164 } from "@/lib/sms/send";
 import { recordConsent } from "@/lib/sms/consent";
 import { saveProfile, cleanZip } from "@/lib/profile";
+import { notifyCaptainsNewVolunteer } from "@/lib/notifications/staffNotify";
 
 export type ContactResult = { ok: boolean; message: string };
 
@@ -38,6 +39,8 @@ async function notify(p: { name: string; email: string; phone: string; city: str
       html: `<p><strong>${esc(p.name)}</strong></p><p>Email: ${esc(p.email) || "—"}<br>Phone: ${esc(p.phone) || "—"}<br>City: ${esc(p.city) || "—"}<br>Interests: ${esc(p.interests) || "—"}</p><p>${esc(p.message).replace(/\n/g, "<br>")}</p>`,
       text: `${p.name}\nEmail: ${p.email}\nPhone: ${p.phone}\nCity: ${p.city}\nInterests: ${p.interests}\n\n${p.message}`,
     });
+    // If they signed up to actively help, alert captains by role to follow up.
+    if (wantsVolunteer) await notifyCaptainsNewVolunteer({ name: p.name, email: p.email, interests: p.interests });
   } catch {
     /* swallow — the lead is already saved to the DB */
   }
