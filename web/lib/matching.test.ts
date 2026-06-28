@@ -8,7 +8,8 @@ const task = (over: Partial<TaskRow> = {}): TaskRow => ({
 });
 const vol = (over: Partial<VolunteerRow> = {}): VolunteerRow => ({
   id: "v", name: "V", email: null, phone: null, city: null, interests: null, interestTags: [],
-  notes: null, status: "ACTIVE", assignedTo: null, captainEmail: null, zip: null, mode: null, skills: [], availability: [], lastContactedAt: null, createdAt: "", ...over,
+  notes: null, status: "ACTIVE", assignedTo: null, captainEmail: null, zip: null, mode: null, skills: [], availability: [],
+  roles: [], commitment: null, door: null, lastContactedAt: null, createdAt: "", ...over,
 });
 
 describe("taskInterests", () => {
@@ -47,7 +48,7 @@ describe("suggestVolunteers", () => {
 
 describe("structured profile signals", () => {
   it("infers a required skill from the task", () => {
-    expect(taskSkills(task({ title: "Drive supporters to the polls" }))).toContain("Driving");
+    expect(taskSkills(task({ title: "Drive supporters to the polls" }))).toContain("Driving (license + vehicle)");
   });
   it("reads task mode from keywords", () => {
     expect(taskMode(task({ title: "Knock doors in turf 3" }))).toBe("In-person");
@@ -56,7 +57,7 @@ describe("structured profile signals", () => {
   it("rewards a skill + mode match over a bare volunteer", () => {
     const t = task({ title: "Drive vans on election day" });
     const base = scoreVolunteer(t, vol({}));
-    const fit = scoreVolunteer(t, vol({ skills: ["Driving"], mode: "In-person" }));
+    const fit = scoreVolunteer(t, vol({ skills: ["Driving (license + vehicle)"], mode: "In-person" }));
     expect(fit.score).toBeGreaterThan(base.score);
   });
 });
