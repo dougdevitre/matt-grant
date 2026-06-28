@@ -22,6 +22,10 @@ const FLAG_LABEL: Record<string, string> = {
   // Org Chart
   right_sized: "Right-sized to the band",
   service_intact: "Services intact",
+  // Rotation
+  no_careerism: "No careerism",
+  no_churn: "No wasted ramp",
+  served_the_sweet_spot: "Served the sweet spot",
 };
 
 // Flags that represent a failure/warning are shown with a ✗, not a ✓.

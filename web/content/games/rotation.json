@@ -1,0 +1,44 @@
+{
+  "copy": {
+    "gameId": "rotation",
+    "issueSlug": "term-limits",
+    "eyebrow": "Term Limits",
+    "title": "Rotation",
+    "tagline": "Service, not careerism.",
+    "howTo": [
+      "Each seat ramps up, peaks, then declines into entrenchment.",
+      "Rotate a seat in its sweet spot — when it reads Ready.",
+      "Too early wastes the ramp; too late is careerism.",
+      "Grandfathered incumbents are exempt — let their terms expire."
+    ],
+    "itemLabels": {
+      "seat": [
+        "House seat",
+        "Senate seat",
+        "Committee chair",
+        "Subcommittee seat",
+        "Caucus seat"
+      ]
+    },
+    "endLines": [
+      "Rotate at the service sweet spot.",
+      "Too early wastes the ramp; too late breeds careerism.",
+      "Service, not a lifelong career."
+    ],
+    "shareText": "I rotated every seat at the service sweet spot in Rotation — service, not careerism. Beat my score."
+  },
+  "config": {
+    "roundTicks": 1350,
+    "seatCount": 5,
+    "capTicks": 240,
+    "windowDelta": 60,
+    "peakEffectiveness": 1000,
+    "decayPerTick": 6,
+    "churnPenalty": 1500,
+    "entrenchmentPenalty": 2000,
+    "cleanBonus": 0.2,
+    "maxCleanSteps": 6,
+    "grandfatheredCount": 2,
+    "grandfatherNaturalTerm": 180
+  }
+}
