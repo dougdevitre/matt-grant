@@ -37,7 +37,7 @@ export const GAMES: GameMeta[] = [
     issue: "Term Limits",
     issueSlug: "term-limits",
     blurb: "Rotate at the service sweet spot — too early wastes ramp, too late is careerism.",
-    enabled: false,
+    enabled: true,
   },
   {
     id: "clarity-companion",
