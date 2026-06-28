@@ -1,6 +1,7 @@
 import { replay, type InputEvent, type ScoreBreakdown } from "@/lib/games/engine";
 import { buildCutAndSave, cutSaveConfig, type CutSaveInput } from "@/lib/games/cut-and-save";
 import { buildOrgChart, orgChartConfig, type OrgChartInput } from "@/lib/games/org-chart";
+import { buildRotation, rotationConfig, type RotationInput } from "@/lib/games/rotation";
 
 // Server-side score validation = the SAME replay() the client ran, re-run from
 // (seed, inputs). If the recomputed total doesn't match what the client reported
@@ -30,6 +31,14 @@ const VALIDATORS: Record<string, Validator> = {
       seed,
       inputs as InputEvent<OrgChartInput>[],
       orgChartConfig.roundTicks,
+    ).score,
+  "rotation": (seed, inputs) =>
+    replay(
+      buildRotation(),
+      rotationConfig,
+      seed,
+      inputs as InputEvent<RotationInput>[],
+      rotationConfig.roundTicks,
     ).score,
 };
 
