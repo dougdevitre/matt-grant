@@ -61,8 +61,15 @@ const SOCIAL_ICONS: Record<SocialId, ReactNode> = {
   facebook: (
     <path d="M13.5 21v-7h2.3l.4-2.8h-2.7V9.3c0-.8.3-1.4 1.5-1.4h1.3V5.4c-.6-.1-1.4-.2-2.3-.2-2.3 0-3.8 1.4-3.8 3.9v2.1H7.7V14h2.2v7h3.6Z" fill="currentColor" />
   ),
-  facebookGroup: (
+  facebookPersonal: (
     <path d="M13.5 21v-7h2.3l.4-2.8h-2.7V9.3c0-.8.3-1.4 1.5-1.4h1.3V5.4c-.6-.1-1.4-.2-2.3-.2-2.3 0-3.8 1.4-3.8 3.9v2.1H7.7V14h2.2v7h3.6Z" fill="currentColor" />
+  ),
+  facebookGroup: (
+    <>
+      <circle cx="8.5" cy="9" r="2.3" stroke="currentColor" strokeWidth="1.6" fill="none" />
+      <circle cx="16" cy="9.5" r="1.9" stroke="currentColor" strokeWidth="1.6" fill="none" />
+      <path d="M3.8 18c0-2.3 1.9-3.8 4.7-3.8 1.6 0 3 .5 3.8 1.5M13.5 17.8c.2-1.9 1.5-3.1 3.4-3.1 2.1 0 3.5 1.2 3.5 3.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+    </>
   ),
   instagram: (
     <>

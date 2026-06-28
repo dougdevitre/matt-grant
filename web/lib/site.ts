@@ -30,18 +30,20 @@ export const FEC = {
 
 // Official campaign social accounts, surfaced as the footer icon row.
 //
-// ⚠️ FILL IN THE URLs — they are intentionally blank. Do NOT guess a campaign's
-// official handles; a wrong link in the footer is a real integrity problem. The
-// footer renders ONLY entries with a non-empty `url`, so blanks are invisible
-// until verified. These mirror the "Active" rows in the Social Media base
-// (Channels table, appwrqSIsxaZ9Ltun) whose Handle/URL field is not yet populated.
-export type SocialId = "x" | "facebook" | "facebookGroup" | "instagram" | "youtube" | "tiktok" | "linkedin";
+// Verified handles only — do NOT guess. The footer renders ONLY entries with a
+// non-empty `url`, so add an account by filling its url (X/Twitter is listed
+// Active in the Social Media base but has no URL yet, so it's omitted here until
+// confirmed). Mirror any change into the Channels table (appwrqSIsxaZ9Ltun).
+export type SocialId =
+  | "x" | "facebook" | "facebookPersonal" | "facebookGroup" | "instagram" | "youtube" | "tiktok" | "linkedin";
 export type SocialLink = { id: SocialId; label: string; url: string };
 
 export const SOCIALS: readonly SocialLink[] = [
-  { id: "x", label: "X (Twitter)", url: "" },
-  { id: "facebook", label: "Matt Grant on Facebook", url: "" },
-  { id: "facebookGroup", label: "Stop Missouri Corruption (Facebook Group)", url: "" },
+  { id: "facebook", label: "Matt Grant for Congress on Facebook", url: "https://www.facebook.com/profile.php?id=61580463410412" },
+  { id: "facebookPersonal", label: "Matt Grant on Facebook", url: "https://www.facebook.com/MatthewRGrant" },
+  { id: "facebookGroup", label: "Stop Missouri Corruption (Facebook Group)", url: "https://www.facebook.com/groups/4086143434976312/" },
+  { id: "linkedin", label: "Matt Grant for Congress on LinkedIn", url: "https://www.linkedin.com/company/matt-grant-for-congress/" },
+  { id: "youtube", label: "Matt Grant for Congress on YouTube", url: "https://www.youtube.com/@matthewgrantforcongress" },
 ] as const;
 
 // Primary navigation, grouped into parent → child menus to keep the bar
