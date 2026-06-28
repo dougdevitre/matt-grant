@@ -55,6 +55,11 @@ export default async function VolunteerDetailPage({ params }: { params: Promise<
             Captain applicant
           </span>
         )}
+        {v.optedOut && (
+          <span className="rounded-sm bg-brick/15 px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow text-brick" title="Opted out of contact — do not email or text">
+            ⊘ Opted out
+          </span>
+        )}
       </PageHeader>
 
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">

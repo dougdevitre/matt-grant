@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { verifyUnsubToken, suppress } from "@/lib/subscribers";
+import { setVolunteerContactOptOut } from "@/lib/volunteers/optout";
 
 // One-click unsubscribe endpoint targeted by the List-Unsubscribe header
 // (RFC 8058). POST = mail-client one-click (no UI). GET = redirect to the
@@ -12,6 +13,7 @@ async function unsub(token: string | null): Promise<boolean> {
   if (!email) return false;
   try {
     await suppress(email);
+    await setVolunteerContactOptOut({ email }, true).catch(() => {}); // reflect on the roster
     return true;
   } catch {
     return false;
