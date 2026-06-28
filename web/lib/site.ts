@@ -41,6 +41,7 @@ export type SocialId =
 export type SocialLink = { id: SocialId; label: string; short: string; url: string };
 
 export const SOCIALS: readonly SocialLink[] = [
+  { id: "x", label: "Matt Grant on X", short: "X", url: "https://x.com/stl_mg" },
   { id: "facebook", label: "Matt Grant for Congress on Facebook", short: "Facebook", url: "https://www.facebook.com/profile.php?id=61580463410412" },
   { id: "facebookPersonal", label: "Matt Grant on Facebook", short: "Facebook (personal)", url: "https://www.facebook.com/MatthewRGrant" },
   { id: "facebookGroup", label: "Stop Missouri Corruption (Facebook Group)", short: "Stop Missouri Corruption", url: "https://www.facebook.com/groups/4086143434976312/" },

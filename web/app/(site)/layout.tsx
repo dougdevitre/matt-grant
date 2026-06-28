@@ -16,7 +16,7 @@ const orgJsonLd = {
   url: SITE_URL,
   logo: `${SITE_URL}/brand/logo.png`,
   sameAs: [
-    ...SOCIALS.filter((s) => ["facebook", "instagram", "linkedin", "youtube"].includes(s.id)).map((s) => s.url),
+    ...SOCIALS.filter((s) => ["x", "facebook", "instagram", "linkedin", "youtube"].includes(s.id)).map((s) => s.url),
     FEC.profileUrl,
   ],
 };
