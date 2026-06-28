@@ -2,21 +2,21 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { CAMPAIGN, ASSETS_CDN } from "@/lib/site";
+import { getBudgetItems } from "@/lib/budget/items";
+import DonationImpact from "@/components/budget/DonationImpact";
 
 export const metadata: Metadata = {
   title: "Donate",
-  description: "Support Matt Grant for Congress. Contribute securely through WinRed.",
+  description:
+    "Support Matt Grant for Congress. See exactly what your contribution funds, then give securely through WinRed.",
 };
 
-const AMOUNTS = [25, 50, 100, 250, 500, 1000];
+export default async function DonatePage() {
+  // Public, read-only catalog (governed by the Front-End Access control table:
+  // budget / Items / public / read). Degrades to the offline seed if Airtable is
+  // unreachable, so the page never breaks.
+  const { items } = await getBudgetItems();
 
-function donateLink(amount?: number) {
-  // WinRed reads the amount from its own form; we deep-link to the campaign page.
-  const base = CAMPAIGN.donateUrl;
-  return amount ? `${base}&amount=${amount}` : base;
-}
-
-export default function DonatePage() {
   return (
     <section className="container-page py-16 sm:py-24">
       <div className="grid items-center gap-10 lg:grid-cols-[1fr_0.9fr]">
@@ -25,7 +25,8 @@ export default function DonatePage() {
           <h1 className="mt-3 text-4xl font-semibold sm:text-6xl">Fuel the final stretch.</h1>
           <p className="mt-5 max-w-prose text-lg text-slate">
             Every contribution pays for doors knocked, calls made, and neighbors reached before{" "}
-            {CAMPAIGN.electionLabel}. Donations are processed securely through WinRed.
+            {CAMPAIGN.electionLabel}. Pick an amount below and see exactly what it funds — then give
+            securely through WinRed.
           </p>
         </div>
         <div className="relative aspect-[3/2] w-full overflow-hidden rounded-lg border border-line shadow-card">
@@ -40,30 +41,10 @@ export default function DonatePage() {
         </div>
       </div>
 
-      <div className="card mx-auto mt-12 max-w-2xl p-8 sm:p-10">
-        <p className="eyebrow text-slate">Choose an amount</p>
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {AMOUNTS.map((a) => (
-            <a
-              key={a}
-              href={donateLink(a)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-center justify-center rounded-sm border border-line bg-white py-5 font-display text-2xl font-semibold text-ink transition-colors hover:border-brick hover:bg-brick hover:text-paper"
-            >
-              ${a}
-            </a>
-          ))}
-        </div>
-        <a
-          href={donateLink()}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-primary mt-6 w-full"
-        >
-          Donate another amount on WinRed →
-        </a>
-        <p className="mt-6 border-t border-line pt-5 text-xs leading-relaxed text-slate">
+      <DonationImpact items={items} donateBase={CAMPAIGN.donateUrl} />
+
+      <div className="mx-auto mt-6 max-w-2xl">
+        <p className="text-xs leading-relaxed text-slate">
           By contributing you confirm that this gift is made from your own funds, on a personal card in
           your own name, and that you are a U.S. citizen or lawfully admitted permanent resident. Federal
           law prohibits contributions from corporations, labor unions, federal contractors, and foreign
