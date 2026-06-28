@@ -36,14 +36,17 @@ export const FEC = {
 // confirmed). Mirror any change into the Channels table (appwrqSIsxaZ9Ltun).
 export type SocialId =
   | "x" | "facebook" | "facebookPersonal" | "facebookGroup" | "instagram" | "youtube" | "tiktok" | "linkedin";
-export type SocialLink = { id: SocialId; label: string; url: string };
+// `label` = full accessible name (footer icon aria/title); `short` = compact text
+// label for plaintext/HTML email footers where icons can't render.
+export type SocialLink = { id: SocialId; label: string; short: string; url: string };
 
 export const SOCIALS: readonly SocialLink[] = [
-  { id: "facebook", label: "Matt Grant for Congress on Facebook", url: "https://www.facebook.com/profile.php?id=61580463410412" },
-  { id: "facebookPersonal", label: "Matt Grant on Facebook", url: "https://www.facebook.com/MatthewRGrant" },
-  { id: "facebookGroup", label: "Stop Missouri Corruption (Facebook Group)", url: "https://www.facebook.com/groups/4086143434976312/" },
-  { id: "linkedin", label: "Matt Grant for Congress on LinkedIn", url: "https://www.linkedin.com/company/matt-grant-for-congress/" },
-  { id: "youtube", label: "Matt Grant for Congress on YouTube", url: "https://www.youtube.com/@matthewgrantforcongress" },
+  { id: "facebook", label: "Matt Grant for Congress on Facebook", short: "Facebook", url: "https://www.facebook.com/profile.php?id=61580463410412" },
+  { id: "facebookPersonal", label: "Matt Grant on Facebook", short: "Facebook (personal)", url: "https://www.facebook.com/MatthewRGrant" },
+  { id: "facebookGroup", label: "Stop Missouri Corruption (Facebook Group)", short: "Stop Missouri Corruption", url: "https://www.facebook.com/groups/4086143434976312/" },
+  { id: "instagram", label: "Matt Grant on Instagram", short: "Instagram", url: "https://www.instagram.com/matthewrgrant/" },
+  { id: "linkedin", label: "Matt Grant for Congress on LinkedIn", short: "LinkedIn", url: "https://www.linkedin.com/company/matt-grant-for-congress/" },
+  { id: "youtube", label: "Matt Grant for Congress on YouTube", short: "YouTube", url: "https://www.youtube.com/@matthewgrantforcongress" },
 ] as const;
 
 // Primary navigation, grouped into parent → child menus to keep the bar
