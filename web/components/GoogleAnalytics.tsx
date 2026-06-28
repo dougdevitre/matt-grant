@@ -26,6 +26,8 @@ export function GoogleAnalytics({ gaId }: { gaId: string }) {
       isFirst.current = false; // landing page_view is sent by gtag config
       return;
     }
+    // Keep staff dashboard traffic out of the campaign's analytics.
+    if (pathname.startsWith("/dashboard")) return;
     const w = window as Window & { gtag?: (...args: unknown[]) => void };
     if (typeof w.gtag !== "function") return;
     w.gtag("event", "page_view", {
@@ -34,6 +36,9 @@ export function GoogleAnalytics({ gaId }: { gaId: string }) {
       page_title: document.title,
     });
   }, [pathname]);
+
+  // Don't load GA at all on dashboard routes (e.g. a staff member landing there).
+  if (pathname.startsWith("/dashboard")) return null;
 
   return (
     <>
