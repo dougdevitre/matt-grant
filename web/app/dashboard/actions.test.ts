@@ -6,6 +6,10 @@ const send = vi.fn();
 const staffGate = vi.fn();
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+// actions.ts now imports the volunteers Airtable mirror (a `server-only` module);
+// neutralize the marker and stub the status-sync so it's a no-op under vitest.
+vi.mock("server-only", () => ({}));
+vi.mock("@/lib/volunteers/airtable", () => ({ mirrorVolunteerStatusToAirtable: vi.fn() }));
 vi.mock("@/lib/auth", () => ({ staffGate: () => staffGate() }));
 vi.mock("@/lib/db", () => ({
   ddb: { send: (c: unknown) => send(c) },
