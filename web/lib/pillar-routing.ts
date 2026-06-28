@@ -3,6 +3,16 @@ import { pillarForHost, pillarSlugs } from "./pillars";
 const MAIN = "https://mattgrantforcongress.org";
 const APEX_DOMAIN = "mattgrantforcongress.org";
 
+// Reserved single-label subdomains that map to a fixed internal route prefix. These
+// are FIRST-PARTY app sections served on their own subdomain — NOT pillar microsites
+// (lib/pillars.ts, which rewrite to /pillars/<slug>) and NOT vanity issue redirects
+// (ISSUE_VANITY, which 308 to the apex). games. hosts the civic mini-game arcade,
+// served in-app at /games. Add a label here and it's recognized everywhere the
+// routing + drift logic below consults it.
+export const RESERVED_SUBDOMAINS: Record<string, string> = {
+  games: "/games",
+};
+
 // Vanity subdomains for the four documented priorities. Each is a short marketing
 // alias that 308-redirects to the canonical /issues/<slug> page on the apex — one
 // source of truth, no duplicate content. Labels are intentionally distinct from the
@@ -37,8 +47,21 @@ export function unknownPillarSubdomain(host: string | null | undefined): string 
   if (!hostname.endsWith(suffix)) return null; // apex itself or a foreign domain
   const label = hostname.slice(0, -suffix.length);
   if (!label || label === "www" || label.includes(".")) return null; // apex/www/multi-level
-  if (pillarSlugs.includes(label) || label in ISSUE_VANITY) return null; // known
+  if (pillarSlugs.includes(label) || label in ISSUE_VANITY || label in RESERVED_SUBDOMAINS) return null; // known
   return label;
+}
+
+// Pure host→path mapping for a reserved subdomain (e.g. games.) → its internal route.
+// Returns the rewrite target, or null to pass the request through (not a reserved
+// label, /api/*, or a path already under the reserved prefix). Edge-safe + pure, so
+// it's unit-testable without the Clerk/edge runtime. Mirrors pillarRewritePath.
+export function reservedSubdomainRewrite(host: string | null | undefined, pathname: string): string | null {
+  if (!host) return null;
+  const label = host.split(":")[0].split(".")[0].toLowerCase();
+  const base = RESERVED_SUBDOMAINS[label];
+  if (!base) return null;
+  if (pathname.startsWith("/api/") || pathname === base || pathname.startsWith(`${base}/`)) return null;
+  return `${base}${pathname === "/" ? "" : pathname}`;
 }
 
 // Pure host→path mapping for the pillar-subdomain rewrite, factored out of
