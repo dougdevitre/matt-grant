@@ -138,6 +138,11 @@ export function VolunteerBoard({ rows, taskCounts, donorEmails = [], me = null }
                         ★ captain applicant
                       </span>
                     )}
+                    {v.optedOut && (
+                      <span className="rounded-sm bg-brick/15 px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-brick" title="Opted out of contact (email unsubscribe or SMS STOP) — do not contact">
+                        ⊘ opted out
+                      </span>
+                    )}
                   </div>
                 </div>
                 {v.interests && <p className="mt-3 text-sm text-slate">{v.interests}</p>}

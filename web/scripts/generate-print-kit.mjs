@@ -80,7 +80,7 @@ async function emit(name, svg, wIn, hIn, dpi, composites = []) {
 }
 
 // Reusable bits (coordinates are in the SVG's own viewBox units = inches*1000)
-const paidFor = "Paid for by the Matt Grant for Congress Committee.";
+const paidFor = "Paid for by Matt Grant for Congress.";
 
 // ---------- YARD SIGN 24×18 (+0.125 bleed → 24.25×18.25) ----------
 function yardSign() {

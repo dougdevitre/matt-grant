@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { validateTwilioSignature } from "@/lib/sms/send";
 import { recordConsent, recordOptOut } from "@/lib/sms/consent";
+import { setVolunteerContactOptOut } from "@/lib/volunteers/optout";
 import { isBlocked } from "@/lib/sms/moderation";
 import { logInbound } from "@/lib/sms/conversations";
 import { CAMPAIGN } from "@/lib/site";
@@ -57,8 +58,10 @@ export async function POST(req: NextRequest) {
   let reply: string | undefined;
   if (STOP_WORDS.has(keyword)) {
     await recordOptOut(from); // carrier auto-replies to STOP; don't double-send
+    await setVolunteerContactOptOut({ phone: from }, true).catch(() => {}); // reflect on the roster
   } else if (START_WORDS.has(keyword) || keyword === optIn) {
     await recordConsent(from, keyword === optIn ? "sms-keyword" : "sms-start");
+    await setVolunteerContactOptOut({ phone: from }, false).catch(() => {}); // re-subscribe clears it
     reply = `You're subscribed to ${CAMPAIGN.candidate} for Congress updates. Msg & data rates may apply. Reply STOP to opt out, HELP for help.`;
   } else if (keyword === "HELP") {
     reply = `${CAMPAIGN.candidate} for Congress — campaign updates. Reply STOP to opt out. ${CAMPAIGN.email}`;

@@ -14,7 +14,7 @@
 // AUTHORIZATION: gated by the base's Front-End Access control table
 // (Volunteers × public → Create). If an admin unchecks Create, this no-ops.
 import "server-only";
-import { listRecords, createRecords, updateRecords } from "@/lib/airtable/client";
+import { listRecords, createRecords, updateRecords, AirtableError } from "@/lib/airtable/client";
 import { can, filterEditableFields } from "@/lib/airtable/access";
 import { AIRTABLE_BASES } from "@/lib/airtable/registry";
 import {
@@ -137,12 +137,6 @@ export async function mirrorVolunteerToAirtable(
       Door: door,
       Source: input.source || `join-${door.toLowerCase().replace(/\s+/g, "-")}`,
     };
-    // Set-once fields only on CREATE — never clobber an admin-curated status or the
-    // original signup date when a supporter re-submits the form.
-    if (!recId) {
-      fields.Status = "New";
-      fields["Signed Up"] = input.signedUpDate;
-    }
     if (input.email) fields.Email = input.email;
     if (input.phone) fields.Phone = input.phone;
     if (input.city) fields.City = input.city;
@@ -157,13 +151,27 @@ export async function mirrorVolunteerToAirtable(
     if (input.captainNote) fields["Captain Note"] = input.captainNote;
     if (input.message) fields.Message = input.message;
 
-    const scoped = await filterEditableFields("volunteer", TABLE_NAME, "public", fields);
-    if (Object.keys(scoped).length === 0) return null;
-
+    // Try to UPDATE the known row first. We do NOT send Status / Signed Up on an
+    // update — those are admin-owned / set once at first signup.
     if (recId) {
-      const [rec] = await updateRecords(BASE.id, TABLE_ID, [{ id: recId, fields: scoped }], true);
-      return rec?.id ?? recId;
+      try {
+        const scoped = await filterEditableFields("volunteer", TABLE_NAME, "public", fields);
+        if (Object.keys(scoped).length === 0) return null;
+        const [rec] = await updateRecords(BASE.id, TABLE_ID, [{ id: recId, fields: scoped }], true);
+        return rec?.id ?? recId;
+      } catch (err) {
+        // If the row was deleted in Airtable the PATCH 404s — fall through to CREATE
+        // so the volunteer reappears (the caller persists the fresh id). Any other
+        // failure is a real error: bail without risking a duplicate.
+        if (!(err instanceof AirtableError && err.status === 404)) throw err;
+        console.warn("[volunteers] mirrored row gone (404) — recreating");
+      }
     }
+
+    // CREATE — set the once-only fields (Status / Signed Up) here.
+    const createFields = { ...fields, Status: "New", "Signed Up": input.signedUpDate };
+    const scoped = await filterEditableFields("volunteer", TABLE_NAME, "public", createFields);
+    if (Object.keys(scoped).length === 0) return null;
     const [rec] = await createRecords(BASE.id, TABLE_ID, [{ fields: scoped }], true);
     return rec?.id ?? null;
   } catch (err) {
@@ -198,6 +206,24 @@ export async function mirrorVolunteerStatusToAirtable(
     await updateRecords(BASE.id, TABLE_ID, [{ id: recId, fields: { Status: mapped } }], true);
   } catch (err) {
     console.warn("[volunteers] Airtable status mirror failed:", err instanceof Error ? err.message : err);
+  }
+}
+
+/**
+ * Project an opt-out (email unsubscribe-all / SMS STOP) — or a re-subscribe — onto
+ * the mirrored Airtable row's "Opted Out" checkbox, so staff working the roster
+ * don't contact someone who asked not to be. Backend plumbing like the status
+ * mirror; best-effort no-op without a recId.
+ */
+export async function mirrorVolunteerOptOutToAirtable(
+  recId: string | null | undefined,
+  optedOut: boolean,
+): Promise<void> {
+  if (!recId) return;
+  try {
+    await updateRecords(BASE.id, TABLE_ID, [{ id: recId, fields: { "Opted Out": optedOut } }], true);
+  } catch (err) {
+    console.warn("[volunteers] Airtable opt-out mirror failed:", err instanceof Error ? err.message : err);
   }
 }
 

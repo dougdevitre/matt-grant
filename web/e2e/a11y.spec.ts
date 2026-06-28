@@ -14,6 +14,7 @@ const PUBLIC_ROUTES = [
   "/media",
   "/press",
   "/contact",
+  "/join",
   "/donate",
   "/data-policy",
   "/transparency",
@@ -49,6 +50,10 @@ const DASHBOARD_ROUTES = [
   "/dashboard/map",
   "/dashboard/events",
   "/dashboard/photos",
+  // Account-gated /join detail forms (radio/checkbox groups + fieldsets). Reachable
+  // only when the local server runs in open-demo mode, like the dashboard routes.
+  "/join/volunteer",
+  "/join/captain",
 ];
 
 const ROUTES = process.env.A11Y_BASE_URL ? PUBLIC_ROUTES : [...PUBLIC_ROUTES, ...DASHBOARD_ROUTES];

@@ -68,7 +68,7 @@ Matt Grant
 Candidate, U.S. House — Missouri's 2nd District
 mattgrantforcongress@gmail.com · (314) 255-7760
 
-Paid for by the Matt Grant for Congress Committee.
+Paid for by Matt Grant for Congress.
 \`\`\`
 `;
 };
@@ -91,5 +91,5 @@ Personalized, ready-to-print cover letters for the Tier-1 coalition targets in
 
 const body = ROSTER.map(letter).join("\n---\n\n");
 const dest = path.join(process.cwd(), "..", "candidate", "letters", "tier1-senator-cover-letters.md");
-await writeFile(dest, header + body + `\n_Paid for by the Matt Grant for Congress Committee._\n`);
+await writeFile(dest, header + body + `\n_Paid for by Matt Grant for Congress._\n`);
 console.log(`✓ ${ROSTER.length} letters → candidate/letters/tier1-senator-cover-letters.md`);
