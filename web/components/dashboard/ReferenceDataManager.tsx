@@ -25,6 +25,17 @@ function FieldInput({ f, value }: { f: RefField; value?: string }) {
   if (f.type === "longtext") {
     return <textarea name={f.key} defaultValue={value} rows={2} className={`mt-1 block w-full ${field}`} />;
   }
+  if (f.type === "number" || f.type === "percent") {
+    return (
+      <input
+        type="number"
+        name={f.key}
+        defaultValue={value}
+        step={f.type === "percent" ? "0.1" : "1"}
+        className={`mt-1 block w-full ${field}`}
+      />
+    );
+  }
   return <input name={f.key} defaultValue={value} required={f.required} className={`mt-1 block w-full ${field}`} />;
 }
 

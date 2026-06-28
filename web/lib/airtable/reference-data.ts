@@ -22,6 +22,23 @@ const str = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
 const selName = (v: unknown): string =>
   typeof v === "string" ? v : str((v as { name?: string } | undefined)?.name);
 
+// Read one Airtable cell → display string, per the spec field type. Numbers render as-is; an
+// Airtable percent is stored as a fraction (0–1) but shown/edited as whole percent.
+function cellToString(type: string, v: unknown): string {
+  if (type === "select") return selName(v);
+  if (type === "number") return typeof v === "number" ? String(v) : str(v);
+  if (type === "percent") return typeof v === "number" ? String(Math.round(v * 1000) / 10) : str(v);
+  return str(v);
+}
+
+// Form value → Airtable cell, per type. "" clears (null). Percent: whole percent → fraction.
+function valueToCell(type: string, v: string): unknown {
+  if (type === "number") return v === "" ? null : Number(v);
+  if (type === "percent") return v === "" ? null : Number(v) / 100;
+  if (type === "select") return v || null;
+  return v;
+}
+
 /** True when the workspace token is configured. */
 export async function referenceConfigured(): Promise<boolean> {
   return airtableConfigured();
@@ -43,7 +60,7 @@ export async function listReference(spec: RefTableSpec): Promise<RefRow[]> {
   return records
     .map((rec) => {
       const values: Record<string, string> = {};
-      for (const f of spec.fields) values[f.key] = f.type === "select" ? selName(rec.fields[f.field]) : str(rec.fields[f.field]);
+      for (const f of spec.fields) values[f.key] = cellToString(f.type, rec.fields[f.field]);
       return { id: rec.id, values };
     })
     .filter((r) => r.values[titleKey])
@@ -55,8 +72,7 @@ async function inputToFields(spec: RefTableSpec, input: Record<string, string>):
   const requested: Record<string, unknown> = {};
   for (const f of spec.fields) {
     if (input[f.key] == null) continue;
-    const v = input[f.key];
-    requested[f.field] = f.type === "select" ? v || null : v;
+    requested[f.field] = valueToCell(f.type, input[f.key]);
   }
   return filterEditableFields(spec.base, spec.tableName, "dashboard", requested);
 }

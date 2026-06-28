@@ -127,11 +127,18 @@ registry `accessTable` + 8 table ids added.
       picker feed `lib/task-templates.ts`) + `lib/volunteer/task-template-options.ts` (client-safe) +
       page `/dashboard/tasks/templates` + actions + `TaskTemplateManager` component + sidebar link.
       Gated by `manageTasks` cap AND control-table toggles. Linked/multi-select fields stay in Airtable.
-- [ ] **4a Events** — HELD pending decision: dashboard event CRUD is DynamoDB-backed today; making
-      Airtable the front-end source of truth needs migrate-vs-sync call (recommend Airtable-as-truth).
-      Control rows seeded Read-only (public + dashboard) to document current state.
-- [ ] **4c Field ops** — Canvass Turf, Contact Lists → control rows seeded Read; CRUD UI deferred
-      (these have linked `Area` + numeric fields; need the generic editor extended with a linked-record picker).
+- [ ] **4a Events** — investigated, recommendation REVISED: keep the hybrid. Reads already prefer
+      Airtable when configured (`listUpcomingEvents`/`getEvent`); RSVPs live in DynamoDB by design.
+      The dashboard `EventRow` is a SUPERSET of the Airtable Events schema — checklists, the priority
+      rubric, idempotent publish-notify claims, captain/volunteer staffing all live on the DynamoDB
+      item. Full "Airtable-as-truth" would REGRESS those, so do NOT do it. If admin↔dashboard event
+      consistency is wanted, the right (separate, scoped) project is a one-way **mirror** of dashboard
+      content fields → Airtable, keeping operational data in DynamoDB. Control rows left Read-only.
+- [x] **4c Field ops** — Canvass Turf, Contact Lists → full dashboard CRUD on the scalar fields via
+      the generic editor (extended with `number`/`percent` field types). Specs in
+      `lib/volunteer/reference-specs.ts` (FIELDOPS_TABLES), page `/dashboard/field-assignments`,
+      `viewTargets` cap. Control rows flipped to CRUD. The linked `Area` (→ Geo Hierarchy) stays
+      curated in Airtable (consistent with prior phases) — no linked-record picker needed.
 - [x] **4d Lookups** — Roles, Skills, Commitment Levels, Geo Hierarchy → full dashboard CRUD via a
       **generic spec-driven editor**: client-safe specs `lib/volunteer/reference-specs.ts`, generic
       server CRUD `lib/airtable/reference-data.ts`, page `/dashboard/tasks/reference` + actions +
