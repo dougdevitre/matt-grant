@@ -1,11 +1,17 @@
 import Link from "next/link";
 import Image from "next/image";
-import { CAMPAIGN, NAV_LINKS, LEGAL, mainHref } from "@/lib/site";
+import { CAMPAIGN, NAV_LINKS, LEGAL, VALUES, VOTER_LOOKUP, mainHref } from "@/lib/site";
 
 // Server component (no host at render time), so footer links to the main site are
 // always absolute to the apex. That's correct on every pillar subdomain and on the
 // apex itself; footers don't need client-side SPA nav, so the full-load is fine.
 const apex = (path: string) => mainHref(path, true);
+
+// Shared link treatment: a goldlight underline that grows from the left on hover.
+const linkClass =
+  "relative inline-block text-paper/80 transition-colors duration-200 hover:text-goldlight " +
+  "after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-goldlight " +
+  "after:transition-all after:duration-200 hover:after:w-full";
 
 // The committee address is one canonical string in lib/site.ts. Split it at the PMB
 // boundary so the mailing block renders on two readable lines without re-typing (and
@@ -46,8 +52,10 @@ function PinIcon() {
 export function SiteFooter() {
   return (
     <footer className="relative mt-24 overflow-hidden bg-ink text-paper">
-      {/* Tricolor banner edge — mirrors the hero's top rule */}
-      <div className="h-1 w-full bg-gradient-to-r from-brick via-paper to-field" aria-hidden />
+      {/* Tricolor banner edge — mirrors the hero's top rule, with a slow moving sheen */}
+      <div className="relative h-1 w-full overflow-hidden bg-gradient-to-r from-brick via-paper to-field" aria-hidden>
+        <div className="absolute inset-y-0 w-1/3 animate-sweep bg-gradient-to-r from-transparent via-white/60 to-transparent motion-reduce:hidden" />
+      </div>
 
       {/* Layered, vibrant background: deep wash + portrait atmosphere + ledger grid + color glows */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
@@ -87,7 +95,12 @@ export function SiteFooter() {
               Election day · {CAMPAIGN.electionLabel}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="btn-gold">
+              <a
+                href={CAMPAIGN.donateUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-gold shadow-[0_10px_30px_-10px_rgba(37,99,235,0.7)] transition-shadow hover:shadow-[0_14px_34px_-8px_rgba(37,99,235,0.85)]"
+              >
                 Donate today
               </a>
               <Link href={apex("/act")} className="btn-ghost border-paper/30 text-paper hover:border-paper">
@@ -102,13 +115,13 @@ export function SiteFooter() {
             <ul className="mt-4 space-y-2.5 text-sm">
               {NAV_LINKS.map((item) => (
                 <li key={item.href}>
-                  <Link href={apex(item.href)} className="text-paper/80 transition-colors hover:text-goldlight">
+                  <Link href={apex(item.href)} className={linkClass}>
                     {item.label}
                   </Link>
                 </li>
               ))}
               <li>
-                <Link href={apex("/dashboard")} className="text-paper/80 transition-colors hover:text-goldlight">
+                <Link href={apex("/dashboard")} className={linkClass}>
                   Staff sign-in
                 </Link>
               </li>
@@ -148,6 +161,15 @@ export function SiteFooter() {
                 </address>
               </li>
             </ul>
+            <a
+              href={VOTER_LOOKUP}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-goldlight"
+            >
+              Check your registration
+              <span aria-hidden className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
+            </a>
           </div>
 
           {/* Legal & transparency */}
@@ -156,13 +178,25 @@ export function SiteFooter() {
             <ul className="mt-4 space-y-2.5 text-sm">
               {LEGAL.map((item) => (
                 <li key={item.href}>
-                  <Link href={apex(item.href)} className="text-paper/80 transition-colors hover:text-goldlight">
+                  <Link href={apex(item.href)} className={linkClass}>
                     {item.label}
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
+        </div>
+
+        {/* Values ribbon — quiet reinforcement of what the campaign stands for */}
+        <div className="border-t border-paper/10">
+          <ul className="container-page flex flex-wrap items-center gap-x-4 gap-y-1 py-4 text-[11px] uppercase tracking-eyebrow text-paper/45">
+            {VALUES.map((value, i) => (
+              <li key={value} className="flex items-center gap-4">
+                {i > 0 ? <span className="text-goldlight/50" aria-hidden>·</span> : null}
+                {value}
+              </li>
+            ))}
+          </ul>
         </div>
 
         {/* Bottom bar — FEC disclaimer made prominent */}
