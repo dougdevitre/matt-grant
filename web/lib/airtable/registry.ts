@@ -22,10 +22,16 @@ export const AIRTABLE_BASES = {
   },
   volunteer: {
     id: "appAmtan3qWZE7iGR",
+    accessTable: "tblAfRmVuSEayP3Iy",
     tables: {
       events: "tblujaq4mmzZdfR3s",
       contactLists: "tblODeXZVb36giy0x",
       taskTemplates: "tblbPnBB2pv38kIC4",
+      canvassTurf: "tblDOqUtnCkHVkI1U",
+      roles: "tbl3JQ5qSEKRKEZbx",
+      skills: "tbl8X1KtyD2NmTp3s",
+      commitmentLevels: "tblCwHWNyFkCbtmEr",
+      geoHierarchy: "tblx9lPk1LjEtScx5",
     },
   },
   socialMedia: {
