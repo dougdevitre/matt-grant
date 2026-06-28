@@ -11,16 +11,17 @@ import { renderEmail, renderText } from "@/lib/email/layout";
 import { listStaff } from "@/lib/staff";
 import { STAFF_ALLOWLIST } from "@/lib/auth";
 import { ROLE_LABELS, type Role } from "@/lib/rbac";
+import { emailsMuting } from "@/lib/notifications/prefs";
 
 const esc = (s: string) =>
   String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 /**
- * Active staff emails for the given roles, from the staff store — unioned with the env
- * allowlist when "admin" is requested (bootstrap admins may not have a staff row). Lowercased,
- * de-duped. Never throws (DB down → allowlist only).
+ * Active staff emails for the given roles, from the staff store — unioned with the env allowlist
+ * when "admin" is requested (bootstrap admins may not have a staff row), then MINUS anyone who
+ * opted out of this notification `type` (Phase 3a). Lowercased, de-duped. Never throws.
  */
-async function staffEmails(roles: Role[]): Promise<string[]> {
+async function staffEmails(roles: Role[], type: string): Promise<string[]> {
   const want = new Set(roles);
   const out = new Set<string>();
   try {
@@ -31,14 +32,15 @@ async function staffEmails(roles: Role[]): Promise<string[]> {
     /* DB unavailable → fall back to the allowlist below */
   }
   if (want.has("admin")) for (const e of STAFF_ALLOWLIST) if (e) out.add(e.trim().toLowerCase());
-  return [...out];
+  const muted = await emailsMuting(type); // per-staffer opt-outs
+  return [...out].filter((e) => !muted.has(e));
 }
 
 /** New issue-board submission → alert the moderators (admins + captains). Best-effort. */
 export async function notifyModeratorsNewIssue(s: { topic: string; name?: string; city?: string }): Promise<void> {
   if (!sesEnabled) return;
   try {
-    const to = await staffEmails(["admin", "captain"]);
+    const to = await staffEmails(["admin", "captain"], "issue_moderation");
     if (!to.length) return;
     const from = [s.name, s.city].filter(Boolean).join(", ");
     const title = "New issue topic to moderate";
@@ -63,7 +65,7 @@ export async function notifyModeratorsNewIssue(s: { topic: string; name?: string
 export async function notifyCaptainsNewVolunteer(v: { name?: string; email?: string; interests?: string }): Promise<void> {
   if (!sesEnabled) return;
   try {
-    const to = await staffEmails(["captain"]);
+    const to = await staffEmails(["captain"], "new_volunteer");
     if (!to.length) return;
     const title = "New volunteer to follow up";
     await sendEmail({
@@ -88,7 +90,7 @@ export async function notifyCaptainsNewVolunteer(v: { name?: string; email?: str
 export async function notifyAdminsNewDonation(d: { name?: string; amount?: number; email?: string; city?: string; recurring?: boolean }): Promise<void> {
   if (!sesEnabled) return;
   try {
-    const to = await staffEmails(["admin"]);
+    const to = await staffEmails(["admin"], "new_donation");
     if (!to.length) return;
     const amt = typeof d.amount === "number" ? `$${d.amount.toFixed(2)}` : "a contribution";
     const title = "New contribution received";
