@@ -10,5 +10,6 @@ Guides and templates for every communication channel your campaign will use. Fro
 - [podcast-campaign.md](podcast-campaign.md) -- Guesting on existing podcasts and launching your own campaign podcast
 - [positioning-framework.md](positioning-framework.md) -- Message Box model for defining your positioning relative to opponents
 - [press-release-templates.md](press-release-templates.md) -- Standard format and ready-to-customize templates for every campaign moment
+- [script-library.md](script-library.md) -- Sized, geo-targeted scripts (broadcast spots, speech blocks, social captions, voter-contact) and the `tools/script-generator/` PDF Script Book generator
 - [social-media-strategy.md](social-media-strategy.md) -- Platform selection, content planning, posting cadence, paid amplification, and compliance
 - [stump-speech-builder.md](stump-speech-builder.md) -- Universal speech structure with templates for five different time lengths

@@ -26,6 +26,41 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-06-28 -- v1.x -- Script Generator & PDF Script Book
+
+**Changes:**
+- [added] `tools/script-generator/` -- a runnable generator (Python + ReportLab) that produces sized, geo-targeted campaign scripts as a print-ready PDF Script Book. Five files: `sizing.py` (run-time/word/character size standard + `check_length()` QA), `geo.py` (MO-02 + five counties with safe localization anchors), `script_content.py` (the four priorities written to every size tier), `script_book.py` (generator; reuses `tools/pdf-letterhead/brand_letter.py` for the masthead/body/"Paid for by" footer), and `README.md`
+- [added] `messaging/script-library.md` -- reference doc: the sizing standard, the issue × geography matrix, and how to run/scope the generator
+- [updated] `commands/commands.md` -- added `/script` and `/scriptbook`
+- [updated] `SKILL.md` -- new rows in the Messaging and Tool reference tables
+- [updated] `messaging/README.md` -- file-list entry
+
+**Verifications Performed:**
+- All 56 unique scripts (4 issues x 14 tiers) pass the length-QA check ("on size") against their run-time/word/character budgets
+- Full book (4 issues x 6 geographies x 14 tiers = 336 scripts + cover) and scoped runs build successfully; PDF spot-checked (masthead, issue/size/geo header, size stamp, on-air/in-copy disclaimer, committee "Paid for by" footer on every page)
+- Geo localization reviewed for read-quality across district + counties (no double words, no sentence-initial lowercase tokens)
+- Content stays within `candidate/platform.md` (four priorities + CHILD Protection Act); no invented policy, statutes, statistics, endorsements, party labels, or finer-than-county local facts (school districts/zips left as labeled merge tokens); disclaimer language follows `tools/disclaimer-generator.md`
+- Mermaid diagram in `messaging/script-library.md` validated; new cross-references resolve
+
+**Known Gaps:**
+- School-district and zip-code localization not yet wired (no roster in repo); emitted as labeled `[…]` tokens for now
+- Speech timings use an estimated delivery pace; the campaign should time-check live before air/stage
+
+**Files Modified:**
+- tools/script-generator/sizing.py
+- tools/script-generator/geo.py
+- tools/script-generator/script_content.py
+- tools/script-generator/script_book.py
+- tools/script-generator/README.md
+- tools/script-generator/.gitignore
+- messaging/script-library.md
+- messaging/README.md
+- commands/commands.md
+- SKILL.md
+- references/update-log.md
+
+---
+
 ## 2026-06-24 -- v1.x -- Captain Onboarding & Training Guide
 
 **Changes:**

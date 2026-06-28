@@ -47,6 +47,8 @@ Instant-generation triggers. When a user types any of these commands, generate t
 | Command | Output |
 |---|---|
 | `/speech [minutes]` | Stump speech draft for the specified length |
+| `/script [issue] [size] [geo]` | A single campaign script — broadcast spot, speech block, social caption, or voter-contact script — sized and localized (see `tools/script-generator/`) |
+| `/scriptbook` | Generate the full PDF Script Book (every issue × geography × size) via `tools/script-generator/script_book.py` |
 | `/elevator` | 30-second elevator pitch |
 | `/bio [length]` | Candidate bio (short/medium/long versions) |
 | `/onesheet` | Campaign one-sheet / leave-behind (print-ready) |

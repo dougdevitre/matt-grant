@@ -230,6 +230,7 @@ Load only what is needed for the current task:
 | `tools/captain-roster.md` | User needs a data schema (CSV/JSON) to store the field-leadership roster — captains, archetypes, roles, co-captains, volunteers, and supporter-pipeline targets. The storable form of the `workflows/team-pairing.md` worksheet |
 | `tools/expenditure-tracker.md` | User needs a data schema for tracking spending (CSV/JSON), or budget tracking template |
 | `tools/disclaimer-generator.md` | User needs to generate "Paid for by" text for print, TV, radio, digital, or email communications |
+| `tools/script-generator/` | Runnable generator (Python + ReportLab) that produces the PDF **Script Book** — every issue × geography × size tier — reusing the `tools/pdf-letterhead/` engine. Load when the user wants to generate, scope, or regenerate sized campaign scripts as a PDF. Pairs with `messaging/script-library.md`. |
 | `tools/print-tracker.md` | User asks what the campaign prints, which template produces a given printed piece, the print queue/inventory/status, or whether a piece needs a disclaimer — a letter-sized print tracker mapping every item to its template |
 | `tools/filing-deadline-calendar.md` | User wants to generate calendar events (.ics) for filing deadlines |
 | `tools/donor-limit-checker.md` | User asks "can this person give me more?" or needs limit-check decision trees |
@@ -249,6 +250,7 @@ Load only what is needed for the current task:
 | `messaging/email-fundraising.md` | User asks about email marketing, fundraising sequences, list building, or email best practices |
 | `messaging/paid-media-planning.md` | User asks about TV, radio, digital ads, direct mail, media buying, or ad budget allocation |
 | `messaging/podcast-campaign.md` | User asks about podcasts — guesting on shows, launching a campaign podcast, podcast prep, interview questions, website copy, social media promotion, hashtags, or guest packages. Generates pitch emails, briefing sheets, promo packages, show notes, and launch plans. |
+| `messaging/script-library.md` | User wants campaign scripts sized by run-time / word / character count (broadcast spots, speech blocks, social captions, voter-contact scripts) or matched to an issue and a geography. Documents the sizing standard and the `tools/script-generator/` PDF Script Book generator. |
 
 **Update tracking:**
 
