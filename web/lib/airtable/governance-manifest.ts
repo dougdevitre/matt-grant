@@ -61,4 +61,6 @@ export const GOVERNANCE: GovernedSurface[] = [
   // admin transitions (update). No delete: abandoned requests are Archived.
   crud("budget", "Items", "dashboard", false, true, false, false, "read"),
   crud("budget", "Expense Requests", "dashboard", true, true, true, false, "ui"),
+  // Public donate page reads the catalog to show donors what their gift funds.
+  crud("budget", "Items", "public", false, true, false, false, "read"),
 ];
