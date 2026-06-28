@@ -1,11 +1,17 @@
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { InfluencerTable } from "@/components/dashboard/InfluencerTable";
-import { listInfluencers } from "@/lib/influencers/airtable";
+import { listInfluencers, influencersEditable } from "@/lib/influencers/airtable";
+import { requireCap } from "@/lib/auth";
+import { can } from "@/lib/rbac";
 
 export const dynamic = "force-dynamic";
 
 export default async function InfluencersPage() {
+  // Read-gate: must be staff with the influencer-worklist capability (not just any signed-in
+  // user). Inline editing then needs the narrower manageInfluencers cap AND the control toggle.
+  const { role } = await requireCap("manageTasks");
   const { configured, rows } = await listInfluencers();
+  const editable = can(role, "manageInfluencers") && (await influencersEditable());
 
   return (
     <>
@@ -16,7 +22,8 @@ export default async function InfluencersPage() {
           "Work top-down by Influence Score — ★5 (state senators, county executive) first.",
           "Each contact is in the power-map pipeline: Warm Intro → Meeting → Ask Made → Activated.",
           "Use the Contact column to reach them; legislators without a published email link to their official contact page.",
-          "Log every touch in the Master Database “Influential Voters” table — this view is read-only.",
+          "Edit logs your touch right here — Stage, Outcome, Alignment, Owner, Next Action, Follow-up, Notes. The synced mailing data stays read-only.",
+          "What you can edit is governed by the Master Database’s Front-End Access table — flip the Update box there to enable/disable, no deploy.",
           "Pair this with the “Influencer Follow-Up Calls” task on the Task board.",
         ]}
       />
@@ -25,7 +32,7 @@ export default async function InfluencersPage() {
         The 58 elected officials and community leaders who received Matt&apos;s CHILD Protection Act
         invitation mailing — 21 MO state senators, 26 MO House reps, and 11 St. Charles / St. Louis county
         officials. Sourced live from the campaign&apos;s Airtable <span className="font-mono">Influential Voters</span>{" "}
-        table; edits happen there, this is a read-only worklist.
+        table.{editable ? " Edit the outreach pipeline inline below; changes write straight back to Airtable." : " This view is read-only — edits happen in Airtable."}
       </p>
 
       {!configured ? (
@@ -39,7 +46,7 @@ export default async function InfluencersPage() {
           (<span className="font-mono">apptae7sUEwqFO2tX</span>) — check its scope, then refresh.
         </div>
       ) : (
-        <InfluencerTable rows={rows} />
+        <InfluencerTable rows={rows} editable={editable} />
       )}
 
       <p className="mt-6 text-xs text-slate">

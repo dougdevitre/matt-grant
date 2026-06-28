@@ -6,6 +6,7 @@ import { signVolunteerToken } from "@/lib/volunteer-link";
 import { PageHeader } from "@/components/dashboard/Notice";
 import { updateVolunteer, markVolunteerContacted, updateVolunteerNotes, updateVolunteerProfile } from "@/app/dashboard/actions";
 import { VOLUNTEER_MODES, VOLUNTEER_AVAILABILITY, VOLUNTEER_SKILLS } from "@/lib/volunteer-profile";
+import { requireCap } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,7 @@ const Row = ({ label, value }: { label: string; value: string | null }) =>
   ) : null;
 
 export default async function VolunteerDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireCap("manageVolunteers");
   const { id } = await params;
   const v = await getVolunteer(id);
   if (!v) notFound();

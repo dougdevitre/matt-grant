@@ -2,6 +2,7 @@ import Link from "next/link";
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { DegradedNotice, Empty, ErrorState, ProvenanceChip } from "@/components/data/ResourceState";
 import { loadPrintTracker, type PrintItem } from "@/lib/data/printTracker";
+import { requireCap } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,8 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-export default function PrintTrackerPage() {
+export default async function PrintTrackerPage() {
+  await requireCap("manageAssets");
   // Reference slice for the shared data layer: a validated Resource from the
   // committed CSV manifest (see lib/data/printTracker.ts + docs/data-architecture.md).
   const res = loadPrintTracker();

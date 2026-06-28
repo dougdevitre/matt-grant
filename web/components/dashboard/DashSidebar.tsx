@@ -28,10 +28,14 @@ const GROUPS: Group[] = [
     items: [
       { href: "/dashboard/map", label: "Map", icon: "map", cap: "viewMap" },
       { href: "/dashboard/targets", label: "Targets", icon: "targets", cap: "viewTargets" },
+      { href: "/dashboard/field-assignments", label: "Turf & lists", icon: "targets", cap: "viewTargets" },
       { href: "/dashboard/volunteers", label: "Volunteers", icon: "volunteers", cap: "manageVolunteers" },
       { href: "/dashboard/events", label: "Events", icon: "tasks", cap: "manageEvents" },
       { href: "/dashboard/tasks", label: "Task board", icon: "tasks", cap: "manageTasks" },
+      { href: "/dashboard/tasks/templates", label: "Task templates", icon: "tasks", cap: "manageTasks" },
+      { href: "/dashboard/tasks/reference", label: "Reference data", icon: "targets", cap: "manageVolunteers" },
       { href: "/dashboard/influencers", label: "Influencers", icon: "targets", cap: "manageTasks" },
+      { href: "/dashboard/issues", label: "Issue board", icon: "tasks", cap: "moderateIssues" },
     ],
   },
   {
@@ -45,6 +49,7 @@ const GROUPS: Group[] = [
       { href: "/dashboard/sms", label: "Text blasts", icon: "campaign", cap: "draftSms" },
       { href: "/dashboard/messages", label: "Inbox", icon: "campaign", cap: "messageIndividuals" },
       { href: "/dashboard/social", label: "Social", icon: "social", cap: "manageSocial" },
+      { href: "/dashboard/social/calendar", label: "Content calendar", icon: "campaign", cap: "manageSocial" },
     ],
   },
   {

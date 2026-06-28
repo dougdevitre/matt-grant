@@ -4,6 +4,7 @@ import { DataHub, type HubRow } from "@/components/data/DataHub";
 import { loadPrintTracker } from "@/lib/data/printTracker";
 import renditions from "@/lib/printRenditions.json";
 import { SOURCES } from "@/lib/data/registry";
+import { requireCap } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,8 @@ function envPresent(name: string): boolean {
   return typeof v === "string" && v.length > 0;
 }
 
-export default function DataHubPage() {
+export default async function DataHubPage() {
+  await requireCap("viewResearch");
   // Server-side: validated CSV counts + a small sample for the preview panel.
   const print = loadPrintTracker();
   const designs = (renditions.designs as Array<{ label: string }>) ?? [];
