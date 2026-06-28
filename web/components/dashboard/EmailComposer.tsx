@@ -3,8 +3,11 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { sendTestCampaign, sendCampaign, type SendState } from "@/app/dashboard/emails/actions";
 import { CONTACT_GROUPS, GROUP_LABELS, TEAM_GROUPS, type ContactGroup } from "@/lib/email/audienceGroups";
+import { ROLES, ROLE_LABELS, STAFF_ROLES, type Role } from "@/lib/rbac";
 import type { BroadcastMeta } from "@/lib/email/broadcasts";
 import { InfoTip } from "./InfoTip";
+
+const STAFF_ROLE_SET = new Set<Role>(STAFF_ROLES);
 
 const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-field";
 const topicLabel: Record<string, string> = {
@@ -29,6 +32,7 @@ export function EmailComposer({
   const [key, setKey] = useState(broadcasts[0]?.key ?? "");
   const [vars, setVars] = useState<Record<string, string>>({});
   const [groups, setGroups] = useState<ContactGroup[]>(["volunteers", "donors"]);
+  const [roleSel, setRoleSel] = useState<Role[]>([]);
   const [segment, setSegment] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
   const [res, setRes] = useState<SendState | null>(null);
@@ -62,6 +66,7 @@ export function EmailComposer({
 
   const tpl = broadcasts.find((b) => b.key === key);
   const toggle = (g: ContactGroup) => setGroups((cur) => (cur.includes(g) ? cur.filter((x) => x !== g) : [...cur, g]));
+  const toggleRole = (r: Role) => setRoleSel((cur) => (cur.includes(r) ? cur.filter((x) => x !== r) : [...cur, r]));
   const allSelected = CONTACT_GROUPS.every((g) => groups.includes(g));
   const selectAll = () => setGroups(allSelected ? [] : [...CONTACT_GROUPS]);
 
@@ -72,9 +77,11 @@ export function EmailComposer({
     return fromGroups + fromSeg;
   }, [groups, segment, counts, segments]);
 
-  // A send is "internal" (bypasses topic opt-outs) only when every selected group
-  // is a team group and no external supporter segment is chosen.
-  const isInternal = groups.length > 0 && groups.every((g) => TEAM_GROUPS.has(g)) && !segment;
+  // A send is "internal" (bypasses topic opt-outs) only when every selected source is
+  // staff/team and no external supporter segment is chosen. An external role makes it external.
+  const hasExternalRole = roleSel.some((r) => !STAFF_ROLE_SET.has(r));
+  const isInternal =
+    (groups.length > 0 || roleSel.length > 0) && groups.every((g) => TEAM_GROUPS.has(g)) && !hasExternalRole && !segment;
 
   const setVar = (n: string, v: string) => setVars((p) => ({ ...p, [n]: v }));
 
@@ -82,6 +89,7 @@ export function EmailComposer({
     const f = new FormData();
     f.set("templateKey", key);
     groups.forEach((g) => f.append("groups", g));
+    roleSel.forEach((r) => f.append("roleGroups", r));
     if (segment) f.set("segment", segment);
     f.set("scheduledAt", scheduledAt);
     tpl?.fields.forEach((fld) => f.set(fld.name, vars[fld.name] ?? ""));
@@ -178,8 +186,36 @@ export function EmailComposer({
             </div>
           )}
 
+          {/* By Clerk account role (publicMetadata.role) — resolved at send time. */}
+          <div className="mt-3">
+            <label className="text-xs font-semibold text-slate">
+              By account role
+              <InfoTip label="What is targeting by role?">
+                Targets everyone whose signed-in account has that role (admin/captain/volunteer/donor/
+                supporter/partner). Counts are resolved at send time. External tiers still honor topic
+                opt-outs; SMS always requires opt-in.
+              </InfoTip>
+            </label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {ROLES.map((r) => {
+                const on = roleSel.includes(r);
+                return (
+                  <button
+                    type="button"
+                    key={r}
+                    onClick={() => toggleRole(r)}
+                    className={`rounded-sm border px-3 py-1.5 text-xs font-semibold transition-colors ${on ? "border-ink bg-ink text-paper" : "border-line bg-white text-ink hover:border-ink"}`}
+                  >
+                    {ROLE_LABELS[r]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <p className="mt-2 font-mono text-xs text-slate">
             ~{approxCount} recipient{approxCount === 1 ? "" : "s"} (before de-dupe &amp; opt-outs)
+            {roleSel.length > 0 && <span className="text-slate"> + accounts by role (counted at send)</span>}
             {isInternal && (
               <span className="ml-1 text-field">
                 · team send
@@ -214,7 +250,9 @@ export function EmailComposer({
             type="button"
             disabled={pending || disabled}
             onClick={() => {
-              const who = groups.map((g) => GROUP_LABELS[g]).join(" + ") || (segment ? "the selected segment" : "no one");
+              const who =
+                [...groups.map((g) => GROUP_LABELS[g]), ...roleSel.map((r) => `Role: ${ROLE_LABELS[r]}`)].join(" + ") ||
+                (segment ? "the selected segment" : "no one");
               const msg = scheduledAt
                 ? `Schedule "${tpl?.label}" for ${scheduledAt.replace("T", " ")} to ~${approxCount} recipients (${who})?`
                 : `Send "${tpl?.label}" to ~${approxCount} recipients (${who})? This cannot be undone.`;
