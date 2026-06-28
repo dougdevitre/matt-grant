@@ -12,11 +12,27 @@ export function HeroVideo() {
   const ref = useRef<HTMLVideoElement>(null);
   const [play, setPlay] = useState(false);
 
+  // Defer the decorative video until the browser is idle, so its bytes don't
+  // compete with the critical render / LCP on first load. Falls back to a short
+  // timeout where requestIdleCallback isn't available (Safari).
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    setPlay(true);
-    ref.current?.play().catch(() => {});
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    if (typeof w.requestIdleCallback === "function") {
+      const id = w.requestIdleCallback(() => setPlay(true), { timeout: 3000 });
+      return () => w.cancelIdleCallback?.(id);
+    }
+    const t = setTimeout(() => setPlay(true), 1500);
+    return () => clearTimeout(t);
   }, []);
+
+  // Once mounted, make sure it plays (belt-and-suspenders alongside autoPlay).
+  useEffect(() => {
+    if (play) ref.current?.play().catch(() => {});
+  }, [play]);
 
   if (!play) return null;
 
@@ -28,7 +44,7 @@ export function HeroVideo() {
       muted
       loop
       playsInline
-      preload="auto"
+      preload="metadata"
       aria-hidden
     >
       <source src={SRC} type="video/mp4" />

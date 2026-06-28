@@ -1,8 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
+import { reportError } from "@/lib/report-error";
 
-export default function Error({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  useEffect(() => {
+    reportError(error, { kind: "route-error", digest: error.digest ?? "" });
+  }, [error]);
   return (
     <main className="grid min-h-screen place-items-center bg-paper px-6 py-16 text-center">
       <div className="w-full max-w-lg">

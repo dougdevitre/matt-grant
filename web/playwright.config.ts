@@ -22,6 +22,8 @@ export default defineConfig({
     // differences bite (backdrop-filter containing blocks, position:fixed,
     // safe-area, AVIF). The broad axe route scan stays on chromium (engine-agnostic).
     { name: "webkit", use: { ...devices["Desktop Safari"] }, testMatch: /nav-menu\.spec\.ts/ },
+    // Firefox/Gecko — third engine, same nav-interaction scope.
+    { name: "firefox", use: { ...devices["Desktop Firefox"] }, testMatch: /nav-menu\.spec\.ts/ },
   ],
   // Only boot a local server when scanning localhost; a deployed URL is already up.
   ...(remoteBase
