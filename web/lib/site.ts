@@ -6,7 +6,7 @@ export const CAMPAIGN = {
   office: "U.S. House of Representatives",
   district: "Missouri — District 2",
   districtShort: "MO-02",
-  committee: "Matt Grant for Congress Committee",
+  committee: "Matt Grant for Congress", // FEC registered committee name (C00945394)
   electionDate: "2026-08-04T00:00:00-05:00", // Missouri primary, Aug 4 2026
   electionLabel: "August 4, 2026",
   tagline: "A neighbor, a dad, and a problem-solver.",
@@ -14,10 +14,18 @@ export const CAMPAIGN = {
   email: "mattgrantforcongress@gmail.com",
   phone: "(314) 255-7760",
   phoneHref: "tel:+13142557760",
-  address: "701 Market Street, Suite 110, PMB 1709, St. Louis, MO 63101",
+  address: "1625 Mason Knoll Rd, St. Louis, MO 63131", // FEC mailing address of record
   donateUrl:
     "https://secure.winred.com/matt-grant-for-congress/donate-today?sc=winred-directory&money_bomb=false&recurring=false",
-  paidForBy: "Paid for by the Matt Grant for Congress Committee.",
+  // FEC-required disclaimer — exact wording. Used verbatim on the site; do not reword.
+  paidForBy: "Paid for by Matt Grant for Congress.",
+} as const;
+
+// FEC registration (public record). The profile link doubles as the campaign's
+// transparency anchor in the footer.
+export const FEC = {
+  committeeId: "C00945394",
+  profileUrl: "https://www.fec.gov/data/committee/C00945394/",
 } as const;
 
 // Primary navigation, grouped into parent → child menus to keep the bar

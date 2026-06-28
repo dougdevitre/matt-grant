@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { CAMPAIGN, NAV_LINKS, LEGAL, VALUES, VOTER_LOOKUP, mainHref } from "@/lib/site";
+import { CAMPAIGN, NAV_LINKS, LEGAL, VALUES, VOTER_LOOKUP, FEC, mainHref } from "@/lib/site";
 
 // Server component (no host at render time), so footer links to the main site are
 // always absolute to the apex. That's correct on every pillar subdomain and on the
@@ -13,10 +13,12 @@ const linkClass =
   "after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-goldlight " +
   "after:transition-all after:duration-200 hover:after:w-full";
 
-// The committee address is one canonical string in lib/site.ts. Split it at the PMB
-// boundary so the mailing block renders on two readable lines without re-typing (and
-// risking drift from) the source of truth.
-const [addressStreet, addressCity] = CAMPAIGN.address.split(/, (?=PMB)/);
+// The committee address is one canonical string in lib/site.ts. Render it on two
+// readable lines — street on top, "City, ST ZIP" below — derived from the source of
+// truth (no re-typed address) so it can't drift from the filed FEC record.
+const addressParts = CAMPAIGN.address.split(", ");
+const addressCity = addressParts.slice(-2).join(", "); // "St. Louis, MO 63131"
+const addressStreet = addressParts.slice(0, -2).join(", "); // everything before the city
 
 function MailIcon() {
   return (
@@ -183,6 +185,11 @@ export function SiteFooter() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <a href={FEC.profileUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                  FEC filings ({FEC.committeeId})
+                </a>
+              </li>
             </ul>
           </div>
         </div>

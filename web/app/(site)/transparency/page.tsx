@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PolicyPage } from "@/components/PolicyPage";
+import { CAMPAIGN, FEC } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Transparency Policy",
@@ -18,10 +19,12 @@ export default function TransparencyPage() {
     >
       <h2>Who runs this site, and who pays for it</h2>
       <p>
-        This website and its communications are produced and paid for by the{" "}
-        <strong>Matt Grant for Congress Committee</strong>, the principal campaign committee for Matt Grant&apos;s
-        candidacy for the U.S. House of Representatives, Missouri&apos;s 2nd District, in the August 4, 2026 primary.
-        Every public communication carries the line &ldquo;Paid for by the Matt Grant for Congress Committee.&rdquo;
+        This website and its communications are produced and paid for by{" "}
+        <strong>{CAMPAIGN.committee}</strong>, the principal campaign committee for Matt Grant&apos;s
+        candidacy for the U.S. House of Representatives, Missouri&apos;s 2nd District, in the August 4, 2026 primary
+        (FEC committee{" "}
+        <Link href={FEC.profileUrl} target="_blank" rel="noopener noreferrer">{FEC.committeeId}</Link>).
+        Every public communication carries the line &ldquo;{CAMPAIGN.paidForBy}&rdquo;
       </p>
 
       <h2>How we&apos;re funded and how we report it</h2>
