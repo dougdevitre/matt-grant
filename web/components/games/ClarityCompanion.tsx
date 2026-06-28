@@ -11,6 +11,7 @@ import {
 } from "@/lib/games/clarity-companion";
 import type { GameContent } from "@/lib/games/content-schema";
 import { EndScreen } from "./EndScreen";
+import { ClarityRecordCard } from "./ClarityRecordCard";
 
 // Clarity Companion — the client view. Triage each record: Open (public), Protect
 // (child), or Redact & Open (mixed). Two meters must both stay up. The record TYPE is
@@ -41,13 +42,27 @@ function Meter({ label, value }: { label: string; value: number }) {
     <div>
       <div className="flex items-center justify-between">
         <span className="eyebrow text-slate">
+          {/* Status is color-independent: icon + text, not the bar color alone. */}
+          {low ? <span aria-hidden="true">⚠ </span> : null}
           {label}
-          {low ? " — at risk" : ""}
+          {low ? " — at risk (below floor)" : ""}
         </span>
-        <span className="font-mono text-xs tabular-nums text-slate">{value}/100</span>
+        <span className={`font-mono text-xs tabular-nums ${low ? "text-brick" : "text-slate"}`}>
+          {value}/100
+        </span>
       </div>
-      <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-line" aria-hidden="true">
-        <span className={`block h-full ${low ? "bg-brick" : "bg-ink"}`} style={{ width: `${value}%` }} />
+      <div className="relative mt-1 h-2 w-full overflow-hidden rounded-full bg-line">
+        <span
+          className={`clarity-meter block h-full ${low ? "bg-brick" : "bg-ink"}`}
+          style={{ width: `${value}%` }}
+          aria-hidden="true"
+        />
+        {/* Shared floor marker — the "both must stay above this" line, read at a glance. */}
+        <span
+          className="clarity-floor pointer-events-none absolute inset-y-0 w-px bg-ink/40"
+          style={{ left: `${FLOOR}%` }}
+          aria-hidden="true"
+        />
       </div>
     </div>
   );
@@ -173,13 +188,20 @@ export function ClarityCompanion({ content }: { content: GameContent }) {
 
       {phase === "playing" && state && (
         <>
-          <div className="grid grid-cols-1 gap-4 rounded-lg border border-line bg-white p-4 shadow-card sm:grid-cols-[1fr_1fr_auto]">
-            <Meter label="Accountability" value={state.accountability} />
-            <Meter label="Child privacy" value={state.childPrivacy} />
-            <div className="flex flex-col sm:items-end">
-              <span className="eyebrow text-slate">Time</span>
-              <span className="font-mono text-lg font-bold tabular-nums text-ink">{Math.max(0, Math.ceil(secondsLeft))}s</span>
+          <div className="rounded-lg border border-line bg-white p-4 shadow-card">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_1fr_auto]">
+              <Meter label="Accountability" value={state.accountability} />
+              <Meter label="Child privacy" value={state.childPrivacy} />
+              <div className="flex flex-col sm:items-end">
+                <span className="eyebrow text-slate">Time</span>
+                <span className="font-mono text-lg font-bold tabular-nums text-ink">{Math.max(0, Math.ceil(secondsLeft))}s</span>
+              </div>
             </div>
+            {/* Couples the two meters: both share one floor, both must stay above it. */}
+            <p className="mt-3 flex items-center gap-1.5 text-xs text-slate">
+              <span aria-hidden="true" className="inline-block h-3 w-px bg-ink/40" />
+              Keep <span className="font-medium text-ink">both</span> meters above the shared floor ({FLOOR}/100).
+            </p>
           </div>
 
           <p className="min-h-[1.5rem] text-sm font-medium text-ink" role="status" aria-live="assertive">
@@ -188,25 +210,30 @@ export function ClarityCompanion({ content }: { content: GameContent }) {
 
           <ul className="space-y-3" aria-label="Incoming records — triage each one">
             {state.queue.map((card) => (
-              <li key={card.id} className="rounded-lg border border-line bg-white p-3 shadow-card">
-                <p className="text-sm font-semibold text-ink">{cardLabel(card, content)}</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <button onClick={() => act(card, "open")} className="btn-ghost text-xs" aria-label={`Open ${cardLabel(card, content)}`}>
-                    Open
-                  </button>
-                  <button onClick={() => act(card, "protect")} className="btn-ghost text-xs" aria-label={`Protect ${cardLabel(card, content)}`}>
-                    Protect
-                  </button>
-                  <button onClick={() => act(card, "redact")} className="btn-ghost text-xs" aria-label={`Redact and open ${cardLabel(card, content)}`}>
-                    Redact &amp; Open
-                  </button>
-                </div>
-              </li>
+              <ClarityRecordCard
+                key={card.id}
+                card={card}
+                label={cardLabel(card, content)}
+                currentTick={state.tick}
+                onAct={act}
+              />
             ))}
             {state.queue.length === 0 && (
               <li className="py-8 text-center text-sm text-slate">No records in the queue — stay ready.</li>
             )}
           </ul>
+
+          <style jsx>{`
+            .clarity-meter {
+              transition: width 320ms cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 320ms ease;
+            }
+            @media (prefers-reduced-motion: reduce) {
+              .clarity-meter {
+                transition: none;
+              }
+            }
+          `}</style>
         </>
       )}
 
