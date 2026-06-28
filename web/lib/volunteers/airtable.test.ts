@@ -10,16 +10,30 @@ vi.mock("server-only", () => ({}));
 const createRecords = vi.fn();
 const updateRecords = vi.fn();
 const listRecords = vi.fn();
-vi.mock("@/lib/airtable/client", () => ({
-  createRecords: (...a: unknown[]) => createRecords(...a),
-  updateRecords: (...a: unknown[]) => updateRecords(...a),
-  listRecords: (...a: unknown[]) => listRecords(...a),
-}));
+// AirtableError is defined INSIDE the factory (vi.mock is hoisted above the file,
+// so it can't close over a top-level class) and re-imported below for the tests.
+vi.mock("@/lib/airtable/client", () => {
+  class AirtableError extends Error {
+    constructor(
+      message: string,
+      readonly status: number,
+    ) {
+      super(message);
+    }
+  }
+  return {
+    createRecords: (...a: unknown[]) => createRecords(...a),
+    updateRecords: (...a: unknown[]) => updateRecords(...a),
+    listRecords: (...a: unknown[]) => listRecords(...a),
+    AirtableError,
+  };
+});
 vi.mock("@/lib/airtable/access", () => ({
   can: vi.fn().mockResolvedValue(true),
   filterEditableFields: (_b: unknown, _t: unknown, _a: unknown, f: Record<string, unknown>) => f, // passthrough
 }));
 
+import { AirtableError } from "@/lib/airtable/client";
 import { mirrorVolunteerToAirtable, mirrorVolunteerStatusToAirtable, _clearLinkCache } from "./airtable";
 
 const base = { name: "Dana", door: "Volunteer" as const, signedUpDate: "2026-06-28" };
@@ -50,6 +64,22 @@ describe("mirrorVolunteerToAirtable upsert", () => {
     expect(arg.fields.Status).toBeUndefined();
     expect(arg.fields["Signed Up"]).toBeUndefined();
     expect(arg.fields.Name).toBe("Dana");
+  });
+
+  it("RECREATEs when the stored row was deleted (PATCH 404) and returns the fresh id", async () => {
+    updateRecords.mockRejectedValueOnce(new AirtableError("not found", 404, ""));
+    const id = await mirrorVolunteerToAirtable(base, "recGONE");
+    expect(id).toBe("recNEW"); // fell back to create
+    const fields = createRecords.mock.calls[0][2][0].fields as Record<string, unknown>;
+    expect(fields.Status).toBe("New"); // set-once fields restored on recreate
+    expect(fields["Signed Up"]).toBe("2026-06-28");
+  });
+
+  it("does NOT recreate on a non-404 update failure (avoids duplicates), returns null", async () => {
+    updateRecords.mockRejectedValueOnce(new AirtableError("server error", 500, ""));
+    const id = await mirrorVolunteerToAirtable(base, "recOLD");
+    expect(id).toBeNull();
+    expect(createRecords).not.toHaveBeenCalled();
   });
 });
 

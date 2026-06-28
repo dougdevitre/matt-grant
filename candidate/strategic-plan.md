@@ -1,6 +1,6 @@
 # Strategic Plan to Win MO-02 on August 4, 2026
 
-A concrete strategic plan for **Matt Grant's campaign for the U.S. House of Representatives, Missouri — District 2 (MO-02)**, targeting the **primary on August 4, 2026**, operated by the **Matt Grant for Congress Committee**. It is built directly on this skill's own frameworks: the structure follows `workflows/campaign-plan-builder.md`, the GOTV phase follows `workflows/gotv-plan.md`, the money plan follows `workflows/fundraising-plan.md`, the small-budget tactics follow `tactics/low-cost-high-impact.md`, and all Missouri-specific compliance routes to `states/missouri/*` and `federal/*`.
+A concrete strategic plan for **Matt Grant's campaign for the U.S. House of Representatives, Missouri — District 2 (MO-02)**, targeting the **primary on August 4, 2026**, operated by the **Matt Grant for Congress**. It is built directly on this skill's own frameworks: the structure follows `workflows/campaign-plan-builder.md`, the GOTV phase follows `workflows/gotv-plan.md`, the money plan follows `workflows/fundraising-plan.md`, the small-budget tactics follow `tactics/low-cost-high-impact.md`, and all Missouri-specific compliance routes to `states/missouri/*` and `federal/*`.
 
 > **PLANNING-FRAMEWORK NOTICE — read first.** Every number in this plan (turnout, win number, vote targets, dollar amounts, door counts, volunteer counts) is an **illustrative planning placeholder**, not a prediction, a poll, or real data. They demonstrate *how* to run the math from `workflows/campaign-plan-builder.md`; they must be replaced with verified figures from the Missouri Secretary of State, county election authorities, the voter file, and the campaign's own books before any decision is made. Do not represent any figure here as actual or forecasted.
 
@@ -88,7 +88,7 @@ flowchart TD
 
 *(See `workflows/first-30-days.md`, `workflows/filing-checklist.md`, `workflows/treasurer-setup.md`.)*
 
-- Confirm committee registration and treasurer systems for the Matt Grant for Congress Committee (FEC; `workflows/treasurer-setup.md`).
+- Confirm committee registration and treasurer systems for the Matt Grant for Congress (FEC; `workflows/treasurer-setup.md`).
 - Verify MO-02 ballot-access requirements and the filing deadline (`states/missouri/ballot-access.md`; MO SOS).
 - Lock the candidate profile and platform (`candidate/profile.md`, `candidate/platform.md`).
 - Stand up WinRed donation flow and the "Paid for by" disclaimer (`tools/disclaimer-generator.md`).

@@ -4,6 +4,7 @@ import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { CaseForChange } from "@/components/CaseForChange";
 import { CommunityOnboarding } from "@/components/CommunityOnboarding";
+import { MatchedActions } from "@/components/community/MatchedActions";
 import { ViewAsBanner } from "@/components/dashboard/ViewAsBanner";
 import { supporterTierForEmail } from "@/lib/supporterTier";
 import { getProfile } from "@/lib/profile";
@@ -116,6 +117,11 @@ export default async function CommunityPage() {
 
       {/* The shared, public-safe case-for-change board */}
       <CaseForChange />
+
+      {/* Personalized: Active tasks matched to the signed-in volunteer's profile.
+          Self-scoped to gate.email; renders nothing for people without a volunteer
+          profile when there's nothing to match. */}
+      <MatchedActions email={gate.email} />
 
       {/* Ways to help — the conversion section */}
       <h2 className="mt-14 text-2xl font-semibold">Three ways to help</h2>

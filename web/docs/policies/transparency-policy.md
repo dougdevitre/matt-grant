@@ -1,6 +1,6 @@
 # Transparency Policy
 
-*Draft for review — Matt Grant for Congress Committee. Last updated: June 18, 2026.*
+*Draft for review — Matt Grant for Congress. Last updated: June 18, 2026.*
 
 > **Reviewer notes (remove before publishing):** Confirm the AI-assistance disclosure matches how content is actually produced, and that the funding/authorization statements are accurate. Have counsel confirm nothing here creates obligations beyond FEC requirements.
 
@@ -8,7 +8,7 @@ We're asking voters to trust Matt Grant with their voice in Congress. Trust star
 
 ## Who runs this site, and who pays for it
 
-This website and its communications are produced and paid for by the **Matt Grant for Congress Committee**, the principal campaign committee for Matt Grant's candidacy for the U.S. House of Representatives, Missouri's 2nd District, in the August 4, 2026 primary. Every public communication carries the line **"Paid for by Matt Grant for Congress."**
+This website and its communications are produced and paid for by **Matt Grant for Congress**, the principal campaign committee for Matt Grant's candidacy for the U.S. House of Representatives, Missouri's 2nd District, in the August 4, 2026 primary (FEC committee [C00945394](https://www.fec.gov/data/committee/C00945394/)). Every public communication carries the line **"Paid for by Matt Grant for Congress."**
 
 ## How we're funded and how we report it
 
