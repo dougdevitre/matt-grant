@@ -1,9 +1,11 @@
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { PhotoLibrary } from "@/components/dashboard/PhotoLibrary";
+import { requireCap } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export default function PhotosPage() {
+export default async function PhotosPage() {
+  await requireCap("manageAssets");
   return (
     <>
       <PageHeader kicker="Photography" title="Photo library" />

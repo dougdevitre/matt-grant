@@ -1,10 +1,12 @@
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { TargetTable } from "@/components/dashboard/TargetTable";
 import { fetchPrecinctRows } from "@/lib/precincts";
+import { requireCap } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function TargetsPage({ searchParams }: { searchParams: Promise<{ precinct?: string }> }) {
+  await requireCap("viewTargets");
   const { precinct } = await searchParams;
   const { live, rows } = await fetchPrecinctRows();
 

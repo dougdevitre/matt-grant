@@ -1,9 +1,11 @@
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { StudioForm } from "@/components/dashboard/StudioForm";
+import { requireCap } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export default function StudioPage() {
+export default async function StudioPage() {
+  await requireCap("useStudio");
   return (
     <>
       <PageHeader kicker="Brand" title="Graphics studio" />

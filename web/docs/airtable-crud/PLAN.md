@@ -54,7 +54,11 @@ makes a surface quietly stop working). Two layers turn those into red checks:
 - **Source of truth** — `lib/airtable/governance-manifest.ts` (`GOVERNANCE`): the code-side contract
   of every governed surface, consumed by both the test and the drift script.
 - **RBAC two-gate**: every write checks a Clerk capability AND the control table; the dashboard layout
-  redirects non-staff; `requireCap` added to the influencers read page (was relying on layout-only).
+  redirects non-staff.
+- **Page-level read-RBAC sweep**: every dashboard page now enforces a capability (via `requireCap`, or
+  the `staffGate()`+`can()`+redirect pattern) — closed 9 pages that previously leaned on the layout
+  staff-gate + sidebar hiding (assets, data, map, photos, print, studio, targets, tasks, volunteers/[id]).
+  `app/dashboard/auth-coverage.test.ts` is a regression guard: a new ungated page fails CI.
 
 ## Foundation (Phase 0 — once, before base phases)
 

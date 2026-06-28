@@ -2,10 +2,12 @@ import Link from "next/link";
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { MapExplorer } from "@/components/MapExplorer";
 import { DistrictCoverage } from "@/components/dashboard/DistrictCoverage";
+import { requireCap } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export default function MapPage() {
+export default async function MapPage() {
+  await requireCap("viewMap");
   return (
     <>
       <PageHeader kicker="Region" title="3D field map">
