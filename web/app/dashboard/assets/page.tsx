@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { AssetManager } from "@/components/dashboard/AssetManager";
+import { requireCap } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export default function AssetsPage() {
+export default async function AssetsPage() {
+  await requireCap("manageAssets");
   return (
     <>
       <PageHeader kicker="Brand" title="Asset library">
