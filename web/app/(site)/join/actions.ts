@@ -73,6 +73,7 @@ export async function submitVolunteerDetail(_prev: IntakeResult | null, fd: Form
     skills: fd.getAll("skills").map(String),
     mode: String(fd.get("mode") ?? ""),
     availability: fd.getAll("availability").map(String),
+    smsOptIn: !!String(fd.get("smsOptIn") ?? "").trim(),
     captainNote: door === "Team Captain" ? String(fd.get("captainNote") ?? "") : null,
     message: String(fd.get("message") ?? ""),
   });
