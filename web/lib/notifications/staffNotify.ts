@@ -86,6 +86,44 @@ export async function notifyCaptainsNewVolunteer(v: { name?: string; email?: str
   }
 }
 
+/**
+ * New team-captain application (from /join) → alert admins, who are the only ones who can promote
+ * to the captain RBAC role. The applicant is saved as a normal volunteer with door="Team Captain";
+ * this just surfaces it so it doesn't sit unseen. Best-effort.
+ */
+export async function notifyAdminsCaptainApplication(a: {
+  name?: string;
+  email?: string;
+  city?: string;
+  note?: string;
+}): Promise<void> {
+  if (!sesEnabled) return;
+  try {
+    const to = await staffEmails(["admin"], "captain_application");
+    if (!to.length) return;
+    const who = [a.name, a.city].filter(Boolean).join(", ");
+    const title = "New team-captain application";
+    await sendEmail({
+      to,
+      subject: `Captain application: ${a.name || "a volunteer"}`,
+      html: renderEmail({
+        eyebrow: "Team",
+        title,
+        bodyHtml: `<p>Someone applied to lead a team via the website.</p>
+          <p style="margin:14px 0;padding:12px 16px;background:#F1EFE8;border-radius:4px;"><strong>${esc(a.name || "—")}</strong>${who && a.name ? `<br><span style="color:#5B6678;">${esc([a.city].filter(Boolean).join(""))}</span>` : ""}
+          ${a.email ? `<br><span style="color:#5B6678;">${esc(a.email)}</span>` : ""}${a.note ? `<br><br>${esc(a.note)}` : ""}</p>
+          <p>Find them on the dashboard <strong>Volunteers</strong> page (filter “Captain applicants”). To approve, assign them the <strong>Captain</strong> role on the <strong>Team</strong> page.</p>`,
+      }),
+      text: renderText({
+        title,
+        lines: [a.name || "—", a.city || "", a.email || "", a.note || "", "Review on the dashboard Volunteers page; promote on the Team page."].filter(Boolean),
+      }),
+    });
+  } catch {
+    /* best-effort */
+  }
+}
+
 /** New donation → notify admins (the donor thank-you is sent separately by the webhook). Best-effort. */
 export async function notifyAdminsNewDonation(d: { name?: string; amount?: number; email?: string; city?: string; recurring?: boolean }): Promise<void> {
   if (!sesEnabled) return;

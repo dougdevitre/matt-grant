@@ -9,6 +9,7 @@ import { toE164 } from "@/lib/sms/send";
 import { recordConsent } from "@/lib/sms/consent";
 import { saveProfile, cleanZip, type WayToHelp } from "@/lib/profile";
 import { mirrorVolunteerToAirtable } from "@/lib/volunteers/airtable";
+import { notifyAdminsCaptainApplication, notifyCaptainsNewVolunteer } from "@/lib/notifications/staffNotify";
 import {
   isCommitmentLevel,
   isVolunteerRole,
@@ -194,6 +195,15 @@ export async function saveVolunteerSignup(input: VolunteerIntake): Promise<Intak
   }).catch(() => null);
 
   await notify({ name, email, phone, city, door, message }).catch(() => {});
+
+  // Role-targeted staff alerts (best-effort, respect per-staffer opt-outs):
+  //   • Captain application → admins (only they can promote to the captain role)
+  //   • New volunteer       → captains (to follow up and plug them in)
+  if (door === "Team Captain") {
+    await notifyAdminsCaptainApplication({ name, email, city: city ?? undefined, note: captainNote ?? undefined }).catch(() => {});
+  } else if (door === "Volunteer") {
+    await notifyCaptainsNewVolunteer({ name, email, interests: roles.join(", ") || undefined }).catch(() => {});
+  }
 
   return { ok: true, message: SUCCESS[door] };
 }
