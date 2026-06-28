@@ -11,12 +11,16 @@ const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm o
 // pulls from DynamoDB, so it must not be imported into this client bundle).
 export type SmsAudienceOption = { value: string; label: string; count: number };
 
+export type SavedSmsOption = { id: string; name: string; role: Role | null; vars: Record<string, string> };
+
 export function SmsComposer({
   groups,
+  saved = [],
   canSend,
   disabled,
 }: {
   groups: SmsAudienceOption[];
+  saved?: SavedSmsOption[];
   canSend: boolean;
   disabled: boolean;
 }) {
@@ -37,6 +41,16 @@ export function SmsComposer({
   const setVar = (n: string, v: string) => setVars((p) => ({ ...p, [n]: v }));
   const toggle = (v: string) => setSelected((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]));
   const toggleRole = (r: Role) => setRoleSel((cur) => (cur.includes(r) ? cur.filter((x) => x !== r) : [...cur, r]));
+
+  // Load a saved SMS template: rides the generic "custom" template — prefill the body + role.
+  const loadSaved = (id: string) => {
+    const t = saved.find((s) => s.id === id);
+    if (!t) return;
+    setKey("custom");
+    setVars({ ...t.vars });
+    setRoleSel(t.role ? [t.role] : []);
+    setRes(null);
+  };
 
   const fd = () => {
     const f = new FormData();
@@ -67,6 +81,17 @@ export function SmsComposer({
               <option key={t.key} value={t.key}>{t.label}</option>
             ))}
           </select>
+          {saved.length > 0 && (
+            <select
+              value=""
+              onChange={(e) => { if (e.target.value) loadSaved(e.target.value); }}
+              className={`${field} mt-2`}
+              aria-label="Load a saved template"
+            >
+              <option value="">Load a saved template…</option>
+              {saved.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          )}
           {tpl && <p className="mt-1 text-xs text-slate">{tpl.description}</p>}
         </div>
 

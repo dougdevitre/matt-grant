@@ -60,6 +60,7 @@ export const PK = {
   districtInsights: "DISTRICTINSIGHT", // cached per-district demographics + AI blurb (SK = districtKey)
   gameScores: "GAMESCORE", // arcade leaderboard (anon; SK = `${gameId}#${paddedScore}#${id}`, no PII)
   notifPrefs: "NOTIFPREF", // per-staffer notification opt-outs (SK = email; muted: string[])
+  msgTemplates: "MSGTEMPLATE", // admin-saved role-tagged email/SMS templates (SK = id)
 } as const;
 
 export function newId(): string {
