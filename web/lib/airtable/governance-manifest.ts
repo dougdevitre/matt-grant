@@ -57,4 +57,8 @@ export const GOVERNANCE: GovernedSurface[] = [
   crud("volunteer", "Committee / FEC", "dashboard", false, false, false, false, "excluded"),
   crud("volunteer", "Audit / QA", "dashboard", false, false, false, false, "excluded"),
   crud("socialMedia", "Start Here", "dashboard", false, false, false, false, "excluded"),
+  // Budget Builder — catalog is read-only; expense pipeline is propose (create) +
+  // admin transitions (update). No delete: abandoned requests are Archived.
+  crud("budget", "Items", "dashboard", false, true, false, false, "read"),
+  crud("budget", "Expense Requests", "dashboard", true, true, true, false, "ui"),
 ];
