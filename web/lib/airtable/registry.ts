@@ -30,7 +30,15 @@ export const AIRTABLE_BASES = {
   },
   socialMedia: {
     id: "appwrqSIsxaZ9Ltun",
-    tables: {},
+    accessTable: "tblFaPlkj2lIhDazN",
+    tables: {
+      posts: "tblfhW3BnIQ1ri1WD",
+      channels: "tblKcDAyFQ75WG831",
+      contentPillars: "tblnRc1ES8AWGMA00",
+      campaigns: "tblzasRpW87WVsuy3",
+      assets: "tblzA08VUScVF034R",
+      startHere: "tbl7NkBg11Ukoakd6",
+    },
   },
   issues: {
     id: "appbfBEbX8XH3bv4w",
