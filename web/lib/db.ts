@@ -59,6 +59,7 @@ export const PK = {
   eventRsvps: "EVENTRSVP", // RSVPs for Airtable-sourced events (no DynamoDB item; SK = `${eventId}#${id}`)
   districtInsights: "DISTRICTINSIGHT", // cached per-district demographics + AI blurb (SK = districtKey)
   gameScores: "GAMESCORE", // arcade leaderboard (anon; SK = `${gameId}#${paddedScore}#${id}`, no PII)
+  notifPrefs: "NOTIFPREF", // per-staffer notification opt-outs (SK = email; muted: string[])
 } as const;
 
 export function newId(): string {
