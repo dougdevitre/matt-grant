@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { CAMPAIGN, SITE_URL, ASSETS_CDN, VOTER_LOOKUP } from "@/lib/site";
 
@@ -104,8 +105,7 @@ export function AskMatt() {
             <span className="relative inline-flex h-3 w-3 rounded-full bg-brick" />
           </span>
         )}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={AVATAR} alt="" width={32} height={32} className="h-8 w-8 rounded-full" />
+        <Image src={AVATAR} alt="" width={32} height={32} className="h-8 w-8 rounded-full" />
         <span className="text-sm font-semibold">{open ? "Close" : "Ask Matt"}</span>
       </button>
 
@@ -127,8 +127,7 @@ export function AskMatt() {
               <span className="h-full w-2/5 bg-brick" /><span className="h-full w-1/5 bg-paper" /><span className="h-full w-2/5 bg-field" />
             </div>
             <div className="mt-1 flex items-center gap-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={AVATAR} alt="Matt Grant" width={40} height={40} className="h-10 w-10 rounded-full" />
+              <Image src={AVATAR} alt="Matt Grant" width={40} height={40} className="h-10 w-10 rounded-full" />
               <div>
                 <p className="font-display text-base font-semibold">Ask Matt</p>
                 <p className="text-xs text-paper/70">Don&apos;t just talk — take action.</p>
