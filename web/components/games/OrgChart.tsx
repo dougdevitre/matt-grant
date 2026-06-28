@@ -11,6 +11,7 @@ import {
 } from "@/lib/games/org-chart";
 import type { GameContent } from "@/lib/games/content-schema";
 import { OrgChartHud } from "./OrgChartHud";
+import { OrgChartBandGauge } from "./OrgChartBandGauge";
 import { EndScreen } from "./EndScreen";
 
 // Org Chart — the client view. Drives the shared engine with a rAF loop, records every
@@ -144,6 +145,10 @@ export function OrgChart({ content }: { content: GameContent }) {
     : ROUND_TICKS * (DEFAULT_DT_MS / 1000);
   const freezeReady = state ? state.tick >= state.freezeReadyAt : true;
   const retireLeft = state ? orgChartConfig.retireMaxUses - state.retireUsed : orgChartConfig.retireMaxUses;
+  const frozen = state ? state.tick < state.spawnPausedUntil : false;
+  const freezeSecondsLeft = state
+    ? Math.max(0, (state.spawnPausedUntil - state.tick) * (DEFAULT_DT_MS / 1000))
+    : 0;
 
   return (
     <div className="space-y-6">
@@ -173,6 +178,26 @@ export function OrgChart({ content }: { content: GameContent }) {
             secondsLeft={secondsLeft}
           />
 
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
+            <OrgChartBandGauge headcount={state.headcount} band={BAND} />
+
+            {frozen && (
+              <div
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-ink bg-paper px-4 py-3 text-center shadow-card"
+                role="status"
+                aria-live="polite"
+              >
+                <span aria-hidden="true" className="text-lg">
+                  ❄
+                </span>
+                <span className="font-mono text-sm font-bold uppercase tracking-wide tabular-nums text-ink">
+                  Frozen — {Math.ceil(freezeSecondsLeft)}s
+                </span>
+                <span className="text-xs text-slate">hiring paused</span>
+              </div>
+            )}
+          </div>
+
           <p className="min-h-[1.5rem] text-sm font-medium text-ink" role="status" aria-live="assertive">
             {feedback}
           </p>
@@ -195,21 +220,37 @@ export function OrgChart({ content }: { content: GameContent }) {
           </div>
 
           <div
-            className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
+            className="org-board grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
             role="group"
             aria-label="Roles on the org chart — cut bloat, protect people and infrastructure"
           >
             {state.board.map((block) => {
               const label = labelFor(block, content);
+              const guarded = block.type === "protected" || block.type === "critical";
+              const guardGlyph = block.type === "protected" ? "🛡" : "🔒";
+              const guardWord = block.type === "protected" ? "Protected" : "Critical";
               return (
                 <button
                   key={block.id}
                   onClick={() => act({ kind: "cut", id: block.id })}
-                  className="flex items-center justify-between rounded-lg border border-line bg-white p-3 text-left text-sm font-semibold text-ink shadow-card transition-transform active:translate-y-px motion-reduce:active:translate-y-0"
-                  aria-label={`Cut role: ${label}`}
+                  className="org-tile flex items-center justify-between gap-2 rounded-lg border border-line bg-white p-3 text-left text-sm font-semibold text-ink shadow-card transition-transform active:translate-y-px motion-reduce:active:translate-y-0"
+                  aria-label={
+                    guarded ? `Cut role: ${label}. ${guardWord} — service depends on this.` : `Cut role: ${label}`
+                  }
                 >
-                  <span>{label}</span>
-                  <span aria-hidden="true" className="ml-2 text-brick">
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    {guarded && (
+                      <span
+                        aria-hidden="true"
+                        title={`${guardWord} — don't cut`}
+                        className="shrink-0 text-sm leading-none"
+                      >
+                        {guardGlyph}
+                      </span>
+                    )}
+                    <span className="truncate">{label}</span>
+                  </span>
+                  <span aria-hidden="true" className="ml-1 shrink-0 text-brick">
                     ✂
                   </span>
                 </button>
@@ -219,6 +260,27 @@ export function OrgChart({ content }: { content: GameContent }) {
               <p className="col-span-full py-8 text-center text-sm text-slate">No open roles right now.</p>
             )}
           </div>
+
+          <style jsx>{`
+            .org-tile {
+              animation: org-tile-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
+            }
+            @keyframes org-tile-in {
+              from {
+                opacity: 0;
+                transform: scale(0.92);
+              }
+              to {
+                opacity: 1;
+                transform: scale(1);
+              }
+            }
+            @media (prefers-reduced-motion: reduce) {
+              .org-tile {
+                animation: none;
+              }
+            }
+          `}</style>
         </>
       )}
 
