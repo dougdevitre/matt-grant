@@ -14,7 +14,7 @@
 // AUTHORIZATION: gated by the base's Front-End Access control table
 // (Volunteers × public → Create). If an admin unchecks Create, this no-ops.
 import "server-only";
-import { listRecords, createRecords } from "@/lib/airtable/client";
+import { listRecords, createRecords, updateRecords } from "@/lib/airtable/client";
 import { can, filterEditableFields } from "@/lib/airtable/access";
 import { AIRTABLE_BASES } from "@/lib/airtable/registry";
 import {
@@ -96,12 +96,23 @@ async function resolveLinks(t: LinkTable, names: string[] | undefined): Promise<
 }
 
 /**
- * Mirror one signup into the Airtable Volunteers table. Returns the new record id,
- * or null when unconfigured / not permitted / on any error. NEVER throws.
+ * Upsert one signup into the Airtable Volunteers table. Pass the existing Airtable
+ * record id (stored on the DynamoDB item) to UPDATE that row in place; omit it to
+ * CREATE a new row. Returns the record id (so the caller can persist it for next
+ * time), or null when unconfigured / not permitted / on any error. NEVER throws.
+ *
+ * Dedupe: the caller keys the DynamoDB volunteer by email/phone and stores the
+ * returned Airtable id, so a re-submit PATCHes the same row instead of spawning a
+ * duplicate. On update we do NOT touch Status or Signed Up — those are owned by the
+ * dashboard (status-sync) / set once at first signup.
  */
-export async function mirrorVolunteerToAirtable(input: VolunteerMirrorInput): Promise<string | null> {
+export async function mirrorVolunteerToAirtable(
+  input: VolunteerMirrorInput,
+  recId?: string | null,
+): Promise<string | null> {
   try {
     // Fail-closed: only write when admins have enabled public Create on this table.
+    // The same gate covers the re-submit upsert — it's the same public signup path.
     if (!(await can("volunteer", TABLE_NAME, "public", "create"))) return null;
 
     // Validate every value against the canonical taxonomy before it leaves the app,
@@ -124,10 +135,14 @@ export async function mirrorVolunteerToAirtable(input: VolunteerMirrorInput): Pr
     const fields: Record<string, unknown> = {
       Name: input.name,
       Door: door,
-      Status: "New",
       Source: input.source || `join-${door.toLowerCase().replace(/\s+/g, "-")}`,
-      "Signed Up": input.signedUpDate,
     };
+    // Set-once fields only on CREATE — never clobber an admin-curated status or the
+    // original signup date when a supporter re-submits the form.
+    if (!recId) {
+      fields.Status = "New";
+      fields["Signed Up"] = input.signedUpDate;
+    }
     if (input.email) fields.Email = input.email;
     if (input.phone) fields.Phone = input.phone;
     if (input.city) fields.City = input.city;
@@ -145,11 +160,44 @@ export async function mirrorVolunteerToAirtable(input: VolunteerMirrorInput): Pr
     const scoped = await filterEditableFields("volunteer", TABLE_NAME, "public", fields);
     if (Object.keys(scoped).length === 0) return null;
 
+    if (recId) {
+      const [rec] = await updateRecords(BASE.id, TABLE_ID, [{ id: recId, fields: scoped }], true);
+      return rec?.id ?? recId;
+    }
     const [rec] = await createRecords(BASE.id, TABLE_ID, [{ fields: scoped }], true);
     return rec?.id ?? null;
   } catch (err) {
     console.warn("[volunteers] Airtable mirror failed:", err instanceof Error ? err.message : err);
     return null;
+  }
+}
+
+// Dashboard status (DynamoDB) → Airtable "Status" choice. The roster only has
+// New / Active / Inactive, so CONTACTED collapses to New (still being worked).
+const STATUS_TO_AIRTABLE: Record<string, string> = {
+  NEW: "New",
+  CONTACTED: "New",
+  ACTIVE: "Active",
+  INACTIVE: "Inactive",
+};
+
+/**
+ * Project a dashboard status change onto the mirrored Airtable row so captains
+ * filtering the roster see current statuses. Backend plumbing (like the events
+ * status mirror): the dashboard action is already RBAC-authorized, so this is NOT
+ * re-gated by the Front-End Access table. Best-effort no-op without a recId.
+ */
+export async function mirrorVolunteerStatusToAirtable(
+  recId: string | null | undefined,
+  status: string,
+): Promise<void> {
+  if (!recId) return;
+  const mapped = STATUS_TO_AIRTABLE[status];
+  if (!mapped) return;
+  try {
+    await updateRecords(BASE.id, TABLE_ID, [{ id: recId, fields: { Status: mapped } }], true);
+  } catch (err) {
+    console.warn("[volunteers] Airtable status mirror failed:", err instanceof Error ? err.message : err);
   }
 }
 

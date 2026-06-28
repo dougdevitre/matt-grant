@@ -8,6 +8,7 @@ import { can, type Capability } from "@/lib/rbac";
 import { recordContribution } from "@/lib/donors";
 import { dismissOnboarding } from "@/lib/onboarding";
 import { getTaskTemplate } from "@/lib/task-templates";
+import { mirrorVolunteerStatusToAirtable } from "@/lib/volunteers/airtable";
 
 // Hide the "Start here" guide for the signed-in staffer (a per-user UI
 // preference — no capability needed beyond being signed in).
@@ -85,15 +86,18 @@ export async function updateVolunteerStatus(formData: FormData) {
   const id = str(formData, "id");
   const status = str(formData, "status");
   if (!id || !status) return;
-  await ddb.send(
+  const r = await ddb.send(
     new UpdateCommand({
       TableName: TABLE,
       Key: { PK: PK.volunteers, SK: id },
+      ReturnValues: "ALL_NEW",
       UpdateExpression: "SET #s = :s",
       ExpressionAttributeNames: { "#s": "status" },
       ExpressionAttributeValues: { ":s": status },
     }),
   );
+  // Keep the Airtable roster's Status in sync (best-effort backend projection).
+  await mirrorVolunteerStatusToAirtable((r.Attributes?.airtableId as string) ?? null, status).catch(() => {});
   revalidatePath("/dashboard/volunteers");
   revalidatePath("/dashboard");
 }
@@ -107,15 +111,18 @@ export async function updateVolunteer(formData: FormData) {
   const status = str(formData, "status");
   if (!id || !status) return;
   const assignedTo = str(formData, "assignedTo") ?? null;
-  await ddb.send(
+  const r = await ddb.send(
     new UpdateCommand({
       TableName: TABLE,
       Key: { PK: PK.volunteers, SK: id },
+      ReturnValues: "ALL_NEW",
       UpdateExpression: "SET #s = :s, assignedTo = :a",
       ExpressionAttributeNames: { "#s": "status" },
       ExpressionAttributeValues: { ":s": status, ":a": assignedTo },
     }),
   );
+  // Keep the Airtable roster's Status in sync (best-effort backend projection).
+  await mirrorVolunteerStatusToAirtable((r.Attributes?.airtableId as string) ?? null, status).catch(() => {});
   revalidatePath("/dashboard/volunteers");
   revalidatePath("/dashboard");
 }
