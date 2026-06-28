@@ -1,7 +1,10 @@
 import { spawn } from "node:child_process";
-import { writeFile, readFile, mkdtemp, rm } from "node:fs/promises";
+import { writeFile, readFile, mkdtemp, rm, chmod, stat } from "node:fs/promises";
+import { createWriteStream } from "node:fs";
+import { pipeline } from "node:stream/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
 // Render a still graphic into a short vertical MP4 for YouTube Shorts. YouTube has
 // no image-post API (only videos.insert), so the composer's /api/graphics PNG is
@@ -9,28 +12,58 @@ import path from "node:path";
 // AAC using a static ffmpeg binary (a child process). Returns the MP4 bytes for a
 // resumable upload.
 //
-// BUNDLE NOTE: the ffmpeg binary is ~35 MB and was pushing the Amplify SSR compute
-// bundle past its hard 220 MiB cap (deploys were failing). We now load it LAZILY via
-// a COMPUTED specifier so the bundler/tracer can't see it — the binary stays OUT of
-// the deployed function. It still resolves from node_modules locally + in tests; in
-// the deployed function it's intentionally absent, so render reports a clear
-// "unavailable" error (callers in publish.ts already catch render failures). The
-// durable fix is to move rendering to a dedicated Lambda / AWS MediaConvert — tracked
-// as a follow-up so this feature comes back without the bundle cost.
+// WHERE FFMPEG COMES FROM (the binary is NOT bundled — it would blow the Amplify SSR
+// compute's hard 220 MiB cap):
+//   1. Local + tests: the @ffmpeg-installer package, loaded via a COMPUTED specifier
+//      so the bundler/tracer can't see it (stays out of the deployed function).
+//   2. In the deployed function: that package isn't present, so we fetch a static
+//      linux ffmpeg from S3 (s3://$S3_ASSETS_BUCKET/bin/ffmpeg-linux-x64) into /tmp
+//      once and reuse it across warm invocations (~2-3s on a cold render only).
+// If neither resolves, render throws a clear "unavailable" error (publish.ts already
+// catches render failures, so the social pipeline degrades cleanly).
 
 export const SHORT_SECONDS = 7;
 
-let ffmpegPathCache: string | null | undefined;
-async function ffmpegPath(): Promise<string | null> {
-  if (ffmpegPathCache !== undefined) return ffmpegPathCache;
+const FFMPEG_TMP_PATH = path.join(tmpdir(), "ffmpeg");
+const FFMPEG_S3_KEY = process.env.FFMPEG_S3_KEY || "bin/ffmpeg-linux-x64";
+
+let ffmpegPathCache: string | undefined; // set only once resolved (success)
+
+async function localFfmpeg(): Promise<string | null> {
   try {
     const spec = ["@ffmpeg-installer", "ffmpeg"].join("/"); // computed → not statically traced/bundled
     const mod = (await import(/* webpackIgnore: true */ spec)) as { default?: { path?: string }; path?: string };
-    ffmpegPathCache = mod.default?.path ?? mod.path ?? null;
+    return mod.default?.path ?? mod.path ?? null;
   } catch {
-    ffmpegPathCache = null; // not bundled in this deployment → feature unavailable
+    return null; // not installed in this deployment
   }
-  return ffmpegPathCache;
+}
+
+// Fetch the static ffmpeg binary from S3 into /tmp once per warm container.
+async function ffmpegFromS3(): Promise<string | null> {
+  const bucket = process.env.S3_ASSETS_BUCKET;
+  if (!bucket) return null;
+  try {
+    const existing = await stat(FFMPEG_TMP_PATH).catch(() => null);
+    if (existing && existing.size > 0) return FFMPEG_TMP_PATH; // already pulled this container
+    const s3 = new S3Client({ region: process.env.AWS_REGION ?? "us-east-1" });
+    const out = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: FFMPEG_S3_KEY }));
+    if (!out.Body) return null;
+    await pipeline(out.Body as NodeJS.ReadableStream, createWriteStream(FFMPEG_TMP_PATH));
+    await chmod(FFMPEG_TMP_PATH, 0o755);
+    return FFMPEG_TMP_PATH;
+  } catch {
+    return null; // S3 miss / no perms — render reports unavailable, doesn't crash
+  }
+}
+
+async function ffmpegPath(): Promise<string | null> {
+  if (ffmpegPathCache) return ffmpegPathCache;
+  const local = await localFfmpeg();
+  if (local) return (ffmpegPathCache = local);
+  const fromS3 = await ffmpegFromS3();
+  if (fromS3) return (ffmpegPathCache = fromS3);
+  return null; // not cached → retried on the next render (e.g. transient S3 error)
 }
 
 /** Build the ffmpeg args that turn a still into a held vertical Short. Exported for tests. */
