@@ -15,9 +15,21 @@ export interface ShareCardProps {
 }
 
 const FLAG_LABEL: Record<string, string> = {
+  // Cut & Save
   no_family_harmed: "No families harmed",
   no_borrow: "No borrowing",
   no_bloat: "No waste left behind",
+  // Org Chart
+  right_sized: "Right-sized to the band",
+  service_intact: "Services intact",
+};
+
+// Flags that represent a failure/warning are shown with a ✗, not a ✓.
+const NEGATIVE_FLAGS = new Set(["service_collapsed", "bloat_wins", "overcut"]);
+const NEGATIVE_LABEL: Record<string, string> = {
+  service_collapsed: "Service collapsed",
+  bloat_wins: "Bloat won — over the band",
+  overcut: "Overcut — under the band",
 };
 
 export function ShareCard({ title, score, shareText, flags }: ShareCardProps) {
@@ -29,11 +41,15 @@ export function ShareCard({ title, score, shareText, flags }: ShareCardProps) {
         <p className="mt-3 max-w-prose text-sm text-paper/85">{shareText}</p>
         {flags.length > 0 && (
           <ul className="mt-4 flex flex-wrap gap-2">
-            {flags.map((f) => (
-              <li key={f} className="rounded-sm border border-paper/30 px-2 py-1 text-xs">
-                ✓ {FLAG_LABEL[f] ?? f}
-              </li>
-            ))}
+            {flags.map((f) => {
+              const negative = NEGATIVE_FLAGS.has(f);
+              const text = negative ? NEGATIVE_LABEL[f] ?? f : FLAG_LABEL[f] ?? f;
+              return (
+                <li key={f} className="rounded-sm border border-paper/30 px-2 py-1 text-xs">
+                  {negative ? "✗" : "✓"} {text}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
