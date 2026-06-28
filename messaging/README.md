@@ -10,5 +10,6 @@ Guides and templates for every communication channel your campaign will use. Fro
 - [podcast-campaign.md](podcast-campaign.md) -- Guesting on existing podcasts and launching your own campaign podcast
 - [positioning-framework.md](positioning-framework.md) -- Message Box model for defining your positioning relative to opponents
 - [press-release-templates.md](press-release-templates.md) -- Standard format and ready-to-customize templates for every campaign moment
+- [sms-texting.md](sms-texting.md) -- SMS/text messaging: toll-free verification content, opt-in/consent language, compliant templates (fundraising, GOTV, event, volunteer), and a TCPA + FEC compliance checklist
 - [social-media-strategy.md](social-media-strategy.md) -- Platform selection, content planning, posting cadence, paid amplification, and compliance
 - [stump-speech-builder.md](stump-speech-builder.md) -- Universal speech structure with templates for five different time lengths
