@@ -1,0 +1,81 @@
+name: deploy-alert
+
+# Opens a GitHub issue when the latest Amplify PRODUCTION deploy on `main` FAILED,
+# so a broken prod deploy can't sit unnoticed (on 2026-06-28 prod was frozen ~10h
+# because Amplify builds failed silently on the SSR bundle-size cap — see PR #205).
+# Polls every 30 min and on demand. Deduped: at most one open issue per failed job.
+#
+# IAM: reuses the same OIDC role as secrets-sync.yml. That role must also allow
+# `amplify:ListJobs` (it already has amplify:GetApp/UpdateApp/StartJob). If the run
+# fails with AccessDenied on ListJobs, add that one action to the role policy.
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  id-token: write # AWS OIDC
+  contents: read
+  issues: write # open the alert issue
+
+env:
+  AWS_REGION: us-east-1
+  AMPLIFY_APP_ID: d1roai8s7wowoi
+  AMPLIFY_BRANCH: main
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }} # also needs amplify:ListJobs
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Alert if latest prod deploy failed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          # Latest deploy job on the production branch.
+          read -r job status commit < <(aws amplify list-jobs \
+            --app-id "$AMPLIFY_APP_ID" --branch-name "$AMPLIFY_BRANCH" --max-results 1 \
+            --query 'jobSummaries[0].[jobId,status,commitId]' --output text)
+          echo "Latest $AMPLIFY_BRANCH deploy: job $job = $status ($commit)"
+
+          # Only the LATEST job matters: if it succeeded or is still running, prod
+          # is current or will be. We alert only when the newest deploy FAILED.
+          if [ "$status" != "FAILED" ]; then
+            echo "Not failed — nothing to do."
+            exit 0
+          fi
+
+          # Ensure the label exists (idempotent), then dedupe by job id in the title.
+          gh label create deploy-failure --color B60205 \
+            --description "Amplify production deploy failed" 2>/dev/null || true
+
+          if gh issue list --state open --label deploy-failure --json title --jq '.[].title' \
+              | grep -qF "(job $job)"; then
+            echo "Alert already open for job $job."
+            exit 0
+          fi
+
+          # Build the body with printf so each line stays a YAML-safe quoted arg
+          # (no literal newlines in the workflow file, no accidental code blocks).
+          logs="https://console.aws.amazon.com/amplify/apps/$AMPLIFY_APP_ID/branches/$AMPLIFY_BRANCH/deployments"
+          body=$(printf '%s\n' \
+            "The latest Amplify **PRODUCTION** deploy on \`$AMPLIFY_BRANCH\` **FAILED** — \`main\` is built but **not live** until this is green." \
+            "" \
+            "- **Job:** $job" \
+            "- **Commit:** \`$commit\`" \
+            "- **Logs:** $logs" \
+            "" \
+            "Common cause: the SSR bundle exceeding Amplify's size cap (see PR #205 / project memory). A later green deploy stops new alerts.")
+
+          gh issue create \
+            --title "🚨 Amplify prod deploy FAILED (job $job)" \
+            --label deploy-failure \
+            --body "$body"
