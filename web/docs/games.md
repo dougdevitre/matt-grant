@@ -10,10 +10,10 @@ as-built map.
 
 | Game | Priority | Issue slug (`lib/issues.ts`) | Status |
 |---|---|---|---|
-| **Cut & Save** | Lower Taxes | `lower-taxes` | **Live** (milestone 1) |
-| Org Chart | Smaller Government | `smaller-government` | Coming soon |
-| Rotation | Term Limits | `term-limits` | Coming soon |
-| Clarity Companion | Children First | `family-courts` | Coming soon (ships last, after compliance review) |
+| **Cut & Save** | Lower Taxes | `lower-taxes` | **Live** |
+| **Org Chart** | Smaller Government | `smaller-government` | **Live** |
+| **Rotation** | Term Limits | `term-limits` | **Live** |
+| Clarity Companion | Children First | `family-courts` | Built, flag **OFF** — pending compliance/tone review before the flag flips on |
 
 ## How it's wired
 
