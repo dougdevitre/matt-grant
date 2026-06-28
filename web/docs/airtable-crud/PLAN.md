@@ -130,8 +130,13 @@ registry `accessTable` + 8 table ids added.
 - [ ] **4a Events** — HELD pending decision: dashboard event CRUD is DynamoDB-backed today; making
       Airtable the front-end source of truth needs migrate-vs-sync call (recommend Airtable-as-truth).
       Control rows seeded Read-only (public + dashboard) to document current state.
-- [ ] **4c Field ops** — Canvass Turf, Contact Lists → control rows seeded Read; CRUD UI deferred.
-- [ ] **4d Lookups** — Roles, Skills, Commitment Levels, Geo Hierarchy → control rows seeded Read; CRUD UI deferred.
+- [ ] **4c Field ops** — Canvass Turf, Contact Lists → control rows seeded Read; CRUD UI deferred
+      (these have linked `Area` + numeric fields; need the generic editor extended with a linked-record picker).
+- [x] **4d Lookups** — Roles, Skills, Commitment Levels, Geo Hierarchy → full dashboard CRUD via a
+      **generic spec-driven editor**: client-safe specs `lib/volunteer/reference-specs.ts`, generic
+      server CRUD `lib/airtable/reference-data.ts`, page `/dashboard/tasks/reference` + actions +
+      `ReferenceDataManager`. Control rows flipped to CRUD with per-table Editable Fields. `manageVolunteers`
+      cap; per-table buttons appear only when that table's toggle is on. (Linked fields stay in Airtable.)
 - [x] **Read-only/excluded** — Start Here, Committee/FEC, Audit/QA control rows seeded with all CRUD off.
 
 ---
