@@ -1,16 +1,16 @@
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { InfluencerTable } from "@/components/dashboard/InfluencerTable";
 import { listInfluencers, influencersEditable } from "@/lib/influencers/airtable";
-import { staffGate } from "@/lib/auth";
+import { requireCap } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 
 export const dynamic = "force-dynamic";
 
 export default async function InfluencersPage() {
+  // Read-gate: must be staff with the influencer-worklist capability (not just any signed-in
+  // user). Inline editing then needs the narrower manageInfluencers cap AND the control toggle.
+  const { role } = await requireCap("manageTasks");
   const { configured, rows } = await listInfluencers();
-  // Inline editing needs BOTH the staffer's manageInfluencers capability AND the Airtable
-  // control table's dashboard Update toggle for this table.
-  const { role } = await staffGate();
   const editable = can(role, "manageInfluencers") && (await influencersEditable());
 
   return (

@@ -37,6 +37,25 @@ dropdown, date → datepicker, multipleRecordLinks → linked-record picker, che
 
 ---
 
+## Verification & RBAC assurance (how we KEEP it correct)
+
+The dangerous failures here are silent + fail-closed (a renamed table or flipped checkbox just
+makes a surface quietly stop working). Two layers turn those into red checks:
+
+- **Hermetic tests** (run in CI / `npm test`, keyless):
+  - `lib/airtable/access.test.ts` — fail-closed default, per-op gating, audience match, Editable-Fields narrowing, cache.
+  - `lib/airtable/rbac-airtable.test.ts` — locks the role grants (lead-write caps = admin+captain only; no Airtable cap ever reaches donor/supporter/partner).
+  - `lib/airtable/governance.test.ts` — registry ids match the real Airtable ids; the manifest is consistent; every generic-editor spec resolves + is full-CRUD in the manifest.
+- **Live drift gate** — `scripts/check-airtable-access.ts` (`npm run airtable:drift`) reads each base's
+  `Front-End Access` via the PAT and fails on drift vs `lib/airtable/governance-manifest.ts` (missing
+  row, flipped checkbox, renamed table, base off the PAT allowlist). Resilient: no key / transient →
+  warn + exit 0. Wired into `amplify.yml` preBuild so it runs every deploy. (It already caught one
+  real gap — a missing Social `Start Here` excluded row — now fixed.)
+- **Source of truth** — `lib/airtable/governance-manifest.ts` (`GOVERNANCE`): the code-side contract
+  of every governed surface, consumed by both the test and the drift script.
+- **RBAC two-gate**: every write checks a Clerk capability AND the control table; the dashboard layout
+  redirects non-staff; `requireCap` added to the influencers read page (was relying on layout-only).
+
 ## Foundation (Phase 0 — once, before base phases)
 
 - [x] `web/lib/airtable/client.ts` — one typed wrapper for `listRecords/getRecord/createRecords/
