@@ -118,11 +118,21 @@ Future: in-app CRUD for Channels/Pillars/Campaigns/Assets (flip their Create/Upd
 
 ## Phase 4 — Volunteer Engagement (`appAmtan3qWZE7iGR`) — largest (11 tables)
 
-- 4a Events — public read; dashboard full CRUD (decide Airtable-as-truth vs DynamoDB sync; recommend Airtable-as-truth).
-- 4b Task Templates — dashboard add C/U/D.
-- 4c Field ops — Canvass Turf, Contact Lists → dashboard CRUD.
-- 4d Lookups — Roles, Skills, Commitment Levels, Geo Hierarchy → dashboard CRUD.
-- Read-only/excluded — Start Here, Committee/FEC, Audit/QA (all CRUD off in control table).
+**Governance layer DONE** — control table (`tblAfRmVuSEayP3Iy`) seeded with a row for all 11 tables;
+registry `accessTable` + 8 table ids added.
+
+- [x] **4b Task Templates** — dashboard full CRUD on the curation fields (Task Name, What They Do,
+      Status, Priority, Participation Mode, Geo Scope, Effort, Campaign Phase, Contact Pass Type,
+      Instructions, Script). `lib/volunteer/task-templates-admin.ts` (separate from the read-only
+      picker feed `lib/task-templates.ts`) + `lib/volunteer/task-template-options.ts` (client-safe) +
+      page `/dashboard/tasks/templates` + actions + `TaskTemplateManager` component + sidebar link.
+      Gated by `manageTasks` cap AND control-table toggles. Linked/multi-select fields stay in Airtable.
+- [ ] **4a Events** — HELD pending decision: dashboard event CRUD is DynamoDB-backed today; making
+      Airtable the front-end source of truth needs migrate-vs-sync call (recommend Airtable-as-truth).
+      Control rows seeded Read-only (public + dashboard) to document current state.
+- [ ] **4c Field ops** — Canvass Turf, Contact Lists → control rows seeded Read; CRUD UI deferred.
+- [ ] **4d Lookups** — Roles, Skills, Commitment Levels, Geo Hierarchy → control rows seeded Read; CRUD UI deferred.
+- [x] **Read-only/excluded** — Start Here, Committee/FEC, Audit/QA control rows seeded with all CRUD off.
 
 ---
 
