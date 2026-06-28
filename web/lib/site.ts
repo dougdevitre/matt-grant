@@ -28,6 +28,22 @@ export const FEC = {
   profileUrl: "https://www.fec.gov/data/committee/C00945394/",
 } as const;
 
+// Official campaign social accounts, surfaced as the footer icon row.
+//
+// ⚠️ FILL IN THE URLs — they are intentionally blank. Do NOT guess a campaign's
+// official handles; a wrong link in the footer is a real integrity problem. The
+// footer renders ONLY entries with a non-empty `url`, so blanks are invisible
+// until verified. These mirror the "Active" rows in the Social Media base
+// (Channels table, appwrqSIsxaZ9Ltun) whose Handle/URL field is not yet populated.
+export type SocialId = "x" | "facebook" | "facebookGroup" | "instagram" | "youtube" | "tiktok" | "linkedin";
+export type SocialLink = { id: SocialId; label: string; url: string };
+
+export const SOCIALS: readonly SocialLink[] = [
+  { id: "x", label: "X (Twitter)", url: "" },
+  { id: "facebook", label: "Matt Grant on Facebook", url: "" },
+  { id: "facebookGroup", label: "Stop Missouri Corruption (Facebook Group)", url: "" },
+] as const;
+
 // Primary navigation, grouped into parent → child menus to keep the bar
 // uncrowded. A NavGroup renders as a dropdown (desktop) / accordion (mobile);
 // the parent's destination is its first child (e.g. "About Matt" → /about), so

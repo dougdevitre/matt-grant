@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
-import { CAMPAIGN, NAV_LINKS, LEGAL, VALUES, VOTER_LOOKUP, FEC, mainHref } from "@/lib/site";
+import { type ReactNode } from "react";
+import { CAMPAIGN, NAV_LINKS, LEGAL, VALUES, VOTER_LOOKUP, FEC, SOCIALS, type SocialId, mainHref } from "@/lib/site";
+import { GAMES } from "@/lib/games/registry";
 
 // Server component (no host at render time), so footer links to the main site are
 // always absolute to the apex. That's correct on every pillar subdomain and on the
@@ -51,6 +53,46 @@ function PinIcon() {
   );
 }
 
+// Brand glyphs for the social row. facebookGroup reuses the Facebook mark.
+const SOCIAL_ICONS: Record<SocialId, ReactNode> = {
+  x: (
+    <path d="M3 3h3.7l5 6.9L17.4 3H21l-7 8.7L21.3 21h-3.7l-5.3-7.3L6 21H2.5l7.4-9.1L3 3Z" fill="currentColor" />
+  ),
+  facebook: (
+    <path d="M13.5 21v-7h2.3l.4-2.8h-2.7V9.3c0-.8.3-1.4 1.5-1.4h1.3V5.4c-.6-.1-1.4-.2-2.3-.2-2.3 0-3.8 1.4-3.8 3.9v2.1H7.7V14h2.2v7h3.6Z" fill="currentColor" />
+  ),
+  facebookGroup: (
+    <path d="M13.5 21v-7h2.3l.4-2.8h-2.7V9.3c0-.8.3-1.4 1.5-1.4h1.3V5.4c-.6-.1-1.4-.2-2.3-.2-2.3 0-3.8 1.4-3.8 3.9v2.1H7.7V14h2.2v7h3.6Z" fill="currentColor" />
+  ),
+  instagram: (
+    <>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" stroke="currentColor" strokeWidth="1.7" fill="none" />
+      <circle cx="12" cy="12" r="3.6" stroke="currentColor" strokeWidth="1.7" fill="none" />
+      <circle cx="17" cy="7" r="1.1" fill="currentColor" />
+    </>
+  ),
+  youtube: (
+    <>
+      <rect x="2.5" y="6" width="19" height="12" rx="3.4" stroke="currentColor" strokeWidth="1.7" fill="none" />
+      <path d="M10.5 9.2 15 12l-4.5 2.8V9.2Z" fill="currentColor" />
+    </>
+  ),
+  tiktok: (
+    <path d="M13.5 3c.3 2 1.6 3.6 3.7 3.9v2.4c-1.2 0-2.4-.4-3.4-1v5.6a4.8 4.8 0 1 1-4.8-4.8c.3 0 .5 0 .8.1v2.5a2.3 2.3 0 1 0 1.6 2.2V3h2.1Z" fill="currentColor" />
+  ),
+  linkedin: (
+    <>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="2.5" stroke="currentColor" strokeWidth="1.7" fill="none" />
+      <path d="M7 10v6M7 7.2v0M10.5 16v-3.3c0-1.3.9-2.2 2.1-2.2s2 .9 2 2.3V16" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" fill="none" />
+    </>
+  ),
+};
+
+// Only render socials that have a verified URL — blanks in SOCIALS stay invisible.
+const liveSocials = SOCIALS.filter((s) => s.url.trim().length > 0);
+// Arcade links: the live games (build-time default) plus the hub.
+const liveGames = GAMES.filter((g) => g.enabled);
+
 export function SiteFooter() {
   return (
     <footer className="relative mt-24 overflow-hidden bg-ink text-paper">
@@ -77,7 +119,7 @@ export function SiteFooter() {
       </div>
 
       <div className="relative">
-        <div className="container-page grid gap-12 py-16 md:grid-cols-[1.5fr_1fr_1.1fr_1fr]">
+        <div className="container-page grid gap-12 py-16 sm:grid-cols-2 lg:grid-cols-[1.5fr_0.9fr_1.1fr_0.9fr_0.9fr]">
           {/* Brand + CTA */}
           <div>
             <div className="flex items-center gap-3">
@@ -109,6 +151,24 @@ export function SiteFooter() {
                 Get involved
               </Link>
             </div>
+
+            {liveSocials.length > 0 ? (
+              <div className="mt-6 flex items-center gap-3">
+                {liveSocials.map((s) => (
+                  <a
+                    key={s.id}
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={s.label}
+                    title={s.label}
+                    className="grid h-9 w-9 place-items-center rounded-full border border-paper/15 bg-field/30 text-paper/80 transition-colors hover:border-goldlight/60 hover:text-goldlight"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]">{SOCIAL_ICONS[s.id]}</svg>
+                  </a>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           {/* Campaign nav */}
@@ -189,6 +249,26 @@ export function SiteFooter() {
                 <a href={FEC.profileUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
                   FEC filings ({FEC.committeeId})
                 </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Four Fights Arcade — the live civic games */}
+          <div>
+            <h3 className="eyebrow text-paper/60">Four Fights Arcade</h3>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              {liveGames.map((g) => (
+                <li key={g.id}>
+                  <Link href={apex(`/games/${g.id}`)} className={linkClass}>
+                    {g.title}
+                  </Link>
+                </li>
+              ))}
+              <li>
+                <Link href={apex("/games")} className="group mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-goldlight">
+                  All games
+                  <span aria-hidden className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
+                </Link>
               </li>
             </ul>
           </div>
