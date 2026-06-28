@@ -5,7 +5,6 @@ import { createLiveSession, xfnv1a, DEFAULT_DT_MS, type LiveSession } from "@/li
 import {
   buildRotation,
   rotationConfig,
-  effectiveness,
   seatStatus,
   type RotationInput,
   type RotationState,
@@ -13,6 +12,7 @@ import {
 } from "@/lib/games/rotation";
 import type { GameContent } from "@/lib/games/content-schema";
 import { EndScreen } from "./EndScreen";
+import { RotationSeatBar } from "./RotationSeatBar";
 
 // Rotation — the client view. Each seat shows its effectiveness (a bar) and a status
 // (Ramping / Ready / Entrenched). The skill is timing: rotate when a seat reads Ready,
@@ -29,7 +29,6 @@ interface EndData {
 }
 
 const ROUND_TICKS = rotationConfig.roundTicks;
-const PEAK = rotationConfig.peakEffectiveness;
 const newSeed = () => `${Date.now().toString(36)}-${Math.floor(Math.random() * 1e9).toString(36)}`;
 
 const STATUS_LABEL: Record<string, string> = {
@@ -185,11 +184,11 @@ export function RotationGame({ content }: { content: GameContent }) {
           <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {state.seats.map((seat) => {
               const status = seatStatus(seat.serviceTicks, rotationConfig);
-              const eff = effectiveness(seat.serviceTicks, rotationConfig);
               const ready = status === "ready";
+              const entrenched = status === "entrenched";
               return (
                 <li key={seat.id} className="rounded-lg border border-line bg-white p-4 shadow-card">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-semibold text-ink">
                       {seatLabel(seat, content)}
                       {seat.grandfathered && (
@@ -198,11 +197,18 @@ export function RotationGame({ content }: { content: GameContent }) {
                         </span>
                       )}
                     </span>
-                    <span className={`text-xs font-bold ${ready ? "text-brick" : "text-slate"}`}>{STATUS_LABEL[status]}</span>
+                    <span
+                      className={`inline-flex items-center gap-1 text-xs font-bold ${
+                        ready ? "text-brick" : entrenched ? "text-slate" : "text-slate"
+                      }`}
+                    >
+                      <span aria-hidden="true">{ready ? "◆" : entrenched ? "■" : "▲"}</span>
+                      {STATUS_LABEL[status]}
+                    </span>
                   </div>
-                  <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-line" aria-hidden="true">
-                    <span className={`block h-full ${ready ? "bg-brick" : "bg-ink"}`} style={{ width: `${Math.min(100, (eff / PEAK) * 100)}%` }} />
-                  </div>
+
+                  <RotationSeatBar seat={seat} />
+
                   <button
                     onClick={() => rotate(seat)}
                     className="btn-ghost mt-3 w-full text-xs"
