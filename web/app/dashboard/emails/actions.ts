@@ -10,6 +10,7 @@ import { getBroadcast } from "@/lib/email/broadcasts";
 import { createCampaign, drainOnce } from "@/lib/campaigns";
 import { resolveRecipients } from "@/lib/email/audiences";
 import { isContactGroup, audienceLabel, type ContactGroup } from "@/lib/email/audienceGroups";
+import { asRole, type Role } from "@/lib/rbac";
 import { isIssueId } from "@/lib/integrations/research/issues";
 import { isWayToHelp } from "@/lib/profile";
 
@@ -27,6 +28,7 @@ async function baseUrl(): Promise<string> {
 function parse(formData: FormData) {
   const broadcast = getBroadcast(String(formData.get("templateKey") ?? ""));
   const groups = formData.getAll("groups").map(String).filter(isContactGroup) as ContactGroup[];
+  const roles = formData.getAll("roleGroups").map(String).map(asRole).filter((r): r is Role => r !== null);
   const segRaw = String(formData.get("segment") ?? "").trim();
   const segment =
     (segRaw.startsWith("issue:") && isIssueId(segRaw.slice(6))) || (segRaw.startsWith("way:") && isWayToHelp(segRaw.slice(4)))
@@ -41,7 +43,7 @@ function parse(formData: FormData) {
       if (f.required && !val) missing.push(f.label);
     }
   }
-  return { broadcast, groups, segment, vars, missing };
+  return { broadcast, groups, roles, segment, vars, missing };
 }
 
 // Draft + test-to-self: captains and admins.
@@ -63,12 +65,12 @@ export async function sendCampaign(formData: FormData): Promise<SendState> {
   const g = await staffGate();
   if (!can(g.role, "sendEmailCampaign")) return { ok: false, message: "Only admins can send to the list." };
   if (!sesEnabled) return { ok: false, message: "Email sending isn't configured yet (set SES_FROM)." };
-  const { broadcast, groups, segment, vars, missing } = parse(formData);
+  const { broadcast, groups, roles, segment, vars, missing } = parse(formData);
   if (!broadcast) return { ok: false, message: "Pick a template first." };
   if (missing.length) return { ok: false, message: `Fill required fields: ${missing.join(", ")}.` };
-  if (groups.length === 0 && !segment) return { ok: false, message: "Pick at least one group to send to." };
+  if (groups.length === 0 && roles.length === 0 && !segment) return { ok: false, message: "Pick at least one group, role, or segment to send to." };
 
-  const { recipients, internal } = await resolveRecipients(groups, segment);
+  const { recipients, internal } = await resolveRecipients(groups, segment, roles);
   if (recipients.length === 0) return { ok: false, message: "No recipients for that selection." };
 
   const subjectPreview = broadcast.build(vars).subject;
@@ -94,7 +96,7 @@ export async function sendCampaign(formData: FormData): Promise<SendState> {
     templateKey: broadcast.key,
     topic: broadcast.topic,
     vars,
-    audience: audienceLabel(groups, segment),
+    audience: audienceLabel(groups, segment, roles),
     recipients,
     subjectPreview,
     createdBy: g.email ?? "system",
