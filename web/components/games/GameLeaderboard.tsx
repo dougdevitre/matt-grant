@@ -11,7 +11,16 @@ interface Entry {
   score: number;
 }
 
-export function GameLeaderboard({ gameId, highlightScore }: { gameId: string; highlightScore?: number }) {
+export function GameLeaderboard({
+  gameId,
+  highlightScore,
+  refreshKey = 0,
+}: {
+  gameId: string;
+  highlightScore?: number;
+  /** bump to re-fetch (e.g. after the player submits their score) */
+  refreshKey?: number;
+}) {
   const [entries, setEntries] = useState<Entry[] | null>(null);
 
   useEffect(() => {
@@ -29,7 +38,7 @@ export function GameLeaderboard({ gameId, highlightScore }: { gameId: string; hi
     return () => {
       alive = false;
     };
-  }, [gameId]);
+  }, [gameId, refreshKey]);
 
   if (!entries || entries.length === 0) return null;
 
