@@ -7,7 +7,7 @@ import { safeHref } from "@/lib/strategy/engine";
 // tokens, a known tag), and every link must survive safeHref unchanged — i.e. be
 // on the internal/campaign allowlist. An unsafe or off-platform link fails CI.
 
-const ALLOWED_TAGS = new Set(["Learn", "Attend", "Ask", "Share", "Vote", "Act", "Write", "Watchdog"]);
+const ALLOWED_TAGS = new Set(["Learn", "Attend", "Ask", "Share", "Vote", "Act", "Write", "Watchdog", "Play"]);
 
 describe("issue checklists", () => {
   it("every issue has a non-empty checklist", () => {

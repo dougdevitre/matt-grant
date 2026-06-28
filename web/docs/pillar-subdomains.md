@@ -77,6 +77,24 @@ them). They are redirects, so they are intentionally absent from `sitemap.ts`. T
 change a label, edit the `ISSUE_VANITY` map (the unit test enforces that every value
 is a real issue slug and never collides with a resource-pillar label).
 
+## Reserved subdomains (first-party app sections)
+
+Some subdomains are neither resource pillars nor vanity redirects — they host a
+first-party section of **this same app** on their own subdomain, via an internal
+**rewrite** (the address bar stays on the subdomain). Defined in `RESERVED_SUBDOMAINS`
+(`lib/pillar-routing.ts`); the rewrite is issued by `middleware.ts` (`reservedRewrite`)
+before the pillar rewrite. `unknownPillarSubdomain()` treats these labels as *known*,
+so they don't log a drift warning.
+
+| Subdomain | Rewrites to | What it is |
+|---|---|---|
+| `games.mattgrantforcongress.org` | `/games` | Four Fights arcade — one civic mini-game per priority (see `docs/games.md`). |
+
+The underlying route (`app/games/**`) is reachable on the apex too (`/games`), so
+in-app links from the issue pages use the internal `/games/...` path; the subdomain is
+a marketing alias for the same content. Wildcard `*.mattgrantforcongress.org` covers
+the DNS.
+
 ## Add or refresh a pillar
 
 1. Add/adjust the entry in `lib/pillars.ts`.
