@@ -59,6 +59,7 @@ export type VolunteerRow = {
   roles: string[]; // Role Interests (canonical Airtable role names)
   commitment: string | null; // Commitment Level
   door: string | null; // which /join door they came through (e.g. "Team Captain")
+  optedOut: boolean; // opted out of contact (email unsubscribe-all / SMS STOP)
   lastContactedAt: string | null;
   createdAt: string;
 };
@@ -165,6 +166,7 @@ export async function getVolunteers(): Promise<{ connected: boolean; rows: Volun
         roles: Array.isArray(v.roles) ? (v.roles as string[]) : [],
         commitment: (v.commitment as string) ?? null,
         door: (v.door as string) ?? null,
+        optedOut: !!v.optedOut,
         lastContactedAt: (v.lastContactedAt as string) ?? null,
         createdAt: String(v.createdAt ?? ""),
       }))
@@ -200,6 +202,7 @@ export async function getVolunteer(id: string): Promise<VolunteerRow | null> {
       roles: Array.isArray(v.roles) ? (v.roles as string[]) : [],
       commitment: (v.commitment as string) ?? null,
       door: (v.door as string) ?? null,
+      optedOut: !!v.optedOut,
       lastContactedAt: (v.lastContactedAt as string) ?? null,
       createdAt: String(v.createdAt ?? ""),
     };
