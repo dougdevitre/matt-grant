@@ -1,0 +1,63 @@
+{
+  "copy": {
+    "gameId": "clarity-companion",
+    "issueSlug": "family-courts",
+    "eyebrow": "Children First",
+    "title": "Clarity Companion",
+    "tagline": "Open the public record. Protect the child. Both, together.",
+    "howTo": [
+      "Open public-interest records to keep courts accountable.",
+      "Protect records that identify a child.",
+      "Redact & Open the mixed ones — show the substance, mask the child.",
+      "Keep both meters up: seal too much or expose a kid and you lose."
+    ],
+    "itemLabels": {
+      "public": [
+        "Docket entry",
+        "Court budget report",
+        "Judicial schedule",
+        "Public hearing notice",
+        "Case backlog summary"
+      ],
+      "child": [
+        "Custody schedule",
+        "Minor's medical note",
+        "Child's home address",
+        "Student record"
+      ],
+      "mixed": [
+        "Ruling with case facts and a minor's details",
+        "Hearing transcript referencing a child",
+        "Filing with public findings and child data"
+      ]
+    },
+    "endLines": [
+      "Transparency and a child's privacy can coexist.",
+      "Open the substance; mask the child.",
+      "Accountability and protection — both, together."
+    ],
+    "shareText": "I kept the courts accountable AND protected kids in Clarity Companion — transparency and privacy together. Beat my score."
+  },
+  "config": {
+    "roundTicks": 1350,
+    "spawnEveryTicks": 33,
+    "cardLifeTicks": 120,
+    "meterStart": 100,
+    "meterFloor": 40,
+    "correctGain": 9,
+    "exposeCrash": 16,
+    "sealCrash": 16,
+    "minorCrash": 8,
+    "items": {
+      "public": { "weight": 5 },
+      "child": { "weight": 4 },
+      "mixed": { "weight": 3 }
+    },
+    "scoring": {
+      "minMeterWeight": 1200,
+      "sumMeterWeight": 200,
+      "correctBonus": 1500,
+      "combo": { "stepEvery": 3, "stepValue": 0.25, "maxSteps": 4 }
+    }
+  }
+}
