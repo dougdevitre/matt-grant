@@ -8,7 +8,7 @@
 // and RSVP flow still operate on the DynamoDB store; this only swaps the public
 // READ path. See lib/events.ts where listUpcomingEvents/getEvent delegate here.
 import { getSecret } from "@/lib/ssm";
-import { isEventType, type EventRow, type EventType } from "@/lib/events/types";
+import { isEventType, type EventRow, type EventType, type EventStatus } from "@/lib/events/types";
 import { AIRTABLE_BASES } from "@/lib/airtable/registry";
 
 // Volunteer Engagement base + Events table, from the central registry; override
@@ -129,6 +129,131 @@ export async function listUpcomingEventsFromAirtable(
     .sort((a, b) => a.start.localeCompare(b.start));
   if (opts?.publishedOnly) rows = rows.filter((r) => r.status === "PUBLISHED");
   return opts?.limit ? rows.slice(0, opts.limit) : rows;
+}
+
+// ── One-way mirror: dashboard (DynamoDB) → Airtable ───────────────────────────────
+// DynamoDB stays the operational source of truth for events (checklists, priority,
+// publish-notify claims, captain/volunteer staffing, RSVPs). This mirror reflects the
+// CONTENT subset into the Airtable "Events" table so staff-created/edited events also
+// appear in the no-code admin calendar AND on the public site (which reads Airtable).
+//
+// NOT gated by the Front-End Access control table: that governs what the dashboard UI
+// lets a user do to a table directly. This is backend plumbing that projects an already-
+// authorized write (the dashboard event actions are gated by the manageEvents capability).
+// Strictly best-effort — every function swallows errors so an Airtable hiccup can never
+// block or fail a DynamoDB event save.
+
+// repo EventType → Airtable "Event Type" choice (omit when there's no clean equivalent).
+const FWD_TYPE: Partial<Record<EventType, string>> = {
+  "town-hall": "Town hall",
+  fundraiser: "Fundraiser",
+  canvass: "Canvass launch",
+  parade: "Parade",
+  "meet-greet": "Meet & greet",
+  debate: "Community forum",
+  "volunteer-shift": "Volunteer orientation",
+  // rally / other: no matching Airtable option — leave the field blank.
+};
+
+// repo EventStatus → Airtable "Status" choice. PUBLISHED → "Confirmed" (a public-ready
+// status the read path maps back to PUBLISHED); DRAFT → "Planning"; CANCELLED → "Cancelled".
+const FWD_STATUS: Record<EventStatus, string> = {
+  DRAFT: "Planning",
+  PUBLISHED: "Confirmed",
+  CANCELLED: "Cancelled",
+};
+
+// ISO start → "6:30 PM" (Airtable Time is free text). "" for all-day. Parses the time
+// portion of the string directly to avoid any timezone shift from Date().
+function formatTime(start: string, allDay: boolean): string {
+  if (allDay) return "";
+  const m = start.match(/T(\d{2}):(\d{2})/);
+  if (!m) return "";
+  let h = Number(m[1]);
+  const min = m[2];
+  const ap = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${h}:${min} ${ap}`;
+}
+
+function eventToFields(e: EventRow): Record<string, unknown> {
+  const fields: Record<string, unknown> = {
+    "Event Name": e.title,
+    Date: e.start.slice(0, 10),
+    Venue: e.location.name || "",
+    Status: FWD_STATUS[e.status] ?? "Planning",
+    Notes: e.description || "",
+  };
+  const type = FWD_TYPE[e.type];
+  if (type) fields["Event Type"] = type;
+  const time = formatTime(e.start, e.allDay);
+  if (time) fields.Time = time;
+  if (e.capacity != null) fields.Capacity = e.capacity;
+  if (e.captain?.name) fields["Host / Lead"] = e.captain.name;
+  return fields;
+}
+
+// Raw Airtable write (kept here, like the reads above, so this module stays free of the
+// server-only shared client — events/airtable.ts is imported transitively by widely-used code).
+async function writeAirtable(method: "POST" | "PATCH", path: string, body: unknown): Promise<Response | null> {
+  const key = await getSecret("AIRTABLE_API_KEY");
+  if (!key) return null;
+  return fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}${path}`, {
+    method,
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    cache: "no-store",
+    body: JSON.stringify(body),
+  });
+}
+
+/**
+ * Mirror an event's content into Airtable. Pass the existing Airtable record id to update it
+ * in place; omit it to create a new record. Returns the Airtable record id (so the caller can
+ * persist it on the DynamoDB item for future updates), or null when unconfigured / on any error.
+ */
+export async function mirrorEventToAirtable(e: EventRow, recId?: string | null): Promise<string | null> {
+  try {
+    const fields = eventToFields(e);
+    const res = recId
+      ? await writeAirtable("PATCH", `/${recId}`, { typecast: true, fields })
+      : await writeAirtable("POST", "", { typecast: true, fields });
+    if (!res) return null; // unconfigured
+    if (!res.ok) throw new Error(`${recId ? "PATCH" : "POST"} ${res.status}`);
+    if (recId) return recId;
+    const data = (await res.json()) as { id?: string };
+    return data.id ?? null;
+  } catch (err) {
+    console.warn(`[events] Airtable mirror ${recId ? "update" : "create"} failed:`, err instanceof Error ? err.message : err);
+    return null;
+  }
+}
+
+/** Mirror just a status change (cheaper than a full update). Best-effort no-op without a recId. */
+export async function mirrorEventStatusToAirtable(recId: string | null | undefined, status: EventStatus): Promise<void> {
+  if (!recId) return;
+  try {
+    const res = await writeAirtable("PATCH", `/${recId}`, { typecast: true, fields: { Status: FWD_STATUS[status] ?? "Planning" } });
+    if (res && !res.ok) throw new Error(`PATCH ${res.status}`);
+  } catch (err) {
+    console.warn("[events] Airtable mirror status failed:", err instanceof Error ? err.message : err);
+  }
+}
+
+/** Remove the mirrored Airtable record when an event is deleted. Best-effort. */
+export async function deleteEventFromAirtable(recId: string | null | undefined): Promise<void> {
+  if (!recId) return;
+  try {
+    const key = await getSecret("AIRTABLE_API_KEY");
+    if (!key) return;
+    const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}/${recId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${key}` },
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`DELETE ${res.status}`);
+  } catch (err) {
+    console.warn("[events] Airtable mirror delete failed:", err instanceof Error ? err.message : err);
+  }
 }
 
 /** Single Airtable event by record id (for the public /events/[id] detail page). */

@@ -150,13 +150,23 @@ registry `accessTable` + 8 table ids added.
       picker feed `lib/task-templates.ts`) + `lib/volunteer/task-template-options.ts` (client-safe) +
       page `/dashboard/tasks/templates` + actions + `TaskTemplateManager` component + sidebar link.
       Gated by `manageTasks` cap AND control-table toggles. Linked/multi-select fields stay in Airtable.
-- [ ] **4a Events** — investigated, recommendation REVISED: keep the hybrid. Reads already prefer
-      Airtable when configured (`listUpcomingEvents`/`getEvent`); RSVPs live in DynamoDB by design.
-      The dashboard `EventRow` is a SUPERSET of the Airtable Events schema — checklists, the priority
-      rubric, idempotent publish-notify claims, captain/volunteer staffing all live on the DynamoDB
-      item. Full "Airtable-as-truth" would REGRESS those, so do NOT do it. If admin↔dashboard event
-      consistency is wanted, the right (separate, scoped) project is a one-way **mirror** of dashboard
-      content fields → Airtable, keeping operational data in DynamoDB. Control rows left Read-only.
+- [x] **4a Events — one-way mirror SHIPPED (kept the hybrid).** Full "Airtable-as-truth" was rejected:
+      the dashboard `EventRow` is a SUPERSET of the Airtable Events schema (checklists, priority rubric,
+      idempotent publish-notify claims, captain/volunteer staffing, RSVPs all live in DynamoDB), so a
+      migration would regress the feature. Instead, dashboard event writes now **mirror the content
+      subset → Airtable** so staff-created/edited events appear in the admin calendar + public site
+      (which reads Airtable). DynamoDB stays the operational source of truth.
+      - `lib/events/airtable.ts`: `mirrorEventToAirtable` (create/update), `mirrorEventStatusToAirtable`,
+        `deleteEventFromAirtable` — raw `fetch` (keeps the module free of the server-only client),
+        forward type/status maps, **strictly best-effort** (an Airtable hiccup never blocks a save).
+      - `lib/events.ts`: create/update/setStatus/delete call the mirror; the Airtable record id is
+        persisted on the DynamoDB item (`airtableRecId`) for in-place updates/deletes. `getEvent` also
+        hydrates RSVPs filed under the mirror's Airtable id, so staff see public RSVPs to mirrored events.
+      - NOT gated by the control table (it's backend plumbing projecting an already manageEvents-gated
+        write, not a UI CRUD surface). Runs whenever `airtableEventsConfigured()`.
+      - Tests: `lib/events/airtable-mirror.test.ts` (mapping + best-effort, fetch-mocked).
+      - Known limitation: pre-mirror DynamoDB events aren't backfilled (forward-only); the dashboard
+        LIST count doesn't merge Airtable-partition RSVPs (the detail view does).
 - [x] **4c Field ops** — Canvass Turf, Contact Lists → full dashboard CRUD on the scalar fields via
       the generic editor (extended with `number`/`percent` field types). Specs in
       `lib/volunteer/reference-specs.ts` (FIELDOPS_TABLES), page `/dashboard/field-assignments`,

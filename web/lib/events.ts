@@ -7,7 +7,10 @@ import {
   isEventType, isEventStatus,
   type EventType, type EventStatus, type EventLocation, type Signup, type EventStaffer, type EventPriority, type EventChecklistItem, type EventRow, type PublicEvent, type EventInput, type EventNotifyResult,
 } from "@/lib/events/types";
-import { airtableEventsConfigured, listUpcomingEventsFromAirtable, getEventFromAirtable } from "@/lib/events/airtable";
+import {
+  airtableEventsConfigured, listUpcomingEventsFromAirtable, getEventFromAirtable,
+  mirrorEventToAirtable, mirrorEventStatusToAirtable, deleteEventFromAirtable,
+} from "@/lib/events/airtable";
 
 // Campaign events / appearances. One DynamoDB partition (PK="EVENT") with
 // SK=`${startISO}#${id}` so a Query returns them in chronological order and an
@@ -64,6 +67,7 @@ function rawToRow(it: Record<string, unknown>): EventRow {
     createdBy: String(it.createdBy ?? ""),
     createdAt: String(it.createdAt ?? ""),
     updatedAt: (it.updatedAt as string) ?? null,
+    airtableRecId: (it.airtableRecId as string) ?? null,
   };
 }
 
@@ -126,13 +130,35 @@ function buildItem(id: string, input: EventInput, now: string, prior?: Partial<E
     createdBy: prior?.createdBy ?? input.createdBy,
     createdAt: prior?.createdAt ?? now,
     updatedAt: now,
+    airtableRecId: prior?.airtableRecId ?? undefined,
   };
+}
+
+// Persist the Airtable mirror id onto an event item (best-effort follow-up write).
+async function saveAirtableRecId(id: string, sk: string, recId: string): Promise<void> {
+  try {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: PK.events, SK: sk },
+        UpdateExpression: "SET airtableRecId = :r",
+        ExpressionAttributeValues: { ":r": recId },
+      }),
+    );
+  } catch {
+    /* best-effort: a missed id just means the next edit re-creates the mirror row */
+  }
 }
 
 export async function createEvent(input: EventInput): Promise<string> {
   const id = newId();
   const now = new Date().toISOString();
-  await ddb.send(new PutCommand({ TableName: TABLE, Item: buildItem(id, input, now) }));
+  const item = buildItem(id, input, now);
+  await ddb.send(new PutCommand({ TableName: TABLE, Item: item }));
+  // Mirror the content into Airtable (best-effort) so the event shows on the public
+  // site + admin calendar, and remember its record id for future edits/deletes.
+  const recId = await mirrorEventToAirtable(rawToRow(item));
+  if (recId) await saveAirtableRecId(id, item.SK, recId);
   return id;
 }
 
@@ -155,7 +181,15 @@ export async function getEvent(id: string): Promise<EventRow | null> {
     if (fromAirtable) return { ...fromAirtable, signups: await listEventRsvps(id) };
   }
   const raw = await findRaw(id);
-  return raw ? rawToRow(raw) : null;
+  if (!raw) return null;
+  const row = rawToRow(raw);
+  // A mirrored event can collect public RSVPs under its Airtable record id (the public
+  // page links by that id); merge them in so staff see every signup, not just embedded ones.
+  if (row.airtableRecId) {
+    const mirrored = await listEventRsvps(row.airtableRecId);
+    if (mirrored.length) row.signups = [...row.signups, ...mirrored];
+  }
+  return row;
 }
 
 export async function listEvents(): Promise<{ connected: boolean; rows: EventRow[] }> {
@@ -224,6 +258,9 @@ export async function updateEvent(id: string, patch: Partial<EventInput> & { sta
   const item = buildItem(id, merged, now, cur);
   await ddb.send(new PutCommand({ TableName: TABLE, Item: item }));
   if (item.SK !== oldSK) await ddb.send(new DeleteCommand({ TableName: TABLE, Key: { PK: PK.events, SK: oldSK } }));
+  // Mirror the edit to Airtable (update the existing row, or create + remember if not yet mirrored).
+  const recId = await mirrorEventToAirtable(rawToRow(item), cur.airtableRecId);
+  if (recId && recId !== cur.airtableRecId) await saveAirtableRecId(id, String(item.SK), recId);
   return true;
 }
 
@@ -239,6 +276,8 @@ export async function setEventStatus(id: string, status: EventStatus): Promise<b
       ExpressionAttributeValues: { ":s": status, ":u": new Date().toISOString() },
     }),
   );
+  // Reflect the status flip onto the mirrored Airtable row (drives public visibility).
+  await mirrorEventStatusToAirtable((raw.airtableRecId as string) ?? null, status);
   return true;
 }
 
@@ -262,6 +301,8 @@ export async function deleteEvent(id: string): Promise<boolean> {
   const raw = await findRaw(id);
   if (!raw) return false;
   await ddb.send(new DeleteCommand({ TableName: TABLE, Key: { PK: PK.events, SK: String(raw.SK) } }));
+  // Remove the mirrored Airtable row too (best-effort), so it drops off the public site.
+  await deleteEventFromAirtable((raw.airtableRecId as string) ?? null);
   return true;
 }
 
