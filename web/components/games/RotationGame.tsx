@@ -1,0 +1,237 @@
+"use client";
+
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { createLiveSession, xfnv1a, DEFAULT_DT_MS, type LiveSession } from "@/lib/games/engine";
+import {
+  buildRotation,
+  rotationConfig,
+  effectiveness,
+  seatStatus,
+  type RotationInput,
+  type RotationState,
+  type Seat,
+} from "@/lib/games/rotation";
+import type { GameContent } from "@/lib/games/content-schema";
+import { EndScreen } from "./EndScreen";
+
+// Rotation — the client view. Each seat shows its effectiveness (a bar) and a status
+// (Ramping / Ready / Entrenched). The skill is timing: rotate when a seat reads Ready,
+// not before (churn) or after (careerism). Drives the shared engine + records inputs
+// for the same-replay score validation.
+
+type Phase = "ready" | "playing" | "over";
+
+interface EndData {
+  score: number;
+  ceiling: number;
+  rank: number | null;
+  flags: string[];
+}
+
+const ROUND_TICKS = rotationConfig.roundTicks;
+const PEAK = rotationConfig.peakEffectiveness;
+const newSeed = () => `${Date.now().toString(36)}-${Math.floor(Math.random() * 1e9).toString(36)}`;
+
+const STATUS_LABEL: Record<string, string> = {
+  ramping: "Ramping",
+  ready: "Ready — rotate now",
+  entrenched: "Entrenched",
+};
+
+function seatLabel(seat: Seat, content: GameContent): string {
+  const pool = content.itemLabels.seat ?? ["Seat"];
+  return pool[xfnv1a(seat.id) % pool.length];
+}
+
+export function RotationGame({ content }: { content: GameContent }) {
+  const [phase, setPhase] = useState<Phase>("ready");
+  const [seed, setSeed] = useState<string>(newSeed);
+  const [end, setEnd] = useState<EndData | null>(null);
+  const [feedback, setFeedback] = useState<string>("");
+  const [, repaint] = useReducer((n: number) => n + 1, 0);
+
+  const sessionRef = useRef<LiveSession<RotationState, RotationInput> | null>(null);
+  const gameRef = useRef(buildRotation());
+  const rafRef = useRef<number | null>(null);
+  const lastTsRef = useRef<number>(0);
+
+  const stopLoop = useCallback(() => {
+    if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+  }, []);
+
+  const finalize = useCallback(async () => {
+    stopLoop();
+    const session = sessionRef.current;
+    if (!session) return;
+    const local = gameRef.current.score(session.state);
+    setPhase("over");
+    let data: EndData = { score: local.total, ceiling: local.ceiling, rank: null, flags: local.flags };
+    try {
+      const res = await fetch("/api/games/score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gameId: content.gameId,
+          seed,
+          inputs: session.inputs,
+          totalTicks: ROUND_TICKS,
+          reportedScore: local.total,
+        }),
+      });
+      if (res.ok) {
+        const j = (await res.json()) as { score: number; ceiling: number; rank: number | null; flags: string[] };
+        data = { score: j.score, ceiling: j.ceiling, rank: j.rank, flags: j.flags };
+      }
+    } catch {
+      /* offline / rejected — keep the local result */
+    }
+    setEnd(data);
+  }, [content.gameId, seed, stopLoop]);
+
+  const loop = useCallback(
+    (ts: number) => {
+      const session = sessionRef.current;
+      if (!session) return;
+      const elapsed = lastTsRef.current ? ts - lastTsRef.current : DEFAULT_DT_MS;
+      lastTsRef.current = ts;
+      session.advance(elapsed);
+      repaint();
+      if (session.isOver()) {
+        void finalize();
+        return;
+      }
+      rafRef.current = requestAnimationFrame(loop);
+    },
+    [finalize],
+  );
+
+  const start = useCallback(() => {
+    gameRef.current = buildRotation();
+    sessionRef.current = createLiveSession(gameRef.current, rotationConfig, seed);
+    lastTsRef.current = 0;
+    setFeedback("");
+    setEnd(null);
+    setPhase("playing");
+    rafRef.current = requestAnimationFrame(loop);
+  }, [seed, loop]);
+
+  const playAgain = useCallback(() => {
+    setSeed(newSeed());
+    setPhase("ready");
+  }, []);
+
+  useEffect(() => () => stopLoop(), [stopLoop]);
+
+  const rotate = useCallback(
+    (seat: Seat) => {
+      const session = sessionRef.current;
+      if (!session || phase !== "playing") return;
+      const status = seatStatus(seat.serviceTicks, rotationConfig);
+      if (seat.grandfathered) setFeedback("Handed off an incumbent — exempt");
+      else if (status === "ready") setFeedback("✓ Rotated in the sweet spot");
+      else if (status === "ramping") setFeedback("✗ Too early — ramp wasted");
+      else setFeedback("✗ Too late — careerism");
+      session.enqueue({ kind: "rotate", seatId: seat.id });
+    },
+    [phase],
+  );
+
+  const session = sessionRef.current;
+  const state = session?.state;
+  const secondsLeft = state
+    ? (ROUND_TICKS - state.tick) * (DEFAULT_DT_MS / 1000)
+    : ROUND_TICKS * (DEFAULT_DT_MS / 1000);
+
+  return (
+    <div className="space-y-6">
+      {phase === "ready" && (
+        <div className="rounded-lg border border-line bg-white p-6 shadow-card">
+          <p className="eyebrow text-slate">{content.eyebrow}</p>
+          <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">{content.title}</h1>
+          <p className="mt-2 max-w-prose text-slate">{content.tagline}</p>
+          <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-ink">
+            {content.howTo.map((h) => (
+              <li key={h}>{h}</li>
+            ))}
+          </ul>
+          <button onClick={start} className="btn-brick mt-6">
+            Start
+          </button>
+        </div>
+      )}
+
+      {phase === "playing" && state && (
+        <>
+          <div className="grid grid-cols-3 gap-4 rounded-lg border border-line bg-white p-4 shadow-card" role="status" aria-live="polite">
+            <div className="flex flex-col">
+              <span className="eyebrow text-slate">Effectiveness</span>
+              <span className="font-mono text-lg font-bold tabular-nums text-ink">{Math.round(state.captured).toLocaleString("en-US")}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="eyebrow text-slate">Clean rotations</span>
+              <span className="font-mono text-lg font-bold tabular-nums text-ink">{state.rotationsClean}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="eyebrow text-slate">Time</span>
+              <span className="font-mono text-lg font-bold tabular-nums text-ink">{Math.max(0, Math.ceil(secondsLeft))}s</span>
+            </div>
+          </div>
+
+          <p className="min-h-[1.5rem] text-sm font-medium text-ink" role="status" aria-live="assertive">
+            {feedback}
+          </p>
+
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {state.seats.map((seat) => {
+              const status = seatStatus(seat.serviceTicks, rotationConfig);
+              const eff = effectiveness(seat.serviceTicks, rotationConfig);
+              const ready = status === "ready";
+              return (
+                <li key={seat.id} className="rounded-lg border border-line bg-white p-4 shadow-card">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-ink">
+                      {seatLabel(seat, content)}
+                      {seat.grandfathered && (
+                        <span className="ml-2 rounded-sm border border-line px-1.5 py-0.5 text-[0.65rem] uppercase tracking-wide text-slate">
+                          Grandfathered
+                        </span>
+                      )}
+                    </span>
+                    <span className={`text-xs font-bold ${ready ? "text-brick" : "text-slate"}`}>{STATUS_LABEL[status]}</span>
+                  </div>
+                  <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-line" aria-hidden="true">
+                    <span className={`block h-full ${ready ? "bg-brick" : "bg-ink"}`} style={{ width: `${Math.min(100, (eff / PEAK) * 100)}%` }} />
+                  </div>
+                  <button
+                    onClick={() => rotate(seat)}
+                    className="btn-ghost mt-3 w-full text-xs"
+                    aria-label={`Rotate ${seatLabel(seat, content)} — currently ${STATUS_LABEL[status]}`}
+                  >
+                    Rotate ⟳
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+
+      {phase === "over" && end && (
+        <EndScreen
+          gameId={content.gameId}
+          title={content.title}
+          score={end.score}
+          ceiling={end.ceiling}
+          rank={end.rank}
+          flags={end.flags}
+          endLines={content.endLines}
+          shareText={content.shareText}
+          issueSlug={content.issueSlug}
+          issueLabel={content.eyebrow}
+          onPlayAgain={playAgain}
+        />
+      )}
+    </div>
+  );
+}
