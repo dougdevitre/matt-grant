@@ -1,0 +1,72 @@
+{
+  "copy": {
+    "gameId": "org-chart",
+    "issueSlug": "smaller-government",
+    "eyebrow": "Smaller Government",
+    "title": "Org Chart",
+    "tagline": "Right-size Washington — don't gut it.",
+    "howTo": [
+      "Cut duplicate and bloated roles to shrink headcount.",
+      "Land inside the target band — not too big, not gutted.",
+      "Never cut protected or critical roles — families and infrastructure need them.",
+      "Use Hiring Freeze and Early Retirement to right-size faster."
+    ],
+    "itemLabels": {
+      "redundant": [
+        "Duplicate role",
+        "Overlapping office",
+        "Vacant funded seat",
+        "Parallel program"
+      ],
+      "bloat": [
+        "Extra management layer",
+        "Redundant contractor",
+        "Idle field office",
+        "Unused mandate"
+      ],
+      "protected": [
+        "Veterans' services",
+        "Child welfare caseworker",
+        "Family support program",
+        "Disability services"
+      ],
+      "critical": [
+        "Air traffic control",
+        "Food safety inspector",
+        "Power grid operator"
+      ]
+    },
+    "endLines": [
+      "Right-size to the band — don't gut it.",
+      "Cut bloat, not families or infrastructure.",
+      "Leaner government, services intact."
+    ],
+    "shareText": "I right-sized the federal workforce to the target band in Org Chart — leaner, services intact. Beat my score."
+  },
+  "config": {
+    "roundTicks": 1350,
+    "spawnEveryTicks": 27,
+    "initialBlocks": 12,
+    "targetBand": [9, 15],
+    "serviceStart": 100,
+    "serviceFloor": 45,
+    "protectedPenalty": 18,
+    "criticalPenalty": 26,
+    "freezeTicks": 150,
+    "freezeCooldownTicks": 300,
+    "retireClears": 5,
+    "retireMaxUses": 2,
+    "items": {
+      "redundant": { "weight": 6 },
+      "bloat": { "weight": 5 },
+      "protected": { "weight": 1.2 },
+      "critical": { "weight": 0.8 }
+    },
+    "scoring": {
+      "bandBase": 120000,
+      "outOfBandPenalty": 9000,
+      "servicePerPoint": 700,
+      "efficiencyPerTickInBand": 50
+    }
+  }
+}
