@@ -36,9 +36,17 @@ export function NavMenu({
     if (l.length) l[((i % l.length) + l.length) % l.length].focus();
   };
 
-  // After the panel opens via keyboard, move focus to the requested end.
+  // After the panel opens via keyboard, move focus to the requested end. Deferred to
+  // after paint: a focus() made in the same tick the panel becomes visible is dropped
+  // by Firefox (and intermittently in CI under load), which flaked the roving-focus
+  // e2e test. requestAnimationFrame lets the panel render first so focus reliably lands.
   useEffect(() => {
-    if (open && pendingFocus.current) focusAt(pendingFocus.current === "first" ? 0 : -1);
+    if (open && pendingFocus.current) {
+      const end = pendingFocus.current;
+      const raf = requestAnimationFrame(() => focusAt(end === "first" ? 0 : -1));
+      pendingFocus.current = null;
+      return () => cancelAnimationFrame(raf);
+    }
     pendingFocus.current = null;
   }, [open]);
 
