@@ -45,7 +45,7 @@ export const SOCIALS: readonly SocialLink[] = [
   { id: "facebookPersonal", label: "Matt Grant on Facebook", short: "Facebook (personal)", url: "https://www.facebook.com/MatthewRGrant" },
   { id: "facebookGroup", label: "Stop Missouri Corruption (Facebook Group)", short: "Stop Missouri Corruption", url: "https://www.facebook.com/groups/4086143434976312/" },
   { id: "instagram", label: "Matt Grant on Instagram", short: "Instagram", url: "https://www.instagram.com/matthewrgrant/" },
-  { id: "linkedin", label: "Matt Grant for Congress on LinkedIn", short: "LinkedIn", url: "https://www.linkedin.com/company/matt-grant-for-congress/" },
+  { id: "linkedin", label: "Matt Grant for Congress on LinkedIn", short: "LinkedIn", url: "https://www.linkedin.com/company/matt-grant-for-congress" },
   { id: "youtube", label: "Matt Grant for Congress on YouTube", short: "YouTube", url: "https://www.youtube.com/@matthewgrantforcongress" },
 ] as const;
 
