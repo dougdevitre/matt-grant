@@ -241,9 +241,103 @@ for Congress. Reply STOP to opt out.
 
 ---
 
+## 7. Inbound Reply Handling
+
+Broadcast texts generate replies. Staff and volunteers need consistent, on-message answers — and must route anything that isn't a simple FAQ. `STOP`, `HELP`, and `YES` are handled automatically (Sections 3, 4, 6); this covers everything else.
+
+```mermaid
+flowchart TD
+    A[Inbound reply received] --> B{What kind?}
+    B -->|STOP / remove me / unsubscribe| C[Treat as opt-out -- suppress immediately]
+    B -->|HELP / who is this| D[Send HELP auto-reply -- Section 3]
+    B -->|Question we can answer| E[Use canned reply below]
+    B -->|Wants to volunteer / donate| F[Send relevant link, flag for follow-up]
+    B -->|Hostile / press / legal threat| G[Do not argue -- log and escalate to manager]
+    B -->|Personal / casework / outside scope| H[Acknowledge, route to campaign office]
+```
+
+**Opt-out catch-all:** Honor any clear withdrawal of consent, not just the literal word STOP — "remove me," "stop texting me," "unsubscribe," "quit." Suppress the number even if the carrier keyword didn't trigger.
+
+### Canned replies
+
+| Reply type | Response |
+|---|---|
+| "Who is this?" | This is the Matt Grant for Congress campaign (MO-02). You opted in for updates. Reply STOP to opt out, HELP for help. |
+| "How do I donate?" | Thanks for supporting Matt! Donate here: [donate link]. Paid for by Matt Grant for Congress. |
+| "How do I volunteer?" | We'd love your help! Sign up here: [link]. Someone will follow up. Paid for by Matt Grant for Congress. |
+| "Where/when do I vote?" | The MO-02 primary is Aug 4, 2026. Find your polling place: [link]. |
+| Hostile / argumentative | (Do not engage or argue.) Thanks for your feedback. Reply STOP to opt out. |
+
+**Escalate, don't improvise:** Press inquiries, legal threats, or anything that could become a story go to the campaign manager — never answer on behalf of the campaign. Do not make policy statements beyond documented facts (`candidate/platform.md`).
+
+---
+
+## 8. Cadence, Frequency & Opt-Out Guardrails
+
+Carriers monitor opt-out (STOP) rates and spam reports on your number. Texting too often is the fastest way to spike opt-outs and get the number filtered or de-verified. Treat the texting list as a finite resource.
+
+### Frequency guidance
+
+| List segment | Suggested max cadence |
+|---|---|
+| General supporter list | ~2-4 messages per month (more in the final GOTV week) |
+| Active donors | Tie to asks/receipts, not a fixed drumbeat |
+| Volunteers (opted in) | As needed for shifts/logistics |
+| Final week before Aug 4, 2026 | Daily GOTV is acceptable — that's the payoff window |
+
+### Opt-out-rate guardrails
+
+| Opt-out rate on a send | Action |
+|---|---|
+| Under ~2% | Healthy — continue |
+| ~2-5% | Caution — review message relevance, targeting, and frequency |
+| Over ~5% | Stop — something is wrong (too frequent, wrong audience, or off-message). Diagnose before the next send. |
+
+**Rules of thumb:** Lead with value, not just asks. Segment so people only get relevant messages. Never send the same blast twice. Watch the trend, not one number — a rising opt-out rate across sends is the early warning. (Thresholds are general best-practice guidance, not carrier-published limits — confirm current carrier policies with Twilio.)
+
+---
+
+## 9. Peer-to-Peer (P2P) Texting
+
+Peer-to-peer texting — a volunteer manually sending and reviewing each message one recipient at a time — is the workhorse for volunteer-driven voter contact. Because messages are sent manually rather than by an autodialer, P2P operates under a different posture than automated broadcasts, but you should still respect opt-outs, send only during allowed hours, and include identification. Confirm your platform and consent approach with counsel before launching a P2P drive.
+
+### Volunteer opener
+
+```
+Hi [VOTER FIRST NAME], this is [VOLUNTEER NAME], a volunteer with Matt
+Grant for Congress in MO-02. Do you have a minute? Paid for by Matt Grant
+for Congress. Reply STOP to opt out.
+```
+
+### Conversation guide
+
+| Situation | Volunteer move |
+|---|---|
+| Friendly / engaged | Share why you support Matt (MO-02), point to [link], invite to an event or to volunteer. |
+| "Tell me his positions" | Stick to documented priorities; link to the site. Do not invent positions or stats. |
+| Undecided | Listen, offer to send info, don't pressure. |
+| Wants out | Honor it immediately — log the opt-out and suppress the number. |
+| Hostile | Thank them, disengage, suppress. Do not argue. Flag anything threatening to staff. |
+
+**Volunteer rules:** Always identify yourself and the campaign. Only contact numbers from the approved, consented list. Send only 8am-9pm in the recipient's local time. Never promise anything beyond documented facts. Log opt-outs the moment they happen.
+
+---
+
+## 10. Cost Tracking (FEC Expenditure)
+
+Money spent on texting — the Twilio/messaging-service vendor, any P2P platform, short-code/keyword fees — is a campaign **disbursement** and must be recorded and reported like any other expenditure.
+
+- **Log every payment** to a texting vendor in the expenditure records (date, payee, amount, purpose), per `tools/expenditure-tracker.md` and `workflows/expenditure-tracking.md`.
+- **Purpose codes:** classify as the operational category your tracker uses (e.g., digital/communications/voter contact) — keep it consistent.
+- **Keep invoices/receipts** from Twilio and any P2P platform with your expenditure backup.
+- This is separate from the "Paid for by" disclaimer requirement — the disclaimer goes *on the messages*; the cost goes *in the reports*.
+
+---
+
 ## Cross-References
 
 - `tools/disclaimer-generator.md` — Full "Paid for by" disclaimer rules across every medium, including SMS/MMS.
+- `tools/expenditure-tracker.md` / `workflows/expenditure-tracking.md` — Record and report texting-vendor costs as FEC disbursements.
 - `federal/digital-advertising.md` — FEC rules for digital and online political communications.
 - `messaging/email-fundraising.md` — Companion channel; consent and disclaimer practices align.
 - `messaging/social-media-strategy.md` — Platform messaging and compliance.
