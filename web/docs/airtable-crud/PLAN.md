@@ -99,10 +99,22 @@ Table: Influential Voters (`tblBcd7uz3WLHzce2`).
 
 Future option: enable Create/Delete (add contacts / remove) by checking those boxes + adding the UI.
 
-## Phase 3 — Social Media (`appwrqSIsxaZ9Ltun`) — greenfield
+## Phase 3 — Social Media (`appwrqSIsxaZ9Ltun`) — DONE in code
 
-Not wired today. 6 tables: Posts, Channels, Content Pillars, Campaigns, Assets, Start Here.
-Target: dashboard CRUD on the content calendar (`/dashboard/social`). Add all to `registry.ts`.
+Was greenfield (registry empty). The Airtable Posts table is the no-code **content calendar** —
+distinct from the live publishing scheduler in `lib/social/schedule.ts`.
+
+- [x] `Front-End Access` control table (`tblFaPlkj2lIhDazN`) + rows: `Posts · dashboard` = full CRUD
+      (Editable Fields = all post fields); `Channels` / `Content Pillars` / `Campaigns` / `Assets · dashboard`
+      = Read (for the linked-record pickers). `Start Here` not seeded (fail-closed → no front-end access).
+- [x] Registry: socialMedia `accessTable` + 6 table ids (posts, channels, contentPillars, campaigns, assets, startHere).
+- [x] `lib/social/content-calendar.ts` — Posts CRUD gated by Posts dashboard toggles + `filterEditableFields`;
+      `listChannels/listPillars/listCampaigns` read the lookups into `{id,name}` picker options. Status/Format
+      option lists in client-safe `lib/social/calendar-options.ts`.
+- [x] New page `/dashboard/social/calendar` + `actions.ts` + `ContentCalendar` component (create/edit/delete,
+      linked-record checkbox pickers). Gated by `manageSocial` cap AND the control-table toggles. Sidebar link added.
+
+Future: in-app CRUD for Channels/Pillars/Campaigns/Assets (flip their Create/Update/Delete + add editors).
 
 ## Phase 4 — Volunteer Engagement (`appAmtan3qWZE7iGR`) — largest (11 tables)
 
