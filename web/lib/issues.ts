@@ -53,7 +53,7 @@ export const ISSUES: Issue[] = [
       { text: "Attend or observe a public court or school-board meeting in your community.", tag: "Attend" },
       { text: "Ask candidates and officials on your ballot where they stand on family-court transparency and accountability.", tag: "Ask" },
       { text: "Share the case for the CHILD Protection Act with three neighbors — grab a graphic and caption.", tag: "Share", href: "/media" },
-      { text: "Try the Four Fights arcade — quick mini-games on Matt's priorities.", tag: "Play", href: "/games" },
+      { text: "Play Red Tape Run — dodge the procedural abuses and grab the reforms.", tag: "Play", href: "/games/red-tape-run" },
       { text: "Confirm you're registered, then vote in the August 4 primary.", tag: "Vote", href: "/vote" },
     ],
     graphic: feed("D-47"),
