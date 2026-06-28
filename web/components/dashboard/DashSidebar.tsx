@@ -28,6 +28,7 @@ const GROUPS: Group[] = [
     items: [
       { href: "/dashboard/map", label: "Map", icon: "map", cap: "viewMap" },
       { href: "/dashboard/targets", label: "Targets", icon: "targets", cap: "viewTargets" },
+      { href: "/dashboard/field-assignments", label: "Turf & lists", icon: "targets", cap: "viewTargets" },
       { href: "/dashboard/volunteers", label: "Volunteers", icon: "volunteers", cap: "manageVolunteers" },
       { href: "/dashboard/events", label: "Events", icon: "tasks", cap: "manageEvents" },
       { href: "/dashboard/tasks", label: "Task board", icon: "tasks", cap: "manageTasks" },
