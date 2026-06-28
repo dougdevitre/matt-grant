@@ -62,12 +62,16 @@ export interface EndScreenProps {
   title: string;
   score: number;
   ceiling: number;
-  rank: number | null;
   flags: string[];
   endLines: string[];
   shareText: string;
   issueSlug: string;
   issueLabel: string;
+  /** the round's (seed, inputs, totalTicks) — EndScreen submits these for the
+   *  replay-validated leaderboard entry once the player adds initials (or skips). */
+  seed: string;
+  inputs: unknown[];
+  totalTicks: number;
   onPlayAgain: () => void;
   onShare?: () => void;
   onOptIn?: (channel: "email" | "sms") => void;
@@ -76,10 +80,47 @@ export interface EndScreenProps {
 
 const APEX = "https://mattgrantforcongress.org";
 
+// 0–3 uppercase letters, classic arcade initials.
+const cleanInitials = (raw: string) => raw.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 3);
+
 export function EndScreen(props: EndScreenProps) {
   const [shared, setShared] = useState(false);
   const animatedScore = useCountUp(props.score);
   const { best, isNewBest } = usePersonalBest(props.gameId, props.score);
+
+  // Leaderboard submission lives here (centralized) — the server re-validates the
+  // (seed, inputs) replay, so a tampered score can't be recorded under any initials.
+  const [initials, setInitials] = useState("");
+  const [submitState, setSubmitState] = useState<"idle" | "saving" | "done">("idle");
+  const [rank, setRank] = useState<number | null>(null);
+  const [lbKey, setLbKey] = useState(0);
+
+  async function submitScore(withInitials: string) {
+    if (submitState !== "idle") return;
+    setSubmitState("saving");
+    try {
+      const res = await fetch("/api/games/score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gameId: props.gameId,
+          seed: props.seed,
+          inputs: props.inputs,
+          totalTicks: props.totalTicks,
+          reportedScore: props.score,
+          initials: withInitials || undefined,
+        }),
+      });
+      if (res.ok) {
+        const j = (await res.json()) as { rank: number | null };
+        setRank(j.rank);
+        setLbKey((k) => k + 1); // refresh the leaderboard to include this entry
+      }
+    } catch {
+      /* offline / rejected — leave it unrecorded, the score is still shown locally */
+    }
+    setSubmitState("done");
+  }
 
   async function share() {
     props.onShare?.();
@@ -114,7 +155,7 @@ export function EndScreen(props: EndScreenProps) {
           <span>
             Personal best: <span className="font-mono tabular-nums">{best.toLocaleString("en-US")}</span>
           </span>
-          {props.rank != null && <span>Rank #{props.rank} on the leaderboard</span>}
+          {rank != null && <span>Rank #{rank} on the leaderboard</span>}
         </div>
         <ul className="mt-4 space-y-1">
           {props.endLines.map((line) => (
@@ -127,7 +168,49 @@ export function EndScreen(props: EndScreenProps) {
 
       <ShareCard title={props.title} score={props.score} shareText={props.shareText} flags={props.flags} />
 
-      <GameLeaderboard gameId={props.gameId} highlightScore={props.score} />
+      {/* Add your initials to the (replay-validated) leaderboard. */}
+      {submitState !== "done" ? (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void submitScore(cleanInitials(initials));
+          }}
+          className="flex flex-wrap items-end gap-3 rounded-lg border border-line bg-white p-5 shadow-card"
+        >
+          <div>
+            <label htmlFor="lb-initials" className="eyebrow text-slate">
+              Your initials
+            </label>
+            <input
+              id="lb-initials"
+              value={initials}
+              onChange={(e) => setInitials(cleanInitials(e.target.value))}
+              placeholder="AAA"
+              inputMode="text"
+              autoCapitalize="characters"
+              maxLength={3}
+              className="mt-1 w-24 rounded-sm border border-line bg-white px-3 py-2 text-center font-mono text-lg uppercase tracking-widest"
+            />
+          </div>
+          <button type="submit" disabled={submitState === "saving"} className="btn-ink disabled:opacity-50">
+            {submitState === "saving" ? "Saving…" : "Add to leaderboard"}
+          </button>
+          <button
+            type="button"
+            onClick={() => void submitScore("")}
+            disabled={submitState === "saving"}
+            className="btn-ghost"
+          >
+            Skip
+          </button>
+        </form>
+      ) : (
+        <p className="text-sm text-slate">
+          {rank != null ? `Recorded — you're rank #${rank}.` : "Thanks for playing."}
+        </p>
+      )}
+
+      <GameLeaderboard gameId={props.gameId} highlightScore={props.score} refreshKey={lbKey} />
 
       <div className="flex flex-wrap gap-3">
         <button onClick={props.onPlayAgain} className="btn-brick">

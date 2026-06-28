@@ -90,29 +90,11 @@ export function ClarityCompanion({ content }: { content: GameContent }) {
     const session = sessionRef.current;
     if (!session) return;
     const local = gameRef.current.score(session.state);
+    // Show the local (validated-on-submit) result immediately; EndScreen submits the
+    // replay to /api/games/score for the leaderboard once the player adds initials.
+    setEnd({ score: local.total, ceiling: local.ceiling, rank: null, flags: local.flags });
     setPhase("over");
-    let data: EndData = { score: local.total, ceiling: local.ceiling, rank: null, flags: local.flags };
-    try {
-      const res = await fetch("/api/games/score", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          gameId: content.gameId,
-          seed,
-          inputs: session.inputs,
-          totalTicks: ROUND_TICKS,
-          reportedScore: local.total,
-        }),
-      });
-      if (res.ok) {
-        const j = (await res.json()) as { score: number; ceiling: number; rank: number | null; flags: string[] };
-        data = { score: j.score, ceiling: j.ceiling, rank: j.rank, flags: j.flags };
-      }
-    } catch {
-      /* offline / rejected — keep the local result */
-    }
-    setEnd(data);
-  }, [content.gameId, seed, stopLoop]);
+  }, [stopLoop]);
 
   const loop = useCallback(
     (ts: number) => {
@@ -243,8 +225,10 @@ export function ClarityCompanion({ content }: { content: GameContent }) {
           title={content.title}
           score={end.score}
           ceiling={end.ceiling}
-          rank={end.rank}
           flags={end.flags}
+          seed={seed}
+          inputs={sessionRef.current?.inputs ?? []}
+          totalTicks={ROUND_TICKS}
           endLines={content.endLines}
           shareText={content.shareText}
           issueSlug={content.issueSlug}
