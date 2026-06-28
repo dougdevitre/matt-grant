@@ -32,12 +32,14 @@ export function VolunteerBoard({ rows, taskCounts, donorEmails = [], me = null }
   const [interest, setInterest] = useState("ALL");
   const [q, setQ] = useState("");
   const [mine, setMine] = useState(false);
+  const [captainsOnly, setCaptainsOnly] = useState(false);
   const donorSet = useMemo(() => new Set(donorEmails), [donorEmails]);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return rows.filter((v) => {
       if (mine && me && v.captainEmail !== me) return false;
+      if (captainsOnly && v.door !== "Team Captain") return false;
       if (status !== "ALL" && v.status !== status) return false;
       if (interest !== "ALL") {
         const tags = v.interestTags?.length ? v.interestTags : v.interests ? v.interests.split(",").map((s) => s.trim()) : [];
@@ -49,7 +51,7 @@ export function VolunteerBoard({ rows, taskCounts, donorEmails = [], me = null }
       }
       return true;
     });
-  }, [rows, status, interest, q, mine, me]);
+  }, [rows, status, interest, q, mine, me, captainsOnly]);
 
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
@@ -58,6 +60,7 @@ export function VolunteerBoard({ rows, taskCounts, donorEmails = [], me = null }
   }, [rows]);
 
   const mineCount = useMemo(() => (me ? rows.filter((v) => v.captainEmail === me).length : 0), [rows, me]);
+  const captainCount = useMemo(() => rows.filter((v) => v.door === "Team Captain").length, [rows]);
 
   return (
     <>
@@ -86,6 +89,12 @@ export function VolunteerBoard({ rows, taskCounts, donorEmails = [], me = null }
           <label className="flex items-center gap-1.5 font-mono text-xs text-slate" title="Show only volunteers you've claimed to your team">
             <input type="checkbox" checked={mine} onChange={(e) => setMine(e.target.checked)} />
             My volunteers ({mineCount})
+          </label>
+        )}
+        {captainCount > 0 && (
+          <label className="flex items-center gap-1.5 font-mono text-xs text-slate" title="People who applied to lead a team via /join — review and promote to the captain role">
+            <input type="checkbox" checked={captainsOnly} onChange={(e) => setCaptainsOnly(e.target.checked)} />
+            Captain applicants ({captainCount})
           </label>
         )}
         <span className="font-mono text-xs text-slate">
@@ -122,6 +131,11 @@ export function VolunteerBoard({ rows, taskCounts, donorEmails = [], me = null }
                     {isIn(donorSet, v.email) && (
                       <span className="rounded-sm bg-gold/15 px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-[#9a6f1a]" title="Has also donated">
                         ◈ donor
+                      </span>
+                    )}
+                    {v.door === "Team Captain" && (
+                      <span className="rounded-sm bg-brick/10 px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-brick" title="Applied to lead a team — review and promote to the captain role">
+                        ★ captain applicant
                       </span>
                     )}
                   </div>

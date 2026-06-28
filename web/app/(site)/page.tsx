@@ -153,8 +153,8 @@ export default function HomePage() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/about" className="btn-gold">Matt&apos;s full story</Link>
-              <Link href="/contact" className="btn-ghost border-paper/30 text-paper hover:border-paper">
-                Volunteer
+              <Link href="/join" className="btn-ghost border-paper/30 text-paper hover:border-paper">
+                Get involved
               </Link>
             </div>
           </div>
