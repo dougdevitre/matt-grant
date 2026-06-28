@@ -30,6 +30,12 @@ export const NOTIFICATION_TYPES: NotificationTypeDef[] = [
     desc: "When a contribution comes in via WinRed.",
     roles: ["admin"],
   },
+  {
+    key: "captain_application",
+    label: "New team-captain application",
+    desc: "When someone applies to lead a team via /join — review and promote them.",
+    roles: ["admin"],
+  },
 ];
 
 export type NotificationType = string;
