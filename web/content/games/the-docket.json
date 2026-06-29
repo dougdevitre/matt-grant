@@ -6,10 +6,10 @@
     "title": "The Docket",
     "tagline": "Protect a child's childhood before the system devours it.",
     "howTo": [
-      "Use the arrow keys (or swipe) to move through the docket.",
-      "Collect every bit of childhood before the system's mechanisms reach you.",
+      "Use the arrow keys (or swipe) to collect every bit of childhood in the docket.",
       "Grab a Reform (the big markers) to turn the tables — then push the system back.",
-      "Four mechanisms chase you in different ways. Clear the maze to win. (Phase 2.)"
+      "Clear a maze and the next assignment is larger: faster mechanisms, higher stakes.",
+      "Ten stages. The moral-injury meter climbs with every one you clear. (Phase 3.)"
     ],
     "itemLabels": {
       "childhood": ["Childhood"],
@@ -39,11 +39,15 @@
     ],
     "playerStepTicks": 6,
     "ghostStepTicks": 9,
+    "stages": 10,
+    "ghostSpeedupPerStage": 1,
+    "minGhostStepTicks": 6,
+    "moralInjuryPerStage": 10,
     "startLives": 3,
-    "roundTicks": 7200,
+    "roundTicks": 36000,
     "powerDurationTicks": 240,
     "ghostReleaseTicks": 90,
     "spawnGraceTicks": 60,
-    "scoring": { "pelletValue": 10, "powerValue": 50, "clearBonus": 3000, "ghostBaseValue": 200 }
+    "scoring": { "pelletValue": 10, "powerValue": 50, "stageBonus": 500, "clearBonus": 3000, "ghostBaseValue": 200 }
   }
 }

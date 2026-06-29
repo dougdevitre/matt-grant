@@ -2,11 +2,13 @@ import type { Game, ScoreBreakdown } from "@/lib/games/engine";
 import type { DocketConfig, Dir } from "./config.schema";
 import { parseMaze, isOpen, stepCell, cellKey, dist2, opposite, DELTA, type Cell, type ParsedMaze } from "./maze";
 
-// The Docket (Children First) — Pac-Man-style maze chase. PHASE 2: four ghosts with
-// distinct deterministic chase AI + power-pellet "Reform" mode (frightened/edible
-// ghosts) + difficulty tuning (staggered release, spawn grace, catchable speed). Still
-// fully deterministic — frightened ghosts FLEE (maximize distance), no RNG enters the
-// sim, so client + server replays match exactly.
+// The Docket (Children First) — Pac-Man-style maze chase. PHASE 3: the same maze across
+// N escalating STAGES ("larger assignments"). Each stage the ghosts step faster, and a
+// MORAL-INJURY meter (0–100) climbs every stage you clear. Clearing the final stage
+// caps the meter — the point being that no amount of winning individual mazes fixes a
+// rigged system; only reform does. Built on Phase 2's four deterministic ghosts +
+// power-pellet "Reform" mode. Still fully deterministic — frightened ghosts FLEE
+// (maximize distance), no RNG enters the sim, so client + server replays match exactly.
 //
 // Framing (locked): the antagonist is the SYSTEM, never a profession. The four ghosts
 // are System mechanisms (Delay / Red Tape / Sealed File / Conflict) with different
@@ -40,6 +42,8 @@ export interface Ghost {
 
 export interface DocketState {
   tick: number;
+  stage: number; // 1..cfg.stages — the current "assignment"
+  moralInjury: number; // 0..100, climbs each stage cleared
   player: Mover;
   ghosts: Ghost[];
   pellets: Set<string>;
@@ -54,8 +58,8 @@ export interface DocketState {
   caughtCount: number;
   ghostsEaten: number;
   score: number;
-  cleared: boolean;
-  lastEvent: "eat" | "power" | "eat-ghost" | "caught" | "clear" | null;
+  cleared: boolean; // the FINAL stage is done (the whole run is won)
+  lastEvent: "eat" | "power" | "eat-ghost" | "caught" | "stage" | "clear" | null;
 }
 
 export type DocketInput = { kind: "turn"; dir: Dir };
@@ -139,6 +143,23 @@ function movePlayer(s: DocketState, maze: ParsedMaze, cfg: DocketConfig): void {
 
 const released = (s: DocketState, i: number, cfg: DocketConfig) => s.tick - s.releaseBaseTick >= i * cfg.ghostReleaseTicks;
 
+// Ghosts step faster each stage ("larger assignments"), floored so they stay catchable.
+const ghostStepFor = (stage: number, cfg: DocketConfig): number =>
+  Math.max(cfg.minGhostStepTicks, cfg.ghostStepTicks - (stage - 1) * cfg.ghostSpeedupPerStage);
+
+// Reset the board for the start of a stage (fresh childhood + reforms, everyone home),
+// preserving the running tally (score, lives, stage, moralInjury).
+function resetStage(s: DocketState, maze: ParsedMaze, cfg: DocketConfig): void {
+  s.player = { col: maze.playerStart.col, row: maze.playerStart.row, dir: null, queuedDir: null };
+  s.ghosts = maze.ghostStarts.map((g) => ({ col: g.col, row: g.row, dir: null, frightened: false, eaten: false }));
+  s.pellets = new Set(maze.pellets);
+  s.powerPellets = new Set(maze.powerPellets);
+  s.powerTicksLeft = 0;
+  s.ghostChain = 0;
+  s.graceLeft = cfg.spawnGraceTicks;
+  s.releaseBaseTick = s.tick;
+}
+
 function resetAfterCatch(s: DocketState, maze: ParsedMaze, cfg: DocketConfig): void {
   s.lives -= 1;
   s.caughtCount += 1;
@@ -156,7 +177,10 @@ export function scoreCeiling(cfg: DocketConfig): number {
   const pellets = flat.split(".").length - 1;
   const powers = flat.split("o").length - 1;
   const ghostEatMax = powers * 15 * cfg.scoring.ghostBaseValue; // up to 4/window, chain 2^0..2^3 = 15
-  return pellets * cfg.scoring.pelletValue + powers * cfg.scoring.powerValue + cfg.scoring.clearBonus + ghostEatMax;
+  // The maze repeats every stage, so per-stage earnings stack across all stages.
+  const perStage = pellets * cfg.scoring.pelletValue + powers * cfg.scoring.powerValue + ghostEatMax;
+  const stageBonuses = (cfg.stages - 1) * cfg.scoring.stageBonus; // one per advance (not the final clear)
+  return perStage * cfg.stages + stageBonuses + cfg.scoring.clearBonus;
 }
 
 export function makeTheDocket(cfg: DocketConfig): Game<DocketState, DocketInput, DocketConfig> {
@@ -168,6 +192,8 @@ export function makeTheDocket(cfg: DocketConfig): Game<DocketState, DocketInput,
     init(): DocketState {
       return {
         tick: 0,
+        stage: 1,
+        moralInjury: 0,
         player: { col: maze.playerStart.col, row: maze.playerStart.row, dir: null, queuedDir: null },
         ghosts: maze.ghostStarts.map((g) => ({ col: g.col, row: g.row, dir: null, frightened: false, eaten: false })),
         pellets: new Set(maze.pellets),
@@ -214,9 +240,10 @@ export function makeTheDocket(cfg: DocketConfig): Game<DocketState, DocketInput,
       const prevP = { col: s.player.col, row: s.player.row };
       const prevGhosts = s.ghosts.map((g) => ({ col: g.col, row: g.row }));
 
-      // Movement.
+      // Movement. Ghost cadence speeds up with the stage ("larger assignments").
+      const ghostStep = ghostStepFor(s.stage, cfg);
       if (ctx.tick > 0 && ctx.tick % cfg.playerStepTicks === 0) movePlayer(s, maze, cfg);
-      if (ctx.tick > 0 && ctx.tick % cfg.ghostStepTicks === 0) {
+      if (ctx.tick > 0 && ctx.tick % ghostStep === 0) {
         s.ghosts.forEach((g, i) => {
           if (!released(s, i, cfg) || g.eaten) return; // still in the house, or sent home
           const dir = g.frightened
@@ -252,11 +279,21 @@ export function makeTheDocket(cfg: DocketConfig): Game<DocketState, DocketInput,
         }
       });
 
-      // Cleared the whole docket (all childhood + all reforms).
+      // Stage cleared (all childhood + all reforms gone). Every clear deepens the moral
+      // injury — winning the maze never undoes the toll. Advance to a tougher stage, or
+      // finish the run on the final one.
       if (!s.cleared && s.pellets.size === 0 && s.powerPellets.size === 0) {
-        s.cleared = true;
-        s.score += cfg.scoring.clearBonus;
-        s.lastEvent = "clear";
+        s.moralInjury = Math.min(100, s.moralInjury + cfg.moralInjuryPerStage);
+        if (s.stage < cfg.stages) {
+          s.stage += 1;
+          s.score += cfg.scoring.stageBonus;
+          s.lastEvent = "stage";
+          resetStage(s, maze, cfg);
+        } else {
+          s.cleared = true;
+          s.score += cfg.scoring.clearBonus;
+          s.lastEvent = "clear";
+        }
       }
 
       return s;
@@ -268,12 +305,20 @@ export function makeTheDocket(cfg: DocketConfig): Game<DocketState, DocketInput,
 
     score(s): ScoreBreakdown {
       const flags: string[] = [];
-      if (s.cleared) flags.push("cleared");
+      if (s.cleared) flags.push("cleared"); // survived all stages
       if (s.caughtCount === 0) flags.push("untouched");
       if (s.ghostsEaten > 0) flags.push("pushed_back");
+      if (s.moralInjury >= 100) flags.push("moral_injury"); // the meter maxed — the toll the maze can't undo
       return {
         total: Math.max(0, Math.round(s.score)),
-        components: { childhoodSaved: s.pelletsEaten, lives: s.lives, caught: s.caughtCount, ghostsEaten: s.ghostsEaten },
+        components: {
+          childhoodSaved: s.pelletsEaten,
+          stageReached: s.stage,
+          moralInjury: s.moralInjury,
+          lives: s.lives,
+          caught: s.caughtCount,
+          ghostsEaten: s.ghostsEaten,
+        },
         flags,
         ceiling: scoreCeiling(cfg),
       };
@@ -281,4 +326,4 @@ export function makeTheDocket(cfg: DocketConfig): Game<DocketState, DocketInput,
   };
 }
 
-export { PERSONALITIES };
+export { PERSONALITIES, ghostStepFor };
