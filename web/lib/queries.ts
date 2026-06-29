@@ -61,6 +61,7 @@ export type VolunteerRow = {
   door: string | null; // which /join door they came through (e.g. "Team Captain")
   optedOut: boolean; // opted out of contact (email unsubscribe-all / SMS STOP)
   pledgeFulfilled: boolean; // a Donor-Pledge signup whose WinRed gift has landed
+  interestedTasks: string[]; // matched tasks they raised their hand for on /community
   lastContactedAt: string | null;
   createdAt: string;
 };
@@ -169,6 +170,7 @@ export async function getVolunteers(): Promise<{ connected: boolean; rows: Volun
         door: (v.door as string) ?? null,
         optedOut: !!v.optedOut,
         pledgeFulfilled: !!v.pledgeFulfilledAt,
+        interestedTasks: Array.isArray(v.interestedTasks) ? (v.interestedTasks as string[]) : [],
         lastContactedAt: (v.lastContactedAt as string) ?? null,
         createdAt: String(v.createdAt ?? ""),
       }))
@@ -206,6 +208,7 @@ export async function getVolunteer(id: string): Promise<VolunteerRow | null> {
       door: (v.door as string) ?? null,
       optedOut: !!v.optedOut,
       pledgeFulfilled: !!v.pledgeFulfilledAt,
+      interestedTasks: Array.isArray(v.interestedTasks) ? (v.interestedTasks as string[]) : [],
       lastContactedAt: (v.lastContactedAt as string) ?? null,
       createdAt: String(v.createdAt ?? ""),
     };

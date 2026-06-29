@@ -9,7 +9,7 @@ const task = (over: Partial<TaskRow> = {}): TaskRow => ({
 const vol = (over: Partial<VolunteerRow> = {}): VolunteerRow => ({
   id: "v", name: "V", email: null, phone: null, city: null, interests: null, interestTags: [],
   notes: null, status: "ACTIVE", assignedTo: null, captainEmail: null, zip: null, mode: null, skills: [], availability: [],
-  roles: [], commitment: null, door: null, optedOut: false, pledgeFulfilled: false, lastContactedAt: null, createdAt: "", ...over,
+  roles: [], commitment: null, door: null, optedOut: false, pledgeFulfilled: false, interestedTasks: [], lastContactedAt: null, createdAt: "", ...over,
 });
 
 describe("taskInterests", () => {
