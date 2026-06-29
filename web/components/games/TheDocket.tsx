@@ -16,6 +16,7 @@ type Phase = "ready" | "playing" | "over";
 interface EndData { score: number; ceiling: number; flags: string[] }
 
 const ROUND_TICKS = docketConfig.roundTicks;
+const STAGES = docketConfig.stages;
 const MAZE = parseMaze(docketConfig.maze);
 const CELL = 24; // px per maze cell
 const newSeed = () => `${Date.now().toString(36)}-${Math.floor(Math.random() * 1e9).toString(36)}`;
@@ -137,17 +138,29 @@ export function TheDocket({ content }: { content: GameContent }) {
               <li key={h}>{h}</li>
             ))}
           </ul>
-          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-brick">Prototype — Phase 2 (one maze · four mechanisms · Reforms)</p>
+          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-brick">Prototype — Phase 3 (ten stages · escalating system · moral-injury meter)</p>
           <button onClick={start} className="btn-brick mt-4">Start</button>
         </div>
       )}
 
       {phase === "playing" && state && (
         <>
-          <div className="grid grid-cols-3 gap-4 rounded-lg border border-line bg-white p-4 shadow-card" role="status" aria-live="polite">
+          <div className="grid grid-cols-2 gap-4 rounded-lg border border-line bg-white p-4 shadow-card sm:grid-cols-4" role="status" aria-live="polite">
             <div className="flex flex-col"><span className="eyebrow text-slate">Score</span><span className="font-mono text-lg font-bold tabular-nums text-ink">{state.score.toLocaleString("en-US")}</span></div>
+            <div className="flex flex-col"><span className="eyebrow text-slate">Stage</span><span className="font-mono text-lg font-bold tabular-nums text-ink">{state.stage}<span className="text-slate">/{STAGES}</span></span></div>
             <div className="flex flex-col"><span className="eyebrow text-slate">Childhood left</span><span className="font-mono text-lg font-bold tabular-nums text-ink">{state.pellets.size}</span></div>
             <div className="flex flex-col"><span className="eyebrow text-slate">Lives</span><span className="font-mono text-lg font-bold tabular-nums text-ink">{"♥".repeat(Math.max(0, state.lives))}</span></div>
+          </div>
+
+          {/* Moral-injury meter — climbs every stage cleared; the maze can't bring it down. */}
+          <div className="mx-auto max-w-sm">
+            <div className="flex items-baseline justify-between text-xs">
+              <span className="eyebrow text-slate">Moral injury</span>
+              <span className="font-mono tabular-nums text-brick">{state.moralInjury}%</span>
+            </div>
+            <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-line" role="progressbar" aria-label="Moral injury" aria-valuenow={state.moralInjury} aria-valuemin={0} aria-valuemax={100}>
+              <div className="h-full rounded-full bg-brick transition-[width] duration-500 ease-out motion-reduce:transition-none" style={{ width: `${state.moralInjury}%` }} />
+            </div>
           </div>
 
           <div className="flex justify-center">
@@ -196,9 +209,11 @@ export function TheDocket({ content }: { content: GameContent }) {
             Time {Math.max(0, Math.ceil(secondsLeft))}s —{" "}
             {state.powerTicksLeft > 0
               ? `⚡ Reform active ${Math.ceil(state.powerTicksLeft * (DEFAULT_DT_MS / 1000))}s — push the system back`
-              : state.lastEvent === "caught"
-                ? "✗ The system caught you"
-                : "Arrow keys / WASD to move"}
+              : state.lastEvent === "stage"
+                ? `Stage cleared — a larger assignment begins (stage ${state.stage}/${STAGES})`
+                : state.lastEvent === "caught"
+                  ? "✗ The system caught you"
+                  : "Arrow keys / WASD to move"}
           </p>
 
           {/* on-screen pad for touch */}
