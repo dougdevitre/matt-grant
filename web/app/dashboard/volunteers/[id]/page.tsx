@@ -88,6 +88,7 @@ export default async function VolunteerDetailPage({ params }: { params: Promise<
             <Row label="City" value={v.city} />
             <Row label="Commitment" value={v.commitment} />
             <Row label="Roles" value={v.roles.length ? v.roles.join(", ") : null} />
+            <Row label="Wants to do" value={v.interestedTasks.length ? v.interestedTasks.join(", ") : null} />
             <Row label="Interests" value={v.interests} />
             <Row label="Owner" value={v.assignedTo} />
             <Row label="Last contacted" value={v.lastContactedAt ? fmt(v.lastContactedAt) : null} />

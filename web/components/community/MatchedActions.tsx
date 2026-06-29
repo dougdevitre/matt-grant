@@ -1,5 +1,6 @@
 import { getMyVolunteerProfile } from "@/lib/volunteers/self";
 import { listMatchableTasks, matchTasks } from "@/lib/volunteers/task-match";
+import { expressTaskInterest } from "@/app/(site)/community/actions";
 import { CAMPAIGN } from "@/lib/site";
 
 // "Your next actions" — the last hop that turns a /join signup into doing. Reads the
@@ -7,10 +8,13 @@ import { CAMPAIGN } from "@/lib/site";
 // task templates, and shows the ones matched to them (by role, skill, commitment,
 // mode, availability). Async server component; self-scoped to the passed email.
 //
-// Degrades quietly: no Airtable / nothing Active yet → renders a soft "coming soon"
-// for known volunteers, and nothing at all for people without a volunteer profile
-// (the donate/share/take-action cards already serve them).
+// "I'm interested" records the task on the volunteer's record and pings their team
+// captain (the campaign inbox if they have no team yet) — so raising a hand actually
+// reaches the person who staffs them. Degrades quietly: no Airtable / nothing Active
+// → soft "coming soon" for known volunteers; nothing for people with no volunteer
+// profile (the donate/share/take-action cards already serve them).
 const chip = "rounded-sm border border-line px-2 py-0.5 font-mono text-[0.65rem] text-slate";
+const lc = (s: string) => s.trim().toLowerCase();
 
 function interestMailto(taskName: string): string {
   const subject = encodeURIComponent(`I want to help: ${taskName}`);
@@ -25,8 +29,6 @@ export async function MatchedActions({ email }: { email?: string | null }) {
   const matches = matchTasks(profile ?? {}, tasks, 6);
 
   if (matches.length === 0) {
-    // Only reassure people who actually signed up to help; pure supporters just
-    // see the standard ways-to-help section below.
     if (!profile) return null;
     return (
       <div className="mt-14">
@@ -39,28 +41,44 @@ export async function MatchedActions({ email }: { email?: string | null }) {
     );
   }
 
+  const interested = new Set((profile?.interestedTasks ?? []).map(lc));
+
   return (
     <div className="mt-14">
       <p className="eyebrow text-brick">Matched to you</p>
       <h2 className="mt-2 text-2xl font-semibold">Your next actions</h2>
       <p className="mt-1 max-w-prose text-sm text-slate">
-        Based on what you told us, here&apos;s where you fit. Tell us you&apos;re in and a captain will get you started.
+        Based on what you told us, here&apos;s where you fit. Raise your hand and your captain will get you started.
       </p>
       <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {matches.map(({ task, reasons }) => (
-          <div key={task.id} className="card flex flex-col p-6">
-            <p className="font-display text-lg font-semibold">{task.name}</p>
-            {task.whatTheyDo && <p className="mt-1 text-sm text-slate">{task.whatTheyDo}</p>}
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {task.mode && <span className={chip}>{task.mode === "Digital" ? "From home" : task.mode === "In-person" ? "In person" : "Either"}</span>}
-              {task.effort && <span className={chip}>{task.effort}</span>}
-              {reasons.length > 0 && <span className={`${chip} border-brick/30 text-brick`}>matches: {reasons[0]}</span>}
+        {matches.map(({ task, reasons }) => {
+          const done = interested.has(lc(task.name));
+          return (
+            <div key={task.id} className="card flex flex-col p-6">
+              <p className="font-display text-lg font-semibold">{task.name}</p>
+              {task.whatTheyDo && <p className="mt-1 text-sm text-slate">{task.whatTheyDo}</p>}
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {task.mode && <span className={chip}>{task.mode === "Digital" ? "From home" : task.mode === "In-person" ? "In person" : "Either"}</span>}
+                {task.effort && <span className={chip}>{task.effort}</span>}
+                {reasons.length > 0 && <span className={`${chip} border-brick/30 text-brick`}>matches: {reasons[0]}</span>}
+              </div>
+              {done ? (
+                <p className="mt-4 text-sm font-semibold text-field">✓ Interested — your captain will reach out</p>
+              ) : profile ? (
+                <form action={expressTaskInterest} className="mt-4">
+                  <input type="hidden" name="task" value={task.name} />
+                  <button type="submit" className="text-sm font-semibold text-brick hover:underline">
+                    I&apos;m interested →
+                  </button>
+                </form>
+              ) : (
+                <a href={interestMailto(task.name)} className="mt-4 text-sm font-semibold text-brick hover:underline">
+                  I&apos;m interested →
+                </a>
+              )}
             </div>
-            <a href={interestMailto(task.name)} className="mt-4 text-sm font-semibold text-brick hover:underline">
-              I&apos;m interested →
-            </a>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

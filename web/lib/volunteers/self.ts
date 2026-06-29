@@ -13,6 +13,7 @@ export type MyVolunteerProfile = MatchProfile & {
   zip: string | null;
   city: string | null;
   captainEmail: string | null; // the team captain they're on, if any
+  interestedTasks: string[]; // matched tasks they clicked "I'm interested" on
 };
 
 export async function getMyVolunteerProfile(email?: string | null): Promise<MyVolunteerProfile | null> {
@@ -33,6 +34,7 @@ export async function getMyVolunteerProfile(email?: string | null): Promise<MyVo
       zip: typeof v.zip === "string" ? v.zip : null,
       city: typeof v.city === "string" ? v.city : null,
       captainEmail: typeof v.captainEmail === "string" ? v.captainEmail : null,
+      interestedTasks: Array.isArray(v.interestedTasks) ? (v.interestedTasks as string[]) : [],
     };
   } catch {
     return null;
