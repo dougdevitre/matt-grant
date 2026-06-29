@@ -13,10 +13,13 @@ export interface ParsedMaze {
   height: number;
   /** walls[row][col] === true where a wall blocks movement */
   walls: boolean[][];
-  /** remaining-pellet cell keys ("col,row"); the reducer clones + shrinks this */
+  /** remaining childhood-pellet cell keys ("col,row"); the reducer clones + shrinks this */
   pellets: Set<string>;
+  /** power-pellet ("Reform") cell keys */
+  powerPellets: Set<string>;
   playerStart: Cell;
-  ghostStart: Cell;
+  /** 1–4 ghost start cells, in maze reading order */
+  ghostStarts: Cell[];
 }
 
 export const cellKey = (col: number, row: number): string => `${col},${row}`;
@@ -35,8 +38,9 @@ export function parseMaze(rows: string[]): ParsedMaze {
   const width = rows[0].length;
   const walls: boolean[][] = [];
   const pellets = new Set<string>();
+  const powerPellets = new Set<string>();
   let playerStart: Cell = { col: 1, row: 1 };
-  let ghostStart: Cell = { col: 1, row: 1 };
+  const ghostStarts: Cell[] = [];
 
   for (let row = 0; row < height; row++) {
     walls[row] = [];
@@ -44,11 +48,13 @@ export function parseMaze(rows: string[]): ParsedMaze {
       const ch = rows[row][col];
       walls[row][col] = ch === "#";
       if (ch === ".") pellets.add(cellKey(col, row));
+      else if (ch === "o") powerPellets.add(cellKey(col, row));
       else if (ch === "P") playerStart = { col, row };
-      else if (ch === "G") ghostStart = { col, row };
+      else if (ch === "G") ghostStarts.push({ col, row });
     }
   }
-  return { width, height, walls, pellets, playerStart, ghostStart };
+  if (ghostStarts.length === 0) ghostStarts.push({ col: 1, row: 1 });
+  return { width, height, walls, pellets, powerPellets, playerStart, ghostStarts };
 }
 
 /** True if (col,row) is inside the grid and not a wall. */

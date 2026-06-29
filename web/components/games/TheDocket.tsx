@@ -36,7 +36,12 @@ export function TheDocket({ content }: { content: GameContent }) {
   const rafRef = useRef<number | null>(null);
   const lastTsRef = useRef<number>(0);
   // Eased display positions (floats), lerped toward the authoritative grid cells.
-  const dispRef = useRef({ px: MAZE.playerStart.col, py: MAZE.playerStart.row, gx: MAZE.ghostStart.col, gy: MAZE.ghostStart.row });
+  const initDisp = () => ({
+    px: MAZE.playerStart.col,
+    py: MAZE.playerStart.row,
+    ghosts: MAZE.ghostStarts.map((g) => ({ x: g.col, y: g.row })),
+  });
+  const dispRef = useRef(initDisp());
 
   const stopLoop = useCallback(() => {
     if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
@@ -59,14 +64,18 @@ export function TheDocket({ content }: { content: GameContent }) {
       const elapsed = lastTsRef.current ? ts - lastTsRef.current : DEFAULT_DT_MS;
       lastTsRef.current = ts;
       session.advance(elapsed);
-      // Ease display toward the sim's grid cells (wall-wrap not used in phase 1).
+      // Ease display toward the sim's grid cells.
       const st = session.state;
       const d = dispRef.current;
       const k = Math.min(1, elapsed / 90); // ~90ms to close the gap
       d.px += (st.player.col - d.px) * k;
       d.py += (st.player.row - d.py) * k;
-      d.gx += (st.ghost.col - d.gx) * k;
-      d.gy += (st.ghost.row - d.gy) * k;
+      st.ghosts.forEach((g, i) => {
+        const gd = d.ghosts[i];
+        if (!gd) return;
+        gd.x += (g.col - gd.x) * k;
+        gd.y += (g.row - gd.y) * k;
+      });
       repaint();
       if (session.isOver()) return finalize();
       rafRef.current = requestAnimationFrame(loop);
@@ -78,7 +87,7 @@ export function TheDocket({ content }: { content: GameContent }) {
     gameRef.current = buildTheDocket();
     sessionRef.current = createLiveSession(gameRef.current, docketConfig, seed);
     lastTsRef.current = 0;
-    dispRef.current = { px: MAZE.playerStart.col, py: MAZE.playerStart.row, gx: MAZE.ghostStart.col, gy: MAZE.ghostStart.row };
+    dispRef.current = initDisp();
     setEnd(null);
     setPhase("playing");
     rafRef.current = requestAnimationFrame(loop);
@@ -128,7 +137,7 @@ export function TheDocket({ content }: { content: GameContent }) {
               <li key={h}>{h}</li>
             ))}
           </ul>
-          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-brick">Prototype — Phase 1 (one maze, one ghost)</p>
+          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-brick">Prototype — Phase 2 (one maze · four mechanisms · Reforms)</p>
           <button onClick={start} className="btn-brick mt-4">Start</button>
         </div>
       )}
@@ -158,15 +167,38 @@ export function TheDocket({ content }: { content: GameContent }) {
                 const [c, r] = key.split(",").map(Number);
                 return <span key={`p${key}`} className="absolute rounded-full bg-gold" style={{ left: c * CELL + CELL / 2 - 3, top: r * CELL + CELL / 2 - 3, width: 6, height: 6 }} aria-hidden="true" />;
               })}
-              {/* ghost (the system) */}
-              <span className="absolute grid place-items-center rounded-t-full bg-brick text-paper transition-none" style={{ left: d.gx * CELL + 2, top: d.gy * CELL + 2, width: CELL - 4, height: CELL - 4, fontSize: 10 }} aria-hidden="true">▼</span>
+              {/* power pellets (Reforms) */}
+              {[...state.powerPellets].map((key) => {
+                const [c, r] = key.split(",").map(Number);
+                return <span key={`o${key}`} className="absolute animate-pulse rounded-full border-2 border-gold bg-gold/40 motion-reduce:animate-none" style={{ left: c * CELL + CELL / 2 - 6, top: r * CELL + CELL / 2 - 6, width: 12, height: 12 }} aria-hidden="true" />;
+              })}
+              {/* ghosts (the system's mechanisms) — frightened (edible) when a Reform is active */}
+              {state.ghosts.map((g, i) => {
+                if (g.eaten) return null;
+                const gd = d.ghosts[i] ?? { x: g.col, y: g.row };
+                return (
+                  <span
+                    key={`g${i}`}
+                    className={`absolute grid place-items-center rounded-t-full text-paper ${g.frightened ? "bg-slate" : "bg-brick"}`}
+                    style={{ left: gd.x * CELL + 2, top: gd.y * CELL + 2, width: CELL - 4, height: CELL - 4, fontSize: 10 }}
+                    aria-hidden="true"
+                  >
+                    {g.frightened ? "✦" : "▼"}
+                  </span>
+                );
+              })}
               {/* player (the advocate) */}
               <span className="absolute grid place-items-center rounded-full bg-ink text-paper" style={{ left: d.px * CELL + 2, top: d.py * CELL + 2, width: CELL - 4, height: CELL - 4, fontSize: 11 }} aria-hidden="true">●</span>
             </div>
           </div>
 
           <p className="text-center text-xs text-slate">
-            Time {Math.max(0, Math.ceil(secondsLeft))}s — {state.lastEvent === "caught" ? "✗ The system caught you" : "Arrow keys / WASD to move"}
+            Time {Math.max(0, Math.ceil(secondsLeft))}s —{" "}
+            {state.powerTicksLeft > 0
+              ? `⚡ Reform active ${Math.ceil(state.powerTicksLeft * (DEFAULT_DT_MS / 1000))}s — push the system back`
+              : state.lastEvent === "caught"
+                ? "✗ The system caught you"
+                : "Arrow keys / WASD to move"}
           </p>
 
           {/* on-screen pad for touch */}

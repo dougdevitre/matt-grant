@@ -7,12 +7,13 @@
     "tagline": "Protect a child's childhood before the system devours it.",
     "howTo": [
       "Use the arrow keys (or swipe) to move through the docket.",
-      "Collect every bit of childhood before the system reaches you.",
-      "Avoid the system's mechanisms — they consume what you can't protect.",
-      "Clear the maze to move to the next case. (Phase 1: one maze.)"
+      "Collect every bit of childhood before the system's mechanisms reach you.",
+      "Grab a Reform (the big markers) to turn the tables — then push the system back.",
+      "Four mechanisms chase you in different ways. Clear the maze to win. (Phase 2.)"
     ],
     "itemLabels": {
       "childhood": ["Childhood"],
+      "power": ["Reform"],
       "ghost": ["Delay", "Red Tape", "Sealed File", "Conflict"]
     },
     "endLines": [
@@ -25,21 +26,24 @@
   "config": {
     "maze": [
       "###############",
-      "#.............#",
+      "#o...........o#",
       "#.##.##.##.##.#",
       "#.............#",
       "#.##.##.##.##.#",
-      "#......G......#",
+      "#....GGGG.....#",
       "#.##.##.##.##.#",
       "#.............#",
       "#.##.##.##.##.#",
-      "#......P......#",
+      "#o....P......o#",
       "###############"
     ],
     "playerStepTicks": 6,
-    "ghostStepTicks": 8,
+    "ghostStepTicks": 9,
     "startLives": 3,
-    "roundTicks": 5400,
-    "scoring": { "pelletValue": 10, "clearBonus": 2000 }
+    "roundTicks": 7200,
+    "powerDurationTicks": 240,
+    "ghostReleaseTicks": 90,
+    "spawnGraceTicks": 60,
+    "scoring": { "pelletValue": 10, "powerValue": 50, "clearBonus": 3000, "ghostBaseValue": 200 }
   }
 }
