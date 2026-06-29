@@ -80,3 +80,9 @@ Domination is as much about *not* shipping weak posts as shipping strong ones. T
 This toolkit is for **authentic, compliant** reach. It does **not** support — and the campaign will not use — fake engagement, bought followers, astroturfed comments, undisclosed paid promotion, or impersonation. Domination here means *organic relevance done consistently and within the law*, not manipulation.
 
 > Educational information, not legal advice. Consult a campaign-finance attorney or the FEC for guidance specific to your situation.
+
+---
+
+## Related
+
+- [sms-texting.md](sms-texting.md) -- SMS/text as a conversion channel: opt-in/consent, keyword sign-up flow, compliant templates, cadence/opt-out guardrails, and cost tracking.
