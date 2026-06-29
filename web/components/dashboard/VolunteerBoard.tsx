@@ -143,6 +143,11 @@ export function VolunteerBoard({ rows, taskCounts, donorEmails = [], me = null }
                         ⊘ opted out
                       </span>
                     )}
+                    {v.pledgeFulfilled && (
+                      <span className="rounded-sm bg-field/15 px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-field" title="Made a donor pledge and a matching WinRed gift has landed — pledge fulfilled">
+                        ✓ pledge fulfilled
+                      </span>
+                    )}
                   </div>
                 </div>
                 {v.interests && <p className="mt-3 text-sm text-slate">{v.interests}</p>}
