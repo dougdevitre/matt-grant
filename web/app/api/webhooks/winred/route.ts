@@ -133,6 +133,13 @@ export async function POST(req: NextRequest) {
     } catch {
       /* role upgrade is best-effort; the gift is already recorded */
     }
+    // Reconcile a /join "Donor Pledge" into a fulfilled gift so staff stop chasing it.
+    try {
+      const { reconcilePledgeOnGift } = await import("@/lib/volunteers/pledge");
+      await reconcilePledgeOnGift(rec.email, Math.round((rec.amount ?? 0) * 100));
+    } catch {
+      /* best-effort; the gift is already recorded */
+    }
   }
 
   return NextResponse.json({

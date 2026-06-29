@@ -92,4 +92,10 @@ describe("submitVolunteerDetail", () => {
     await submitVolunteerDetail(null, fd({ door: "Admin", name: "X" }));
     expect(saveVolunteerSignup).toHaveBeenCalledWith(expect.objectContaining({ door: "Volunteer" }));
   });
+
+  it("passes the SMS opt-in through", async () => {
+    staffGate.mockResolvedValue({ email: "v@x.com" });
+    await submitVolunteerDetail(null, fd({ door: "Volunteer", name: "V", smsOptIn: "1" }));
+    expect(saveVolunteerSignup).toHaveBeenCalledWith(expect.objectContaining({ smsOptIn: true }));
+  });
 });

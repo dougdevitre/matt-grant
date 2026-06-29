@@ -5,8 +5,11 @@ import { getVolunteer, getTasks } from "@/lib/queries";
 import { signVolunteerToken } from "@/lib/volunteer-link";
 import { PageHeader } from "@/components/dashboard/Notice";
 import { updateVolunteer, markVolunteerContacted, updateVolunteerNotes, updateVolunteerProfile } from "@/app/dashboard/actions";
+import { promoteToCaptain } from "@/app/dashboard/team/actions";
 import { VOLUNTEER_MODES, VOLUNTEER_AVAILABILITY, VOLUNTEER_SKILLS } from "@/lib/volunteer-profile";
 import { requireCap } from "@/lib/auth";
+import { can } from "@/lib/rbac";
+import { staffRole } from "@/lib/staff";
 
 export const dynamic = "force-dynamic";
 
@@ -30,10 +33,15 @@ const Row = ({ label, value }: { label: string; value: string | null }) =>
   ) : null;
 
 export default async function VolunteerDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireCap("manageVolunteers");
+  const gate = await requireCap("manageVolunteers");
+  const canPromote = can(gate.role, "manageTeam"); // admins only mint captains
   const { id } = await params;
   const v = await getVolunteer(id);
   if (!v) notFound();
+  // Whether this person already holds the captain (or higher) role, so we show a
+  // confirmed badge instead of "applicant" and hide the promote button once done.
+  const memberRole = v.email ? await staffRole(v.email) : null;
+  const isCaptainAlready = memberRole === "captain" || memberRole === "admin";
   const { rows: allTasks } = await getTasks();
   const tasks = allTasks.filter((t) => t.volunteerId === v.id);
   // Private magic-link the captain can send so this volunteer sees & updates
@@ -51,13 +59,18 @@ export default async function VolunteerDetailPage({ params }: { params: Promise<
           {v.status}
         </span>
         {v.door === "Team Captain" && (
-          <span className="rounded-sm bg-brick/10 px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow text-brick">
-            Captain applicant
+          <span className={`rounded-sm px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow ${isCaptainAlready ? "bg-field/15 text-field" : "bg-brick/10 text-brick"}`}>
+            {isCaptainAlready ? "Captain" : "Captain applicant"}
           </span>
         )}
         {v.optedOut && (
           <span className="rounded-sm bg-brick/15 px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow text-brick" title="Opted out of contact — do not email or text">
             ⊘ Opted out
+          </span>
+        )}
+        {v.pledgeFulfilled && (
+          <span className="rounded-sm bg-field/15 px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow text-field" title="Donor pledge fulfilled — a matching WinRed gift has landed">
+            ✓ Pledge fulfilled
           </span>
         )}
       </PageHeader>
@@ -118,6 +131,19 @@ export default async function VolunteerDetailPage({ params }: { params: Promise<
             <input type="hidden" name="current" value={v.status} />
             <button type="submit" className="text-sm font-semibold text-field hover:underline">✓ Mark contacted today</button>
           </form>
+
+          {/* One-click captain promotion — admins only (manageTeam). Sets the captain
+              RBAC role + staff row + sends the access welcome. Surfaced prominently for
+              /join captain applicants, available for any volunteer with an email. */}
+          {canPromote && v.email && !isCaptainAlready && (
+            <form action={promoteToCaptain} className={`mt-4 rounded-sm border p-3 ${v.door === "Team Captain" ? "border-brick/40 bg-brick/5" : "border-line"}`}>
+              <input type="hidden" name="email" value={v.email} />
+              <input type="hidden" name="name" value={v.name} />
+              {v.door === "Team Captain" && <p className="mb-1 text-xs font-semibold text-brick">Captain applicant — review their note above</p>}
+              <button type="submit" className="btn-ghost px-3 py-1.5 text-sm">★ Promote to Captain</button>
+              <p className="mt-1 text-xs text-slate">Grants the Captain role (dashboard access) and emails them their access.</p>
+            </form>
+          )}
 
           {/* Matching profile — feeds the task-board "Suggested" assignees. */}
           <form action={updateVolunteerProfile} className="mt-6 space-y-3 border-t border-line pt-5">

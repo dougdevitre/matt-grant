@@ -2,6 +2,8 @@ import { getVolunteers, getTasks, getDonors } from "@/lib/queries";
 import { emailSet } from "@/lib/engagement";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
+import { listStaff } from "@/lib/staff";
+import { listMatchableTasks } from "@/lib/volunteers/task-match";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { VolunteerBoard } from "@/components/dashboard/VolunteerBoard";
 import { VolunteerImport } from "@/components/dashboard/VolunteerImport";
@@ -15,6 +17,16 @@ export default async function VolunteersPage() {
   // Flag volunteers who have also given — only for staff allowed to see donor
   // totals (captains+admins); members never learn donor identities here.
   const donorEmails = can(role, "viewFinanceTotals") ? [...emailSet((await getDonors()).rows)] : [];
+  // Active staff captains (incl. admins) so the board shows a confirmed "captain"
+  // instead of "applicant" once someone's promoted. Best-effort.
+  const captainEmails = (await listStaff().catch(() => []))
+    .filter((s) => s.status === "active" && (s.role === "captain" || s.role === "admin"))
+    .map((s) => s.email.toLowerCase());
+  // Admin nudge: the /community "matched actions" only surface Active, community-
+  // visible task templates. If none are Active, that feature is dark — prompt admins
+  // to curate templates in Airtable. Best-effort; admins only.
+  const isAdmin = can(role, "manageTeam");
+  const noActiveTasks = isAdmin && connected && (await listMatchableTasks().catch(() => [])).length === 0;
 
   return (
     <>
@@ -30,6 +42,19 @@ export default async function VolunteersPage() {
       </PageHeader>
 
       {!connected && <DbNotice />}
+
+      {noActiveTasks && (
+        <div className="mt-4 rounded-sm border border-gold/40 bg-gold/10 p-4">
+          <p className="font-display text-sm font-semibold text-ink">Turn on matched actions for volunteers</p>
+          <p className="mt-1 text-sm text-slate">
+            No task templates are <span className="font-semibold">Active</span> yet, so volunteers see no
+            &ldquo;your next actions&rdquo; on their community hub. In Airtable open{" "}
+            <span className="font-mono">Task Templates</span> and set good ones to{" "}
+            <span className="font-mono">Status = Active</span> (with <span className="font-mono">Visible To</span>{" "}
+            including Supporter or Volunteer) to switch matching on.
+          </p>
+        </div>
+      )}
 
       <HowTo
         steps={[
@@ -47,7 +72,7 @@ export default async function VolunteersPage() {
           No volunteers yet. Leads from the public <span className="font-mono">/contact</span> form land here — or import a list above.
         </div>
       ) : (
-        <VolunteerBoard rows={rows} taskCounts={taskCounts} donorEmails={donorEmails} me={email} />
+        <VolunteerBoard rows={rows} taskCounts={taskCounts} donorEmails={donorEmails} captainEmails={captainEmails} me={email} />
       )}
     </>
   );
