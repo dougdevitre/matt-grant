@@ -13,7 +13,7 @@ import { EndScreen } from "./EndScreen";
 // positions ease toward the grid cells so movement reads smooth, not steppy.
 
 type Phase = "ready" | "playing" | "over";
-interface EndData { score: number; ceiling: number; flags: string[] }
+interface EndData { score: number; ceiling: number; flags: string[]; moralInjury: number; stage: number; cleared: boolean }
 
 const ROUND_TICKS = docketConfig.roundTicks;
 const STAGES = docketConfig.stages;
@@ -25,6 +25,49 @@ const KEY_DIR: Record<string, Dir> = {
   ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right",
   KeyW: "up", KeyS: "down", KeyA: "left", KeyD: "right",
 };
+
+// PHASE 4 ending — the moral-injury beat (the toll the maze can't undo) followed by the
+// reform plan. The plan's policy steps come ONLY from the documented platform (content
+// data, tone-linted); the framing/CTA beats carry no policy. Shown on every game-over so
+// the thesis ("reform is the only real win") lands whether you clear all ten or get caught.
+function DocketEnding({ end, ending }: { end: EndData; ending: NonNullable<GameContent["ending"]> }) {
+  return (
+    <section className="space-y-6 rounded-lg border border-brick/30 bg-white p-6 shadow-card" aria-labelledby="docket-reform-heading">
+      <div>
+        <p className="eyebrow text-brick">{end.cleared ? "All ten cleared" : `Caught at stage ${end.stage}/${STAGES}`}</p>
+        <p className="mt-2 text-lg font-semibold text-ink">{end.cleared ? ending.beatWon : ending.beatLost}</p>
+        <div className="mt-4">
+          <div className="flex items-baseline justify-between text-xs">
+            <span className="eyebrow text-slate">Moral injury</span>
+            <span className="font-mono tabular-nums text-brick">{end.moralInjury}%</span>
+          </div>
+          <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-line" role="progressbar" aria-label="Moral injury" aria-valuenow={end.moralInjury} aria-valuemin={0} aria-valuemax={100}>
+            <div className="h-full rounded-full bg-brick" style={{ width: `${end.moralInjury}%` }} />
+          </div>
+        </div>
+        <div className="mt-4 space-y-1">
+          {ending.body.map((line) => (
+            <p key={line} className="text-sm text-slate">{line}</p>
+          ))}
+        </div>
+      </div>
+      <div>
+        <h3 id="docket-reform-heading" className="text-base font-semibold text-ink">{ending.reformHeading}</h3>
+        <ol className="mt-3 space-y-3">
+          {ending.reformPlan.map((step, i) => (
+            <li key={step.title} className="flex gap-3">
+              <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-brick text-xs font-bold tabular-nums text-paper" aria-hidden="true">{i + 1}</span>
+              <span className="text-sm">
+                <span className="font-semibold text-ink">{step.title}</span> <span className="text-slate">— {step.detail}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </div>
+      <a href={ending.cta.href} className="btn-brick inline-block">{ending.cta.label} →</a>
+    </section>
+  );
+}
 
 export function TheDocket({ content }: { content: GameContent }) {
   const [phase, setPhase] = useState<Phase>("ready");
@@ -53,8 +96,9 @@ export function TheDocket({ content }: { content: GameContent }) {
     stopLoop();
     const session = sessionRef.current;
     if (!session) return;
-    const local = gameRef.current.score(session.state);
-    setEnd({ score: local.total, ceiling: local.ceiling, flags: local.flags });
+    const st = session.state;
+    const local = gameRef.current.score(st);
+    setEnd({ score: local.total, ceiling: local.ceiling, flags: local.flags, moralInjury: st.moralInjury, stage: st.stage, cleared: st.cleared });
     setPhase("over");
   }, [stopLoop]);
 
@@ -138,7 +182,7 @@ export function TheDocket({ content }: { content: GameContent }) {
               <li key={h}>{h}</li>
             ))}
           </ul>
-          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-brick">Prototype — Phase 3 (ten stages · escalating system · moral-injury meter)</p>
+          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-brick">Prototype — Phase 4 (ten stages · moral-injury meter · reform-plan ending)</p>
           <button onClick={start} className="btn-brick mt-4">Start</button>
         </div>
       )}
@@ -227,6 +271,8 @@ export function TheDocket({ content }: { content: GameContent }) {
           </div>
         </>
       )}
+
+      {phase === "over" && end && content.ending && <DocketEnding end={end} ending={content.ending} />}
 
       {phase === "over" && end && (
         <EndScreen
