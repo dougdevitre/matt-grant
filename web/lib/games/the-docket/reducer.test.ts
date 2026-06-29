@@ -1,21 +1,26 @@
 import { describe, it, expect } from "vitest";
 import { replay, makeRng, type InputEvent } from "@/lib/games/engine";
-import { makeTheDocket, scoreCeiling, type DocketInput } from "./reducer";
+import { makeTheDocket, scoreCeiling, ghostStepFor, type DocketInput } from "./reducer";
 import { parseMaze, isOpen } from "./maze";
 import { DocketConfigSchema, type DocketConfig } from "./config.schema";
 import { docketConfig } from "./content";
 
 const cfg: DocketConfig = docketConfig;
 
+// Single-stage defaults so the corridor fixtures clear the whole run in one maze.
 const baseTimings = {
   playerStepTicks: 1,
   ghostStepTicks: 1,
+  stages: 1,
+  ghostSpeedupPerStage: 0,
+  minGhostStepTicks: 1,
+  moralInjuryPerStage: 0,
   startLives: 3,
   roundTicks: 300,
   powerDurationTicks: 120,
   ghostReleaseTicks: 0,
   spawnGraceTicks: 0,
-  scoring: { pelletValue: 10, powerValue: 50, clearBonus: 100, ghostBaseValue: 200 },
+  scoring: { pelletValue: 10, powerValue: 50, stageBonus: 25, clearBonus: 100, ghostBaseValue: 200 },
 };
 
 // A boxed-ghost corridor for movement/clear (ghost can't interfere). Steps every tick.
@@ -43,6 +48,51 @@ describe("The Docket — movement + clear", () => {
     expect(state.powerPellets.size).toBe(0);
     expect(state.cleared).toBe(true);
     expect(score.flags).toContain("cleared");
+  });
+});
+
+describe("The Docket — stages + moral injury (Phase 3)", () => {
+  // Two-pellet corridor with a boxed ghost; one input clears stage 1 cleanly.
+  const adv: DocketConfig = DocketConfigSchema.parse({
+    maze: ["#######", "#P..#G#", "#######"],
+    ...baseTimings,
+    stages: 2,
+    moralInjuryPerStage: 30,
+  });
+
+  it("ghosts step faster each stage, floored at minGhostStepTicks", () => {
+    expect(ghostStepFor(1, cfg)).toBe(cfg.ghostStepTicks);
+    expect(ghostStepFor(2, cfg)).toBe(cfg.ghostStepTicks - cfg.ghostSpeedupPerStage);
+    expect(ghostStepFor(cfg.stages, cfg)).toBe(cfg.minGhostStepTicks); // late stages hit the floor
+    expect(ghostStepFor(99, cfg)).toBeGreaterThanOrEqual(cfg.minGhostStepTicks);
+  });
+
+  it("clearing a stage advances to the next (not a full win), climbs moral injury, pays a stage bonus", () => {
+    const { state, score } = run(adv, "advance", [{ tick: 0, input: { kind: "turn", dir: "right" } }]);
+    expect(state.stage).toBe(2); // moved on to the larger assignment
+    expect(state.cleared).toBe(false); // the RUN isn't won until the final stage
+    expect(state.moralInjury).toBe(30); // one stage cleared
+    expect(state.powerPellets.size + state.pellets.size).toBeGreaterThan(0); // board refilled
+    expect(score.flags).not.toContain("cleared");
+    expect(score.total).toBeGreaterThanOrEqual(2 * baseTimings.scoring.pelletValue + baseTimings.scoring.stageBonus);
+  });
+
+  it("clearing the FINAL stage wins the run and can max the moral-injury meter", () => {
+    const full: DocketConfig = DocketConfigSchema.parse({
+      maze: ["#######", "#P..#G#", "#######"],
+      ...baseTimings,
+      stages: 2,
+      moralInjuryPerStage: 50,
+    });
+    const { state, score } = run(full, "fullclear", [
+      { tick: 0, input: { kind: "turn", dir: "right" } },
+      { tick: 3, input: { kind: "turn", dir: "right" } },
+    ]);
+    expect(state.cleared).toBe(true);
+    expect(state.stage).toBe(2); // stayed on the final stage (no further reset)
+    expect(state.moralInjury).toBe(100); // 2 × 50, the toll the maze couldn't undo
+    expect(score.flags).toEqual(expect.arrayContaining(["cleared", "moral_injury"]));
+    expect(score.total).toBeLessThanOrEqual(score.ceiling);
   });
 });
 
