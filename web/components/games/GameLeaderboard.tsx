@@ -40,7 +40,14 @@ export function GameLeaderboard({
     };
   }, [gameId, refreshKey]);
 
-  if (!entries || entries.length === 0) return null;
+  if (!entries || entries.length === 0) {
+    return (
+      <div className="max-w-md rounded-lg border border-line bg-white p-5 shadow-card">
+        <p className="eyebrow text-slate">Top players</p>
+        <p className="mt-3 text-sm text-slate">No scores yet — be the first on the board.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md rounded-lg border border-line bg-white p-5 shadow-card">

@@ -13,7 +13,7 @@ const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 // Animate a number from 0 → target with an ease-out; snaps under reduced motion.
-function useCountUp(target: number, durationMs = 800): number {
+function useCountUp(target: number, durationMs = 600): number {
   const [value, setValue] = useState(0);
   const rafRef = useRef<number | null>(null);
   useEffect(() => {

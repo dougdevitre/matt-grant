@@ -203,7 +203,13 @@ export function TheDocket({ content }: { content: GameContent }) {
               <span className="font-mono tabular-nums text-brick">{state.moralInjury}%</span>
             </div>
             <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-line" role="progressbar" aria-label="Moral injury" aria-valuenow={state.moralInjury} aria-valuemin={0} aria-valuemax={100}>
-              <div className="h-full rounded-full bg-brick transition-[width] duration-500 ease-out motion-reduce:transition-none" style={{ width: `${state.moralInjury}%` }} />
+              {/* Escalates as it climbs: quiet ink → gold warning → pulsing brick wound. */}
+              <div
+                className={`h-full rounded-full transition-[width] duration-500 ease-out motion-reduce:transition-none ${
+                  state.moralInjury >= 70 ? "bg-brick animate-pulse motion-reduce:animate-none" : state.moralInjury >= 40 ? "bg-gold" : "bg-ink"
+                }`}
+                style={{ width: `${state.moralInjury}%` }}
+              />
             </div>
           </div>
 
@@ -261,13 +267,13 @@ export function TheDocket({ content }: { content: GameContent }) {
           </p>
 
           {/* on-screen pad for touch */}
-          <div className="mx-auto grid w-40 grid-cols-3 gap-1" role="group" aria-label="Move">
+          <div className="mx-auto grid w-52 grid-cols-3 gap-2 sm:w-40 sm:gap-1" role="group" aria-label="Move">
             <span />
-            <button onClick={() => turn("up")} className="btn-ghost py-2" aria-label="Move up">↑</button>
+            <button onClick={() => turn("up")} className="btn-ghost py-3 text-lg sm:py-2 sm:text-base" aria-label="Move up">↑</button>
             <span />
-            <button onClick={() => turn("left")} className="btn-ghost py-2" aria-label="Move left">←</button>
-            <button onClick={() => turn("down")} className="btn-ghost py-2" aria-label="Move down">↓</button>
-            <button onClick={() => turn("right")} className="btn-ghost py-2" aria-label="Move right">→</button>
+            <button onClick={() => turn("left")} className="btn-ghost py-3 text-lg sm:py-2 sm:text-base" aria-label="Move left">←</button>
+            <button onClick={() => turn("down")} className="btn-ghost py-3 text-lg sm:py-2 sm:text-base" aria-label="Move down">↓</button>
+            <button onClick={() => turn("right")} className="btn-ghost py-3 text-lg sm:py-2 sm:text-base" aria-label="Move right">→</button>
           </div>
         </>
       )}

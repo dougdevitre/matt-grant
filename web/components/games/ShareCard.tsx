@@ -34,10 +34,15 @@ const FLAG_LABEL: Record<string, string> = {
   unscathed: "Dodged every abuse",
   made_it: "Made it through",
   reformer: "Grabbed the reforms",
+  // The Docket
+  cleared: "Cleared all ten stages",
+  untouched: "Never caught",
+  pushed_back: "Pushed the system back",
+  moral_injury: "Moral injury sustained",
 };
 
 // Flags that represent a failure/warning are shown with a ✗, not a ✓.
-const NEGATIVE_FLAGS = new Set(["service_collapsed", "bloat_wins", "overcut", "balance_broken"]);
+const NEGATIVE_FLAGS = new Set(["service_collapsed", "bloat_wins", "overcut", "balance_broken", "moral_injury"]);
 const NEGATIVE_LABEL: Record<string, string> = {
   service_collapsed: "Service collapsed",
   bloat_wins: "Bloat won — over the band",
