@@ -54,6 +54,7 @@ export const ISSUES: Issue[] = [
       { text: "Ask candidates and officials on your ballot where they stand on family-court transparency and accountability.", tag: "Ask" },
       { text: "Share the case for the CHILD Protection Act with three neighbors — grab a graphic and caption.", tag: "Share", href: "/media" },
       { text: "Play Red Tape Run — dodge the procedural abuses and grab the reforms.", tag: "Play", href: "/games/red-tape-run" },
+      { text: "Play The Docket — protect a child's childhood before the system devours it.", tag: "Play", href: "/games/the-docket" },
       { text: "Confirm you're registered, then vote in the August 4 primary.", tag: "Vote", href: "/vote" },
     ],
     graphic: feed("D-47"),
