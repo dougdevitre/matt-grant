@@ -9,6 +9,7 @@ import { promoteToCaptain } from "@/app/dashboard/team/actions";
 import { VOLUNTEER_MODES, VOLUNTEER_AVAILABILITY, VOLUNTEER_SKILLS } from "@/lib/volunteer-profile";
 import { requireCap } from "@/lib/auth";
 import { can } from "@/lib/rbac";
+import { staffRole } from "@/lib/staff";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,10 @@ export default async function VolunteerDetailPage({ params }: { params: Promise<
   const { id } = await params;
   const v = await getVolunteer(id);
   if (!v) notFound();
+  // Whether this person already holds the captain (or higher) role, so we show a
+  // confirmed badge instead of "applicant" and hide the promote button once done.
+  const memberRole = v.email ? await staffRole(v.email) : null;
+  const isCaptainAlready = memberRole === "captain" || memberRole === "admin";
   const { rows: allTasks } = await getTasks();
   const tasks = allTasks.filter((t) => t.volunteerId === v.id);
   // Private magic-link the captain can send so this volunteer sees & updates
@@ -54,8 +59,8 @@ export default async function VolunteerDetailPage({ params }: { params: Promise<
           {v.status}
         </span>
         {v.door === "Team Captain" && (
-          <span className="rounded-sm bg-brick/10 px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow text-brick">
-            Captain applicant
+          <span className={`rounded-sm px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow ${isCaptainAlready ? "bg-field/15 text-field" : "bg-brick/10 text-brick"}`}>
+            {isCaptainAlready ? "Captain" : "Captain applicant"}
           </span>
         )}
         {v.optedOut && (
@@ -130,7 +135,7 @@ export default async function VolunteerDetailPage({ params }: { params: Promise<
           {/* One-click captain promotion — admins only (manageTeam). Sets the captain
               RBAC role + staff row + sends the access welcome. Surfaced prominently for
               /join captain applicants, available for any volunteer with an email. */}
-          {canPromote && v.email && (
+          {canPromote && v.email && !isCaptainAlready && (
             <form action={promoteToCaptain} className={`mt-4 rounded-sm border p-3 ${v.door === "Team Captain" ? "border-brick/40 bg-brick/5" : "border-line"}`}>
               <input type="hidden" name="email" value={v.email} />
               <input type="hidden" name="name" value={v.name} />
