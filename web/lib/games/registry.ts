@@ -12,6 +12,9 @@ export interface GameMeta {
   issueSlug: string; // canonical /issues/<slug>
   blurb: string; // resource-language teaser, no policy claim
   enabled: boolean;
+  /** kept in the registry (for flags/validation) but hidden from the public menu —
+   *  used for prototypes still in review. Route is gated by the flag as usual. */
+  hidden?: boolean;
 }
 
 export const GAMES: GameMeta[] = [
@@ -49,6 +52,18 @@ export const GAMES: GameMeta[] = [
     issueSlug: "family-courts",
     blurb: "Dodge the procedural abuses in family court and grab the reforms — a fair shot for kids.",
     enabled: true,
+  },
+  // The Docket — Pac-Man-style "the system consumes childhood" maze. PHASE 1 prototype:
+  // hidden from the public menu + flag OFF (route 404s in prod). Enable for local/preview
+  // via GAMES_FLAGS={"the-docket":true} once the framing is signed off.
+  {
+    id: "the-docket",
+    title: "The Docket",
+    issue: "Children First",
+    issueSlug: "family-courts",
+    blurb: "Protect a child's childhood before a rigged system devours it.",
+    enabled: false,
+    hidden: true,
   },
 ];
 

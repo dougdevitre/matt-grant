@@ -4,6 +4,7 @@ import { buildOrgChart, orgChartConfig, type OrgChartInput } from "@/lib/games/o
 import { buildRotation, rotationConfig, type RotationInput } from "@/lib/games/rotation";
 import { buildClarityCompanion, clarityConfig, type ClarityInput } from "@/lib/games/clarity-companion";
 import { buildRedTapeRun, redTapeRunConfig, type RedTapeRunInput } from "@/lib/games/red-tape-run";
+import { buildTheDocket, docketConfig, type DocketInput } from "@/lib/games/the-docket";
 
 // Server-side score validation = the SAME replay() the client ran, re-run from
 // (seed, inputs). If the recomputed total doesn't match what the client reported
@@ -57,6 +58,14 @@ const VALIDATORS: Record<string, Validator> = {
       seed,
       inputs as InputEvent<RedTapeRunInput>[],
       redTapeRunConfig.roundTicks,
+    ).score,
+  "the-docket": (seed, inputs) =>
+    replay(
+      buildTheDocket(),
+      docketConfig,
+      seed,
+      inputs as InputEvent<DocketInput>[],
+      docketConfig.roundTicks,
     ).score,
 };
 

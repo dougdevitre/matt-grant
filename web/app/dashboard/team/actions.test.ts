@@ -36,7 +36,9 @@ vi.mock("@/lib/clerkRoles", () => ({
 }));
 vi.mock("@/lib/site", () => ({ SITE_URL: "https://example.test" }));
 
-import { resendInviteAction } from "./actions";
+import { resendInviteAction, promoteToCaptain } from "./actions";
+import { addStaff, staffRole } from "@/lib/staff";
+import { setClerkRoleByEmail } from "@/lib/clerkRoles";
 
 const form = (email: string) => {
   const fd = new FormData();
@@ -88,5 +90,28 @@ describe("resendInviteAction", () => {
     expect(res.ok).toBe(false);
     expect(res.message).toMatch(/already accepted/i);
     expect(recordAccessChange).not.toHaveBeenCalled();
+  });
+});
+
+describe("promoteToCaptain", () => {
+  it("refuses a non-admin (captains can't mint captains)", async () => {
+    staffGate.mockResolvedValue({ ok: true, role: "captain", email: "cap@x.test" });
+    await expect(promoteToCaptain(form("v@x.test"))).rejects.toThrow(/forbidden/i);
+    expect(addStaff).not.toHaveBeenCalled();
+  });
+
+  it("promotes a volunteer: staff row + Clerk role + audit", async () => {
+    vi.mocked(staffRole).mockResolvedValue(null);
+    await promoteToCaptain(form("v@x.test"));
+    expect(addStaff).toHaveBeenCalledWith("v@x.test", undefined, "captain", "admin@x.test");
+    expect(setClerkRoleByEmail).toHaveBeenCalledWith("v@x.test", "captain");
+    expect(recordAccessChange).toHaveBeenCalled();
+  });
+
+  it("is a no-op when already a captain", async () => {
+    vi.mocked(staffRole).mockResolvedValue("captain");
+    await promoteToCaptain(form("v@x.test"));
+    expect(addStaff).not.toHaveBeenCalled();
+    expect(setClerkRoleByEmail).not.toHaveBeenCalled();
   });
 });

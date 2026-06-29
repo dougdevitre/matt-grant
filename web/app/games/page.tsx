@@ -36,7 +36,7 @@ export default async function GamesHome() {
       </header>
 
       <ul className="grid gap-5 sm:grid-cols-2">
-        {GAMES.map((g) => {
+        {GAMES.filter((g) => !g.hidden).map((g) => {
           const enabled = flags[g.id] !== false && g.enabled;
           const card = (
             <div className="flex h-full flex-col rounded-lg border border-line bg-white p-6 shadow-card">
