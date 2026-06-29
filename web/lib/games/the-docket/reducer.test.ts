@@ -3,7 +3,7 @@ import { replay, makeRng, type InputEvent } from "@/lib/games/engine";
 import { makeTheDocket, scoreCeiling, ghostStepFor, type DocketInput } from "./reducer";
 import { parseMaze, isOpen } from "./maze";
 import { DocketConfigSchema, type DocketConfig } from "./config.schema";
-import { docketConfig } from "./content";
+import { docketConfig, docketContent } from "./content";
 
 const cfg: DocketConfig = docketConfig;
 
@@ -93,6 +93,25 @@ describe("The Docket — stages + moral injury (Phase 3)", () => {
     expect(state.moralInjury).toBe(100); // 2 × 50, the toll the maze couldn't undo
     expect(score.flags).toEqual(expect.arrayContaining(["cleared", "moral_injury"]));
     expect(score.total).toBeLessThanOrEqual(score.ceiling);
+  });
+});
+
+describe("The Docket — reform-plan ending (Phase 4)", () => {
+  it("ships a moral-injury beat + a faithful reform plan", () => {
+    const e = docketContent.ending;
+    expect(e).toBeDefined();
+    expect(e!.beatWon).toMatch(/cleared/i);
+    expect(e!.beatLost).toMatch(/caught/i);
+    expect(e!.body.length).toBeGreaterThanOrEqual(1);
+    expect(e!.reformPlan.length).toBe(10); // ten stages → ten steps
+    // The core documented platform must be present (no invented policy beyond it).
+    const blob = e!.reformPlan.map((s) => `${s.title} ${s.detail}`).join(" ").toLowerCase();
+    expect(blob).toContain("child protection act of 2027");
+    expect(blob).toContain("title iv-d");
+    expect(blob).toContain("term limits");
+    expect(blob).toContain("grandfather clause");
+    expect(blob).toContain("hiring freeze");
+    expect(e!.cta.href.startsWith("/")).toBe(true); // internal link only
   });
 });
 

@@ -36,6 +36,24 @@ export const GameContentSchema = z
     /** ≤3 end-screen takeaway lines (the lesson, stated plainly) */
     endLines: z.array(ShortLine).max(3),
     shareText: ShortLine,
+    /** OPTIONAL narrative ending (The Docket Phase 4): the moral-injury beat, then a
+     *  reform plan whose steps are drawn ONLY from the documented campaign platform —
+     *  no invented policy. Tone guardrail (no named persons) applies to every line. */
+    ending: z
+      .object({
+        /** beat copy when the player clears every stage */
+        beatWon: ShortLine,
+        /** beat copy when the system catches the player */
+        beatLost: ShortLine,
+        /** 1–3 lines naming the moral-injury toll (framing, not policy) */
+        body: z.array(ShortLine).min(1).max(3),
+        reformHeading: ShortLine,
+        /** the reform plan — each step faithful to the documented platform */
+        reformPlan: z.array(z.object({ title: ShortLine, detail: ShortLine }).strict()).min(1).max(10),
+        cta: z.object({ label: ShortLine, href: z.string().min(1).regex(/^\//, "internal path") }).strict(),
+      })
+      .strict()
+      .optional(),
   })
   .strict();
 
