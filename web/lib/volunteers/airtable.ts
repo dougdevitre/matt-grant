@@ -227,6 +227,20 @@ export async function mirrorVolunteerOptOutToAirtable(
   }
 }
 
+/**
+ * Mark a Donor-Pledge volunteer's mirrored row as fulfilled (a matching WinRed gift
+ * landed), so staff stop chasing the pledge. Backend plumbing like the status/opt-out
+ * mirrors; best-effort no-op without a recId.
+ */
+export async function mirrorVolunteerPledgeFulfilledToAirtable(recId: string | null | undefined): Promise<void> {
+  if (!recId) return;
+  try {
+    await updateRecords(BASE.id, TABLE_ID, [{ id: recId, fields: { "Pledge Fulfilled": true } }], true);
+  } catch (err) {
+    console.warn("[volunteers] Airtable pledge-fulfilled mirror failed:", err instanceof Error ? err.message : err);
+  }
+}
+
 /** Test seam — drop the link-id caches so a test re-reads the lookup tables. */
 export function _clearLinkCache(): void {
   cache.clear();
