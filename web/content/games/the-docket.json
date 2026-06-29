@@ -6,13 +6,14 @@
     "title": "The Docket",
     "tagline": "Protect a child's childhood before the system devours it.",
     "howTo": [
-      "Use the arrow keys (or swipe) to move through the docket.",
-      "Collect every bit of childhood before the system reaches you.",
-      "Avoid the system's mechanisms — they consume what you can't protect.",
-      "Clear the maze to move to the next case. (Phase 1: one maze.)"
+      "Use the arrow keys (or swipe) to collect every bit of childhood in the docket.",
+      "Grab a Reform (the big markers) to turn the tables — then push the system back.",
+      "Clear a maze and the next assignment is larger: faster mechanisms, higher stakes.",
+      "Ten stages. The moral-injury meter climbs with every one you clear. (Phase 3.)"
     ],
     "itemLabels": {
       "childhood": ["Childhood"],
+      "power": ["Reform"],
       "ghost": ["Delay", "Red Tape", "Sealed File", "Conflict"]
     },
     "endLines": [
@@ -20,26 +21,56 @@
       "Protecting one child at a time can't fix a rigged docket.",
       "Reform is the only real win."
     ],
-    "shareText": "I tried to protect a child's childhood from the docket in The Docket. The system is the real boss. Beat my score."
+    "shareText": "I tried to protect a child's childhood from the docket in The Docket. The system is the real boss. Beat my score.",
+    "ending": {
+      "beatWon": "You cleared all ten assignments. The Docket kept right on grinding.",
+      "beatLost": "The Docket caught you. It was never winnable one child at a time.",
+      "body": [
+        "The toll has a name: moral injury — being made to do harm by a system you can't fix from inside it.",
+        "No score erases it. The maze was rigged, not just hard.",
+        "There's only one real win — change the system itself:"
+      ],
+      "reformHeading": "The only real win: reform the docket",
+      "reformPlan": [
+        { "title": "Name the corruption", "detail": "Make eliminating family-court corruption the priority it deserves to be." },
+        { "title": "Pass the CHILD Protection Act of 2027", "detail": "Corruption Hiding Inside Legal Dockets — a bill aimed at the rigged docket itself." },
+        { "title": "Tie the money to compliance", "detail": "Link Title IV-D federal grant funds to state family-court compliance." },
+        { "title": "Put federal oversight on the dockets", "detail": "Use that federal lever to hold state family courts accountable." },
+        { "title": "Term-limit Congress", "detail": "Term limits for the U.S. House and Senate, applied with a grandfather clause." },
+        { "title": "Shrink the federal government", "detail": "A hiring freeze and early-retirement packages for federal employees." },
+        { "title": "Lower taxes by cutting waste", "detail": "Reduce fraud, waste, and headcount — not services — to lower taxes." },
+        { "title": "Put children first", "detail": "Every step ties back to one throughline: putting Missouri's children first." },
+        { "title": "Don't just talk — act", "detail": "Reform comes from action, not noise." },
+        { "title": "Your move", "detail": "Read the four priorities and join the effort." }
+      ],
+      "cta": { "label": "See the four priorities", "href": "/issues/family-courts" }
+    }
   },
   "config": {
     "maze": [
       "###############",
-      "#.............#",
+      "#o...........o#",
       "#.##.##.##.##.#",
       "#.............#",
       "#.##.##.##.##.#",
-      "#......G......#",
+      "#....GGGG.....#",
       "#.##.##.##.##.#",
       "#.............#",
       "#.##.##.##.##.#",
-      "#......P......#",
+      "#o....P......o#",
       "###############"
     ],
     "playerStepTicks": 6,
-    "ghostStepTicks": 8,
+    "ghostStepTicks": 9,
+    "stages": 10,
+    "ghostSpeedupPerStage": 1,
+    "minGhostStepTicks": 6,
+    "moralInjuryPerStage": 10,
     "startLives": 3,
-    "roundTicks": 5400,
-    "scoring": { "pelletValue": 10, "clearBonus": 2000 }
+    "roundTicks": 36000,
+    "powerDurationTicks": 240,
+    "ghostReleaseTicks": 90,
+    "spawnGraceTicks": 60,
+    "scoring": { "pelletValue": 10, "powerValue": 50, "stageBonus": 500, "clearBonus": 3000, "ghostBaseValue": 200 }
   }
 }
