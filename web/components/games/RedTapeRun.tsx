@@ -11,6 +11,7 @@ import {
 } from "@/lib/games/red-tape-run";
 import type { GameContent } from "@/lib/games/content-schema";
 import { EndScreen } from "./EndScreen";
+import { useGameStartTelemetry } from "@/lib/games/telemetry-client";
 
 // Red Tape Run — a Pitfall-style runner. The sim is the shared deterministic engine;
 // this view renders the side-scrolling track, takes one input (JUMP), and records it
@@ -48,6 +49,7 @@ function entityLabel(e: RunEntity, content: GameContent): string {
 
 export function RedTapeRun({ content }: { content: GameContent }) {
   const [phase, setPhase] = useState<Phase>("ready");
+  useGameStartTelemetry(phase === "playing", content.gameId);
   const [seed, setSeed] = useState<string>(newSeed);
   const [end, setEnd] = useState<EndData | null>(null);
   const [, repaint] = useReducer((n: number) => n + 1, 0);

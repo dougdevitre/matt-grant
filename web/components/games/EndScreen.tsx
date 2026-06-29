@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ShareCard } from "./ShareCard";
 import { OptInForm } from "./OptInForm";
 import { GameLeaderboard } from "./GameLeaderboard";
+import { emitGameEvent } from "@/lib/games/telemetry-client";
 
 // End-of-round screen: the lesson (endLines), the share card (carries the
 // disclaimer), share + opt-in + a click-through back to the canonical issue page,
@@ -88,6 +89,14 @@ export function EndScreen(props: EndScreenProps) {
   const animatedScore = useCountUp(props.score);
   const { best, isNewBest } = usePersonalBest(props.gameId, props.score);
 
+  // A completed game IS this screen mounting — fire game_complete once per round.
+  const firedComplete = useRef(false);
+  useEffect(() => {
+    if (firedComplete.current) return;
+    firedComplete.current = true;
+    emitGameEvent({ t: "game_complete", gameId: props.gameId, score: props.score, flags: props.flags });
+  }, [props.gameId, props.score, props.flags]);
+
   // Leaderboard submission lives here (centralized) — the server re-validates the
   // (seed, inputs) replay, so a tampered score can't be recorded under any initials.
   const [initials, setInitials] = useState("");
@@ -115,6 +124,10 @@ export function EndScreen(props: EndScreenProps) {
         const j = (await res.json()) as { rank: number | null };
         setRank(j.rank);
         setLbKey((k) => k + 1); // refresh the leaderboard to include this entry
+      } else if (res.status === 422) {
+        // Server replay couldn't reproduce the score — surface anti-cheat health.
+        const j = (await res.json().catch(() => ({}))) as { reason?: string };
+        emitGameEvent({ t: "score_rejected", gameId: props.gameId, reason: j.reason === "ceiling" ? "ceiling" : "replay_mismatch" });
       }
     } catch {
       /* offline / rejected — leave it unrecorded, the score is still shown locally */
@@ -124,6 +137,7 @@ export function EndScreen(props: EndScreenProps) {
 
   async function share() {
     props.onShare?.();
+    emitGameEvent({ t: "share_click", gameId: props.gameId });
     const url = `${APEX}/issues/${props.issueSlug}`;
     const text = `${props.shareText} (Score: ${props.score.toLocaleString("en-US")})`;
     try {
@@ -213,7 +227,13 @@ export function EndScreen(props: EndScreenProps) {
       <GameLeaderboard gameId={props.gameId} highlightScore={props.score} refreshKey={lbKey} />
 
       <div className="flex flex-wrap gap-3">
-        <button onClick={props.onPlayAgain} className="btn-brick">
+        <button
+          onClick={() => {
+            emitGameEvent({ t: "replay_attempt", gameId: props.gameId });
+            props.onPlayAgain();
+          }}
+          className="btn-brick"
+        >
           Play again
         </button>
         <button onClick={share} className="btn-ink">
@@ -221,7 +241,10 @@ export function EndScreen(props: EndScreenProps) {
         </button>
         <a
           href={`${APEX}/issues/${props.issueSlug}`}
-          onClick={props.onIssueClick}
+          onClick={() => {
+            emitGameEvent({ t: "issue_clickthrough", gameId: props.gameId });
+            props.onIssueClick?.();
+          }}
           className="btn-ghost"
         >
           Read: {props.issueLabel} →
@@ -229,7 +252,14 @@ export function EndScreen(props: EndScreenProps) {
       </div>
 
       <div className="max-w-md rounded-lg border border-line bg-white p-5 shadow-card">
-        <OptInForm gameId={props.gameId} score={props.score} onSubmitted={props.onOptIn} />
+        <OptInForm
+          gameId={props.gameId}
+          score={props.score}
+          onSubmitted={(channel) => {
+            emitGameEvent({ t: "optin_submit", gameId: props.gameId, channel });
+            props.onOptIn?.(channel);
+          }}
+        />
       </div>
     </section>
   );
