@@ -106,3 +106,16 @@ export async function renderPillarOgCard(pillar: {
     footer: "Constituent resources · MO-02",
   });
 }
+
+// Per-game social card for the Four Fights arcade. Same brand as the apex/pillar
+// cards (fonts, avatar, tri-color rule); the eyebrow is the game's issue, the
+// headline is the game title with a brick "Play the game" CTA underneath.
+export async function renderGameOgCard(game: { eyebrow: string; title: string }): Promise<ImageResponse> {
+  return renderOgCard({
+    eyebrow: game.eyebrow.toUpperCase(),
+    line1: game.title,
+    line2: "Play the game",
+    name: "Matt Grant for Congress",
+    footer: "Four Fights Arcade · games.mattgrantforcongress.org",
+  });
+}
