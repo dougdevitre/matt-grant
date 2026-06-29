@@ -27,19 +27,21 @@ function contactedLabel(iso: string | null): string | null {
 
 // donorEmails: addresses present in the donor list, to flag volunteers who have
 // also given. Array (not Set) so it can cross the server→client boundary.
-export function VolunteerBoard({ rows, taskCounts, donorEmails = [], me = null }: { rows: VolunteerRow[]; taskCounts?: Record<string, number>; donorEmails?: string[]; me?: string | null }) {
+export function VolunteerBoard({ rows, taskCounts, donorEmails = [], captainEmails = [], me = null }: { rows: VolunteerRow[]; taskCounts?: Record<string, number>; donorEmails?: string[]; captainEmails?: string[]; me?: string | null }) {
   const [status, setStatus] = useState("ALL");
   const [interest, setInterest] = useState("ALL");
   const [q, setQ] = useState("");
   const [mine, setMine] = useState(false);
   const [captainsOnly, setCaptainsOnly] = useState(false);
   const donorSet = useMemo(() => new Set(donorEmails), [donorEmails]);
+  const captainSet = useMemo(() => new Set(captainEmails), [captainEmails]);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return rows.filter((v) => {
       if (mine && me && v.captainEmail !== me) return false;
-      if (captainsOnly && v.door !== "Team Captain") return false;
+      // "Captain applicants" = applied (door) but not yet promoted to the captain role.
+      if (captainsOnly && !(v.door === "Team Captain" && !isIn(captainSet, v.email))) return false;
       if (status !== "ALL" && v.status !== status) return false;
       if (interest !== "ALL") {
         const tags = v.interestTags?.length ? v.interestTags : v.interests ? v.interests.split(",").map((s) => s.trim()) : [];
@@ -51,7 +53,7 @@ export function VolunteerBoard({ rows, taskCounts, donorEmails = [], me = null }
       }
       return true;
     });
-  }, [rows, status, interest, q, mine, me, captainsOnly]);
+  }, [rows, status, interest, q, mine, me, captainsOnly, captainSet]);
 
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
@@ -60,7 +62,10 @@ export function VolunteerBoard({ rows, taskCounts, donorEmails = [], me = null }
   }, [rows]);
 
   const mineCount = useMemo(() => (me ? rows.filter((v) => v.captainEmail === me).length : 0), [rows, me]);
-  const captainCount = useMemo(() => rows.filter((v) => v.door === "Team Captain").length, [rows]);
+  const captainCount = useMemo(
+    () => rows.filter((v) => v.door === "Team Captain" && !isIn(captainSet, v.email)).length,
+    [rows, captainSet],
+  );
 
   return (
     <>
@@ -133,11 +138,16 @@ export function VolunteerBoard({ rows, taskCounts, donorEmails = [], me = null }
                         ◈ donor
                       </span>
                     )}
-                    {v.door === "Team Captain" && (
-                      <span className="rounded-sm bg-brick/10 px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-brick" title="Applied to lead a team — review and promote to the captain role">
-                        ★ captain applicant
-                      </span>
-                    )}
+                    {v.door === "Team Captain" &&
+                      (isIn(captainSet, v.email) ? (
+                        <span className="rounded-sm bg-field/15 px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-field" title="Team captain">
+                          ★ captain
+                        </span>
+                      ) : (
+                        <span className="rounded-sm bg-brick/10 px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-brick" title="Applied to lead a team — review and promote to the captain role">
+                          ★ captain applicant
+                        </span>
+                      ))}
                     {v.optedOut && (
                       <span className="rounded-sm bg-brick/15 px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-brick" title="Opted out of contact (email unsubscribe or SMS STOP) — do not contact">
                         ⊘ opted out
