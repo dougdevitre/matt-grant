@@ -204,3 +204,22 @@ export async function setMemberRole(formData: FormData): Promise<void> {
     revalidatePath("/dashboard/team");
   }
 }
+
+// Promote a volunteer (typically a /join "Team Captain" applicant) straight to the
+// captain role from their volunteer card — the one-click version of setMemberRole
+// for someone not yet on staff. Admin-only (manageTeam): captains can't mint captains.
+export async function promoteToCaptain(formData: FormData): Promise<void> {
+  const actor = await guardAdmin();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const name = String(formData.get("name") ?? "").trim() || undefined;
+  if (!email) return;
+  const prevRole = (await staffRole(email)) ?? undefined;
+  if (prevRole !== "captain") {
+    await addStaff(email, name, "captain", actor ?? undefined);
+    await setClerkRoleByEmail(email, "captain");
+    await recordAccessChange({ at: new Date().toISOString(), actor: actor || "system", target: email, action: "role_change", role: "captain", prevRole });
+    await sendRoleWelcome(email, "captain"); // best-effort "here's your access" email
+  }
+  revalidatePath("/dashboard/volunteers");
+  revalidatePath("/dashboard/team");
+}

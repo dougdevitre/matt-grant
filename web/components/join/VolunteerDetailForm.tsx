@@ -91,6 +91,13 @@ export function VolunteerDetailForm({
         </label>
       </div>
 
+      {/* SMS consent (TCPA) — only recorded when a phone is given. Field volunteers
+          are exactly who we'd text shift reminders, so offer it here too. */}
+      <label className="flex items-start gap-2 text-xs text-slate">
+        <input type="checkbox" name="smsOptIn" value="1" className="mt-0.5 h-4 w-4 accent-brick" />
+        <span>Text me shift reminders and time-sensitive updates. Msg &amp; data rates may apply; reply STOP to opt out.</span>
+      </label>
+
       {/* Commitment Level — captain is implicitly Core, so this is volunteer-only */}
       {!isCaptain && (
         <fieldset>
