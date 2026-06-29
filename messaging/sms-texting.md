@@ -334,6 +334,39 @@ Money spent on texting — the Twilio/messaging-service vendor, any P2P platform
 
 ---
 
+## 11. List Segmentation
+
+One list blasted with one message is the fastest path to a high opt-out rate (see Section 8). Segment so each person gets messages relevant to them. Tag every contact as it enters the list (from the opt-in source) and maintain the segments as people act.
+
+| Segment | Who's in it | What they should get | What to avoid |
+|---|---|---|---|
+| Donors | Anyone who has given | Thank-yous, impact updates, targeted re-asks, matching moments | Generic cold-list asks; over-asking |
+| Volunteers | Opted-in via volunteer sign-up or replied YES to a shift | Shift logistics, event calls, P2P recruitment | Fundraising-only blasts |
+| General supporters | Opted in, no donation or volunteer action yet | Lower-frequency updates, soft asks, events, an early small-dollar ask | High-frequency or large-dollar asks |
+| GOTV universe | Supporters in MO-02 likely to vote in the Aug 4, 2026 primary | Vote plan, polling place/hours, day-of reminders | Fundraising during the final GOTV push |
+| Suppressed / opted-out | Anyone who replied STOP or withdrew consent | Nothing — permanently excluded from every send | Any message at all |
+
+**Tagging discipline:** Capture the opt-in source as the initial segment tag, then update tags as people donate, volunteer, or opt out. A contact can belong to more than one segment (a donor who also volunteers) — send the more specific, relevant message and don't double-message the same person across overlapping blasts. Keep all segment data secure; no SSNs, bank, or password data.
+
+---
+
+## 12. Metrics
+
+Track a small set of numbers per send so you can tell what's working and catch problems early. Pull these from the Twilio Messaging Insights console (the same place error 30032 surfaced) and your link/donation tools.
+
+| Metric | What it tells you | Watch for |
+|---|---|---|
+| Delivery rate | Sent vs. delivered — carrier/number health | A drop signals a number or verification problem (e.g., the 30032 block) |
+| Opt-out (STOP) rate | How well the message + frequency match the audience | Use the Section 8 thresholds: under ~2% healthy, over ~5% stop |
+| Click-through rate | How compelling the message + link are | Low CTR = weak message or wrong audience |
+| Conversion rate | Of those who clicked, how many did the thing (donate, RSVP, sign up) | Tie to the goal of the send, not vanity clicks |
+| Reply rate | Engagement, especially for P2P | High reply volume needs staffing for Section 7 handling |
+| Cost per action | Texting spend (Section 10) ÷ donations/RSVPs/signups | Compare against other channels to allocate budget |
+
+**How to use them:** Compare like-to-like sends, change one variable at a time, and let the trend across sends — not a single number — drive decisions. Opt-out rate is the health metric (it gates whether you keep sending); conversion and cost-per-action are the effectiveness metrics (they decide where the budget goes). Record texting costs per Section 10 so cost-per-action is real.
+
+---
+
 ## Cross-References
 
 - `tools/disclaimer-generator.md` — Full "Paid for by" disclaimer rules across every medium, including SMS/MMS.

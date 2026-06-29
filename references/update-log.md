@@ -45,7 +45,8 @@ Version history and change tracking for the get-elected skill reference files.
 
 **Known Gaps:**
 - TCPA quiet-hours (8am-9pm local) and opt-out-rate thresholds are general best-practice guidance, not carrier-published limits -- flagged in-file to confirm current carrier policy with Twilio and consent approach with counsel
-- MMS/media-specific guidance, detailed metrics/segmentation, and a glossary term deferred as optional
+- List segmentation (Section 11) and per-send metrics (Section 12) since added
+- MMS/media-specific guidance and a glossary term deferred as optional
 - Toll-free number was In Review at time of writing; templates not yet live-tested
 
 **Files Modified:**
