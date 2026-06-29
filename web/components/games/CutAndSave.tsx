@@ -12,6 +12,7 @@ import {
 import type { GameContent } from "@/lib/games/content-schema";
 import { Hud } from "./Hud";
 import { EndScreen } from "./EndScreen";
+import { useGameStartTelemetry } from "@/lib/games/telemetry-client";
 import { CutAndSaveTaxGauge } from "./CutAndSaveTaxGauge";
 import { CutAndSaveDebtMeter } from "./CutAndSaveDebtMeter";
 
@@ -44,6 +45,7 @@ function labelFor(item: BoardItem, content: GameContent): string {
 
 export function CutAndSave({ content }: { content: GameContent }) {
   const [phase, setPhase] = useState<Phase>("ready");
+  useGameStartTelemetry(phase === "playing", content.gameId);
   const [seed, setSeed] = useState<string>(newSeed);
   const [end, setEnd] = useState<EndData | null>(null);
   const [feedback, setFeedback] = useState<string>("");

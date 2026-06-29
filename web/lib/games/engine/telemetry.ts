@@ -9,8 +9,8 @@
 // event, and a new event variant forces every switch to be updated.
 
 export type GameEvent =
-  | { t: "game_start"; gameId: string; seed: string }
-  | { t: "game_complete"; gameId: string; score: number; durationMs: number; flags: string[] }
+  | { t: "game_start"; gameId: string; seed?: string }
+  | { t: "game_complete"; gameId: string; score: number; durationMs?: number; flags: string[] }
   | { t: "replay_attempt"; gameId: string }
   | { t: "share_click"; gameId: string }
   | { t: "optin_submit"; gameId: string; channel: "email" | "sms" }

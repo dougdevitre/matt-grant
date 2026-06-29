@@ -13,6 +13,7 @@ import type { GameContent } from "@/lib/games/content-schema";
 import { OrgChartHud } from "./OrgChartHud";
 import { OrgChartBandGauge } from "./OrgChartBandGauge";
 import { EndScreen } from "./EndScreen";
+import { useGameStartTelemetry } from "@/lib/games/telemetry-client";
 
 // Org Chart — the client view. Drives the shared engine with a rAF loop, records every
 // input, and submits (seed, inputs) to /api/games/score for the same-replay validation.
@@ -39,6 +40,7 @@ function labelFor(block: OrgBlock, content: GameContent): string {
 
 export function OrgChart({ content }: { content: GameContent }) {
   const [phase, setPhase] = useState<Phase>("ready");
+  useGameStartTelemetry(phase === "playing", content.gameId);
   const [seed, setSeed] = useState<string>(newSeed);
   const [end, setEnd] = useState<EndData | null>(null);
   const [feedback, setFeedback] = useState<string>("");
