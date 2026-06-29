@@ -19,6 +19,7 @@ flowchart LR
 | File | Purpose |
 |---|---|
 | `brand_letter.py` | The engine — brand tokens, masthead/footer, QR band, `build()`. Run directly to render the Sunshine Law voter-list request sample. |
+| `guide.py` | Branded multi-section **guides** (not letters) on the same design system — title, eyebrowed sections with bullets, a DO/DON'T panel, and an optional QR "Take Action" band. Ships the **Team Captain** + **Volunteer** guides. Run: `python guide.py --out-dir ~/Downloads` (add `--only team-captain` or `--only volunteer` for one). |
 | `outreach_volunteer.py` | A ready-to-send volunteer/supporter recruitment letter with the QR band switched on. A worked example of supplying custom content + a custom QR set. |
 | `legislator_mailing.py` | Mail-merge: reads `candidate/letters/senate-targets.csv`, personalizes a letter per recipient by title/committee/issue-alignment, and compiles every [letter + CHILD brief] packet into ONE print-ready PDF via `build_many`. See `candidate/letters/legislator-mailing.md` for the roster and customization logic. |
 | `community_mailing.py` | Mail-merge for community leaders: reads a recipients CSV with a `segment` column (FAITH/BUSINESS/EDUCATION/CIVIC), personalizes by title/organization/segment-alignment, and emits ONE PDF per group (each letter + a segment-tailored one-pager). Runs on `candidate/letters/community-targets.sample.csv`; see `candidate/letters/community-mailing.md` for the universe-sizing worksheet and logic. |
