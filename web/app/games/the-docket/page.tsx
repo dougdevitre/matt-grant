@@ -14,11 +14,10 @@ export const metadata: Metadata = {
   description: "Protect a child's childhood before a rigged system devours it.",
 };
 
-// PHASE 1 prototype: flag defaults OFF (route 404s in prod). Enable for local/preview
-// review via GAMES_FLAGS={"the-docket":true} once the framing is signed off.
+// Live. Compliance kill switch: set GAMES_FLAGS={"the-docket":false} to pull it without a deploy.
 export default async function TheDocketPage() {
   const flags = await gameFlags();
-  if (flags["the-docket"] !== true) notFound();
+  if (flags["the-docket"] === false) notFound(); // compliance kill switch
   return (
     <GameAccessGate gameId="the-docket" clerkEnabled={clerkEnabled}>
       <TheDocket content={docketContent} />

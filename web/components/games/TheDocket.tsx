@@ -182,7 +182,7 @@ export function TheDocket({ content }: { content: GameContent }) {
               <li key={h}>{h}</li>
             ))}
           </ul>
-          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-brick">Prototype — Phase 4 (ten stages · moral-injury meter · reform-plan ending)</p>
+          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-brick">Ten escalating stages · the system is the real boss</p>
           <button onClick={start} className="btn-brick mt-4">Start</button>
         </div>
       )}

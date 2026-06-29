@@ -53,17 +53,16 @@ export const GAMES: GameMeta[] = [
     blurb: "Dodge the procedural abuses in family court and grab the reforms — a fair shot for kids.",
     enabled: true,
   },
-  // The Docket — Pac-Man-style "the system consumes childhood" maze. PHASE 1 prototype:
-  // hidden from the public menu + flag OFF (route 404s in prod). Enable for local/preview
-  // via GAMES_FLAGS={"the-docket":true} once the framing is signed off.
+  // The Docket — Pac-Man-style "the system consumes childhood" maze. Live: ten escalating
+  // stages + a moral-injury meter + a reform-plan ending drawn from the platform. A second
+  // Children First game alongside Red Tape Run. Kill switch: GAMES_FLAGS={"the-docket":false}.
   {
     id: "the-docket",
     title: "The Docket",
     issue: "Children First",
     issueSlug: "family-courts",
     blurb: "Protect a child's childhood before a rigged system devours it.",
-    enabled: false,
-    hidden: true,
+    enabled: true,
   },
 ];
 
