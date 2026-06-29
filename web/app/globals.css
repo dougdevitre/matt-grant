@@ -67,6 +67,10 @@
   .btn-ghost {
     @apply btn border border-line bg-transparent text-ink hover:border-ink;
   }
+  /* Primary brick CTA used across the games (Start / Play again). Alias of btn-primary. */
+  .btn-brick {
+    @apply btn bg-brick text-paper hover:bg-[#9c2a30];
+  }
 
   .card {
     @apply rounded-lg border border-line bg-white shadow-card;

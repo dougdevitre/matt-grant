@@ -3,7 +3,7 @@ import { GAME_IDS, type GameId } from "./content-schema";
 // The arcade catalog — one entry per game, mapped to the campaign issue it teaches.
 // `enabled` is the build-time default; the live kill-switch state comes from
 // /api/games/flags (SSM/DynamoDB) so compliance can pull a game without a deploy.
-// For milestone 1 only Cut & Save is enabled; the others render "coming soon".
+// All five games are live; a disabled game renders "coming soon" in the menu.
 
 export interface GameMeta {
   id: GameId;
