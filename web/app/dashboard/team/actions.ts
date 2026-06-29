@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { addStaff, removeStaff, setStaffRole, staffRole } from "@/lib/staff";
+import { addStaff, removeStaff, setStaffRole, staffRole, setCaptainArea } from "@/lib/staff";
 import { staffGate } from "@/lib/auth";
 import { can, asRole, INVITABLE_ROLES, ROLE_LABELS } from "@/lib/rbac";
 import { setClerkRoleByEmail, inviteToClerk, clearClerkRoleByEmail } from "@/lib/clerkRoles";
@@ -203,6 +203,16 @@ export async function setMemberRole(formData: FormData): Promise<void> {
     }
     revalidatePath("/dashboard/team");
   }
+}
+
+// Set a captain's coverage area (ZIP / city / county / label) used to auto-match
+// volunteers to the nearest team. Admin-only (manageTeam). Blank clears it.
+export async function setCaptainAreaAction(formData: FormData): Promise<void> {
+  await guardAdmin();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!email) return;
+  await setCaptainArea(email, String(formData.get("area") ?? ""));
+  revalidatePath("/dashboard/team");
 }
 
 // Promote a volunteer (typically a /join "Team Captain" applicant) straight to the
