@@ -63,6 +63,11 @@ export default async function VolunteerDetailPage({ params }: { params: Promise<
             ⊘ Opted out
           </span>
         )}
+        {v.pledgeFulfilled && (
+          <span className="rounded-sm bg-field/15 px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow text-field" title="Donor pledge fulfilled — a matching WinRed gift has landed">
+            ✓ Pledge fulfilled
+          </span>
+        )}
       </PageHeader>
 
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
