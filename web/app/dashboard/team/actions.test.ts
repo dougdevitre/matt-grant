@@ -28,6 +28,7 @@ vi.mock("@/lib/staff", () => ({
   removeStaff: vi.fn(),
   setStaffRole: vi.fn(),
   staffRole: vi.fn(),
+  setCaptainArea: vi.fn(),
 }));
 vi.mock("@/lib/clerkRoles", () => ({
   inviteToClerk: vi.fn(),
@@ -36,8 +37,8 @@ vi.mock("@/lib/clerkRoles", () => ({
 }));
 vi.mock("@/lib/site", () => ({ SITE_URL: "https://example.test" }));
 
-import { resendInviteAction, promoteToCaptain } from "./actions";
-import { addStaff, staffRole } from "@/lib/staff";
+import { resendInviteAction, promoteToCaptain, setCaptainAreaAction } from "./actions";
+import { addStaff, staffRole, setCaptainArea } from "@/lib/staff";
 import { setClerkRoleByEmail } from "@/lib/clerkRoles";
 
 const form = (email: string) => {
@@ -113,5 +114,24 @@ describe("promoteToCaptain", () => {
     await promoteToCaptain(form("v@x.test"));
     expect(addStaff).not.toHaveBeenCalled();
     expect(setClerkRoleByEmail).not.toHaveBeenCalled();
+  });
+});
+
+describe("setCaptainAreaAction", () => {
+  it("refuses a non-admin", async () => {
+    staffGate.mockResolvedValue({ ok: true, role: "captain", email: "cap@x.test" });
+    const fd = new FormData();
+    fd.set("email", "c@x.test");
+    fd.set("area", "63101");
+    await expect(setCaptainAreaAction(fd)).rejects.toThrow(/forbidden/i);
+    expect(setCaptainArea).not.toHaveBeenCalled();
+  });
+
+  it("saves the area for an admin", async () => {
+    const fd = new FormData();
+    fd.set("email", "C@x.test");
+    fd.set("area", "Kirkwood");
+    await setCaptainAreaAction(fd);
+    expect(setCaptainArea).toHaveBeenCalledWith("c@x.test", "Kirkwood");
   });
 });

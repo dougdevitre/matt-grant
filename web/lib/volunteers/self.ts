@@ -8,7 +8,12 @@ import type { MatchProfile } from "@/lib/volunteers/task-match";
 // this reads only `e:<their-email>` and never lists or exposes anyone else's data —
 // the same self-scoping pattern as supporterTier. Returns null when they have no
 // volunteer record (e.g. a pure email subscriber) or the DB is unconfigured.
-export type MyVolunteerProfile = MatchProfile & { optedOut: boolean };
+export type MyVolunteerProfile = MatchProfile & {
+  optedOut: boolean;
+  zip: string | null;
+  city: string | null;
+  captainEmail: string | null; // the team captain they're on, if any
+};
 
 export async function getMyVolunteerProfile(email?: string | null): Promise<MyVolunteerProfile | null> {
   if (!dbConfigured || !email) return null;
@@ -25,6 +30,9 @@ export async function getMyVolunteerProfile(email?: string | null): Promise<MyVo
       mode: typeof v.mode === "string" ? v.mode : null,
       availability: Array.isArray(v.availability) ? (v.availability as string[]) : [],
       optedOut: !!v.optedOut,
+      zip: typeof v.zip === "string" ? v.zip : null,
+      city: typeof v.city === "string" ? v.city : null,
+      captainEmail: typeof v.captainEmail === "string" ? v.captainEmail : null,
     };
   } catch {
     return null;
