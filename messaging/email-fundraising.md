@@ -287,3 +287,9 @@ With deep gratitude,
 [Candidate Name]
 
 P.S. [X] days. [X] points. Every dollar matters now. [DONATE LINK]
+
+---
+
+## Related
+
+- [sms-texting.md](sms-texting.md) -- The text-message companion channel: opt-in/consent, compliant fundraising/GOTV/event/volunteer templates, cadence guardrails, and FEC cost tracking.

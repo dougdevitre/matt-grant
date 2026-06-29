@@ -57,6 +57,7 @@ Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026
 - [workflows/gotv-plan.md](workflows/gotv-plan.md) -- Get Out The Vote operations
 - [tactics/ballot-chase-program.md](tactics/ballot-chase-program.md) -- Tracking and chasing ballots
 - [candidate/absentee-voting-guide.md](candidate/absentee-voting-guide.md) -- Supporter/voter guide to voting early or absentee in MO-02: the three options, deadlines, notary rules, application walkthrough, and county election authorities (mirrors the `/vote/absentee` page)
+- [messaging/sms-texting.md](messaging/sms-texting.md) -- SMS/text messaging: toll-free verification, opt-in/consent, compliant templates, TCPA + FEC compliance, peer-to-peer scripts, and cost tracking
 
 ## "I need to build a volunteer leadership team"
 

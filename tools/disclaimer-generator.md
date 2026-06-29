@@ -207,6 +207,8 @@ Reply STOP to opt out.
 
 **Peer-to-peer texting:** Every initial message must include the disclaimer. Follow-up replies in an active conversation thread may not need a repeated disclaimer, but best practice is to include it.
 
+> See `messaging/sms-texting.md` for full SMS program guidance — toll-free verification, opt-in/consent language, ready-to-send templates, reply handling, cadence/opt-out guardrails, peer-to-peer scripts, and cost tracking.
+
 ### Social Media Posts (Organic)
 
 **Federal guidance:**

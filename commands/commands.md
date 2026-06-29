@@ -87,7 +87,7 @@ Instant-generation triggers. When a user types any of these commands, generate t
 |---|---|
 | `/doorscript` | Canvass script with ID question, issue pivot, and close |
 | `/phonescript` | Phone banking script (ID + persuasion version and GOTV version) |
-| `/textscript` | Peer-to-peer texting scripts (intro, persuasion, GOTV, event invite) |
+| `/textscript` | Peer-to-peer texting scripts (intro, persuasion, GOTV, event invite) -- from `messaging/sms-texting.md` |
 | `/voicemail` | Voicemail script for robocall or volunteer phone banking |
 | `/walkcard` | Walk card / palm card content (front and back) |
 
@@ -95,7 +95,7 @@ Instant-generation triggers. When a user types any of these commands, generate t
 | Command | Output |
 |---|---|
 | `/endorseask [name]` | Endorsement request letter to a specific person or organization |
-| `/eventinvite [event]` | Event invitation (email + text message versions) |
+| `/eventinvite [event]` | Event invitation (email + text message versions; SMS version per `messaging/sms-texting.md`) |
 | `/volunteerask [name]` | Personalized volunteer recruitment message |
 | `/captaintypes` | The six team-captain archetypes with strengths, weaknesses, and best-fit roles (from `tactics/captain-archetypes.md`) |
 | `/captainmatch` | Captain↔volunteer↔supporter pairing matrices and roster worksheet (from `workflows/team-pairing.md`) |
