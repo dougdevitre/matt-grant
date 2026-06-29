@@ -32,7 +32,8 @@ const newSeed = () => `${Date.now().toString(36)}-${Math.floor(Math.random() * 1
 // Render mapping (world units → CSS).
 const PLAYER_LEFT_PCT = 14;
 const RENDER_AHEAD = 230; // world units visible ahead of the player
-const VSCALE = 1.35; // px per world y-unit
+const VSCALE = 1.35; // px per world y-unit at the design track height
+const DESIGN_TRACK_H = 260; // the height VSCALE was tuned against; vscale scales with the actual height
 const GROUND_PX = 26;
 
 const OUTCOME_TEXT: Record<string, string> = {
@@ -58,6 +59,13 @@ export function RedTapeRun({ content }: { content: GameContent }) {
   const gameRef = useRef(buildRedTapeRun());
   const rafRef = useRef<number | null>(null);
   const lastTsRef = useRef<number>(0);
+
+  // The track height is responsive (smaller on phones). Measure it so the jump arc
+  // scales with it — the player's apex always clears the hazards instead of clipping
+  // off the top. Render-only; the sim stays in world units, so gameplay is unchanged.
+  const trackRef = useRef<HTMLButtonElement | null>(null);
+  const [trackH, setTrackH] = useState(DESIGN_TRACK_H);
+  const vscale = (VSCALE * trackH) / DESIGN_TRACK_H;
 
   const stopLoop = useCallback(() => {
     if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
@@ -109,6 +117,19 @@ export function RedTapeRun({ content }: { content: GameContent }) {
   }, [phase]);
 
   useEffect(() => () => stopLoop(), [stopLoop]);
+
+  // Keep trackH in sync with the rendered track (responsive height / orientation change).
+  useEffect(() => {
+    if (phase !== "playing") return;
+    const el = trackRef.current;
+    if (!el) return;
+    const measure = () => setTrackH(el.clientHeight || DESIGN_TRACK_H);
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [phase]);
 
   // Keyboard: Space / ArrowUp / W jump while playing.
   useEffect(() => {
@@ -182,10 +203,11 @@ export function RedTapeRun({ content }: { content: GameContent }) {
 
           {/* The track. Clicking it (or Space/↑) jumps. */}
           <button
+            ref={trackRef}
             type="button"
             onClick={jump}
             aria-label="Jump (or press Space / Up arrow)"
-            className="relative block h-[260px] w-full overflow-hidden rounded-lg border border-line bg-paper text-left shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink"
+            className="relative block h-[190px] w-full overflow-hidden rounded-lg border border-line bg-paper text-left shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink sm:h-[230px] md:h-[260px]"
           >
             {/* ground */}
             <span className="absolute inset-x-0 bottom-0 border-t border-line bg-white" style={{ height: GROUND_PX }} aria-hidden="true" />
@@ -193,7 +215,7 @@ export function RedTapeRun({ content }: { content: GameContent }) {
             {/* runner */}
             <span
               className="absolute z-10 grid h-8 w-8 -translate-x-1/2 place-items-center rounded-sm bg-ink text-paper"
-              style={{ left: `${PLAYER_LEFT_PCT}%`, bottom: GROUND_PX + state.y * VSCALE }}
+              style={{ left: `${PLAYER_LEFT_PCT}%`, bottom: GROUND_PX + state.y * vscale }}
               aria-hidden="true"
             >
               <span className="text-base leading-none">🏃</span>
