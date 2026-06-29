@@ -12,6 +12,7 @@ import {
 } from "@/lib/games/rotation";
 import type { GameContent } from "@/lib/games/content-schema";
 import { EndScreen } from "./EndScreen";
+import { useGameStartTelemetry } from "@/lib/games/telemetry-client";
 import { RotationSeatBar } from "./RotationSeatBar";
 
 // Rotation — the client view. Each seat shows its effectiveness (a bar) and a status
@@ -44,6 +45,7 @@ function seatLabel(seat: Seat, content: GameContent): string {
 
 export function RotationGame({ content }: { content: GameContent }) {
   const [phase, setPhase] = useState<Phase>("ready");
+  useGameStartTelemetry(phase === "playing", content.gameId);
   const [seed, setSeed] = useState<string>(newSeed);
   const [end, setEnd] = useState<EndData | null>(null);
   const [feedback, setFeedback] = useState<string>("");

@@ -6,6 +6,7 @@ import { buildTheDocket, docketConfig, parseMaze, type DocketInput, type DocketS
 import type { Dir } from "@/lib/games/the-docket";
 import type { GameContent } from "@/lib/games/content-schema";
 import { EndScreen } from "./EndScreen";
+import { useGameStartTelemetry } from "@/lib/games/telemetry-client";
 
 // The Docket — Pac-Man-style maze view (PHASE 1: one maze, one ghost). The sim is the
 // shared deterministic engine; this view renders the grid, takes turn inputs (arrows /
@@ -71,6 +72,7 @@ function DocketEnding({ end, ending }: { end: EndData; ending: NonNullable<GameC
 
 export function TheDocket({ content }: { content: GameContent }) {
   const [phase, setPhase] = useState<Phase>("ready");
+  useGameStartTelemetry(phase === "playing", content.gameId);
   const [seed, setSeed] = useState<string>(newSeed);
   const [end, setEnd] = useState<EndData | null>(null);
   const [, repaint] = useReducer((n: number) => n + 1, 0);
