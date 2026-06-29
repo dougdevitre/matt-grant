@@ -26,6 +26,41 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-06-29 -- v1.x -- SMS / Text Messaging Compliance & Templates
+
+**Changes:**
+- [added] messaging/sms-texting.md -- complete SMS program guide: toll-free verification submission content, opt-in/consent language, compliant message templates (fundraising, GOTV, event, volunteer) with FEC disclaimer + STOP, TCPA + FEC compliance checklist, website opt-in form copy, keyword auto-responder (double opt-in) sequence, inbound reply handling, cadence/opt-out-rate guardrails, peer-to-peer texting scripts, and FEC cost-tracking guidance
+- [updated] SKILL.md -- new row in the messaging reference table
+- [updated] INDEX.md -- added to the "I need to contact voters" use case
+- [updated] messaging/README.md -- file-list bullet
+- [updated] commands/commands.md -- routed `/textscript` and `/eventinvite` (text version) to messaging/sms-texting.md
+- [updated] tools/disclaimer-generator.md -- cross-reference from the SMS/MMS section to the new file
+- [updated] messaging/email-fundraising.md, messaging/digital-footprint-strategy.md -- "Related" cross-reference to the new file
+
+**Verifications Performed:**
+- FEC SMS disclaimer treatment confirmed against tools/disclaimer-generator.md (52 USC 30120 / 11 CFR 110.11); used the verbatim committee disclaimer "Paid for by Matt Grant for Congress."
+- All campaign facts (FEC C00945394, MO-02, primary Aug 4 2026, toll-free +1 844-314-7912, contact info, WinRed donate link) sourced only from documented facts in CLAUDE.md
+- Cross-references resolve in both directions (sms-texting <-> disclaimer-generator, email-fundraising, digital-footprint-strategy, expenditure-tracker/expenditure-tracking)
+- Mermaid diagram syntax validated (3 flowcharts, all valid)
+
+**Known Gaps:**
+- TCPA quiet-hours (8am-9pm local) and opt-out-rate thresholds are general best-practice guidance, not carrier-published limits -- flagged in-file to confirm current carrier policy with Twilio and consent approach with counsel
+- MMS/media-specific guidance, detailed metrics/segmentation, and a glossary term deferred as optional
+- Toll-free number was In Review at time of writing; templates not yet live-tested
+
+**Files Modified:**
+- messaging/sms-texting.md
+- SKILL.md
+- INDEX.md
+- messaging/README.md
+- commands/commands.md
+- tools/disclaimer-generator.md
+- messaging/email-fundraising.md
+- messaging/digital-footprint-strategy.md
+- references/update-log.md
+
+---
+
 ## 2026-06-24 -- v1.x -- Captain Onboarding & Training Guide
 
 **Changes:**
