@@ -9,6 +9,7 @@ import { recordContribution } from "@/lib/donors";
 import { dismissOnboarding } from "@/lib/onboarding";
 import { getTaskTemplate } from "@/lib/task-templates";
 import { mirrorVolunteerStatusToAirtable } from "@/lib/volunteers/airtable";
+import { staffRole } from "@/lib/staff";
 
 // Hide the "Start here" guide for the signed-in staffer (a per-user UI
 // preference — no capability needed beyond being signed in).
@@ -143,6 +144,31 @@ export async function setVolunteerCaptain(formData: FormData) {
       Key: { PK: PK.volunteers, SK: id },
       UpdateExpression: "SET captainEmail = :c",
       ExpressionAttributeValues: { ":c": captainEmail },
+    }),
+  );
+  revalidatePath("/dashboard/volunteers");
+  revalidatePath("/dashboard");
+}
+
+// Admin assigns a volunteer to ANY captain (vs. the self-claim above). Admin-only
+// (manageTeam). Validates the target is an active captain; an empty value unassigns.
+export async function assignVolunteerToCaptain(formData: FormData) {
+  const { role } = await staffGate();
+  if (!can(role, "manageTeam")) throw new Error("Forbidden");
+  requireDb();
+  const id = str(formData, "id");
+  if (!id) return;
+  const chosen = (str(formData, "captainEmail") ?? "").trim().toLowerCase();
+  if (chosen) {
+    const r = await staffRole(chosen); // must be a real captain (or admin)
+    if (r !== "captain" && r !== "admin") return;
+  }
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: PK.volunteers, SK: id },
+      UpdateExpression: "SET captainEmail = :c",
+      ExpressionAttributeValues: { ":c": chosen || null },
     }),
   );
   revalidatePath("/dashboard/volunteers");

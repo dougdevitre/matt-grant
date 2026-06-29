@@ -4,8 +4,9 @@ import { headers } from "next/headers";
 import { getVolunteer, getTasks } from "@/lib/queries";
 import { signVolunteerToken } from "@/lib/volunteer-link";
 import { PageHeader } from "@/components/dashboard/Notice";
-import { updateVolunteer, markVolunteerContacted, updateVolunteerNotes, updateVolunteerProfile } from "@/app/dashboard/actions";
+import { updateVolunteer, markVolunteerContacted, updateVolunteerNotes, updateVolunteerProfile, assignVolunteerToCaptain } from "@/app/dashboard/actions";
 import { promoteToCaptain } from "@/app/dashboard/team/actions";
+import { listActiveCaptains } from "@/lib/volunteers/captains";
 import { VOLUNTEER_MODES, VOLUNTEER_AVAILABILITY, VOLUNTEER_SKILLS } from "@/lib/volunteer-profile";
 import { requireCap } from "@/lib/auth";
 import { can } from "@/lib/rbac";
@@ -42,6 +43,8 @@ export default async function VolunteerDetailPage({ params }: { params: Promise<
   // confirmed badge instead of "applicant" and hide the promote button once done.
   const memberRole = v.email ? await staffRole(v.email) : null;
   const isCaptainAlready = memberRole === "captain" || memberRole === "admin";
+  // Admins can assign this volunteer to any captain's team (vs. captain self-claim).
+  const captains = canPromote ? await listActiveCaptains() : [];
   const { rows: allTasks } = await getTasks();
   const tasks = allTasks.filter((t) => t.volunteerId === v.id);
   // Private magic-link the captain can send so this volunteer sees & updates
@@ -142,6 +145,29 @@ export default async function VolunteerDetailPage({ params }: { params: Promise<
               {v.door === "Team Captain" && <p className="mb-1 text-xs font-semibold text-brick">Captain applicant — review their note above</p>}
               <button type="submit" className="btn-ghost px-3 py-1.5 text-sm">★ Promote to Captain</button>
               <p className="mt-1 text-xs text-slate">Grants the Captain role (dashboard access) and emails them their access.</p>
+            </form>
+          )}
+
+          {/* Admin: assign this volunteer to any captain's team (vs. captain self-claim). */}
+          {canPromote && captains.length > 0 && (
+            <form action={assignVolunteerToCaptain} className="mt-4 flex items-center gap-2 border-t border-line pt-4">
+              <input type="hidden" name="id" value={v.id} />
+              <label className="eyebrow text-slate" htmlFor="vol-captain">Team captain</label>
+              <select
+                id="vol-captain"
+                name="captainEmail"
+                defaultValue={v.captainEmail?.toLowerCase() ?? ""}
+                className="flex-1 rounded-sm border border-line bg-white px-2 py-1.5 text-sm text-ink"
+              >
+                <option value="">— Unassigned —</option>
+                {captains.map((c) => (
+                  <option key={c.email} value={c.email}>
+                    {c.firstName}
+                    {c.area ? ` (${c.area})` : ""} · {c.teamSize}
+                  </option>
+                ))}
+              </select>
+              <button type="submit" className="btn-ghost px-3 py-1.5 text-sm">Assign</button>
             </form>
           )}
 

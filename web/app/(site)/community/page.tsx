@@ -5,6 +5,7 @@ import { can } from "@/lib/rbac";
 import { CaseForChange } from "@/components/CaseForChange";
 import { CommunityOnboarding } from "@/components/CommunityOnboarding";
 import { MatchedActions } from "@/components/community/MatchedActions";
+import { JoinTeam } from "@/components/community/JoinTeam";
 import { ViewAsBanner } from "@/components/dashboard/ViewAsBanner";
 import { supporterTierForEmail } from "@/lib/supporterTier";
 import { getProfile } from "@/lib/profile";
@@ -122,6 +123,9 @@ export default async function CommunityPage() {
           Self-scoped to gate.email; renders nothing for people without a volunteer
           profile when there's nothing to match. */}
       <MatchedActions email={gate.email} />
+
+      {/* Auto-match the volunteer to a captain's team (one-click join). */}
+      <JoinTeam email={gate.email} />
 
       {/* Ways to help — the conversion section */}
       <h2 className="mt-14 text-2xl font-semibold">Three ways to help</h2>
