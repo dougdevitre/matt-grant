@@ -15,6 +15,7 @@ import {
   notifyCaptainsNewVolunteer,
   notifyAdminsNewDonation,
   notifyAdminsCaptainApplication,
+  notifyCaptainVolunteerInterest,
   sendRoleWelcome,
 } from "./staffNotify";
 
@@ -59,6 +60,19 @@ describe("role-targeted staff notifications", () => {
     expect(emailsMuting).toHaveBeenCalledWith("captain_application");
     expect(toOf()).toEqual(["admin@x.com", "boss@x.com"]);
     expect((sendEmail.mock.calls[0][0] as { subject: string }).subject).toContain("Lee");
+  });
+
+  it("captain interest ping → the one captain, subject names the task", async () => {
+    await notifyCaptainVolunteerInterest("cap@x.com", { name: "Dana", email: "dana@x.com", task: "Knock doors" });
+    const arg = sendEmail.mock.calls[0][0] as { to: string; subject: string };
+    expect(arg.to).toBe("cap@x.com");
+    expect(arg.subject).toContain("Knock doors");
+    expect(arg.subject).toContain("Dana");
+  });
+
+  it("captain interest ping → no-op without a captain email", async () => {
+    await notifyCaptainVolunteerInterest("", { task: "Knock doors" });
+    expect(sendEmail).not.toHaveBeenCalled();
   });
 
   it("role welcome → the staffer, subject names the role", async () => {

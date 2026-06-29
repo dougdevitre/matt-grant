@@ -118,8 +118,9 @@ CAPTAIN = {
                   "promote captains — admin-only by design."]},
         {"eyebrow": "Scaling (admins)", "heading": "Sizing the program",
          "body": ["Captains = the larger of (a) one per coverage area and (b) active volunteers ÷ 8 — "
-                  "then split any captain over 10. Past ~8 captains, add area leads (1 per ~5–6 captains) "
-                  "so no one manages more than ~8 directly."]},
+                  "then split any captain over 10. As you pass ~8 captains, designate a senior captain to "
+                  "mentor and coordinate a cluster of nearby teams (an organizing practice — no separate "
+                  "role or login) so no one’s span gets too wide."]},
     ],
     "do": ["Keep your team to 5–10", "Welcome each join within 48 hours",
            "Cut and assign turf, lists, events; keep statuses current",

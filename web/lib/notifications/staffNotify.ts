@@ -87,6 +87,35 @@ export async function notifyCaptainsNewVolunteer(v: { name?: string; email?: str
 }
 
 /**
+ * Ping ONE captain that a volunteer on THEIR team raised their hand for a task
+ * (from the community hub's matched-actions). A direct, low-volume, actionable
+ * nudge — sent straight to that captain, not the role broadcast. Best-effort.
+ */
+export async function notifyCaptainVolunteerInterest(
+  captainEmail: string,
+  v: { name?: string; email?: string; task: string },
+): Promise<void> {
+  if (!sesEnabled || !captainEmail) return;
+  try {
+    const title = "A volunteer on your team is ready";
+    await sendEmail({
+      to: captainEmail,
+      subject: `${v.name || "A volunteer"} is ready: ${v.task}`.slice(0, 120),
+      html: renderEmail({
+        eyebrow: "Your team",
+        title,
+        bodyHtml: `<p>Someone on your team just raised their hand for an action.</p>
+          <p style="margin:14px 0;padding:12px 16px;background:#F1EFE8;border-radius:4px;"><strong>${esc(v.name || "—")}</strong>${v.email ? `<br><span style="color:#5B6678;">${esc(v.email)}</span>` : ""}<br><br>Interested in: <strong>${esc(v.task)}</strong></p>
+          <p>Reach out and get them started. Their full profile is on the dashboard <strong>Volunteers</strong> page.</p>`,
+      }),
+      text: renderText({ title, lines: [`${v.name || "A volunteer"} — ${v.task}`, v.email || "", "Get them started from the dashboard Volunteers page."].filter(Boolean) }),
+    });
+  } catch {
+    /* best-effort */
+  }
+}
+
+/**
  * New team-captain application (from /join) → alert admins, who are the only ones who can promote
  * to the captain RBAC role. The applicant is saved as a normal volunteer with door="Team Captain";
  * this just surfaces it so it doesn't sit unseen. Best-effort.
