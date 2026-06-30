@@ -1,5 +1,7 @@
 import { getMyVolunteerProfile } from "@/lib/volunteers/self";
 import { listActiveCaptains, suggestCaptain } from "@/lib/volunteers/captains";
+import { listRegions } from "@/lib/volunteers/regions";
+import { buildGeoIndex } from "@/lib/volunteers/geo";
 import { joinSuggestedTeam } from "@/app/(site)/community/actions";
 
 // "Join a team" on the community hub. Auto-matches a volunteer to the best-fit
@@ -7,7 +9,11 @@ import { joinSuggestedTeam } from "@/app/(site)/community/actions";
 // click. Shows their current team once joined. Privacy: only the captain's FIRST
 // NAME + area is shown — never their email. Self-scoped to the passed email.
 export async function JoinTeam({ email }: { email?: string | null }) {
-  const [me, captains] = await Promise.all([getMyVolunteerProfile(email), listActiveCaptains()]);
+  const [me, captains, regions] = await Promise.all([
+    getMyVolunteerProfile(email),
+    listActiveCaptains(),
+    listRegions(),
+  ]);
   if (!me) return null; // only people with a volunteer record see this
 
   // Already on a team — confirm who their lead is.
@@ -27,7 +33,7 @@ export async function JoinTeam({ email }: { email?: string | null }) {
   }
 
   if (!captains.length) return null; // no captains to join yet
-  const pick = suggestCaptain({ zip: me.zip, city: me.city }, captains);
+  const pick = suggestCaptain({ zip: me.zip, city: me.city }, captains, buildGeoIndex(regions));
   if (!pick) return null;
 
   return (
