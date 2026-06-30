@@ -137,6 +137,7 @@ export const LEGAL = [
   { href: "/data-policy", label: "Data Policy" },
   { href: "/transparency", label: "Transparency" },
   { href: "/public-trust", label: "Restoring Public Trust" },
+  { href: "/terms", label: "Terms of Use" },
 ] as const;
 
 // Official Missouri voter lookup (registration status, polling place, sample
