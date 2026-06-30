@@ -13,6 +13,8 @@ import { can, INVITABLE_ROLES, ROLE_LABELS, ROLE_BADGE, isStaffRole, type Role }
 import { revokeStaff, setMemberRole, setCaptainAreaAction } from "./actions";
 import { ConfirmButton } from "@/components/dashboard/ConfirmButton";
 import { SubmitButton } from "@/components/dashboard/SubmitButton";
+import { CaptainRegionsPicker } from "@/components/dashboard/CaptainRegionsPicker";
+import { listRegions } from "@/lib/volunteers/regions";
 
 const actionLabel: Record<string, string> = {
   invite: "invited",
@@ -36,6 +38,8 @@ export default async function TeamPage() {
   const partners = active.filter((s) => s.role === "partner"); // Peace Room only
   const changes = await listAccessChanges(25);
   const previews = await listPreviewSwitches(25);
+  // Canonical regions for the captain region picker (empty when Airtable is off).
+  const regionOptions = (await listRegions()).map((r) => ({ name: r.name, level: r.level }));
 
   // Clerk is the source of truth for "not yet accepted": anyone still in the pending
   // list hasn't signed in. We join it against our staff rows at render — no extra DB
@@ -119,17 +123,20 @@ export default async function TeamPage() {
                   <SubmitButton pendingText="Saving…" className="rounded-sm border border-line px-2.5 py-1 text-xs text-slate hover:border-ink hover:text-ink disabled:opacity-50">Update</SubmitButton>
                 </form>
                 {s.role === "captain" && (
-                  <form action={setCaptainAreaAction} className="flex items-center gap-1.5" title="Coverage area — auto-matches volunteers to this captain (ZIP, city, county, or label)">
-                    <input type="hidden" name="email" value={s.email} />
-                    <input
-                      name="area"
-                      defaultValue={s.area ?? ""}
-                      placeholder="Area (ZIP/city)"
-                      aria-label={`Coverage area for ${s.email}`}
-                      className="w-28 rounded-sm border border-line px-2 py-1 text-xs text-ink"
-                    />
-                    <SubmitButton pendingText="…" className="rounded-sm border border-line px-2 py-1 text-xs text-slate hover:border-ink hover:text-ink disabled:opacity-50">Area</SubmitButton>
-                  </form>
+                  <>
+                    <CaptainRegionsPicker email={s.email} options={regionOptions} selected={s.regions ?? []} />
+                    <form action={setCaptainAreaAction} className="flex items-center gap-1.5" title="Legacy free-text coverage area — used only as a fallback when no regions are assigned">
+                      <input type="hidden" name="email" value={s.email} />
+                      <input
+                        name="area"
+                        defaultValue={s.area ?? ""}
+                        placeholder="Area (fallback)"
+                        aria-label={`Fallback coverage area for ${s.email}`}
+                        className="w-28 rounded-sm border border-line px-2 py-1 text-xs text-ink"
+                      />
+                      <SubmitButton pendingText="…" className="rounded-sm border border-line px-2 py-1 text-xs text-slate hover:border-ink hover:text-ink disabled:opacity-50">Area</SubmitButton>
+                    </form>
+                  </>
                 )}
                 <form action={revokeStaff}>
                   <input type="hidden" name="email" value={s.email} />

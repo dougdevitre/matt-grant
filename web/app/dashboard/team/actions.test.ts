@@ -29,6 +29,7 @@ vi.mock("@/lib/staff", () => ({
   setStaffRole: vi.fn(),
   staffRole: vi.fn(),
   setCaptainArea: vi.fn(),
+  setCaptainRegions: vi.fn(),
 }));
 vi.mock("@/lib/clerkRoles", () => ({
   inviteToClerk: vi.fn(),
@@ -37,8 +38,8 @@ vi.mock("@/lib/clerkRoles", () => ({
 }));
 vi.mock("@/lib/site", () => ({ SITE_URL: "https://example.test" }));
 
-import { resendInviteAction, promoteToCaptain, setCaptainAreaAction } from "./actions";
-import { addStaff, staffRole, setCaptainArea } from "@/lib/staff";
+import { resendInviteAction, promoteToCaptain, setCaptainAreaAction, setCaptainRegionsAction } from "./actions";
+import { addStaff, staffRole, setCaptainArea, setCaptainRegions } from "@/lib/staff";
 import { setClerkRoleByEmail } from "@/lib/clerkRoles";
 
 const form = (email: string) => {
@@ -133,5 +134,32 @@ describe("setCaptainAreaAction", () => {
     fd.set("area", "Kirkwood");
     await setCaptainAreaAction(fd);
     expect(setCaptainArea).toHaveBeenCalledWith("c@x.test", "Kirkwood");
+  });
+});
+
+describe("setCaptainRegionsAction", () => {
+  it("refuses a non-admin", async () => {
+    staffGate.mockResolvedValue({ ok: true, role: "captain", email: "cap@x.test" });
+    const fd = new FormData();
+    fd.set("email", "c@x.test");
+    fd.append("region", "St. Louis County");
+    await expect(setCaptainRegionsAction(fd)).rejects.toThrow(/forbidden/i);
+    expect(setCaptainRegions).not.toHaveBeenCalled();
+  });
+
+  it("saves the selected regions for an admin", async () => {
+    const fd = new FormData();
+    fd.set("email", "C@x.test");
+    fd.append("region", "St. Louis County");
+    fd.append("region", "Jefferson County");
+    await setCaptainRegionsAction(fd);
+    expect(setCaptainRegions).toHaveBeenCalledWith("c@x.test", ["St. Louis County", "Jefferson County"]);
+  });
+
+  it("passes an empty list (clear) when nothing is selected", async () => {
+    const fd = new FormData();
+    fd.set("email", "c@x.test");
+    await setCaptainRegionsAction(fd);
+    expect(setCaptainRegions).toHaveBeenCalledWith("c@x.test", []);
   });
 });
