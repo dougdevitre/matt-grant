@@ -8,6 +8,11 @@ const nextConfig = {
   reactStrictMode: true,
   // Pin tracing to this app so a stray parent lockfile doesn't confuse Next.
   outputFileTracingRoot: __dirname,
+  // BUNDLE_GUARD=1 emits the standalone server (server + traced node_modules) so CI can
+  // measure a faithful proxy of the Amplify SSR compute bundle and fail a PR BEFORE it
+  // tips the hard 220 MiB cap at deploy time. Unset in the real Amplify build, so its
+  // default .next output (what the Amplify Next adapter expects) is unchanged.
+  ...(process.env.BUNDLE_GUARD === "1" ? { output: "standalone" } : {}),
   // sharp ships native binaries (used at runtime by the asset-library upload route to
   // compress images + the next/image optimizer, and at build time by scripts/*.mjs).
   // Keep it external so the platform binary resolves and is traced into the serverless
