@@ -216,7 +216,15 @@ export async function saveVolunteerSignup(input: VolunteerIntake): Promise<Intak
       .catch(() => {});
   }
 
-  await notify({ name, email, phone, city, door, message }).catch(() => {});
+  // Welcome the joiner at most once: atomically claim it on this record, then skip
+  // if the Clerk webhook already welcomed this email. Stamp the shared Clerk flag
+  // when we do send, so the /community-visit path won't welcome again.
+  let welcomeJoiner = false;
+  if (email && sesEnabled) {
+    welcomeJoiner = (await claimWelcome(dedupeKey, now)) && !(await clerkAlreadyWelcomed(email));
+  }
+  await notify({ name, email, phone, city, door, message, welcomeJoiner }).catch(() => {});
+  if (welcomeJoiner) await markClerkWelcomed(email).catch(() => {});
 
   // Role-targeted staff alerts (best-effort, respect per-staffer opt-outs):
   //   • Captain application → admins (only they can promote to the captain role)
@@ -233,7 +241,65 @@ export async function saveVolunteerSignup(input: VolunteerIntake): Promise<Intak
 const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
-// Branded receipt to the joiner + plain notification to the campaign inbox.
+// ── Welcome idempotency ──────────────────────────────────────────────────────
+// Send the joiner welcome at most once, ever, across re-submits AND the Clerk
+// user.created webhook (which welcomes the same person via lib/welcome.ts and the
+// shared privateMetadata.welcomedAt flag).
+
+// Atomically claim the welcome for this record: set welcomedAt only if it isn't
+// already set. Returns true exactly once per record (the first caller wins); a
+// re-submit hits the ConditionExpression and returns false. Race-safe.
+async function claimWelcome(dedupeKey: string, now: string): Promise<boolean> {
+  try {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: PK.volunteers, SK: dedupeKey },
+        UpdateExpression: "SET welcomedAt = :now",
+        ConditionExpression: "attribute_not_exists(welcomedAt)",
+        ExpressionAttributeValues: { ":now": now },
+      }),
+    );
+    return true;
+  } catch {
+    return false; // already welcomed (ConditionalCheckFailed) — don't double-send
+  }
+}
+
+// True if the Clerk account for this email was already welcomed (webhook / first
+// /community visit stamped welcomedAt). Best-effort; false when Clerk is off.
+async function clerkAlreadyWelcomed(email: string): Promise<boolean> {
+  try {
+    const { clerkClient } = await import("@clerk/nextjs/server");
+    const client = await clerkClient();
+    const { data } = await client.users.getUserList({ emailAddress: [email], limit: 1 });
+    const u = data[0];
+    return !!u && !!(u.privateMetadata as { welcomedAt?: string } | undefined)?.welcomedAt;
+  } catch {
+    return false;
+  }
+}
+
+// Stamp the shared Clerk welcomedAt flag so the /community-visit welcome path also
+// skips. Best-effort; no-op when Clerk is off or no account exists yet.
+async function markClerkWelcomed(email: string): Promise<void> {
+  try {
+    const { clerkClient } = await import("@clerk/nextjs/server");
+    const client = await clerkClient();
+    const { data } = await client.users.getUserList({ emailAddress: [email], limit: 1 });
+    const u = data[0];
+    if (u && !(u.privateMetadata as { welcomedAt?: string } | undefined)?.welcomedAt) {
+      await client.users.updateUserMetadata(u.id, { privateMetadata: { welcomedAt: new Date().toISOString() } });
+    }
+  } catch {
+    /* best-effort */
+  }
+}
+
+// Branded receipt to the joiner + plain notification to the campaign inbox. The
+// joiner welcome is gated on `welcomeJoiner` (computed by the caller's idempotency
+// guard) so a re-submit — or someone the Clerk webhook already welcomed — never
+// gets a second welcome. The internal campaign-inbox copy always sends.
 async function notify(p: {
   name: string;
   email: string;
@@ -241,10 +307,11 @@ async function notify(p: {
   city: string | null;
   door: JoinDoor;
   message: string | null;
+  welcomeJoiner: boolean;
 }) {
   if (!sesEnabled) return;
   const firstName = esc(p.name.split(" ")[0] || "there");
-  if (p.email) {
+  if (p.email && p.welcomeJoiner) {
     const tpl =
       p.door === "Volunteer" || p.door === "Team Captain"
         ? volunteerWelcome(firstName)
