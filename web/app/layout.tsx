@@ -47,15 +47,17 @@ export const metadata: Metadata = {
   description:
     "Matt Grant is a neighbor, a dad, and a problem-solver running for Congress in Missouri's 2nd District to put children first, end family-court corruption, and bring term limits to Washington.",
   openGraph: {
-    title: `${CAMPAIGN.candidate} for Congress — ${CAMPAIGN.district}`,
-    description: "Putting Missouri's children first. Election day: August 4, 2026.",
+    // No title/description here: Next falls back per-page to each route's own
+    // title + description, so /issues, /join, etc. get distinct share cards.
+    // The homepage falls back to the title.default + description above.
     type: "website",
+    siteName: `${CAMPAIGN.candidate} for Congress`,
     // Image comes from the dynamic app/opengraph-image.tsx (red/white/blue card).
   },
   twitter: {
+    // Same fallback as openGraph — twitter.title/description derive from the
+    // page's own metadata rather than a single generic string.
     card: "summary_large_image",
-    title: `${CAMPAIGN.candidate} for Congress — ${CAMPAIGN.districtShort}`,
-    description: "Putting Missouri's children first. Election day: August 4, 2026.",
     // Image comes from app/twitter-image.tsx.
   },
 };
