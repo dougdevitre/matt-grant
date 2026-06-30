@@ -7,6 +7,8 @@ import { staffGate } from "@/lib/auth";
 import { saveProfile } from "@/lib/profile";
 import { getMyVolunteerProfile } from "@/lib/volunteers/self";
 import { listActiveCaptains, suggestCaptain } from "@/lib/volunteers/captains";
+import { listRegions } from "@/lib/volunteers/regions";
+import { buildGeoIndex } from "@/lib/volunteers/geo";
 import { notifyCaptainVolunteerInterest } from "@/lib/notifications/staffNotify";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { CAMPAIGN } from "@/lib/site";
@@ -88,8 +90,8 @@ export async function joinSuggestedTeam() {
   if (!email || !dbConfigured) return;
   const me = await getMyVolunteerProfile(email);
   if (!me || me.captainEmail) return; // not a volunteer, or already on a team
-  const captains = await listActiveCaptains();
-  const pick = suggestCaptain({ zip: me.zip, city: me.city }, captains);
+  const [captains, regions] = await Promise.all([listActiveCaptains(), listRegions()]);
+  const pick = suggestCaptain({ zip: me.zip, city: me.city }, captains, buildGeoIndex(regions));
   if (!pick) return; // no captains available yet
   await ddb.send(
     new UpdateCommand({

@@ -6,6 +6,7 @@
 import "server-only";
 import { listStaff } from "@/lib/staff";
 import { getVolunteers } from "@/lib/queries";
+import { coverageNamesFor, type GeoIndex } from "@/lib/volunteers/geo";
 
 export type Captain = {
   email: string;
@@ -64,21 +65,35 @@ export function regionsCover(regions: string[] | undefined, v: MatchableVoluntee
   return (regions ?? []).some((r) => labelCovers(r, v));
 }
 
-/** True when a captain covers the volunteer via assigned regions (preferred) or legacy area. */
-export function captainCovers(c: Pick<Captain, "area" | "regions">, v: MatchableVolunteer): boolean {
+/**
+ * True when a captain covers the volunteer. With a GeoIndex, a captain whose
+ * assigned region is the volunteer's region OR any ancestor of it (e.g. the county
+ * above their city) counts — that's the precision win. Always falls back to the
+ * loose region/area label match, so behavior only improves, never regresses.
+ */
+export function captainCovers(
+  c: Pick<Captain, "area" | "regions">,
+  v: MatchableVolunteer,
+  index?: GeoIndex,
+): boolean {
+  if (index) {
+    const cover = coverageNamesFor(v, index);
+    if (cover.size && (c.regions ?? []).some((r) => cover.has(lc(r)))) return true;
+  }
   return regionsCover(c.regions, v) || areaCovers(c.area, v);
 }
 
 /**
- * Best captain for a volunteer: an area match wins; within the same tier the
- * least-loaded captain wins so teams stay balanced. Returns null when there are no
- * captains. Deterministic (ties break by email) — no Date/random.
+ * Best captain for a volunteer: a coverage match wins; within the same tier the
+ * least-loaded captain wins so teams stay balanced. Pass a GeoIndex for
+ * hierarchy-aware (ancestor) matching. Returns null when there are no captains.
+ * Deterministic (ties break by email) — no Date/random.
  */
-export function suggestCaptain(v: MatchableVolunteer, captains: Captain[]): Captain | null {
+export function suggestCaptain(v: MatchableVolunteer, captains: Captain[], index?: GeoIndex): Captain | null {
   if (!captains.length) return null;
   const ranked = [...captains].sort((a, b) => {
-    const am = captainCovers(a, v) ? 1 : 0;
-    const bm = captainCovers(b, v) ? 1 : 0;
+    const am = captainCovers(a, v, index) ? 1 : 0;
+    const bm = captainCovers(b, v, index) ? 1 : 0;
     if (am !== bm) return bm - am; // coverage match first (regions preferred, area fallback)
     if (a.teamSize !== b.teamSize) return a.teamSize - b.teamSize; // then least-loaded
     return a.email.localeCompare(b.email); // stable tiebreak
