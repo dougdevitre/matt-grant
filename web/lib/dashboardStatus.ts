@@ -10,6 +10,7 @@ import { getSecret } from "@/lib/ssm";
 import { dbConfigured, TABLE } from "@/lib/db";
 import { congressEnabled } from "@/lib/integrations/legislative/config";
 import { lastFieldIngest } from "@/lib/integrations/research/ingestField";
+import { checkAirtableHealth } from "@/lib/airtable/health";
 
 export type StatusState = "live" | "setup" | "off";
 export type StatusRow = {
@@ -30,12 +31,13 @@ async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
 }
 
 export async function getDashboardStatus(): Promise<StatusRow[]> {
-  const [sms, optedIn, connections, winredSecret, ingest] = await Promise.all([
+  const [sms, optedIn, connections, winredSecret, ingest, airtable] = await Promise.all([
     safe(() => smsEnabled(), false),
     safe(() => optedInSet(), new Set<string>()),
     safe(() => listConnections(), [] as Awaited<ReturnType<typeof listConnections>>),
     safe(() => getSecret("WINRED_WEBHOOK_SECRET"), undefined),
     safe(() => lastFieldIngest(), null),
+    safe(() => checkAirtableHealth(), { state: "setup" as const, detail: "Status check failed." }),
   ]);
 
   const connected = connections.map((c) => c.platform);
@@ -81,6 +83,17 @@ export async function getDashboardStatus(): Promise<StatusRow[]> {
         : "No platforms connected. Connect accounts to publish automatically.",
       actionHref: "/dashboard/social",
       actionText: "Social",
+    },
+    {
+      key: "airtable",
+      label: "Airtable roster mirror",
+      // The probe distinguishes not-configured (setup) from key-set-but-broken
+      // (error); the 3-state badge maps error → "Needs setup" with the detail
+      // carrying the 401/403 specifics so an admin knows it's a key/access fault.
+      state: airtable.state === "error" ? "setup" : airtable.state,
+      detail: airtable.detail,
+      actionHref: "/dashboard/volunteers",
+      actionText: "Volunteers",
     },
     {
       key: "winred",

@@ -4,6 +4,7 @@ import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { listStaff } from "@/lib/staff";
 import { listMatchableTasks } from "@/lib/volunteers/task-match";
+import { checkAirtableHealth } from "@/lib/airtable/health";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { VolunteerBoard } from "@/components/dashboard/VolunteerBoard";
 import { VolunteerImport } from "@/components/dashboard/VolunteerImport";
@@ -29,6 +30,10 @@ export default async function VolunteersPage() {
   // to curate templates in Airtable. Best-effort; admins only.
   const isAdmin = can(role, "manageTeam");
   const noActiveTasks = isAdmin && connected && (await listMatchableTasks().catch(() => [])).length === 0;
+  // Surface a broken roster mirror (key set but can't reach the base / 401) — the
+  // silent fail-closed mode where new signups stop syncing to Airtable. Only the
+  // "error" state nags here; "not configured" is fine if Airtable isn't used.
+  const airtable = isAdmin ? await checkAirtableHealth().catch(() => null) : null;
 
   return (
     <>
@@ -44,6 +49,16 @@ export default async function VolunteersPage() {
       </PageHeader>
 
       {!connected && <DbNotice />}
+
+      {airtable?.state === "error" && (
+        <div className="mt-4 rounded-sm border border-brick/40 bg-brick/10 p-4">
+          <p className="font-display text-sm font-semibold text-ink">Airtable roster mirror is failing</p>
+          <p className="mt-1 text-sm text-slate">
+            {airtable.detail} New and updated volunteers stay in the dashboard, but aren&rsquo;t syncing to the Airtable
+            roster until this is fixed. See <a href="/dashboard/setup" className="text-brick underline">Setup &amp; status</a>.
+          </p>
+        </div>
+      )}
 
       {noActiveTasks && (
         <div className="mt-4 rounded-sm border border-gold/40 bg-gold/10 p-4">
