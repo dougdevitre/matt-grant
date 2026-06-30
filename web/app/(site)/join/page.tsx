@@ -6,7 +6,7 @@ import { JoinPledgeForm } from "@/components/join/JoinPledgeForm";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Join the movement — Matt Grant for Congress",
+  title: "Join the movement",
   description:
     "Four ways to join the campaign to restore public trust in MO-02: get updates, volunteer, pledge to give, or lead a team. Pick your level.",
 };

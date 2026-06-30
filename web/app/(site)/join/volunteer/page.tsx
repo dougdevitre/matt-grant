@@ -4,7 +4,7 @@ import { VolunteerDetailForm } from "@/components/join/VolunteerDetailForm";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Volunteer — Matt Grant for Congress",
+  title: "Volunteer",
   robots: { index: false, follow: false },
 };
 

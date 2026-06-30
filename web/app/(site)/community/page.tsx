@@ -14,7 +14,7 @@ import { CAMPAIGN, SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "The Community — Matt Grant for Congress",
+  title: "The Community",
   robots: { index: false, follow: false },
 };
 
