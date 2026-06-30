@@ -90,10 +90,10 @@ CAPTAIN = {
              "protocol for leading a team — keep it close.",
     "sections": [
         {"eyebrow": "Your role", "heading": "Lead a team of 5–10",
-         "body": ["You recruit, welcome, train, schedule, and debrief your volunteers, and claim and "
-                  "assign Canvass Turf, Contact Lists, and Events — keeping their statuses current. "
-                  "You can read everything in the system; you don’t edit the master Task Templates "
-                  "or the Start Here guide."]},
+         "body": ["You recruit, welcome, schedule, and debrief your volunteers and own your Events. Once "
+                  "your admin has set up the field-ops tables in Airtable, you also cut and assign Canvass "
+                  "Turf and Contact Lists and keep their statuses current on the dashboard. You can read "
+                  "everything in the system; you don’t edit the master Task Templates or the Start Here guide."]},
         {"eyebrow": "The rule", "heading": "Keep your team to 5–10 (split at 10)",
          "body": ["Span of control is the rule — a team small enough for real relationships. The "
                   "dashboard Volunteers board shows your live team count."],
@@ -123,7 +123,7 @@ CAPTAIN = {
                   "role or login) so no one’s span gets too wide."]},
     ],
     "do": ["Keep your team to 5–10", "Welcome each join within 48 hours",
-           "Cut and assign turf, lists, events; keep statuses current",
+           "Own your events; cut & assign turf and lists once they’re set up",
            "Confirm volunteers and log results", "Tell an admin when you’re full"],
     "dont": ["Grow past ~10 without splitting", "Leave a new volunteer un-welcomed",
              "Edit the master Task Templates or Start Here"],
