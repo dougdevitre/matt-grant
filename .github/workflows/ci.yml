@@ -58,7 +58,13 @@ jobs:
         run: npx tsc --noEmit
       - name: Test
         run: npm run test
+      # Standalone output (BUNDLE_GUARD) so the next step can measure the SSR compute
+      # bundle — the same server+node_modules Amplify packages — and fail a PR before it
+      # tips the hard 220 MiB cap at deploy time (a default build doesn't expose that).
       - name: Build (keyless)
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: "1"
+          BUNDLE_GUARD: "1"
+      - name: Bundle size guard (SSR compute cap)
+        run: node scripts/bundle-size-guard.mjs
