@@ -7,10 +7,18 @@ vi.mock("@/lib/staff", () => ({ listStaff: vi.fn() }));
 vi.mock("@/lib/queries", () => ({ getVolunteers: vi.fn() }));
 
 import { suggestCaptain, areaCovers, regionsCover, captainCovers, type Captain } from "./captains";
+import { buildGeoIndex } from "./geo";
+import type { Region } from "./regions";
 
 const cap = (over: Partial<Captain> = {}): Captain => ({
   email: "c@x.com", firstName: "C", teamSize: 0, ...over,
 });
+
+// County → City hierarchy for the geo-precision cases.
+const geo = buildGeoIndex([
+  { id: "recCo", name: "St. Louis County", level: "County", parent: null } as Region,
+  { id: "recCity", name: "Kirkwood", level: "City", parent: "recCo", zips: ["63122"] } as Region,
+]);
 
 describe("areaCovers", () => {
   it("matches a ZIP inside the captain's area", () => {
@@ -37,6 +45,30 @@ describe("regionsCover / captainCovers", () => {
     expect(captainCovers({ regions: ["Kirkwood"], area: undefined }, { city: "kirkwood" })).toBe(true);
     expect(captainCovers({ regions: undefined, area: "Kirkwood" }, { city: "kirkwood" })).toBe(true);
     expect(captainCovers({ regions: [], area: undefined }, { city: "kirkwood" })).toBe(false);
+  });
+});
+
+describe("geo-precision (hierarchy-aware) matching", () => {
+  it("a county captain covers a city volunteer via the index (the precision win)", () => {
+    const countyCaptain = { regions: ["St. Louis County"], area: undefined };
+    // Without the index, loose containment misses it:
+    expect(captainCovers(countyCaptain, { city: "Kirkwood" })).toBe(false);
+    // With the index, the ancestor walk matches it:
+    expect(captainCovers(countyCaptain, { city: "Kirkwood" }, geo)).toBe(true);
+  });
+
+  it("resolves a county captain from a volunteer's ZIP", () => {
+    expect(captainCovers({ regions: ["St. Louis County"], area: undefined }, { zip: "63122" }, geo)).toBe(true);
+  });
+
+  it("does not over-match a different county", () => {
+    expect(captainCovers({ regions: ["St. Charles County"], area: undefined }, { city: "Kirkwood" }, geo)).toBe(false);
+  });
+
+  it("suggestCaptain picks the county captain for a city volunteer when given the index", () => {
+    const county = cap({ email: "county@x.com", regions: ["St. Louis County"], teamSize: 5 });
+    const elsewhere = cap({ email: "elsewhere@x.com", regions: ["St. Charles County"], teamSize: 0 });
+    expect(suggestCaptain({ city: "Kirkwood" }, [elsewhere, county], geo)?.email).toBe("county@x.com");
   });
 });
 
