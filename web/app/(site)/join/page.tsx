@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: "Join the movement",
   description:
     "Four ways to join the campaign to restore public trust in MO-02: get updates, volunteer, pledge to give, or lead a team. Pick your level.",
+  // The four entry points are ?door= variants of this same page. Declare /join as
+  // the canonical so Google consolidates them instead of indexing near-duplicates.
+  alternates: { canonical: "/join" },
 };
 
 // True if a Clerk session exists. Wrapped so keyless/demo builds still render the
