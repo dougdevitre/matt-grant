@@ -153,10 +153,11 @@ VOLUNTEER = {
         {"eyebrow": "How you help", "heading": "Pick your level",
          "body": ["Help your way: from home (calls, texts, social, handwritten notes) or in person (doors, "
                   "events, yard signs). Give one hour or a weekly shift — every bit moves the race."]},
-        {"eyebrow": "Do the work", "heading": "Show up, make contact, report back",
-         "bullets": ["Use the script and talking points on each task.",
-                     "At the door or on the phone, be warm and brief.",
-                     "Log your results so the team sees progress and can follow up."]},
+        {"eyebrow": "Do the work", "heading": "Your captain sets you up",
+         "body": ["When your captain assigns you a task, you’ll get a private task link — no login needed — "
+                  "with the script and talking points for that task."],
+         "bullets": ["At the door or on the phone, be warm and brief.",
+                     "Mark the task done on that link so your captain sees the result."]},
         {"eyebrow": "Stay connected", "heading": "Updates — on your terms",
          "body": ["We’ll reach you by email, and by text only if you opted in. You’re always in control: "
                   "reply STOP to texts, or use the unsubscribe link in any email — we honor it immediately."]},
@@ -164,8 +165,8 @@ VOLUNTEER = {
          "body": ["This race is won one neighbor at a time. Invite someone to join you — and if you want to "
                   "do more, ask your captain about becoming a team captain yourself."]},
     ],
-    "do": ["Pick Active tasks that match your mode, skills, availability, and ZIP",
-           "Do the work and log your results",
+    "do": ["Raise your hand on the actions matched to you on the community hub",
+           "Do the work your captain assigns and mark the task done on your link",
            "Lean on your captain — that’s what they’re there for",
            "Be warm, brief, and respectful at every contact"],
     "dont": ["Contact anyone who has opted out", "Freelance someone else’s assignment",
