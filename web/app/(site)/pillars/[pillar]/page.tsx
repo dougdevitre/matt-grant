@@ -20,7 +20,10 @@ export async function generateMetadata({ params }: { params: Promise<{ pillar: s
   const { pillar: slug } = await params;
   const pillar = getPillar(slug);
   if (!pillar) return {};
-  const canonical = `https://${pillar.subdomain}.mattgrantforcongress.org`;
+  // Canonical = the apex path that actually resolves. The pillar subdomains
+  // (education.mattgrantforcongress.org, …) are NOT provisioned in DNS, so a
+  // subdomain canonical pointed Google at a dead URL and blocked indexing.
+  const canonical = `${MAIN_SITE_URL}/pillars/${slug}`;
   return {
     title: pillar.title,
     description: pillar.tagline,
@@ -162,7 +165,7 @@ export default async function PillarPage({ params }: { params: Promise<{ pillar:
             {publicPillars.filter((p) => p.slug !== pillar.slug).map((p) => (
               <a
                 key={p.slug}
-                href={`https://${p.subdomain}.mattgrantforcongress.org`}
+                href={apex(`/pillars/${p.slug}`)}
                 className="rounded-sm border border-line px-3 py-2 text-sm font-semibold text-slate hover:border-ink hover:text-ink"
               >
                 {p.eyebrow}
