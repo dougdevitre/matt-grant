@@ -25,6 +25,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/data-policy",
     "/transparency",
     "/public-trust",
+    "/terms",
   ];
   const apex: MetadataRoute.Sitemap = routes.map((path) => ({
     url: `${BASE}${path}`,
