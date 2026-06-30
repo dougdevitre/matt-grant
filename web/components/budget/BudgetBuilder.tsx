@@ -164,7 +164,7 @@ export default function BudgetBuilder() {
                           Buy ↗
                         </a>
                       ) : (
-                        <span className="font-mono text-xs uppercase tracking-eyebrow text-slate/50">Buy ↗</span>
+                        <span className="font-mono text-xs uppercase tracking-eyebrow text-slate" aria-label="No product link">Buy ↗</span>
                       )}
                     </td>
                   </tr>

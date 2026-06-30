@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { addStaff, removeStaff, setStaffRole, staffRole, setCaptainArea } from "@/lib/staff";
+import { addStaff, removeStaff, setStaffRole, staffRole, setCaptainArea, setCaptainRegions } from "@/lib/staff";
 import { staffGate } from "@/lib/auth";
 import { can, asRole, INVITABLE_ROLES, ROLE_LABELS } from "@/lib/rbac";
 import { setClerkRoleByEmail, inviteToClerk, clearClerkRoleByEmail } from "@/lib/clerkRoles";
@@ -213,6 +213,19 @@ export async function setCaptainAreaAction(formData: FormData): Promise<void> {
   if (!email) return;
   await setCaptainArea(email, String(formData.get("area") ?? ""));
   revalidatePath("/dashboard/team");
+}
+
+// Set a captain's assigned geographic regions (canonical Geo Hierarchy names) used
+// to auto-match volunteers and drive the coverage map. Admin-only (manageTeam).
+// Accepts repeated `region` fields; an empty selection clears the assignment.
+export async function setCaptainRegionsAction(formData: FormData): Promise<void> {
+  await guardAdmin();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!email) return;
+  const names = formData.getAll("region").map((v) => String(v)).filter(Boolean);
+  await setCaptainRegions(email, names);
+  revalidatePath("/dashboard/team");
+  revalidatePath("/dashboard/coverage");
 }
 
 // Promote a volunteer (typically a /join "Team Captain" applicant) straight to the
