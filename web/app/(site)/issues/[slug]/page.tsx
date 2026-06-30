@@ -7,6 +7,8 @@ import { IssueCommit } from "@/components/IssueCommit";
 import { IssueActionPlan } from "@/components/IssueActionPlan";
 import { IssueChecklist } from "@/components/IssueChecklist";
 import { CtaButton } from "@/components/CtaButton";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { publicPillars } from "@/lib/pillars";
 
 export function generateStaticParams() {
   return issueSlugs.map((slug) => ({ slug }));
@@ -32,14 +34,22 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
   const prev = ISSUES[(idx - 1 + ISSUES.length) % ISSUES.length];
   const next = ISSUES[(idx + 1) % ISSUES.length];
 
+  // Public resource hubs that map to this issue (e.g. family-courts → education).
+  const relatedPillars = publicPillars.filter((p) => p.relatedIssue === issue.slug);
+
   return (
     <>
       {/* Hero */}
       <section className="bg-ink text-paper">
         <div className="container-page py-14 sm:py-20">
-          <Link href="/issues" className="font-mono text-xs uppercase tracking-eyebrow text-goldlight hover:text-paper">
-            ← All issues
-          </Link>
+          <Breadcrumbs
+            variant="dark"
+            items={[
+              { name: "Home", href: "/" },
+              { name: "Issues", href: "/issues" },
+              { name: issue.title },
+            ]}
+          />
           <p className="mt-6 font-mono text-sm text-goldlight">{issue.n} · {issue.eyebrow}</p>
           <h1 className="mt-2 max-w-4xl text-4xl font-semibold sm:text-6xl">{issue.title}</h1>
           <p className="mt-4 max-w-prose text-lg text-paper/80">{issue.tagline}</p>
@@ -175,9 +185,32 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
               </a>
               <Link href="/media" className="btn-ghost">Graphics &amp; captions</Link>
               <CtaButton href={CAMPAIGN.donateUrl} external context="donate">Donate</CtaButton>
+              <Link href="/join" className="btn-ghost">Join the campaign</Link>
+              <Link href="/vote" className="btn-ghost">Make your plan to vote</Link>
             </div>
           </div>
         </div>
+
+        {/* Related resource hubs (nonpartisan), when this issue maps to one */}
+        {relatedPillars.length > 0 && (
+          <div className="mt-14 border-t border-line pt-8">
+            <p className="eyebrow text-field">Related resources</p>
+            <p className="mt-2 max-w-prose text-sm text-slate">
+              Nonpartisan help for {CAMPAIGN.district} families connected to this issue.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {relatedPillars.map((p) => (
+                <Link
+                  key={p.slug}
+                  href={`/pillars/${p.slug}`}
+                  className="rounded-sm border border-line px-3 py-2 text-sm font-semibold text-slate hover:border-ink hover:text-ink"
+                >
+                  {p.eyebrow} →
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Prev / next */}
         <div className="mt-14 grid gap-3 border-t border-line pt-8 sm:grid-cols-2">

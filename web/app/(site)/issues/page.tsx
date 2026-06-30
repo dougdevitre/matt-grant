@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { ISSUES } from "@/lib/issues";
-import { ASSETS_CDN } from "@/lib/site";
+import { ASSETS_CDN, CAMPAIGN } from "@/lib/site";
 import { IssueSubmitForm } from "@/components/IssueSubmitForm";
 import { IssueBoard } from "@/components/IssueBoard";
 
@@ -56,6 +56,26 @@ export default function IssuesPage() {
             </div>
           </Link>
         ))}
+      </div>
+
+      {/* Turn conviction into action — funnel from the platform to the three
+          primary conversions (join / vote / give). */}
+      <div className="mt-16 border-t border-line pt-12 sm:mt-20 sm:pt-16">
+        <p className="eyebrow text-brick">Now do something about it</p>
+        <div className="mt-6 grid gap-5 sm:grid-cols-3">
+          <Link href="/join" className="card group bg-white p-6 hover:border-ink">
+            <span className="font-display text-lg font-semibold text-ink group-hover:text-brick">Join the campaign</span>
+            <span className="mt-1 block text-sm text-slate">Get updates, volunteer, or lead a team.</span>
+          </Link>
+          <Link href="/vote" className="card group bg-white p-6 hover:border-ink">
+            <span className="font-display text-lg font-semibold text-ink group-hover:text-brick">Make your plan to vote</span>
+            <span className="mt-1 block text-sm text-slate">Confirm your registration for the August 4 primary.</span>
+          </Link>
+          <a href={CAMPAIGN.donateUrl} target="_blank" rel="noopener noreferrer" className="card group bg-white p-6 hover:border-ink">
+            <span className="font-display text-lg font-semibold text-ink group-hover:text-brick">Donate</span>
+            <span className="mt-1 block text-sm text-slate">Help carry these fights to {CAMPAIGN.electionLabel}.</span>
+          </a>
+        </div>
       </div>
 
       {/* Community submission board — supporters add the topics that matter to
