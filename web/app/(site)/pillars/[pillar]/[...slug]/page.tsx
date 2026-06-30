@@ -4,8 +4,8 @@ import { publicPillars, getPillar } from "@/lib/pillars";
 import { getManifest, getDoc } from "@/lib/pillars-content";
 import { renderMarkdown } from "@/lib/markdown";
 import { CAMPAIGN } from "@/lib/site";
-import { PillarLink } from "@/components/PillarLink";
 import { MermaidRender } from "@/components/MermaidRender";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 // A single synced resource article, rendered inside the shared chrome with the
 // same typography as the legal/policy pages (PolicyPage). Content is synced from
@@ -46,9 +46,13 @@ export default async function PillarDocPage({ params }: { params: Promise<{ pill
   return (
     <section className="container-page py-16 sm:py-24">
       <div className="max-w-prose">
-        <PillarLink slug={pillar.slug} path="" className="font-mono text-xs uppercase tracking-eyebrow text-brick hover:text-ink">
-          ← {pillar.eyebrow}
-        </PillarLink>
+        <Breadcrumbs
+          items={[
+            { name: "Home", href: "/" },
+            { name: pillar.eyebrow, href: `/pillars/${pillar.slug}` },
+            { name: found.doc.title },
+          ]}
+        />
         <p className="mt-4 eyebrow text-slate">Community resource</p>
         <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">{found.doc.title}</h1>
       </div>

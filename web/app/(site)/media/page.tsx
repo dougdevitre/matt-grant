@@ -51,7 +51,7 @@ export default function MediaPage() {
         <a
           href="https://www.slcl.org"
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           className="mt-6 inline-block font-semibold text-brick underline underline-offset-4"
         >
           Set up library printing at slcl.org &rarr;
