@@ -6,7 +6,7 @@ vi.mock("server-only", () => ({}));
 vi.mock("@/lib/staff", () => ({ listStaff: vi.fn() }));
 vi.mock("@/lib/queries", () => ({ getVolunteers: vi.fn() }));
 
-import { suggestCaptain, areaCovers, type Captain } from "./captains";
+import { suggestCaptain, areaCovers, regionsCover, captainCovers, type Captain } from "./captains";
 
 const cap = (over: Partial<Captain> = {}): Captain => ({
   email: "c@x.com", firstName: "C", teamSize: 0, ...over,
@@ -24,9 +24,31 @@ describe("areaCovers", () => {
   });
 });
 
+describe("regionsCover / captainCovers", () => {
+  it("matches when any assigned region covers the volunteer", () => {
+    expect(regionsCover(["St. Louis County", "Kirkwood"], { city: "kirkwood" })).toBe(true);
+    expect(regionsCover(["St. Charles County"], { city: "kirkwood" })).toBe(false);
+  });
+  it("no regions → no match", () => {
+    expect(regionsCover(undefined, { city: "kirkwood" })).toBe(false);
+    expect(regionsCover([], { city: "kirkwood" })).toBe(false);
+  });
+  it("captainCovers prefers regions but falls back to legacy area", () => {
+    expect(captainCovers({ regions: ["Kirkwood"], area: undefined }, { city: "kirkwood" })).toBe(true);
+    expect(captainCovers({ regions: undefined, area: "Kirkwood" }, { city: "kirkwood" })).toBe(true);
+    expect(captainCovers({ regions: [], area: undefined }, { city: "kirkwood" })).toBe(false);
+  });
+});
+
 describe("suggestCaptain", () => {
   it("returns null when there are no captains", () => {
     expect(suggestCaptain({ zip: "63101" }, [])).toBeNull();
+  });
+
+  it("prefers a region match over a less-loaded captain", () => {
+    const near = cap({ email: "near@x.com", regions: ["63101"], teamSize: 9 });
+    const idle = cap({ email: "idle@x.com", teamSize: 0 });
+    expect(suggestCaptain({ zip: "63101" }, [idle, near])?.email).toBe("near@x.com");
   });
 
   it("prefers an area match over a less-loaded captain", () => {
