@@ -15,7 +15,7 @@ import { CtaButton } from "@/components/CtaButton";
 // sent to the public community hub.
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "My giving — Matt Grant for Congress",
+  title: "My giving",
   robots: { index: false, follow: false },
 };
 

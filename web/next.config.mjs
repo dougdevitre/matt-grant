@@ -32,6 +32,14 @@ const nextConfig = {
     // Allow next/image to optimize the public brand assets served from CloudFront.
     remotePatterns: [{ protocol: "https", hostname: "d5jzyan9wboi3.cloudfront.net" }],
   },
+  async redirects() {
+    // /volunteer is a natural URL people type and share, but the volunteer flow
+    // lives inside the unified /join page (door model). Send them there instead
+    // of 404ing. Temporary (307) so the canonical /join page keeps the SEO weight.
+    return [
+      { source: "/volunteer", destination: "/join?door=volunteer", permanent: false },
+    ];
+  },
   async headers() {
     // Lock down the synced pillar tools. Each /pillar-tools/* file is HTML imported
     // from an external access-to-* repo and embedded in a sandboxed iframe, so treat
