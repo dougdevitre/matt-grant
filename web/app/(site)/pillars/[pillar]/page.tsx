@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { publicPillars, publicPillarSlugs, getPillar } from "@/lib/pillars";
+import { publicPillars, publicPillarSlugs, getPillar, pillarAccent, pillarMark } from "@/lib/pillars";
 import { getIssue } from "@/lib/issues";
 import { getManifest } from "@/lib/pillars-content";
 import { CAMPAIGN, MAIN_SITE_URL } from "@/lib/site";
-import { PillarLink } from "@/components/PillarLink";
+import { PillarLibrary } from "@/components/PillarLibrary";
 
 // Pillar resource hub — served on its subdomain (e.g. education.mattgrant…org) via
 // the host rewrite in middleware.ts, so it inherits the shared SiteHeader/Footer/
@@ -43,15 +44,34 @@ export default async function PillarPage({ params }: { params: Promise<{ pillar:
 
   const manifest = getManifest(pillar.slug);
   const related = pillar.relatedIssue ? getIssue(pillar.relatedIssue) : undefined;
+  const accent = pillarAccent(pillar.slug);
+  const mark = pillarMark(pillar.eyebrow);
+  const docCount = manifest?.docs.length ?? 0;
+  const toolCount = manifest?.tools.length ?? 0;
 
   return (
     <>
-      {/* Hero */}
-      <section className="bg-ink text-paper">
+      {/* Hero — accent rule + badge give each hub its own identity */}
+      <section className="border-t-4 bg-ink text-paper" style={{ borderTopColor: accent }}>
         <div className="container-page py-14 sm:py-20">
-          <p className="font-mono text-sm text-goldlight">{pillar.eyebrow}</p>
-          <h1 className="mt-2 max-w-4xl text-4xl font-semibold sm:text-6xl">{pillar.title}</h1>
+          <div className="flex items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="flex h-9 w-9 items-center justify-center rounded-sm font-display text-lg font-bold text-paper"
+              style={{ backgroundColor: accent }}
+            >
+              {mark}
+            </span>
+            <p className="font-mono text-sm text-goldlight">{pillar.eyebrow}</p>
+          </div>
+          <h1 className="mt-4 max-w-4xl text-4xl font-semibold sm:text-6xl">{pillar.title}</h1>
           <p className="mt-4 max-w-prose text-lg text-paper/80">{pillar.tagline}</p>
+          {(docCount > 0 || toolCount > 0) && (
+            <p className="mt-6 font-mono text-xs uppercase tracking-eyebrow text-paper/60">
+              {docCount} {docCount === 1 ? "guide" : "guides"}
+              {toolCount > 0 ? ` · ${toolCount} ${toolCount === 1 ? "tool" : "tools"}` : ""}
+            </p>
+          )}
         </div>
       </section>
 
@@ -84,54 +104,62 @@ export default async function PillarPage({ params }: { params: Promise<{ pillar:
         )}
       </section>
 
-      {/* Resources (synced from the access-to repo) */}
+      {/* Resources (synced from the access-to repo) — tools surfaced first, then a
+          searchable guide library so large hubs stay scannable. */}
       <section className="border-t border-line bg-paper">
         <div className="container-page py-16 sm:py-20">
-          <p className="eyebrow text-field">Resources &amp; tools</p>
-          <h2 className="mt-2 font-display text-3xl font-semibold text-ink">
-            Real-time help for {pillar.eyebrow.replace(/^Access to /, "").toLowerCase()}
-          </h2>
+          {manifest && (docCount > 0 || toolCount > 0) ? (
+            <div className="space-y-14">
+              {toolCount > 0 && (
+                <div>
+                  <p className="eyebrow text-field">Interactive tools</p>
+                  <h2 className="mt-2 font-display text-3xl font-semibold text-ink">Run it in your browser</h2>
+                  <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                    {manifest.tools.map((tool) => (
+                      <Link
+                        key={tool.slug}
+                        href={`/pillars/${pillar.slug}/tools/${tool.slug}`}
+                        className="card group bg-white p-6 hover:border-ink"
+                      >
+                        <span className="font-mono text-xs uppercase tracking-eyebrow text-slate">Tool</span>
+                        <span className="mt-1 block font-display text-lg font-semibold text-ink group-hover:text-brick">
+                          {tool.label}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {manifest && (manifest.docs.length > 0 || manifest.tools.length > 0) ? (
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              {manifest.docs.map((doc) => (
-                <PillarLink
-                  key={doc.slug}
-                  slug={pillar.slug}
-                  path={`/${doc.slug}`}
-                  className="card group bg-white p-6 hover:border-ink"
-                >
-                  <span className="font-mono text-xs uppercase tracking-eyebrow text-slate">Guide</span>
-                  <span className="mt-1 block font-display text-lg font-semibold text-ink group-hover:text-brick">
-                    {doc.title}
-                  </span>
-                </PillarLink>
-              ))}
-              {manifest.tools.map((tool) => (
-                <PillarLink
-                  key={tool.slug}
-                  slug={pillar.slug}
-                  path={`/tools/${tool.slug}`}
-                  className="card group bg-white p-6 hover:border-ink"
-                >
-                  <span className="font-mono text-xs uppercase tracking-eyebrow text-slate">Tool</span>
-                  <span className="mt-1 block font-display text-lg font-semibold text-ink group-hover:text-brick">
-                    {tool.label}
-                  </span>
-                </PillarLink>
-              ))}
+              {docCount > 0 && (
+                <div>
+                  <p className="eyebrow text-field">Guides &amp; references</p>
+                  <h2 className="mt-2 font-display text-3xl font-semibold text-ink">
+                    Real-time help for {pillar.eyebrow.replace(/^Access to /, "").toLowerCase()}
+                  </h2>
+                  <div className="mt-8">
+                    <PillarLibrary
+                      pillarSlug={pillar.slug}
+                      docs={manifest.docs.map((d) => ({ slug: d.slug, title: d.title }))}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
-            <p className="mt-6 max-w-prose text-slate">
-              Resources for this hub are maintained in the open-source{" "}
-              <a href={pillar.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-field underline">
-                {pillar.sourceRepo}
-              </a>{" "}
-              project and are being prepared for {CAMPAIGN.district}. Check back soon.
-            </p>
+            <>
+              <p className="eyebrow text-field">Resources &amp; tools</p>
+              <p className="mt-6 max-w-prose text-slate">
+                Resources for this hub are maintained in the open-source{" "}
+                <a href={pillar.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-field underline">
+                  {pillar.sourceRepo}
+                </a>{" "}
+                project and are being prepared for {CAMPAIGN.district}. Check back soon.
+              </p>
+            </>
           )}
 
-          <p className="mt-8 text-xs text-slate">
+          <p className="mt-12 text-xs text-slate">
             Source:{" "}
             <a href={pillar.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-ink">
               {pillar.sourceRepo}

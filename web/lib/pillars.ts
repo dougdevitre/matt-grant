@@ -161,6 +161,27 @@ export const PILLARS: Pillar[] = [
 export const pillarSlugs = PILLARS.map((p) => p.slug);
 export const getPillar = (slug: string) => PILLARS.find((p) => p.slug === slug);
 
+// Per-hub accent for wayfinding identity. Decorative + badge use only (a deep,
+// coordinated civic set — each clears 4.5:1 against white so the badge letter
+// passes AA). Body text stays on the standard ink/slate tokens. Falls back to the
+// deep field blue for any unmapped slug.
+const PILLAR_ACCENT: Record<string, string> = {
+  education: "#2440A8", // indigo
+  jobs: "#0E6B73", // teal
+  housing: "#8F5E1F", // ochre
+  business: "#246149", // green
+  services: "#56409A", // violet
+  food: "#A4541F", // clay
+  health: "#1F6E8C", // clinical blue
+  justice: "#3E4A6B", // slate-blue
+};
+export const pillarAccent = (slug: string): string => PILLAR_ACCENT[slug] ?? "#16365C";
+
+// Single-letter mark for the accent badge, derived from the topic word
+// ("Access to Education" → "E"). Unique across the public hubs (E/J/H/B/S).
+export const pillarMark = (eyebrow: string): string =>
+  (eyebrow.replace(/^Access to\s+/i, "").trim()[0] ?? "•").toUpperCase();
+
 // Public-facing subset: hidden hubs are excluded from sitemap, static generation,
 // OG images, and cross-links, and their hub pages 404. `pillarSlugs`/`getPillar`
 // stay all-inclusive so the sync + host routing still recognize hidden slugs (their
