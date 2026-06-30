@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { publicPillars, getPillar } from "@/lib/pillars";
 import { getManifest } from "@/lib/pillars-content";
 import { CAMPAIGN } from "@/lib/site";
-import { PillarLink } from "@/components/PillarLink";
+import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 // Chrome-wrapped embed of a standalone HTML tool synced from the pillar's
 // access-to-* repo. The raw tool file is served as a static asset from
@@ -32,17 +33,24 @@ export async function generateMetadata({ params }: { params: Promise<{ pillar: s
 export default async function PillarToolPage({ params }: { params: Promise<{ pillar: string; tool: string }> }) {
   const { pillar: pillarSlug, tool: toolSlug } = await params;
   const pillar = getPillar(pillarSlug);
-  const tool = pillar && !pillar.hidden ? getManifest(pillarSlug)?.tools.find((t) => t.slug === toolSlug) : undefined;
+  const manifest = pillar && !pillar.hidden ? getManifest(pillarSlug) : null;
+  const tool = manifest?.tools.find((t) => t.slug === toolSlug);
   if (!pillar || pillar.hidden || !tool) notFound();
 
   const src = `/pillar-tools/${pillar.slug}/${tool.file}`;
+  const otherTools = (manifest?.tools ?? []).filter((t) => t.slug !== tool.slug);
+  const guides = (manifest?.docs ?? []).slice(0, 4);
 
   return (
     <section className="container-page py-10 sm:py-14">
-      <PillarLink slug={pillar.slug} path="" className="font-mono text-xs uppercase tracking-eyebrow text-brick hover:text-ink">
-        ← {pillar.eyebrow}
-      </PillarLink>
-      <h1 className="mt-3 text-3xl font-semibold sm:text-4xl">{tool.label}</h1>
+      <Breadcrumbs
+        items={[
+          { name: "Home", href: "/" },
+          { name: pillar.eyebrow, href: `/pillars/${pillar.slug}` },
+          { name: tool.label },
+        ]}
+      />
+      <h1 className="mt-4 text-3xl font-semibold sm:text-4xl">{tool.label}</h1>
       <p className="mt-2 text-sm text-slate">
         Interactive tool — runs in your browser; nothing is submitted to the campaign.
       </p>
@@ -72,6 +80,44 @@ export default async function PillarToolPage({ params }: { params: Promise<{ pil
         </a>
         . {CAMPAIGN.paidForBy}
       </p>
+
+      {(otherTools.length > 0 || guides.length > 0) && (
+        <div className="mt-12 border-t border-line pt-8">
+          <p className="eyebrow text-field">More in {pillar.eyebrow}</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {otherTools.map((t) => (
+              <Link
+                key={t.slug}
+                href={`/pillars/${pillar.slug}/tools/${t.slug}`}
+                className="group rounded-sm border border-line bg-white p-4 hover:border-ink"
+              >
+                <span className="font-mono text-[11px] uppercase tracking-eyebrow text-slate">Tool</span>
+                <span className="mt-1 block font-display text-sm font-semibold text-ink group-hover:text-brick">
+                  {t.label}
+                </span>
+              </Link>
+            ))}
+            {guides.map((d) => (
+              <Link
+                key={d.slug}
+                href={`/pillars/${pillar.slug}/${d.slug}`}
+                className="group rounded-sm border border-line bg-white p-4 hover:border-ink"
+              >
+                <span className="font-mono text-[11px] uppercase tracking-eyebrow text-slate">Guide</span>
+                <span className="mt-1 block font-display text-sm font-semibold text-ink group-hover:text-brick">
+                  {d.title}
+                </span>
+              </Link>
+            ))}
+          </div>
+          <Link
+            href={`/pillars/${pillar.slug}`}
+            className="mt-5 inline-block font-mono text-xs uppercase tracking-eyebrow text-field hover:text-ink"
+          >
+            ← All {pillar.eyebrow} resources
+          </Link>
+        </div>
+      )}
     </section>
   );
 }
