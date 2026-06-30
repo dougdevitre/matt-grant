@@ -1,9 +1,10 @@
+import Link from "next/link";
 import { CAMPAIGN } from "@/lib/site";
 
 // Shared shell for legal/policy content pages (Data Policy, Transparency,
-// Commitment to Public Trust). Keeps typography and the closing disclaimer
-// consistent across all three. Child content is plain h2/h3/p/ul/ol/a markup
-// styled via the scoped child selectors below.
+// Commitment to Public Trust, Terms of Use). Keeps typography and the closing
+// disclaimer consistent across all of them. Child content is plain
+// h2/h3/p/ul/ol/a markup styled via the scoped child selectors below.
 export function PolicyPage({
   eyebrow,
   title,
@@ -31,7 +32,12 @@ export function PolicyPage({
       </div>
 
       <div className="mt-12 max-w-prose border-t border-line pt-6 text-xs leading-relaxed text-slate">
-        <p className="font-semibold text-ink">{CAMPAIGN.paidForBy}</p>
+        <p>
+          This page is provided for general informational purposes only and is not legal advice. The site and its
+          content are provided &ldquo;as is,&rdquo; without warranties, and your use of it is subject to our{" "}
+          <Link href="/terms" className="underline">Terms of Use</Link>.
+        </p>
+        <p className="mt-3 font-semibold text-ink">{CAMPAIGN.paidForBy}</p>
         <p className="mt-1">
           {CAMPAIGN.address} · {CAMPAIGN.email} · {CAMPAIGN.phone}
         </p>

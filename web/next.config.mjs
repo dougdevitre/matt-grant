@@ -43,6 +43,10 @@ const nextConfig = {
     // of 404ing. Temporary (307) so the canonical /join page keeps the SEO weight.
     return [
       { source: "/volunteer", destination: "/join?door=volunteer", permanent: false },
+      // /privacy is the URL people type and share for a privacy policy. Ours lives at
+      // /data-policy (the single source of truth). Send them there instead of 404ing.
+      // Temporary (307) so the canonical /data-policy page keeps the SEO weight.
+      { source: "/privacy", destination: "/data-policy", permanent: false },
     ];
   },
   async headers() {
