@@ -37,6 +37,7 @@ const DASHBOARD_ROUTES = [
   "/dashboard/volunteers",
   "/dashboard/playbook",
   "/dashboard/scorecard",
+  "/dashboard/leaderboard",
   "/dashboard/coverage",
   "/dashboard/team",
   "/dashboard/targets",
