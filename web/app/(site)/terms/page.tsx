@@ -78,8 +78,9 @@ export default function TermsPage() {
       <h2>Contributions and donations</h2>
       <p>
         Donations are processed by <strong>WinRed</strong>, not on this site, and are also subject to WinRed&apos;s own
-        terms and privacy policy. Political contributions are governed by federal law. By contributing, you confirm
-        that:
+        terms and privacy policy. Because Matt Grant is a candidate for <strong>federal</strong> office, contributions
+        are governed by federal law — the Federal Election Campaign Act and FEC rules, not Missouri&apos;s state
+        contribution rules. By contributing, you confirm that:
       </p>
       <ul>
         <li>You are a U.S. citizen or lawfully admitted permanent resident (a green-card holder).</li>
