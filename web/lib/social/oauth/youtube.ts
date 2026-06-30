@@ -7,9 +7,12 @@ import type { OAuthProvider, AuthorizeResult, ExchangeResult } from "@/lib/socia
 // `prompt=consent` are REQUIRED to receive a refresh token. Google does NOT rotate
 // the refresh token, so we keep the original across refreshes. Uploading needs the
 // restricted `youtube.upload` scope (Google app verification gate — see
-// docs/google-youtube-setup.md).
+// docs/google-youtube-setup.md). `youtube.readonly` is also requested so we can read
+// the channel back: without it channels.list returns "insufficient authentication
+// scopes", which left the stored accountName null and broke the dashboard's
+// connection read-check (verifyChannel). upload alone cannot read channel data.
 
-const SCOPES = "https://www.googleapis.com/auth/youtube.upload openid email";
+const SCOPES = "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly openid email";
 const AUTHORIZE = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN = "https://oauth2.googleapis.com/token";
 const CHANNELS = "https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true";
