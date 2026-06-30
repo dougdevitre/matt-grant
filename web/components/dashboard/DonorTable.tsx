@@ -1,62 +1,32 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { DonorRow } from "@/lib/queries";
 import { isIn } from "@/lib/engagement";
 import { dollars, FEC_INDIVIDUAL_PER_ELECTION_CENTS } from "@/lib/money";
 import { DonorThankButton } from "@/components/dashboard/DonorThankButton";
-
-const select = "rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink";
+import { DataToolbar } from "@/components/dashboard/DataToolbar";
+import { useTableQuery } from "@/components/dashboard/useTableQuery";
+import { DONOR_TABLE, type DonorCtx } from "@/lib/table/donors-config";
 
 // volunteerEmails: addresses present in the volunteer list, to flag donors who
 // also volunteer. Passed as an array (a Set can't cross the server→client
-// boundary) and rebuilt into a Set here for O(1) lookups.
+// boundary) and rebuilt into a Set here for O(1) lookups. Advanced
+// search/filter/sort comes from the shared, URL-bound DataToolbar.
 export function DonorTable({ rows, volunteerEmails = [] }: { rows: DonorRow[]; volunteerEmails?: string[] }) {
-  const [q, setQ] = useState("");
-  const [fec, setFec] = useState("ALL"); // ALL | MISSING | COMPLETE
-  const [overOnly, setOverOnly] = useState(false);
-
-  const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    return rows.filter((d) => {
-      const missing = !d.employer || !d.occupation;
-      if (fec === "MISSING" && !missing) return false;
-      if (fec === "COMPLETE" && missing) return false;
-      if (overOnly && d.totalCents <= FEC_INDIVIDUAL_PER_ELECTION_CENTS) return false;
-      if (needle) {
-        const hay = [d.name, d.city, d.email, d.employer, d.occupation].filter(Boolean).join(" ").toLowerCase();
-        if (!hay.includes(needle)) return false;
-      }
-      return true;
-    });
-  }, [rows, q, fec, overOnly]);
-
-  const shownTotal = useMemo(() => filtered.reduce((s, d) => s + d.totalCents, 0), [filtered]);
-  const missingCount = useMemo(() => rows.filter((d) => !d.employer || !d.occupation).length, [rows]);
   const volSet = useMemo(() => new Set(volunteerEmails), [volunteerEmails]);
+  const ctx = useMemo<DonorCtx>(
+    () => ({ volunteerSet: volSet, canSeeVolunteerFlag: volunteerEmails.length > 0 }),
+    [volSet, volunteerEmails.length],
+  );
+  const { state, setState, filtered } = useTableQuery(rows, DONOR_TABLE, ctx);
+  const shownTotal = useMemo(() => filtered.reduce((s, d) => s + d.totalCents, 0), [filtered]);
 
   return (
     <div className="card overflow-hidden p-0">
-      <div className="flex flex-wrap items-center gap-3 border-b border-line p-3">
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search name, city, employer, occupation…"
-          aria-label="Search donors"
-          className={`${select} min-w-0 flex-1`}
-        />
-        <select value={fec} onChange={(e) => setFec(e.target.value)} aria-label="Filter by FEC info" className={select}>
-          <option value="ALL">All FEC status</option>
-          <option value="MISSING">Missing FEC info ({missingCount})</option>
-          <option value="COMPLETE">FEC complete</option>
-        </select>
-        <label className="flex items-center gap-1.5 text-xs text-slate">
-          <input type="checkbox" checked={overOnly} onChange={(e) => setOverOnly(e.target.checked)} />
-          Over limit only
-        </label>
-        <span className="font-mono text-xs text-slate">
-          {filtered.length} of {rows.length} · {dollars(shownTotal)}
-        </span>
+      <div className="border-b border-line p-3">
+        <DataToolbar cfg={DONOR_TABLE} rows={rows} state={state} setState={setState} ctx={ctx} shown={filtered.length} />
+        <p className="mt-2 font-mono text-xs text-slate">Showing {dollars(shownTotal)} across {filtered.length} donor{filtered.length === 1 ? "" : "s"}</p>
       </div>
 
       {filtered.length === 0 ? (
