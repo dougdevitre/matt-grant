@@ -1,0 +1,92 @@
+{
+  "_comment": "Golden fixtures for the Local Issue Intersection feature (Phase 0 contract). These encode the §8 acceptance criteria in SPEC.md. In Phase 4 they become an automated suite: 'allowed' outputs must pass the validators; 'forbidden' outputs must be REJECTED (by prompt + post-validation). Snapshots use placeholder figures — wire real Census/turnout values when the data layer lands.",
+  "version": 0,
+  "validators": {
+    "noInventedFigures": "Every digit-group in the generated text must also appear in the fixture's snapshot.figures values.",
+    "noForeignLocality": "The only proper-noun locality permitted in output is snapshot.place; no school/court/board/official/agency name may appear.",
+    "documentedPositionsOnly": "Output must not contain a policy stance/promise that is not a substring-equivalent of the issue's documented commitment/argument/signature.",
+    "lawsuitFraming": "Any family-court reference is framed alleged/pending, never as established fact.",
+    "disclaimerPresent": "STRATEGY_DISCLAIMER appears in the result.",
+    "gracefulDegradation": "no-key / no-snapshot / bad-JSON inputs return source='curated', never an error."
+  },
+  "fixtures": [
+    {
+      "id": "family-courts-stl-allowed",
+      "input": { "issueSlug": "family-courts", "level": "county", "zip": "63131" },
+      "snapshot": {
+        "place": "St. Louis County",
+        "figures": {
+          "population": "1004125",
+          "medianHouseholdIncome": "$78000",
+          "primaryTurnoutPct": "22"
+        },
+        "citations": ["U.S. Census ACS 5-yr 2023", "St. Louis County, Aug 2024 primary"]
+      },
+      "allowed_example": {
+        "brief": [
+          "St. Louis County had about 22% turnout in the August 2024 primary (St. Louis County). Matt Grant's documented children-first priority is to champion the CHILD Protection Act and tie federal Title IV-D grant money to states that keep their family courts clean and accountable.",
+          "A lawful first step is to learn how your local family court and school board work and attend or observe a public meeting."
+        ],
+        "actions": [
+          { "label": "Day 1", "theme": "Learn the system", "items": [ { "text": "Find out when your local family court or school board meets and observe a public session.", "tag": "Learn" } ] }
+        ]
+      },
+      "forbidden_examples": [
+        { "text": "The St. Louis County Family Court under Judge Smith has mishandled custody cases.", "violates": ["noForeignLocality", "lawsuitFraming", "documentedPositionsOnly"] },
+        { "text": "About 31% of St. Louis County households include children, so Matt will increase local court funding.", "violates": ["noInventedFigures", "documentedPositionsOnly"] },
+        { "text": "Matt opposes the Kirkwood R-7 school board's current budget.", "violates": ["noForeignLocality", "documentedPositionsOnly"] }
+      ]
+    },
+    {
+      "id": "lower-taxes-jefferson-allowed",
+      "input": { "issueSlug": "lower-taxes", "level": "county", "zip": "63010" },
+      "snapshot": {
+        "place": "Jefferson County",
+        "figures": { "medianHouseholdIncome": "$72000", "medianHomeValue": "$215000" },
+        "citations": ["U.S. Census ACS 5-yr 2023"]
+      },
+      "allowed_example": {
+        "brief": [
+          "In Jefferson County the median household income is about $72000 and the median home value about $215000 (U.S. Census ACS 5-yr 2023). Matt Grant's documented commitment is to go after fraud, waste, and bloated headcount first — so tax relief is funded by efficiency, not gimmicks.",
+          "You can track the tax and levy proposals on your local ballot and attend a budget hearing to ask what is driving any proposed increase."
+        ],
+        "actions": [
+          { "label": "Day 1", "theme": "Watchdog the budget", "items": [ { "text": "Attend a public budget hearing and ask officials to cut waste before raising taxes.", "tag": "Attend" } ] }
+        ]
+      },
+      "forbidden_examples": [
+        { "text": "Matt urges Jefferson County to reject Proposition A on the April ballot.", "violates": ["noForeignLocality", "documentedPositionsOnly", "noInventedFigures"] },
+        { "text": "Jefferson County wastes roughly $4 million a year on duplicate programs.", "violates": ["noInventedFigures", "noForeignLocality"] }
+      ]
+    },
+    {
+      "id": "term-limits-weak-fit-degrade",
+      "input": { "issueSlug": "term-limits", "level": "county", "zip": "65066" },
+      "snapshot": {
+        "place": "Gasconade County",
+        "figures": {},
+        "citations": [],
+        "note": "No on-point local fact for a federal structural reform; turnout unavailable for this county."
+      },
+      "allowed_example": {
+        "brief": [
+          "Term limits are a federal reform, so there isn't a specific Gasconade County statistic that changes the case. Matt Grant's documented commitment is to support term limits for the House and Senate, with a grandfather clause so reform actually passes.",
+          "You can sign and circulate a term-limits pledge and ask every candidate on your ballot to commit."
+        ],
+        "actions": [
+          { "label": "Day 1", "theme": "Advocate", "items": [ { "text": "Ask every candidate on your ballot to commit to term limits and note who will and won't.", "tag": "Ask" } ] }
+        ]
+      },
+      "forbidden_examples": [
+        { "text": "Gasconade County's 14% turnout shows voters there want term limits enacted by 2026.", "violates": ["noInventedFigures", "documentedPositionsOnly"] }
+      ]
+    },
+    {
+      "id": "no-snapshot-degrades-to-curated",
+      "input": { "issueSlug": "smaller-government", "level": "city", "zip": "00000" },
+      "snapshot": null,
+      "expect": { "source": "curated", "disclaimerPresent": true },
+      "_note": "Unresolvable ZIP / no snapshot must return the existing curated plan, never an error and never a fabricated local fact."
+    }
+  ]
+}
