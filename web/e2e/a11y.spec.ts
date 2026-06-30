@@ -19,6 +19,7 @@ const PUBLIC_ROUTES = [
   "/data-policy",
   "/transparency",
   "/public-trust",
+  "/terms",
 ];
 
 // Staff dashboard pages. Only scannable when the local server boots in open-demo
