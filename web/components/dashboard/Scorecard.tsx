@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { TIER_LABEL, NEXT_ACTION, type CaptainScore } from "@/lib/volunteers/score";
+import type { Badge } from "@/lib/volunteers/badges";
 
 const tierCls: Record<string, string> = {
   excellent: "bg-field/10 text-field",
@@ -27,11 +28,13 @@ export function Scorecard({
   score,
   regions,
   rank,
+  badges,
 }: {
   name: string;
   score: CaptainScore;
   regions?: string[];
   rank?: number;
+  badges?: Badge[];
 }) {
   const next = score.weakest ? NEXT_ACTION[score.weakest] : null;
   return (
@@ -66,6 +69,21 @@ export function Scorecard({
           </li>
         ))}
       </ul>
+
+      {badges && badges.length > 0 && (
+        <ul className="mt-4 flex flex-wrap gap-1.5">
+          {badges.map((b) => (
+            <li
+              key={b.id}
+              title={b.earned}
+              className="inline-flex items-center gap-1 rounded-sm bg-field/10 px-2 py-0.5 text-xs text-field"
+            >
+              <span aria-hidden>{b.icon}</span>
+              {b.label}
+            </li>
+          ))}
+        </ul>
+      )}
 
       {next && (
         <div className="mt-4 rounded-sm border border-line bg-paper p-3">

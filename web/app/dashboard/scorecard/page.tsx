@@ -4,7 +4,8 @@ import { PageHeader, HowTo } from "@/components/dashboard/Notice";
 import { Scorecard } from "@/components/dashboard/Scorecard";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
-import { gatherCaptainScorecards, gatherCaptainScorecard } from "@/lib/volunteers/score-data";
+import { gatherCaptainScorecards } from "@/lib/volunteers/score-data";
+import { earnedBadges } from "@/lib/volunteers/badges";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,14 @@ export default async function ScorecardPage() {
         ) : (
           <div className="mt-6 grid gap-4 lg:grid-cols-2">
             {cards.map((c, i) => (
-              <Scorecard key={c.email} name={c.name} score={c.score} regions={c.regions} rank={i + 1} />
+              <Scorecard
+                key={c.email}
+                name={c.name}
+                score={c.score}
+                regions={c.regions}
+                rank={i + 1}
+                badges={earnedBadges({ score: c.score, rank: i + 1, totalCaptains: cards.length })}
+              />
             ))}
           </div>
         )}
@@ -48,15 +56,24 @@ export default async function ScorecardPage() {
     );
   }
 
-  // Captain's own scorecard.
-  const card = email ? await gatherCaptainScorecard(email) : null;
+  // Captain's own scorecard — pull from the ranked set so their rank (and the
+  // top-of-board badge) is accurate.
+  const all = await gatherCaptainScorecards();
+  const idx = email ? all.findIndex((c) => c.email === email.toLowerCase()) : -1;
+  const card = idx >= 0 ? all[idx] : null;
   return (
     <>
       <PageHeader kicker="Field" title="My scorecard" />
       <HowTo steps={HOW_TO} />
       {card ? (
         <div className="mt-6 max-w-xl">
-          <Scorecard name={card.name} score={card.score} regions={card.regions} />
+          <Scorecard
+            name={card.name}
+            score={card.score}
+            regions={card.regions}
+            rank={idx + 1}
+            badges={earnedBadges({ score: card.score, rank: idx + 1, totalCaptains: all.length })}
+          />
         </div>
       ) : (
         <div className="mt-6 card p-6">
