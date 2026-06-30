@@ -97,7 +97,7 @@ export default async function JoinPage() {
     { label: "Time", cells: ["None", "Flexible — 1 hr to weekly", "None", "Ongoing, 5+ hrs/wk"] },
     { label: "Account", cells: ["No", "Yes — free", "No", "Yes — free"] },
     { label: "We capture", cells: ["Contact + ZIP", "Skills, roles, availability", "Pledge intent", "All of Volunteer + why you lead"] },
-    { label: "You get", cells: ["Email & SMS updates", "Matched to local action", "Donor thank-yous", "A team + captain training"] },
+    { label: "You get", cells: ["Email & SMS updates", "Matched to local action", "Donor thank-yous", "A team to lead + a captain playbook"] },
   ];
 
   return (

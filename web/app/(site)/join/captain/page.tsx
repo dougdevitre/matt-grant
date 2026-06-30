@@ -27,8 +27,9 @@ export default async function JoinCaptainPage() {
       <p className="eyebrow text-brick">Team Captain</p>
       <h1 className="mt-3 max-w-2xl text-4xl font-semibold sm:text-5xl">Lead a crew.</h1>
       <p className="mt-4 max-w-2xl text-lg text-slate">
-        Captains are the backbone of the field program — recruiting, training, and rallying a team of 5–10
-        neighbors. Tell us about yourself and we&apos;ll follow up about captain training.
+        Captains are the backbone of the field program — recruiting, welcoming, and rallying a team of 5–10
+        neighbors. Tell us about yourself and we&apos;ll follow up to get you started with your team and the
+        captain playbook.
       </p>
       <div className="mt-10 max-w-3xl">
         <VolunteerDetailForm door="Team Captain" defaultName={name} defaultEmail={email ?? ""} />
