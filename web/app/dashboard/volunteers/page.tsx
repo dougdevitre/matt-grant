@@ -8,6 +8,8 @@ import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { VolunteerBoard } from "@/components/dashboard/VolunteerBoard";
 import { VolunteerImport } from "@/components/dashboard/VolunteerImport";
 
+export const dynamic = "force-dynamic"; // reads auth + DB; the board uses useSearchParams
+
 export default async function VolunteersPage() {
   const { role, email } = await staffGate();
   const [{ connected, rows }, tasks] = await Promise.all([getVolunteers(), getTasks()]);
@@ -59,7 +61,7 @@ export default async function VolunteersPage() {
       <HowTo
         steps={[
           "Leads arrive here automatically from the public /contact form — no manual entry needed.",
-          "Filter by status or interest, or search by name, city, email, or note, to find the right people fast.",
+          "Search, filter (by status, door, role, skill, area, flags…), and sort — combine facets, save a view, or share the URL.",
           "Each card shows the volunteer’s stated interests and their own message. Set their status — NEW → ACTIVE once engaged, INACTIVE if they drop off — then click Save.",
           "Reach out to ACTIVE volunteers first when you staff canvasses, phone banks, and Election Day shifts.",
         ]}
@@ -72,7 +74,7 @@ export default async function VolunteersPage() {
           No volunteers yet. Leads from the public <span className="font-mono">/contact</span> form land here — or import a list above.
         </div>
       ) : (
-        <VolunteerBoard rows={rows} taskCounts={taskCounts} donorEmails={donorEmails} captainEmails={captainEmails} me={email} />
+        <VolunteerBoard rows={rows} taskCounts={taskCounts} donorEmails={donorEmails} captainEmails={captainEmails} canViewDonors={can(role, "viewFinanceTotals")} me={email} />
       )}
     </>
   );
