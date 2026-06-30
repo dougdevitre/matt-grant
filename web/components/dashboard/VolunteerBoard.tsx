@@ -1,23 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import type { VolunteerRow } from "@/lib/queries";
-import { isIn } from "@/lib/engagement";
 import { updateVolunteer, markVolunteerContacted, setVolunteerCaptain } from "@/app/dashboard/actions";
 import { SubmitButton } from "@/components/dashboard/SubmitButton";
+import { DataToolbar } from "@/components/dashboard/DataToolbar";
+import { useTableQuery } from "@/components/dashboard/useTableQuery";
+import { VOLUNTEER_TABLE, type VolCtx } from "@/lib/table/volunteers-config";
 
 const STATUSES = ["NEW", "CONTACTED", "ACTIVE", "INACTIVE"] as const;
-// The fixed set offered on the public contact form — used for the interest filter.
-const INTERESTS = ["Knock doors", "Make calls", "Host an event", "Yard sign", "Donate", "Other"] as const;
-
 const badge: Record<string, string> = {
   NEW: "bg-gold/15 text-[#9a6f1a]",
   CONTACTED: "bg-field/10 text-field",
   ACTIVE: "bg-field/20 text-field",
   INACTIVE: "bg-line text-slate",
 };
-const select = "rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink";
+const lc = (s: string | null | undefined) => (s ?? "").toLowerCase();
 
 // Deterministic (string arg) — safe under react-hooks/purity, unlike Date.now().
 function contactedLabel(iso: string | null): string | null {
@@ -25,87 +24,31 @@ function contactedLabel(iso: string | null): string | null {
   return `Last contacted ${new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
 }
 
-// donorEmails: addresses present in the donor list, to flag volunteers who have
-// also given. Array (not Set) so it can cross the server→client boundary.
-export function VolunteerBoard({ rows, taskCounts, donorEmails = [], captainEmails = [], me = null }: { rows: VolunteerRow[]; taskCounts?: Record<string, number>; donorEmails?: string[]; captainEmails?: string[]; me?: string | null }) {
-  const [status, setStatus] = useState("ALL");
-  const [interest, setInterest] = useState("ALL");
-  const [q, setQ] = useState("");
-  const [mine, setMine] = useState(false);
-  const [captainsOnly, setCaptainsOnly] = useState(false);
-  const donorSet = useMemo(() => new Set(donorEmails), [donorEmails]);
-  const captainSet = useMemo(() => new Set(captainEmails), [captainEmails]);
-
-  const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    return rows.filter((v) => {
-      if (mine && me && v.captainEmail !== me) return false;
-      // "Captain applicants" = applied (door) but not yet promoted to the captain role.
-      if (captainsOnly && !(v.door === "Team Captain" && !isIn(captainSet, v.email))) return false;
-      if (status !== "ALL" && v.status !== status) return false;
-      if (interest !== "ALL") {
-        const tags = v.interestTags?.length ? v.interestTags : v.interests ? v.interests.split(",").map((s) => s.trim()) : [];
-        if (!tags.some((t) => t.toLowerCase() === interest.toLowerCase())) return false;
-      }
-      if (needle) {
-        const hay = [v.name, v.city, v.email, v.phone, v.interests, v.notes, v.assignedTo, v.captainEmail].filter(Boolean).join(" ").toLowerCase();
-        if (!hay.includes(needle)) return false;
-      }
-      return true;
-    });
-  }, [rows, status, interest, q, mine, me, captainsOnly, captainSet]);
-
-  const counts = useMemo(() => {
-    const c: Record<string, number> = {};
-    for (const v of rows) c[v.status] = (c[v.status] ?? 0) + 1;
-    return c;
-  }, [rows]);
-
-  const mineCount = useMemo(() => (me ? rows.filter((v) => v.captainEmail === me).length : 0), [rows, me]);
-  const captainCount = useMemo(
-    () => rows.filter((v) => v.door === "Team Captain" && !isIn(captainSet, v.email)).length,
-    [rows, captainSet],
+// Advanced search/filter/sort via the shared DataToolbar + URL-bound useTableQuery.
+// donorEmails/captainEmails arrive as arrays (server→client boundary) and become the
+// lowercased sets used by both the card badges and the facet/ctx matching.
+export function VolunteerBoard({
+  rows, taskCounts, donorEmails = [], captainEmails = [], canViewDonors = false, me = null,
+}: {
+  rows: VolunteerRow[];
+  taskCounts?: Record<string, number>;
+  donorEmails?: string[];
+  captainEmails?: string[];
+  canViewDonors?: boolean;
+  me?: string | null;
+}) {
+  const donorSet = useMemo(() => new Set(donorEmails.map(lc)), [donorEmails]);
+  const captainSet = useMemo(() => new Set(captainEmails.map(lc)), [captainEmails]);
+  const tc = useMemo(() => taskCounts ?? {}, [taskCounts]);
+  const ctx = useMemo<VolCtx>(
+    () => ({ me, donorSet, captainSet, taskCounts: tc, canViewDonors }),
+    [me, donorSet, captainSet, tc, canViewDonors],
   );
+  const { state, setState, filtered } = useTableQuery(rows, VOLUNTEER_TABLE, ctx);
 
   return (
     <>
-      {/* Filter bar */}
-      <div className="mb-5 flex flex-wrap items-center gap-3">
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search name, city, email, owner, notes…"
-          aria-label="Search volunteers"
-          className={`${select} min-w-[14rem] flex-1`}
-        />
-        <select value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Filter by status" className={select}>
-          <option value="ALL">All statuses ({rows.length})</option>
-          {STATUSES.map((s) => (
-            <option key={s} value={s}>{s} ({counts[s] ?? 0})</option>
-          ))}
-        </select>
-        <select value={interest} onChange={(e) => setInterest(e.target.value)} aria-label="Filter by interest" className={select}>
-          <option value="ALL">All interests</option>
-          {INTERESTS.map((i) => (
-            <option key={i} value={i}>{i}</option>
-          ))}
-        </select>
-        {me && (
-          <label className="flex items-center gap-1.5 font-mono text-xs text-slate" title="Show only volunteers you've claimed to your team">
-            <input type="checkbox" checked={mine} onChange={(e) => setMine(e.target.checked)} />
-            My volunteers ({mineCount})
-          </label>
-        )}
-        {captainCount > 0 && (
-          <label className="flex items-center gap-1.5 font-mono text-xs text-slate" title="People who applied to lead a team via /join — review and promote to the captain role">
-            <input type="checkbox" checked={captainsOnly} onChange={(e) => setCaptainsOnly(e.target.checked)} />
-            Captain applicants ({captainCount})
-          </label>
-        )}
-        <span className="font-mono text-xs text-slate">
-          {filtered.length} of {rows.length}
-        </span>
-      </div>
+      <DataToolbar cfg={VOLUNTEER_TABLE} rows={rows} state={state} setState={setState} ctx={ctx} shown={filtered.length} />
 
       {filtered.length === 0 ? (
         <div className="card p-10 text-center text-slate">No volunteers match these filters.</div>
@@ -113,7 +56,7 @@ export function VolunteerBoard({ rows, taskCounts, donorEmails = [], captainEmai
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((v) => {
             const contacted = contactedLabel(v.lastContactedAt);
-            const tcount = taskCounts?.[v.id] ?? 0;
+            const tcount = tc[v.id] ?? 0;
             return (
               <div key={v.id} className="card p-5">
                 <div className="flex items-start justify-between gap-3">
@@ -133,13 +76,13 @@ export function VolunteerBoard({ rows, taskCounts, donorEmails = [], captainEmai
                     <span className={`rounded-sm px-2 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow ${badge[v.status] ?? "bg-line text-slate"}`}>
                       {v.status}
                     </span>
-                    {isIn(donorSet, v.email) && (
+                    {donorSet.has(lc(v.email)) && (
                       <span className="rounded-sm bg-gold/15 px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-[#9a6f1a]" title="Has also donated">
                         ◈ donor
                       </span>
                     )}
                     {v.door === "Team Captain" &&
-                      (isIn(captainSet, v.email) ? (
+                      (captainSet.has(lc(v.email)) ? (
                         <span className="rounded-sm bg-field/15 px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-field" title="Team captain">
                           ★ captain
                         </span>
@@ -206,16 +149,16 @@ export function VolunteerBoard({ rows, taskCounts, donorEmails = [], captainEmai
                 </form>
 
                 {/* Team ownership — captain claim / release */}
-                {v.captainEmail && v.captainEmail !== me ? (
+                {v.captainEmail && lc(v.captainEmail) !== lc(me) ? (
                   <p className="mt-2 font-mono text-[0.65rem] text-slate" title={v.captainEmail}>
                     Captain: <span className="text-ink">{v.captainEmail}</span>
                   </p>
                 ) : (
                   <form action={setVolunteerCaptain} className="mt-2">
                     <input type="hidden" name="id" value={v.id} />
-                    <input type="hidden" name="action" value={v.captainEmail === me ? "release" : "claim"} />
+                    <input type="hidden" name="action" value={lc(v.captainEmail) === lc(me) ? "release" : "claim"} />
                     <SubmitButton pendingText="Saving…" className="text-xs font-semibold text-field hover:underline disabled:opacity-50">
-                      {v.captainEmail === me ? "↩ Release from my team" : "＋ Claim to my team"}
+                      {lc(v.captainEmail) === lc(me) ? "↩ Release from my team" : "＋ Claim to my team"}
                     </SubmitButton>
                   </form>
                 )}
