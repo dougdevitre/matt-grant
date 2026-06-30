@@ -14,11 +14,19 @@
 import { readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
 
-// 220 MiB = the hard Amplify SSR compute cap. Overridable via BUNDLE_CAP_BYTES so the
-// threshold can be calibrated in ci.yml (standalone size is a close proxy for Amplify's
-// packaging, but not byte-identical) without a code change.
-const CAP = Number(process.env.BUNDLE_CAP_BYTES) || 230686720;
-const WARN_AT = CAP - 10 * 1048576; // warn with <10 MiB of headroom left
+// CALIBRATION (2026-06-30): Next `standalone` size is NOT the same scale as Amplify's
+// packaged compute bundle — it runs ~60 MiB LIGHTER. Measured: main = 158.4 MiB
+// standalone, while Amplify's measure of that same main sits right at its 220 MiB
+// (230686720 B) cap (the +9.5 MiB #234 probe tipped Amplify to 229.5 MiB → FAILED).
+// So the meaningful threshold is on the STANDALONE scale: Amplify fails at ~standalone
+// 160 MiB. We set the budget at 166 MiB — a backstop that catches a probe-class
+// regression (+~8 MiB) without false-failing normal PRs (~10 MiB room above main). It
+// deliberately does NOT police the last few MiB (would false-fail legit PRs pre-primary,
+// worse than a miss — deploy-alert.yml still catches anything that slips, post-merge).
+// Real fix for durable headroom = bundle relief (media off the SSR compute), not this.
+// Override via BUNDLE_CAP_BYTES if recalibrated.
+const CAP = Number(process.env.BUNDLE_CAP_BYTES) || 174063616; // 166 MiB (standalone scale)
+const WARN_AT = CAP - 12 * 1048576; // ~154 MiB — main (158) sits in this band: headroom IS thin
 const DIR = ".next/standalone";
 
 async function dirBytes(path) {
@@ -57,13 +65,14 @@ if (nodeModulesBytes < 10 * 1048576) {
 }
 
 const headroom = CAP - bytes;
-console.log(`SSR compute bundle (standalone): ${mib(bytes)} MiB / ${mib(CAP)} MiB cap — headroom ${mib(headroom)} MiB`);
+console.log(`SSR compute bundle (standalone): ${mib(bytes)} MiB / ${mib(CAP)} MiB budget — headroom ${mib(headroom)} MiB`);
+console.log(`(standalone runs ~60 MiB under Amplify's packaged size; this budget ≈ the 220 MiB Amplify compute cap)`);
 
 if (bytes >= CAP) {
-  console.error(`::error::Bundle ${mib(bytes)} MiB EXCEEDS the ${mib(CAP)} MiB Amplify SSR cap — this PR would FAIL the deploy. Trim a heavy server dep or move generation (sharp / @vercel/og / video) off the SSR compute. See project memory: matt-grant deploy bundle cap.`);
+  console.error(`::error::SSR bundle ${mib(bytes)} MiB exceeds the ${mib(CAP)} MiB standalone budget — a regression this size would tip the Amplify 220 MiB compute cap and FAIL the deploy. Trim a heavy server dep or move generation (sharp / @vercel/og / video) off the SSR compute. See project memory: matt-grant deploy bundle cap.`);
   process.exit(1);
 }
 if (bytes >= WARN_AT) {
-  console.log(`::warning::Bundle within ${mib(headroom)} MiB of the cap — headroom is thin. Avoid adding heavy server deps; plan bundle relief.`);
+  console.log(`::warning::SSR bundle headroom is thin (${mib(headroom)} MiB) — the app is near the Amplify compute cap. Avoid adding heavy server deps; plan bundle relief (media off the SSR compute).`);
 }
 console.log("bundle-size-guard: OK");
