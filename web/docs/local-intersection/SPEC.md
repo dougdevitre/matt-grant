@@ -57,15 +57,15 @@ to this list with a real source.
 | Median age | County | same | exists |
 | Median home value | County | same | exists |
 | % bachelor's degree or higher | County | same | exists |
+| **% households with children** | ZIP/place/county | ACS B11005 — now wired (`lib/integrations/census`) | **decided: wired.** family-courts' on-point fact |
 | Primary turnout % | **St. Louis County precincts only** | `/api/geo/precincts` (Aug 2024) | other counties: **not available** → omit, don't estimate |
 | School district name | ZIP → district (to build) | NCES / MO DESE crosswalk | Phase 5 |
 
 **Honesty gaps to flag now (do NOT assume these exist):**
-- **"% households with children"** — the single most on-point fact for the
-  family-courts issue — is **not** currently returned by `/api/research/census`. It
-  requires adding a Census variable (ACS table B11005). Until added, family-courts
-  must use a different allowed fact or generic framing. Do not ship copy that implies
-  this number unless the data is wired and cited.
+
+- **"% households with children"** — the on-point fact for the family-courts issue —
+  is now wired (ACS B11005) and surfaced with a citation; family-courts falls back to
+  population only when B11005 is null for a ZIP. *(Resolved — was the open decision.)*
 - Turnout is St. Louis-only; four of five MO-02 counties have **no** turnout figure.
   The feature must degrade gracefully, not fabricate.
 

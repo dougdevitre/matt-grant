@@ -30,6 +30,11 @@ export const VARS = {
   eduMasters: "B15003_023E",
   eduProfessional: "B15003_024E",
   eduDoctorate: "B15003_025E",
+  // Households by presence of people under 18 (ACS B11005): total + those with a
+  // minor. Their ratio = % of households with children — the on-point fact for the
+  // family-courts issue (SPEC §3/§4).
+  hhTotal: "B11005_001E",
+  hhWithMinors: "B11005_002E",
 } as const;
 
 export const EDU_VARS = [VARS.eduBachelors, VARS.eduMasters, VARS.eduProfessional, VARS.eduDoctorate];
@@ -42,8 +47,15 @@ export type CountyAcs = {
   medianAge: number | null;
   medianHomeValue: number | null;
   bachelorsPlusPct: number | null;
+  householdsWithChildrenPct: number | null;
   sourceUrl: string;
 };
+
+// % of households with a person under 18, from the B11005 pair. Shared so the
+// county, place, and ZCTA fetches compute it identically. Rounded to 0.1%.
+export function householdsWithChildrenPct(total: number | null, withMinors: number | null): number | null {
+  return total && withMinors != null ? Math.round((withMinors / total) * 1000) / 10 : null;
+}
 
 export const acsNum = (v: string | null): number | null => {
   if (v == null) return null;
@@ -87,6 +99,7 @@ export async function fetchMo02Acs(): Promise<CountyAcs[]> {
       medianAge: n(r[idx(VARS.medianAge)]),
       medianHomeValue: n(r[idx(VARS.medianHomeValue)]),
       bachelorsPlusPct: bachPlus != null && pop25 ? Math.round((bachPlus / pop25) * 1000) / 10 : null,
+      householdsWithChildrenPct: householdsWithChildrenPct(n(r[idx(VARS.hhTotal)]), n(r[idx(VARS.hhWithMinors)])),
       sourceUrl: `https://data.census.gov/profile?g=050XX00US29${countyFips}`,
     };
   });
