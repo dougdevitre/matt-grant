@@ -27,15 +27,25 @@ jobs:
       contains(github.event.comment.body, '/rebase')
     runs-on: ubuntu-latest
     steps:
-      - name: Resolve PR + ack
+      - name: Resolve PR head/base + ack
         id: pr
         env:
           GH_TOKEN: ${{ secrets.REBASE_PAT }}
+          NUM: ${{ github.event.issue.number }}
         run: |
-          num=${{ github.event.issue.number }}
           gh api -X POST "repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions" -f content=+1 >/dev/null 2>&1 || true
-          echo "head=$(gh pr view "$num" --json headRefName -q .headRefName)" >> "$GITHUB_OUTPUT"
-          echo "base=$(gh pr view "$num" --json baseRefName -q .baseRefName)" >> "$GITHUB_OUTPUT"
+          # Resolve via the REST API (reliable with fine-grained PATs; gh pr view's GraphQL can return empty).
+          pr=$(gh api "repos/${{ github.repository }}/pulls/${NUM}")
+          head=$(echo "$pr" | jq -r '.head.ref // ""')
+          base=$(echo "$pr" | jq -r '.base.ref // ""')
+          echo "head=$head" >> "$GITHUB_OUTPUT"
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+          if [ -z "$head" ] || [ -z "$base" ]; then
+            echo "::error::could not resolve PR branch (head='$head' base='$base') — check REBASE_PAT has Pull requests: read"
+            gh pr comment "${NUM}" --body "⚠️ \`/rebase\` couldn't resolve this PR's branch — REBASE_PAT likely needs **Pull requests: read**."
+            exit 1
+          fi
+          echo "resolved: $head onto $base"
 
       - uses: actions/checkout@v4
         with:
@@ -46,15 +56,18 @@ jobs:
       - name: Rebase onto base and force-push
         env:
           GH_TOKEN: ${{ secrets.REBASE_PAT }}
+          HEAD_REF: ${{ steps.pr.outputs.head }}
+          BASE_REF: ${{ steps.pr.outputs.base }}
+          NUM: ${{ github.event.issue.number }}
         run: |
           git config user.name "rebase-bot"
           git config user.email "actions@github.com"
-          git fetch origin "${{ steps.pr.outputs.base }}"
-          if git rebase "origin/${{ steps.pr.outputs.base }}"; then
-            git push --force-with-lease origin "HEAD:${{ steps.pr.outputs.head }}"
-            gh pr comment ${{ github.event.issue.number }} --body "✅ Rebased \`${{ steps.pr.outputs.head }}\` onto \`${{ steps.pr.outputs.base }}\` and force-pushed — CI will re-run."
+          git fetch origin "$BASE_REF"
+          if git rebase "origin/${BASE_REF}"; then
+            git push --force-with-lease origin "HEAD:${HEAD_REF}"
+            gh pr comment "$NUM" --body "✅ Rebased \`${HEAD_REF}\` onto \`${BASE_REF}\` and force-pushed — CI will re-run."
           else
             git rebase --abort || true
-            gh pr comment ${{ github.event.issue.number }} --body "⚠️ Couldn't auto-rebase (conflicts). Rebase manually: \`git fetch origin && git rebase origin/${{ steps.pr.outputs.base }} && git push --force-with-lease\`."
+            gh pr comment "$NUM" --body "⚠️ Couldn't auto-rebase \`${HEAD_REF}\` onto \`${BASE_REF}\` (conflicts). Rebase manually: \`git fetch origin && git rebase origin/${BASE_REF} && git push --force-with-lease\`."
             exit 1
           fi
