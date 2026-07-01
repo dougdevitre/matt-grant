@@ -1,0 +1,60 @@
+name: rebase-command
+
+# Comment "/rebase" on a PR and a bot rebases its branch onto the base and force-pushes
+# — so a PR that's fallen "behind main" (the up-to-date check) is unblocked with one
+# comment, no local worktree gymnastics. This replaces the manual rebase churn for a
+# repo where GitHub's merge queue isn't available (personal-account private repo).
+#
+# REQUIRES a repo secret `REBASE_PAT` — a PAT with Contents:write + Pull requests:write
+# on this repo. The default GITHUB_TOKEN is NOT enough: a push made with it does not
+# re-trigger CI, so the up-to-date check would stay red. A PAT-authored push re-runs CI.
+#
+# issue_comment workflows run from the DEFAULT branch, so this file must be on main.
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  rebase:
+    # PR comments only, and only when the body contains /rebase
+    if: >
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '/rebase')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve PR + ack
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.REBASE_PAT }}
+        run: |
+          num=${{ github.event.issue.number }}
+          gh api -X POST "repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions" -f content=+1 >/dev/null 2>&1 || true
+          echo "head=$(gh pr view "$num" --json headRefName -q .headRefName)" >> "$GITHUB_OUTPUT"
+          echo "base=$(gh pr view "$num" --json baseRefName -q .baseRefName)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.REBASE_PAT }}
+          fetch-depth: 0
+          ref: ${{ steps.pr.outputs.head }}
+
+      - name: Rebase onto base and force-push
+        env:
+          GH_TOKEN: ${{ secrets.REBASE_PAT }}
+        run: |
+          git config user.name "rebase-bot"
+          git config user.email "actions@github.com"
+          git fetch origin "${{ steps.pr.outputs.base }}"
+          if git rebase "origin/${{ steps.pr.outputs.base }}"; then
+            git push --force-with-lease origin "HEAD:${{ steps.pr.outputs.head }}"
+            gh pr comment ${{ github.event.issue.number }} --body "✅ Rebased \`${{ steps.pr.outputs.head }}\` onto \`${{ steps.pr.outputs.base }}\` and force-pushed — CI will re-run."
+          else
+            git rebase --abort || true
+            gh pr comment ${{ github.event.issue.number }} --body "⚠️ Couldn't auto-rebase (conflicts). Rebase manually: \`git fetch origin && git rebase origin/${{ steps.pr.outputs.base }} && git push --force-with-lease\`."
+            exit 1
+          fi
