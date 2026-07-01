@@ -29,12 +29,19 @@ export function emailAllowed(email?: string | null): boolean {
 // verdict. In demo mode (no Clerk) it's a no-op pass. Callers should already be
 // behind middleware auth.protect(), so currentUser() is present when Clerk is on.
 import type { StaffRole } from "@/lib/staff";
-import { asRole, can, type Capability, type Role } from "@/lib/rbac";
+import { asRole, can, isStaffRole, type Capability, type Role } from "@/lib/rbac";
 
 // `role` is the EFFECTIVE role used for all gating. When an admin is "viewing as"
 // a lower role, `role` is that preview while `actualRole` stays "admin" and
 // `viewingAs` names the preview. For everyone else, role === actualRole and
 // viewingAs is null.
+//
+// IMPORTANT — `ok` means "a role RESOLVED", NOT "is staff". Every self-signup is
+// auto-stamped `supporter` (see the Clerk webhook), so a plain member of the
+// public has `ok: true`. Never use `gate.ok` alone to guard a staff-only surface:
+// check a capability with checkCap()/can(), or use isStaff()/requireStaff() below
+// when the surface maps to no single capability. Gating on `.ok` alone lets any
+// signed-in supporter/donor/partner through.
 export type Gate = {
   ok: boolean;
   email: string | null;
@@ -129,4 +136,28 @@ export async function requireCap(capability: Capability): Promise<Gate> {
 export async function checkCap(capability: Capability): Promise<{ allowed: boolean; gate: Gate }> {
   const gate = await staffGate();
   return { allowed: gate.ok && can(gate.role, capability), gate };
+}
+
+/**
+ * True when the resolved gate is an internal STAFF tier (admin/captain/volunteer).
+ * Use this — not `gate.ok` — for a staff-only surface that doesn't map to a single
+ * capability. `gate.ok` only means "a role resolved" (any signed-in user, incl. the
+ * public supporter/donor/partner tiers), so it is NOT a staff check.
+ */
+export function isStaff(gate: Gate): boolean {
+  return gate.ok && isStaffRole(gate.role);
+}
+
+/**
+ * Page/server-component guard for a staff-only surface with no single capability.
+ * Redirects a non-staff caller: signed-out/unresolved → /sign-in, a resolved but
+ * external tier (supporter/donor/partner) → /dashboard?denied=staff. Prefer
+ * requireCap() whenever a capability fits; reach for this only for the general
+ * "must be staff" case.
+ */
+export async function requireStaff(): Promise<Gate> {
+  const { redirect } = await import("next/navigation");
+  const gate = await staffGate();
+  if (!isStaff(gate)) redirect(gate.ok ? "/dashboard?denied=staff" : "/sign-in");
+  return gate;
 }
