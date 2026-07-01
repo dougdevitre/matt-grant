@@ -51,6 +51,9 @@ export function checkLocalResponse(text: string, ctx: GuardCtx): GuardResult {
     ...digitGroups(ctx.documentedText),
     ...(ctx.snapshot ? Object.values(ctx.snapshot.figures).flatMap(digitGroups) : []),
     ...(ctx.snapshot?.citations ?? []).flatMap(digitGroups),
+    // The place label carries the verified ZIP the visitor entered — not an invented
+    // figure, so the model may name it (e.g. "in ZIP 63010").
+    ...(ctx.snapshot ? digitGroups(ctx.snapshot.place) : []),
     ...digitGroups(`${CAMPAIGN.electionLabel} ${CAMPAIGN.districtShort} ${CAMPAIGN.district}`),
   ]);
   for (const n of digitGroups(text)) {
