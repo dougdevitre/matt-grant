@@ -28,6 +28,7 @@ export type SupporterProfile = {
   issues: IssueId[]; // the priorities they care about → personalized content / targeted email
   waysToHelp: WayToHelp[]; // how they want to help → volunteer/field matching
   zip?: string; // → county / precinct for local action
+  registeredToVote?: boolean; // self-attested ("I'm registered") — we record, never verify
   onboardedAt?: string;
   updatedAt?: string;
 };
@@ -51,6 +52,7 @@ export async function getProfile(email?: string | null): Promise<SupporterProfil
       issues: Array.isArray(r.Item.issues) ? (r.Item.issues as string[]).filter(isIssueId) : [],
       waysToHelp: Array.isArray(r.Item.waysToHelp) ? (r.Item.waysToHelp as string[]).filter(isWayToHelp) : [],
       zip: typeof r.Item.zip === "string" ? r.Item.zip : undefined,
+      registeredToVote: typeof r.Item.registeredToVote === "boolean" ? r.Item.registeredToVote : undefined,
       onboardedAt: r.Item.onboardedAt ? String(r.Item.onboardedAt) : undefined,
       updatedAt: r.Item.updatedAt ? String(r.Item.updatedAt) : undefined,
     };
@@ -78,6 +80,25 @@ export async function saveProfile(
         "SET issues = :i, waysToHelp = :w, updatedAt = :u, onboardedAt = if_not_exists(onboardedAt, :u)" +
         (zip ? ", zip = :z" : ""),
       ExpressionAttributeValues: { ":i": issues, ":w": waysToHelp, ":u": now, ...(zip ? { ":z": zip } : {}) },
+    }),
+  );
+}
+
+// Self-attested voter-registration flag. Focused write so it composes with the
+// other profile fields without clobbering them. Stored on the same PK.profile row
+// (works for any signed-in user, not just those with a volunteer record). Stamps
+// onboardedAt so a profile exists even if this is their first interaction.
+export async function setVoterRegistration(email: string, value: boolean): Promise<void> {
+  if (!dbConfigured) return;
+  const now = new Date().toISOString();
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: PK.profile, SK: norm(email) },
+      UpdateExpression:
+        "SET registeredToVote = :v, updatedAt = :u, onboardedAt = if_not_exists(onboardedAt, :u), " +
+        "issues = if_not_exists(issues, :empty), waysToHelp = if_not_exists(waysToHelp, :empty)",
+      ExpressionAttributeValues: { ":v": value, ":u": now, ":empty": [] },
     }),
   );
 }

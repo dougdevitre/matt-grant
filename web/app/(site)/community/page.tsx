@@ -6,6 +6,7 @@ import { CaseForChange } from "@/components/CaseForChange";
 import { CommunityOnboarding } from "@/components/CommunityOnboarding";
 import { MatchedActions } from "@/components/community/MatchedActions";
 import { JoinTeam } from "@/components/community/JoinTeam";
+import { PersonalSummary } from "@/components/dashboard/PersonalSummary";
 import { ViewAsBanner } from "@/components/dashboard/ViewAsBanner";
 import { supporterTierForEmail } from "@/lib/supporterTier";
 import { getProfile } from "@/lib/profile";
@@ -76,6 +77,12 @@ export default async function CommunityPage() {
         You&apos;re now part of the movement to restore public trust in MO-02. Here&apos;s the case we&apos;re
         making together — and three ways you can help right now.
       </p>
+
+      {/* Personalized "what to do next" + readiness checklist — the clear single
+          next step for the signed-in supporter/volunteer. */}
+      <div className="mt-8">
+        <PersonalSummary email={gate.email} role={gate.role ?? "supporter"} />
+      </div>
 
       {donor.hasDonated && (
         <div className="mt-6 max-w-2xl rounded-sm border border-gold/40 bg-gold/10 p-5">
