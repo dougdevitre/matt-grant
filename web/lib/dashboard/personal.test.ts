@@ -7,6 +7,7 @@ const base: PersonalSignals = {
   registeredToVote: true,
   hasDonated: true,
   captainName: "Sam",
+  myTask: null,
   topAction: null,
   nextEvent: null,
   daysToPrimary: 30,
@@ -24,6 +25,27 @@ describe("nextStep — priority cascade", () => {
     // supporter without a volunteer record skips the captain step
     const step = nextStep(sig({ role: "supporter", isVolunteer: false, captainName: null, hasDonated: true, nextEvent: null, topAction: null }));
     expect(step.kind).not.toBe("captain");
+  });
+  it("an overdue assigned task jumps ahead of joining a team", () => {
+    const step = nextStep(sig({ captainName: null, myTask: { title: "Call sheet", href: "/dashboard/tasks", state: "overdue", label: "2 days overdue" } }));
+    expect(step.kind).toBe("task");
+    expect(step.title).toContain("overdue");
+  });
+  it("a task due today sits after the captain step but before events/actions", () => {
+    const step = nextStep(sig({
+      myTask: { title: "Door knock", href: "/dashboard/tasks", state: "today", label: "due today" },
+      nextEvent: { title: "Rally", whenLabel: "Saturday", href: "/events/1" },
+      topAction: { title: "Phone bank", href: "/community" },
+    }));
+    expect(step.kind).toBe("task");
+    expect(step.title).toContain("Door knock");
+  });
+  it("a 'later' task does NOT preempt an event", () => {
+    const step = nextStep(sig({
+      myTask: { title: "Far task", href: "/dashboard/tasks", state: "later", label: "due Aug 1" },
+      nextEvent: { title: "Rally", whenLabel: "Saturday", href: "/events/1" },
+    }));
+    expect(step.kind).toBe("event");
   });
   it("surfaces an upcoming event before a matched action", () => {
     const step = nextStep(sig({ nextEvent: { title: "Canvass launch", whenLabel: "Saturday", href: "/events/1" }, topAction: { title: "Phone bank", href: "/community" } }));

@@ -75,6 +75,7 @@ export type TaskRow = {
   priority: string;
   volunteerId: string | null;
   volunteerName: string | null;
+  dueDate: string | null; // YYYY-MM-DD (date-only), or null when undated
 };
 
 export type ExpenditureRow = {
@@ -231,6 +232,7 @@ export async function getTasks(): Promise<{ connected: boolean; rows: TaskRow[] 
         priority: String(t.priority ?? "MEDIUM"),
         volunteerId: (t.volunteerId as string) ?? null,
         volunteerName: (t.volunteerName as string) ?? null,
+        dueDate: (t.dueDate as string) ?? null,
         createdAt: String(t.createdAt ?? ""),
       }))
       .sort(

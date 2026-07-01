@@ -5,6 +5,7 @@
 // checklist (registered to vote · made a donation · connected with a team captain).
 import type { Role } from "@/lib/rbac";
 import { CAMPAIGN, VOTER_LOOKUP } from "@/lib/site";
+import type { DueState } from "@/lib/dashboard/due";
 
 export type PersonalSignals = {
   role: Role;
@@ -12,6 +13,7 @@ export type PersonalSignals = {
   registeredToVote: boolean; // self-attested
   hasDonated: boolean; // derived from donor records
   captainName: string | null; // first name of their assigned captain, if any
+  myTask: { title: string; href: string; state: DueState; label: string } | null; // most urgent open assigned, dated task
   topAction: { title: string; href: string } | null; // best profile-matched action
   nextEvent: { title: string; whenLabel: string; href: string } | null; // soonest upcoming event
   daysToPrimary: number | null; // days until the primary (for urgency framing)
@@ -20,7 +22,7 @@ export type PersonalSignals = {
 const isLeader = (role: Role) => role === "admin" || role === "captain";
 
 // ── Suggested next step ──────────────────────────────────────────────────────
-export type NextStepKind = "register" | "captain" | "event" | "action" | "donate" | "lead" | "allset";
+export type NextStepKind = "register" | "task" | "captain" | "event" | "action" | "donate" | "lead" | "allset";
 export type NextStep = { kind: NextStepKind; title: string; detail: string; href: string; cta: string };
 
 /**
@@ -38,6 +40,16 @@ export function nextStep(s: PersonalSignals): NextStep {
       cta: "Check my registration",
     };
   }
+  // An overdue assigned task jumps the queue — it's a commitment already made.
+  if (s.myTask && s.myTask.state === "overdue") {
+    return {
+      kind: "task",
+      title: `Finish your overdue task: ${s.myTask.title}`,
+      detail: `This was assigned to you and is now ${s.myTask.label}. Close it out or move it forward.`,
+      href: s.myTask.href,
+      cta: "Open the task board",
+    };
+  }
   if (s.isVolunteer && !s.captainName) {
     return {
       kind: "captain",
@@ -45,6 +57,16 @@ export function nextStep(s: PersonalSignals): NextStep {
       detail: "Join a local team so a captain can plug you into doors, calls, and events near you.",
       href: "/community",
       cta: "Join a team",
+    };
+  }
+  // A task due today/soon is more concrete than a generic event or matched action.
+  if (s.myTask && (s.myTask.state === "today" || s.myTask.state === "soon")) {
+    return {
+      kind: "task",
+      title: `Your task ${s.myTask.label}: ${s.myTask.title}`,
+      detail: "This is assigned to you. Knock it out while it's fresh.",
+      href: s.myTask.href,
+      cta: "Open the task board",
     };
   }
   if (s.nextEvent) {

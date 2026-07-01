@@ -4,7 +4,7 @@ import type { TaskRow, VolunteerRow } from "@/lib/queries";
 
 const task = (over: Partial<TaskRow> = {}): TaskRow => ({
   id: "t", title: "", detail: null, category: "Field", status: "TODO", priority: "MEDIUM",
-  volunteerId: null, volunteerName: null, ...over,
+  volunteerId: null, volunteerName: null, dueDate: null, ...over,
 });
 const vol = (over: Partial<VolunteerRow> = {}): VolunteerRow => ({
   id: "v", name: "V", email: null, phone: null, city: null, interests: null, interestTags: [],
