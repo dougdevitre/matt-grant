@@ -5,6 +5,7 @@ import { ISSUES, issueSlugs, getIssue } from "@/lib/issues";
 import { CAMPAIGN, SITE_URL } from "@/lib/site";
 import { IssueCommit } from "@/components/IssueCommit";
 import { IssueActionPlan } from "@/components/IssueActionPlan";
+import { IssueLocalIntersection } from "@/components/IssueLocalIntersection";
 import { IssueChecklist } from "@/components/IssueChecklist";
 import { CtaButton } from "@/components/CtaButton";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
@@ -135,6 +136,15 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
           </div>
         </section>
       )}
+
+      {/* Local data intersection — cited local figures + documented commitment */}
+      <section className="border-t border-line bg-paper">
+        <div className="container-page py-16 sm:py-20">
+          <div className="mx-auto max-w-2xl">
+            <IssueLocalIntersection issueSlug={issue.slug} issueLabel={issue.eyebrow} commitment={issue.commitment} />
+          </div>
+        </div>
+      </section>
 
       {/* Make your plan for this issue */}
       <section id="make-your-plan" className="container-page py-16 sm:py-20">
