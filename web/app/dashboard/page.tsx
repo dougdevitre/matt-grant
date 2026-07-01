@@ -8,6 +8,7 @@ import { can } from "@/lib/rbac";
 import { onboardingDismissed } from "@/lib/onboarding";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
+import { PersonalSummary } from "@/components/dashboard/PersonalSummary";
 
 // Illustrative primary-cycle fundraising goal — replace with the real number.
 const GOAL_CENTS = 25000000; // $250,000
@@ -67,6 +68,10 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
           That section ({denied}) is admin-only. Ask an admin for access if you need it.
         </div>
       )}
+
+      {/* Personal "what to do next" — shown first so anyone landing here knows their
+          own next step before the campaign-wide overview. */}
+      <PersonalSummary email={email} role={role ?? "admin"} />
 
       {showOnboarding && (
         <OnboardingChecklist hasData={o.donorCount > 0 || o.volunteerTotal > 0} teamInvited={teamInvited} />

@@ -59,6 +59,8 @@ const DASHBOARD_ROUTES = [
   // only when the local server runs in open-demo mode, like the dashboard routes.
   "/join/volunteer",
   "/join/captain",
+  // Supporter hub — carries the personalized summary + checklist; open-demo only.
+  "/community",
 ];
 
 const ROUTES = process.env.A11Y_BASE_URL ? PUBLIC_ROUTES : [...PUBLIC_ROUTES, ...DASHBOARD_ROUTES];
