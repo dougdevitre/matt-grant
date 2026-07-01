@@ -6,6 +6,7 @@ import { CAMPAIGN, SITE_URL } from "@/lib/site";
 import { IssueCommit } from "@/components/IssueCommit";
 import { IssueActionPlan } from "@/components/IssueActionPlan";
 import { IssueLocalIntersection } from "@/components/IssueLocalIntersection";
+import { localResponseEnabled } from "@/lib/issues/localResponse";
 import { IssueChecklist } from "@/components/IssueChecklist";
 import { CtaButton } from "@/components/CtaButton";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
@@ -141,7 +142,7 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
       <section className="border-t border-line bg-paper">
         <div className="container-page py-16 sm:py-20">
           <div className="mx-auto max-w-2xl">
-            <IssueLocalIntersection issueSlug={issue.slug} issueLabel={issue.eyebrow} commitment={issue.commitment} />
+            <IssueLocalIntersection issueSlug={issue.slug} issueLabel={issue.eyebrow} commitment={issue.commitment} aiEnabled={localResponseEnabled()} />
           </div>
         </div>
       </section>
