@@ -20,13 +20,19 @@ export function IssueLocalIntersection({
   issueSlug,
   issueLabel,
   commitment,
+  aiEnabled = false,
 }: {
   issueSlug: string;
   issueLabel: string;
   commitment: string;
+  // When false (default / flag OFF) the panel shows Matt's verbatim documented
+  // commitment — today's behavior. When true, it shows the guard-validated
+  // generated note. Server passes localResponseEnabled(); dark until sign-off.
+  aiEnabled?: boolean;
 }) {
   const [zip, setZip] = useState("");
   const [snapshot, setSnapshot] = useState<LocalSnapshot | null>(null);
+  const [response, setResponse] = useState<{ paragraphs: string[] } | null>(null);
   const [checked, setChecked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
@@ -35,6 +41,7 @@ export function IssueLocalIntersection({
     if (zip.length !== 5) return;
     setLoading(true);
     setErr("");
+    setResponse(null);
     try {
       const r = await fetch("/api/issues/local-snapshot", {
         method: "POST",
@@ -45,6 +52,24 @@ export function IssueLocalIntersection({
       const { snapshot } = (await r.json()) as { snapshot: LocalSnapshot | null };
       setSnapshot(snapshot);
       setChecked(true);
+
+      // Only when enabled: fetch the generated note. The route returns null while
+      // the flag is off, so this is a no-op in production until go-live.
+      if (aiEnabled) {
+        try {
+          const rr = await fetch("/api/issues/local-response", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ issueSlug, zip }),
+          });
+          if (rr.ok) {
+            const { response } = (await rr.json()) as { response: { paragraphs: string[] } | null };
+            setResponse(response);
+          }
+        } catch {
+          /* leave response null → panel shows the documented commitment */
+        }
+      }
       // Carry the ZIP into IssueActionPlan (shares the act:prefs contract).
       try {
         const prefs = JSON.parse(localStorage.getItem("act:prefs") || "{}");
@@ -127,10 +152,24 @@ export function IssueLocalIntersection({
             )}
           </div>
 
-          {/* Documented commitment — verbatim, NOT generated */}
+          {/* When enabled, the guard-validated generated note; otherwise Matt's
+              verbatim documented commitment (today's behavior). */}
           <div className="rounded-sm border border-line bg-paper p-5">
-            <p className="eyebrow text-gold">Matt&rsquo;s documented commitment</p>
-            <p className="mt-3 text-sm leading-relaxed text-ink">{commitment}</p>
+            {response && response.paragraphs.length > 0 ? (
+              <>
+                <p className="eyebrow text-gold">How this lands for you</p>
+                <div className="mt-3 space-y-3">
+                  {response.paragraphs.map((p, i) => (
+                    <p key={i} className="text-sm leading-relaxed text-ink">{p}</p>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="eyebrow text-gold">Matt&rsquo;s documented commitment</p>
+                <p className="mt-3 text-sm leading-relaxed text-ink">{commitment}</p>
+              </>
+            )}
             <a href="#make-your-plan" className="mt-5 inline-block font-mono text-xs uppercase tracking-eyebrow text-field hover:text-ink">
               Now make your plan for your area ↓
             </a>
