@@ -7,7 +7,7 @@
 //   • `place` nests in `state`  → for=place:*&in=state:29        (valid)
 //   • `zip code tabulation area` does NOT nest in state in 2023  → for=zip…  with
 //     NO `in=` clause (adding it returns "unknown/unsupported geography hierarchy").
-import { ACS_BASE, VARS, EDU_VARS, acsNum } from "./client";
+import { ACS_BASE, VARS, EDU_VARS, acsNum, householdsWithChildrenPct } from "./client";
 
 export type PlaceAcs = {
   name: string; // Census label, e.g. "Chesterfield city, Missouri"
@@ -17,6 +17,7 @@ export type PlaceAcs = {
   medianAge: number | null;
   medianHomeValue: number | null;
   bachelorsPlusPct: number | null;
+  householdsWithChildrenPct: number | null;
   sourceUrl: string;
 };
 
@@ -66,6 +67,7 @@ function common(header: string[], r: string[]) {
     medianAge: acsNum(r[idx(VARS.medianAge)]),
     medianHomeValue: acsNum(r[idx(VARS.medianHomeValue)]),
     bachelorsPlusPct: bachelorsPlus(header, r),
+    householdsWithChildrenPct: householdsWithChildrenPct(acsNum(r[idx(VARS.hhTotal)]), acsNum(r[idx(VARS.hhWithMinors)])),
   };
 }
 
