@@ -9,6 +9,7 @@ const acs = (over: Partial<ZctaAcs> = {}): ZctaAcs => ({
   medianAge: 42,
   medianHomeValue: 415000,
   bachelorsPlusPct: 55,
+  householdsWithChildrenPct: 28,
   sourceUrl: "https://data.census.gov/profile?g=860XX00US63131",
   ...over,
 });
@@ -38,8 +39,14 @@ describe("selectFacts — per-issue allow-list (SPEC §4)", () => {
     }
   });
 
-  it("family-courts → population as civic context", () => {
+  it("family-courts → households with children (ACS B11005)", () => {
     const facts = selectFacts("family-courts", acs());
+    expect(facts.map((f) => f.key)).toEqual(["householdsWithChildrenPct"]);
+    expect(facts[0].value).toBe("28%");
+  });
+
+  it("family-courts → falls back to population when B11005 is null", () => {
+    const facts = selectFacts("family-courts", acs({ householdsWithChildrenPct: null }));
     expect(facts.map((f) => f.key)).toEqual(["population"]);
     expect(facts[0].value).toBe("30,000");
   });

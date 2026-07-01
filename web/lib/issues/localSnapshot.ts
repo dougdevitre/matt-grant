@@ -44,9 +44,8 @@ const count = (n: number): string => Math.round(n).toLocaleString("en-US");
 // Deliberate honesty (SPEC §4):
 //  - term-limits is a FEDERAL structural reform with no honest local-data hook, so
 //    it surfaces NO figure — the widget falls back to generic framing.
-//  - family-courts' most on-point fact (% households with children) is NOT in the
-//    current Census variable set, so it uses population as civic context until that
-//    variable (ACS B11005) is wired.
+//  - family-courts' most on-point fact is % households with children (ACS B11005),
+//    now wired; it falls back to population if that figure is null for the ZIP.
 export function selectFacts(issueSlug: string, acs: ZctaAcs): LocalFact[] {
   const cite = { source: ACS_SOURCE, sourceUrl: acs.sourceUrl };
   const pop = (): LocalFact[] =>
@@ -59,11 +58,15 @@ export function selectFacts(issueSlug: string, acs: ZctaAcs): LocalFact[] {
     acs.medianHomeValue != null
       ? [{ key: "medianHomeValue", label: "Median home value", value: usd(acs.medianHomeValue), ...cite }]
       : [];
+  const withChildren = (): LocalFact[] =>
+    acs.householdsWithChildrenPct != null
+      ? [{ key: "householdsWithChildrenPct", label: "Households with children", value: `${acs.householdsWithChildrenPct}%`, ...cite }]
+      : [];
 
   switch (issueSlug) {
     case "family-courts":
-      // Children-first civic context. (Households-with-children pending ACS B11005.)
-      return pop();
+      // Children-first: the on-point B11005 fact, falling back to population.
+      return withChildren().length ? withChildren() : pop();
     case "lower-taxes":
       return [...income(), ...homeValue()];
     case "smaller-government":
