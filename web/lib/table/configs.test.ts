@@ -10,7 +10,7 @@ const donor = (over: Partial<DonorRow>): DonorRow => ({
 });
 const task = (over: Partial<TaskRow>): TaskRow => ({
   id: "t", title: "Knock doors", detail: null, category: "Field", status: "TODO", priority: "MEDIUM",
-  volunteerId: null, volunteerName: null, ...over,
+  volunteerId: null, volunteerName: null, dueDate: null, ...over,
 });
 
 const withFacets = <R,>(cfg: typeof DONOR_TABLE | typeof TASK_TABLE, facets: Record<string, string[] | boolean>) =>
@@ -62,5 +62,29 @@ describe("TASK_TABLE facets", () => {
   it("default sort puts HIGH priority first", () => {
     const out = applyQuery(rows, TASK_TABLE, emptyState(TASK_TABLE), {});
     expect(out[0].priority).toBe("HIGH");
+  });
+});
+
+describe("TASK_TABLE due facets/sort (ctx today = 2026-07-01)", () => {
+  const ctx = { today: "2026-07-01" };
+  const rows = [
+    task({ id: "past", dueDate: "2026-06-28" }),
+    task({ id: "today", dueDate: "2026-07-01" }),
+    task({ id: "week", dueDate: "2026-07-05" }),
+    task({ id: "far", dueDate: "2026-09-01" }),
+    task({ id: "none", dueDate: null }),
+  ];
+  it("overdue facet catches only past-due", () => {
+    expect(applyQuery(rows, TASK_TABLE, withFacets(TASK_TABLE, { overdue: true }), ctx).map((r) => r.id)).toEqual(["past"]);
+  });
+  it("due-today facet catches only today", () => {
+    expect(applyQuery(rows, TASK_TABLE, withFacets(TASK_TABLE, { dueToday: true }), ctx).map((r) => r.id)).toEqual(["today"]);
+  });
+  it("due-this-week includes overdue + today + soon (not far/none)", () => {
+    expect(applyQuery(rows, TASK_TABLE, withFacets(TASK_TABLE, { dueWeek: true }), ctx).map((r) => r.id).sort()).toEqual(["past", "today", "week"]);
+  });
+  it("due sort orders earliest-first, undated last", () => {
+    const state = { ...emptyState(TASK_TABLE), sort: "due", dir: "asc" as const };
+    expect(applyQuery(rows, TASK_TABLE, state, ctx).map((r) => r.id)).toEqual(["past", "today", "week", "far", "none"]);
   });
 });

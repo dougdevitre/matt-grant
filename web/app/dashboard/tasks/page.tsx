@@ -80,6 +80,7 @@ export default async function TasksPage() {
           <option value="">Unassigned</option>
           {volOptions}
         </select>
+        <input type="date" name="dueDate" aria-label="Due date (optional)" className={input} />
         <button type="submit" disabled={!connected} className="btn-ink disabled:opacity-50">Add task</button>
       </form>
 

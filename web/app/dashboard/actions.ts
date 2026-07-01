@@ -8,6 +8,7 @@ import { can, type Capability } from "@/lib/rbac";
 import { recordContribution } from "@/lib/donors";
 import { dismissOnboarding } from "@/lib/onboarding";
 import { getTaskTemplate } from "@/lib/task-templates";
+import { cleanDate } from "@/lib/dashboard/due";
 import { mirrorVolunteerStatusToAirtable } from "@/lib/volunteers/airtable";
 import { staffRole } from "@/lib/staff";
 
@@ -276,6 +277,7 @@ export async function addTask(formData: FormData) {
     volunteerId = (i >= 0 ? volunteer.slice(0, i) : volunteer) || undefined;
     volunteerName = (i >= 0 ? volunteer.slice(i + 1) : "") || undefined;
   }
+  const dueDate = cleanDate(str(formData, "dueDate")); // optional; validated to YYYY-MM-DD
   await ddb.send(
     new PutCommand({
       TableName: TABLE,
@@ -289,6 +291,7 @@ export async function addTask(formData: FormData) {
         status: "TODO",
         volunteerId,
         volunteerName,
+        ...(dueDate ? { dueDate } : {}),
         createdAt: new Date().toISOString(),
       },
     }),
@@ -317,6 +320,27 @@ export async function setTaskVolunteer(formData: FormData) {
       Key: { PK: PK.tasks, SK: id },
       UpdateExpression: "SET volunteerId = :vid, volunteerName = :vn",
       ExpressionAttributeValues: { ":vid": volunteerId, ":vn": volunteerName },
+    }),
+  );
+  revalidatePath("/dashboard/tasks");
+  revalidatePath("/dashboard");
+}
+
+// Set (or clear) a task's due date. A valid YYYY-MM-DD sets it; a blank/invalid
+// value clears it (REMOVE). manageTasks-gated like the rest of the board.
+export async function setTaskDueDate(formData: FormData) {
+  await authorize("manageTasks");
+  requireDb();
+  const id = str(formData, "id");
+  if (!id) return;
+  const due = cleanDate(str(formData, "dueDate"));
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: PK.tasks, SK: id },
+      ...(due
+        ? { UpdateExpression: "SET dueDate = :d", ExpressionAttributeValues: { ":d": due } }
+        : { UpdateExpression: "REMOVE dueDate" }),
     }),
   );
   revalidatePath("/dashboard/tasks");

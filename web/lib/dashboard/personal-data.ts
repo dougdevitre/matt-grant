@@ -11,10 +11,14 @@ import { getMyVolunteerProfile } from "@/lib/volunteers/self";
 import { listActiveCaptains } from "@/lib/volunteers/captains";
 import { listMatchableTasks, matchTasks } from "@/lib/volunteers/task-match";
 import { listEvents } from "@/lib/events";
+import { getTasks } from "@/lib/queries";
+import { classifyDue, dueSortKey } from "@/lib/dashboard/due";
 import type { PersonalSignals } from "@/lib/dashboard/personal";
 
 const DAY = 86_400_000;
 const dateOnly = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+const pad = (n: number) => String(n).padStart(2, "0");
+const localYmd = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
 // A friendly relative label for an event date: today / tomorrow / this <weekday> /
 // on <Mon D>. Past-guarded by the caller (only upcoming events are passed).
@@ -41,18 +45,35 @@ export async function gatherPersonalSignals(
   role: Role,
   now: Date = new Date(),
 ): Promise<PersonalSignals> {
-  const [profile, tier, vol, captains, events] = await Promise.all([
+  const [profile, tier, vol, captains, events, tasks] = await Promise.all([
     safe(() => getProfile(email), null),
     safe(() => supporterTierForEmail(email), { tier: "supporter" as const, isDonor: false, isVolunteer: false, donor: { hasDonated: false, totalCents: 0, gifts: 0 } }),
     safe(() => getMyVolunteerProfile(email), null),
     safe(() => listActiveCaptains(), [] as Awaited<ReturnType<typeof listActiveCaptains>>),
     safe(() => listEvents(), { connected: false, rows: [] as Awaited<ReturnType<typeof listEvents>>["rows"] }),
+    safe(() => getTasks(), { connected: false, rows: [] as Awaited<ReturnType<typeof getTasks>>["rows"] }),
   ]);
 
   // Captain first name (privacy: never their email).
   const captainName = vol?.captainEmail
     ? captains.find((c) => c.email === vol.captainEmail!.toLowerCase())?.firstName ?? null
     : null;
+
+  // The signed-in user's most urgent open, dated task. Tasks are assigned by
+  // volunteerId, which equals the volunteer record SK "e:<email>" — so we can match
+  // them to the authenticated email. Soonest due (overdue first) wins.
+  const today = localYmd(now);
+  let myTask: PersonalSignals["myTask"] = null;
+  const myVid = email ? `e:${email.trim().toLowerCase()}` : null;
+  if (myVid) {
+    const mine = tasks.rows
+      .filter((t) => t.volunteerId === myVid && t.status !== "DONE" && !!t.dueDate)
+      .sort((a, b) => dueSortKey(a.dueDate) - dueSortKey(b.dueDate))[0];
+    if (mine) {
+      const due = classifyDue(mine.dueDate, today);
+      myTask = { title: mine.title, href: "/dashboard/tasks", state: due.state, label: due.label };
+    }
+  }
 
   // Top profile-matched action → the /community hub where they raise their hand.
   let topAction: PersonalSignals["topAction"] = null;
@@ -80,6 +101,7 @@ export async function gatherPersonalSignals(
     registeredToVote: profile?.registeredToVote === true,
     hasDonated: tier.isDonor,
     captainName,
+    myTask,
     topAction,
     nextEvent,
     daysToPrimary,
