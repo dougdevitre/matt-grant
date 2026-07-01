@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, dbConfigured } from "@/lib/db";
 import { staffGate } from "@/lib/auth";
-import { saveProfile } from "@/lib/profile";
+import { saveProfile, setVoterRegistration as setVoterRegistrationProfile } from "@/lib/profile";
 import { getMyVolunteerProfile } from "@/lib/volunteers/self";
 import { listActiveCaptains, suggestCaptain } from "@/lib/volunteers/captains";
 import { listRegions } from "@/lib/volunteers/regions";
@@ -26,6 +26,17 @@ export async function saveOnboarding(formData: FormData) {
     zip: String(formData.get("zip") ?? ""),
   });
   revalidatePath("/community");
+}
+
+// Toggle the self-attested "I'm registered to vote" flag on the signed-in user's
+// own profile (email from the session, never the form). Revalidates both surfaces
+// the personalized summary appears on.
+export async function setVoterRegistration(formData: FormData) {
+  const { email } = await staffGate();
+  if (!email) return;
+  await setVoterRegistrationProfile(email, formData.get("registered") === "true");
+  revalidatePath("/community");
+  revalidatePath("/dashboard");
 }
 
 // A volunteer raises their hand for a matched task. Records it on their OWN record

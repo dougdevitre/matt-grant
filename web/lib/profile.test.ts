@@ -22,7 +22,7 @@ vi.mock("@/lib/db", () => ({
   dbConfigured: true,
 }));
 
-import { getProfile, saveProfile, segmentEmails, segmentCounts } from "@/lib/profile";
+import { getProfile, saveProfile, setVoterRegistration, segmentEmails, segmentCounts } from "@/lib/profile";
 
 beforeEach(() => {
   h.sends.length = 0;
@@ -61,6 +61,29 @@ describe("getProfile", () => {
   it("filters stored values back through the validators on read", async () => {
     h.item = { issues: ["term-limits", "garbage"], waysToHelp: ["share", "bogus"], zip: "63101" };
     expect(await getProfile("a@b.co")).toMatchObject({ issues: ["term-limits"], waysToHelp: ["share"], zip: "63101" });
+  });
+
+  it("reads the self-attested registeredToVote flag (boolean only)", async () => {
+    h.item = { issues: [], waysToHelp: [], registeredToVote: true };
+    expect((await getProfile("a@b.co"))?.registeredToVote).toBe(true);
+    h.item = { issues: [], waysToHelp: [], registeredToVote: "yes" }; // not a boolean → undefined
+    expect((await getProfile("a@b.co"))?.registeredToVote).toBeUndefined();
+  });
+});
+
+describe("setVoterRegistration", () => {
+  it("writes the boolean flag, self-scoped to the lowercased email", async () => {
+    await setVoterRegistration("Jane@X.co", true);
+    const w = h.sends.find((c) => "UpdateExpression" in c.input)!.input;
+    expect(w.Key).toEqual({ PK: "PROFILE", SK: "jane@x.co" });
+    expect((w.ExpressionAttributeValues as Record<string, unknown>)[":v"]).toBe(true);
+    expect(w.UpdateExpression).toContain("registeredToVote = :v");
+  });
+
+  it("can clear the flag (false)", async () => {
+    await setVoterRegistration("a@b.co", false);
+    const w = h.sends.find((c) => "UpdateExpression" in c.input)!.input;
+    expect((w.ExpressionAttributeValues as Record<string, unknown>)[":v"]).toBe(false);
   });
 });
 
