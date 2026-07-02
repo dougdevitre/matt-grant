@@ -47,6 +47,11 @@ describe("cors allowlist", () => {
     expect(res.headers.get("access-control-allow-credentials")).toBe("true");
   });
 
+  it("advertises the write verbs (incl. DELETE) in the preflight", () => {
+    const methods = corsHeaders(EXT)["Access-Control-Allow-Methods"];
+    for (const m of ["GET", "POST", "PATCH", "DELETE", "OPTIONS"]) expect(methods).toContain(m);
+  });
+
   it("preflight for a disallowed origin has no ACAO", () => {
     const res = preflight(new Request("http://test/api/ext/overview", { headers: { origin: "https://evil.example" } }));
     expect(res.status).toBe(204);
