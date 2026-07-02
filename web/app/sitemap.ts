@@ -21,6 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/press",
     "/press/schedule",
     "/media",
+    "/data/mo-02-by-the-numbers",
     "/contact",
     "/data-policy",
     "/transparency",

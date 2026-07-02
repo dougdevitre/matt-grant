@@ -12,6 +12,7 @@ import { CtaButton } from "@/components/CtaButton";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { publicPillars } from "@/lib/pillars";
 import { captionTrackFor } from "@/lib/captions";
+import { Figure } from "@/components/data/Figure";
 
 export function generateStaticParams() {
   return issueSlugs.map((slug) => ({ slug }));
@@ -92,6 +93,20 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
           <p className="mt-3 font-display text-xl font-semibold text-ink">{issue.commitment}</p>
         </aside>
       </section>
+
+      {/* The data (Children First / family-courts only) */}
+      {issue.slug === "family-courts" && (
+        <section className="border-t border-line bg-white">
+          <div className="container-page py-12 sm:py-16">
+            <p className="eyebrow text-brick">The data</p>
+            <h2 className="mt-2 font-display text-2xl font-semibold text-ink">Fewer children in MO-02 every year</h2>
+            <Figure id="mo02-child-under15" />
+            <Link href="/data/mo-02-by-the-numbers" className="btn-ghost text-sm">
+              See MO-02 by the numbers →
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* Signature legislation (family-courts) */}
       {issue.signature && (
