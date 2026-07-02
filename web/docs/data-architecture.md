@@ -91,6 +91,13 @@ the hub only reflects reachability. A completeness guard,
 [`lib/data/registry.test.ts`](../lib/data/registry.test.ts), asserts every Airtable base and every live
 integration client appears here — so the inventories can't silently diverge.
 
+The `demographics-*` CSV sources are the St. Louis Census 2025 Vintage datasets (Sándoval/SLU) — raw CSVs
+in [`candidate/data/`](../../candidate/data/) (see its `SOURCES.md`), built by `npm run demographics`
+([`scripts/generate-demographics.ts`](../scripts/generate-demographics.ts)) into validated JSON under
+[`lib/demographics/`](../lib/demographics/), loaded via `loadCsvManifest` with per-dataset zod schemas.
+A provenance guard ([`lib/demographics/demographics.test.ts`](../lib/demographics/demographics.test.ts))
+cross-checks the committed numbers against the published analysis so a bad re-ingest fails CI.
+
 ### Excluded sources
 
 **Donor and finance records are deliberately not on the hub.** They live in DynamoDB only (single-table),

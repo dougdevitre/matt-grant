@@ -1,0 +1,413 @@
+{
+  "generatedFrom": "candidate/data/aging-index-by-metro-2020-2025.csv",
+  "columns": [
+    "metro",
+    "agingIndex2020",
+    "agingIndex2025",
+    "agingIndexChange",
+    "agingIndexPctChange",
+    "pct65plus2025"
+  ],
+  "items": [
+    {
+      "metro": "Pittsburgh, PA",
+      "agingIndex2020": "134.5525489",
+      "agingIndex2025": "158.9182911",
+      "agingIndexChange": "24.36574224",
+      "agingIndexPctChange": "18.10871845",
+      "pct65plus2025": "23.50148143"
+    },
+    {
+      "metro": "Tampa-St. Petersburg-Clearwater, FL",
+      "agingIndex2020": "123.1859861",
+      "agingIndex2025": "141.9728963",
+      "agingIndexChange": "18.78691025",
+      "agingIndexPctChange": "15.25085024",
+      "pct65plus2025": "21.76217755"
+    },
+    {
+      "metro": "Providence-Warwick, RI-MA",
+      "agingIndex2020": "112.971881",
+      "agingIndex2025": "138.053608",
+      "agingIndexChange": "25.08172706",
+      "agingIndexPctChange": "22.20174334",
+      "pct65plus2025": "20.58793053"
+    },
+    {
+      "metro": "Cleveland, OH",
+      "agingIndex2020": "113.8291873",
+      "agingIndex2025": "136.9655757",
+      "agingIndexChange": "23.13638832",
+      "agingIndexPctChange": "20.32553237",
+      "pct65plus2025": "22.24543177"
+    },
+    {
+      "metro": "Hartford-West Hartford-East Hartford, CT",
+      "agingIndex2020": "114.365419",
+      "agingIndex2025": "136.8524276",
+      "agingIndexChange": "22.48700863",
+      "agingIndexPctChange": "19.66241967",
+      "pct65plus2025": "20.967607"
+    },
+    {
+      "metro": "Miami-Fort Lauderdale-West Palm Beach, FL",
+      "agingIndex2020": "112.3758875",
+      "agingIndex2025": "130.9121041",
+      "agingIndexChange": "18.53621663",
+      "agingIndexPctChange": "16.49483448",
+      "pct65plus2025": "20.61644744"
+    },
+    {
+      "metro": "Boston-Cambridge-Newton, MA-NH",
+      "agingIndex2020": "103.9971347",
+      "agingIndex2025": "125.2259938",
+      "agingIndexChange": "21.22885908",
+      "agingIndexPctChange": "20.41292689",
+      "pct65plus2025": "19.01170012"
+    },
+    {
+      "metro": "San Francisco-Oakland-Fremont, CA",
+      "agingIndex2020": "98.1856652",
+      "agingIndex2025": "124.8933068",
+      "agingIndexChange": "26.70764158",
+      "agingIndexPctChange": "27.20116172",
+      "pct65plus2025": "18.72158367"
+    },
+    {
+      "metro": "St. Louis, MO-IL",
+      "agingIndex2020": "94.92264435",
+      "agingIndex2025": "117.473821",
+      "agingIndexChange": "22.55117668",
+      "agingIndexPctChange": "23.75742568",
+      "pct65plus2025": "20.10150578"
+    },
+    {
+      "metro": "Portland-Vancouver-Hillsboro, OR-WA",
+      "agingIndex2020": "90.71196827",
+      "agingIndex2025": "116.1168113",
+      "agingIndexChange": "25.40484305",
+      "agingIndexPctChange": "28.00605426",
+      "pct65plus2025": "18.14436793"
+    },
+    {
+      "metro": "Philadelphia-Camden-Wilmington, PA-NJ-DE-MD",
+      "agingIndex2020": "95.06618291",
+      "agingIndex2025": "114.4274831",
+      "agingIndexChange": "19.36130017",
+      "agingIndexPctChange": "20.36612766",
+      "pct65plus2025": "19.1037361"
+    },
+    {
+      "metro": "Detroit-Warren-Dearborn, MI",
+      "agingIndex2020": "94.91474979",
+      "agingIndex2025": "114.3555066",
+      "agingIndexChange": "19.44075681",
+      "agingIndexPctChange": "20.48233478",
+      "pct65plus2025": "19.48426216"
+    },
+    {
+      "metro": "Los Angeles-Long Beach-Anaheim, CA",
+      "agingIndex2020": "84.73331337",
+      "agingIndex2025": "111.3462651",
+      "agingIndexChange": "26.61295175",
+      "agingIndexPctChange": "31.40789696",
+      "pct65plus2025": "17.39470795"
+    },
+    {
+      "metro": "New York-Newark-Jersey City, NY-NJ",
+      "agingIndex2020": "91.343106",
+      "agingIndex2025": "109.6500625",
+      "agingIndexChange": "18.3069565",
+      "agingIndexPctChange": "20.04196846",
+      "pct65plus2025": "18.12285108"
+    },
+    {
+      "metro": "Richmond, VA",
+      "agingIndex2020": "92.07797364",
+      "agingIndex2025": "108.8114468",
+      "agingIndexChange": "16.73347316",
+      "agingIndexPctChange": "18.17315531",
+      "pct65plus2025": "18.51169406"
+    },
+    {
+      "metro": "Jacksonville, FL",
+      "agingIndex2020": "91.53639086",
+      "agingIndex2025": "108.432886",
+      "agingIndexChange": "16.89649516",
+      "agingIndexPctChange": "18.45877361",
+      "pct65plus2025": "19.04805377"
+    },
+    {
+      "metro": "Milwaukee-Waukesha, WI",
+      "agingIndex2020": "86.86722805",
+      "agingIndex2025": "107.6917849",
+      "agingIndexChange": "20.82455684",
+      "agingIndexPctChange": "23.97285755",
+      "pct65plus2025": "19.11486276"
+    },
+    {
+      "metro": "San Diego-Chula Vista-Carlsbad, CA",
+      "agingIndex2020": "84.28897075",
+      "agingIndex2025": "106.6633837",
+      "agingIndexChange": "22.37441298",
+      "agingIndexPctChange": "26.54488811",
+      "pct65plus2025": "17.48780104"
+    },
+    {
+      "metro": "Baltimore-Columbia-Towson, MD",
+      "agingIndex2020": "88.50956601",
+      "agingIndex2025": "106.1651327",
+      "agingIndexChange": "17.65556672",
+      "agingIndexPctChange": "19.94763675",
+      "pct65plus2025": "18.44238589"
+    },
+    {
+      "metro": "Sacramento-Roseville-Folsom, CA",
+      "agingIndex2020": "86.91030033",
+      "agingIndex2025": "106.1255063",
+      "agingIndexChange": "19.21520597",
+      "agingIndexPctChange": "22.10923895",
+      "pct65plus2025": "18.53036846"
+    },
+    {
+      "metro": "Virginia Beach-Chesapeake-Norfolk, VA-NC",
+      "agingIndex2020": "85.91279924",
+      "agingIndex2025": "106.0655114",
+      "agingIndexChange": "20.15271212",
+      "agingIndexPctChange": "23.45717088",
+      "pct65plus2025": "18.44784119"
+    },
+    {
+      "metro": "Chicago-Naperville-Elgin, IL-IN",
+      "agingIndex2020": "83.26561922",
+      "agingIndex2025": "105.8006007",
+      "agingIndexChange": "22.53498148",
+      "agingIndexPctChange": "27.06396913",
+      "pct65plus2025": "17.65006668"
+    },
+    {
+      "metro": "San Jose-Sunnyvale-Santa Clara, CA",
+      "agingIndex2020": "78.10004001",
+      "agingIndex2025": "105.1853135",
+      "agingIndexChange": "27.08527344",
+      "agingIndexPctChange": "34.68022992",
+      "pct65plus2025": "16.22329959"
+    },
+    {
+      "metro": "Birmingham, AL",
+      "agingIndex2020": "90.48244339",
+      "agingIndex2025": "105.0080745",
+      "agingIndexChange": "14.52563114",
+      "agingIndexPctChange": "16.05353547",
+      "pct65plus2025": "18.78363553"
+    },
+    {
+      "metro": "Louisville/Jefferson County, KY-IN",
+      "agingIndex2020": "89.12121344",
+      "agingIndex2025": "103.8786103",
+      "agingIndexChange": "14.75739682",
+      "agingIndexPctChange": "16.55879252",
+      "pct65plus2025": "18.65114591"
+    },
+    {
+      "metro": "Phoenix-Mesa-Chandler, AZ",
+      "agingIndex2020": "84.11541812",
+      "agingIndex2025": "102.7859618",
+      "agingIndexChange": "18.67054364",
+      "agingIndexPctChange": "22.19633933",
+      "pct65plus2025": "18.20109552"
+    },
+    {
+      "metro": "Orlando-Kissimmee-Sanford, FL",
+      "agingIndex2020": "86.03728365",
+      "agingIndex2025": "102.3883957",
+      "agingIndexChange": "16.3511121",
+      "agingIndexPctChange": "19.00468193",
+      "pct65plus2025": "17.09736577"
+    },
+    {
+      "metro": "Cincinnati, OH-KY-IN",
+      "agingIndex2020": "83.31096808",
+      "agingIndex2025": "100.4188285",
+      "agingIndexChange": "17.10786039",
+      "agingIndexPctChange": "20.5349437",
+      "pct65plus2025": "18.23458249"
+    },
+    {
+      "metro": "Las Vegas-Henderson-North Las Vegas, NV",
+      "agingIndex2020": "79.35351559",
+      "agingIndex2025": "98.66783451",
+      "agingIndexChange": "19.31431892",
+      "agingIndexPctChange": "24.3395882",
+      "pct65plus2025": "16.98706312"
+    },
+    {
+      "metro": "Grand Rapids-Wyoming-Kentwood, MI",
+      "agingIndex2020": "78.7621925",
+      "agingIndex2025": "98.58414809",
+      "agingIndexChange": "19.8219556",
+      "agingIndexPctChange": "25.1668408",
+      "pct65plus2025": "17.73597658"
+    },
+    {
+      "metro": "Seattle-Tacoma-Bellevue, WA",
+      "agingIndex2020": "77.45895049",
+      "agingIndex2025": "95.60225909",
+      "agingIndexChange": "18.14330861",
+      "agingIndexPctChange": "23.42312734",
+      "pct65plus2025": "15.77293259"
+    },
+    {
+      "metro": "Kansas City, MO-KS",
+      "agingIndex2020": "77.74357329",
+      "agingIndex2025": "94.87273185",
+      "agingIndexChange": "17.12915856",
+      "agingIndexPctChange": "22.03289331",
+      "pct65plus2025": "17.60814592"
+    },
+    {
+      "metro": "Minneapolis-St. Paul-Bloomington, MN-WI",
+      "agingIndex2020": "75.69483649",
+      "agingIndex2025": "94.71290991",
+      "agingIndexChange": "19.01807342",
+      "agingIndexPctChange": "25.12466412",
+      "pct65plus2025": "17.28306108"
+    },
+    {
+      "metro": "Denver-Aurora-Centennial, CO",
+      "agingIndex2020": "74.4892726",
+      "agingIndex2025": "92.46508651",
+      "agingIndexChange": "17.9758139",
+      "agingIndexPctChange": "24.13208409",
+      "pct65plus2025": "15.41744164"
+    },
+    {
+      "metro": "Washington-Arlington-Alexandria, DC-VA-MD-WV",
+      "agingIndex2020": "70.24458365",
+      "agingIndex2025": "87.87041513",
+      "agingIndexChange": "17.62583148",
+      "agingIndexPctChange": "25.09208621",
+      "pct65plus2025": "15.63138173"
+    },
+    {
+      "metro": "Memphis, TN-MS-AR",
+      "agingIndex2020": "72.97242854",
+      "agingIndex2025": "86.47890315",
+      "agingIndexChange": "13.5064746",
+      "agingIndexPctChange": "18.50901069",
+      "pct65plus2025": "17.00268076"
+    },
+    {
+      "metro": "Charlotte-Concord-Gastonia, NC-SC",
+      "agingIndex2020": "73.67314766",
+      "agingIndex2025": "86.13367282",
+      "agingIndexChange": "12.46052516",
+      "agingIndexPctChange": "16.91325206",
+      "pct65plus2025": "15.81595397"
+    },
+    {
+      "metro": "Oklahoma City, OK",
+      "agingIndex2020": "71.45754685",
+      "agingIndex2025": "85.88512845",
+      "agingIndexChange": "14.42758161",
+      "agingIndexPctChange": "20.19042389",
+      "pct65plus2025": "16.36362194"
+    },
+    {
+      "metro": "Columbus, OH",
+      "agingIndex2020": "71.47396049",
+      "agingIndex2025": "85.09117439",
+      "agingIndexChange": "13.6172139",
+      "agingIndexPctChange": "19.05199293",
+      "pct65plus2025": "15.91799924"
+    },
+    {
+      "metro": "Indianapolis-Carmel-Greenwood, IN",
+      "agingIndex2020": "70.5853654",
+      "agingIndex2025": "84.30524749",
+      "agingIndexChange": "13.7198821",
+      "agingIndexPctChange": "19.4372899",
+      "pct65plus2025": "16.33607548"
+    },
+    {
+      "metro": "Nashville-Davidson--Murfreesboro--Franklin, TN",
+      "agingIndex2020": "72.4679323",
+      "agingIndex2025": "84.19977553",
+      "agingIndexChange": "11.73184323",
+      "agingIndexPctChange": "16.18901335",
+      "pct65plus2025": "15.36345417"
+    },
+    {
+      "metro": "Atlanta-Sandy Springs-Roswell, GA",
+      "agingIndex2020": "67.00840273",
+      "agingIndex2025": "83.40210161",
+      "agingIndexChange": "16.39369889",
+      "agingIndexPctChange": "24.46513903",
+      "pct65plus2025": "15.08004558"
+    },
+    {
+      "metro": "Riverside-San Bernardino-Ontario, CA",
+      "agingIndex2020": "66.9372061",
+      "agingIndex2025": "83.34221936",
+      "agingIndexChange": "16.40501326",
+      "agingIndexPctChange": "24.50806392",
+      "pct65plus2025": "15.92996194"
+    },
+    {
+      "metro": "Raleigh-Cary, NC",
+      "agingIndex2020": "64.36764418",
+      "agingIndex2025": "81.15528768",
+      "agingIndexChange": "16.78764351",
+      "agingIndexPctChange": "26.08087296",
+      "pct65plus2025": "14.7500188"
+    },
+    {
+      "metro": "San Antonio-New Braunfels, TX",
+      "agingIndex2020": "68.82251258",
+      "agingIndex2025": "80.44117837",
+      "agingIndexChange": "11.61866578",
+      "agingIndexPctChange": "16.8820715",
+      "pct65plus2025": "15.52180126"
+    },
+    {
+      "metro": "Austin-Round Rock-San Marcos, TX",
+      "agingIndex2020": "60.51534855",
+      "agingIndex2025": "71.98739713",
+      "agingIndexChange": "11.47204858",
+      "agingIndexPctChange": "18.9572544",
+      "pct65plus2025": "12.69259752"
+    },
+    {
+      "metro": "Fresno, CA",
+      "agingIndex2020": "57.48551911",
+      "agingIndex2025": "68.4485244",
+      "agingIndexChange": "10.96300528",
+      "agingIndexPctChange": "19.07089899",
+      "pct65plus2025": "14.67870163"
+    },
+    {
+      "metro": "Dallas-Fort Worth-Arlington, TX",
+      "agingIndex2020": "56.29769523",
+      "agingIndex2025": "67.60638301",
+      "agingIndexChange": "11.30868778",
+      "agingIndexPctChange": "20.0873015",
+      "pct65plus2025": "13.31342572"
+    },
+    {
+      "metro": "Houston-Pasadena-The Woodlands, TX",
+      "agingIndex2020": "55.6563693",
+      "agingIndex2025": "67.58717459",
+      "agingIndexChange": "11.93080529",
+      "agingIndexPctChange": "21.43654975",
+      "pct65plus2025": "13.7838256"
+    },
+    {
+      "metro": "Salt Lake City-Murray, UT",
+      "agingIndex2020": "50.65760159",
+      "agingIndex2025": "66.92165729",
+      "agingIndexChange": "16.26405571",
+      "agingIndexPctChange": "32.1058542",
+      "pct65plus2025": "12.80433698"
+    }
+  ]
+}

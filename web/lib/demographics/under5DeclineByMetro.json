@@ -1,0 +1,260 @@
+{
+  "generatedFrom": "candidate/data/children-under-5-decline-by-metro.csv",
+  "columns": [
+    "metro",
+    "declineUnder5",
+    "pctDecline"
+  ],
+  "items": [
+    {
+      "metro": "Los Angeles-Long Beach-Anaheim, CA",
+      "declineUnder5": "-116868",
+      "pctDecline": "-16.02435162"
+    },
+    {
+      "metro": "San Jose-Sunnyvale-Santa Clara, CA",
+      "declineUnder5": "-14681",
+      "pctDecline": "-13.1176397"
+    },
+    {
+      "metro": "St. Louis, MO-IL",
+      "declineUnder5": "-18267",
+      "pctDecline": "-11.19253463"
+    },
+    {
+      "metro": "Chicago-Naperville-Elgin, IL-IN",
+      "declineUnder5": "-59826",
+      "pctDecline": "-11.12503719"
+    },
+    {
+      "metro": "Salt Lake City-Murray, UT",
+      "declineUnder5": "-9236",
+      "pctDecline": "-10.66438815"
+    },
+    {
+      "metro": "San Diego-Chula Vista-Carlsbad, CA",
+      "declineUnder5": "-20607",
+      "pctDecline": "-10.5792481"
+    },
+    {
+      "metro": "San Francisco-Oakland-Fremont, CA",
+      "declineUnder5": "-24315",
+      "pctDecline": "-9.860617145"
+    },
+    {
+      "metro": "Portland-Vancouver-Hillsboro, OR-WA",
+      "declineUnder5": "-12509",
+      "pctDecline": "-9.34483789"
+    },
+    {
+      "metro": "Milwaukee-Waukesha, WI",
+      "declineUnder5": "-8905",
+      "pctDecline": "-9.31037367"
+    },
+    {
+      "metro": "Riverside-San Bernardino-Ontario, CA",
+      "declineUnder5": "-27734",
+      "pctDecline": "-9.278347067"
+    },
+    {
+      "metro": "Las Vegas-Henderson-North Las Vegas, NV",
+      "declineUnder5": "-12566",
+      "pctDecline": "-9.11048438"
+    },
+    {
+      "metro": "Pittsburgh, PA",
+      "declineUnder5": "-10108",
+      "pctDecline": "-8.371915817"
+    },
+    {
+      "metro": "Grand Rapids-Wyoming-Kentwood, MI",
+      "declineUnder5": "-4990",
+      "pctDecline": "-7.085250185"
+    },
+    {
+      "metro": "Minneapolis-St. Paul-Bloomington, MN-WI",
+      "declineUnder5": "-15918",
+      "pctDecline": "-6.970114943"
+    },
+    {
+      "metro": "Virginia Beach-Chesapeake-Norfolk, VA-NC",
+      "declineUnder5": "-7354",
+      "pctDecline": "-6.853361912"
+    },
+    {
+      "metro": "Detroit-Warren-Dearborn, MI",
+      "declineUnder5": "-16979",
+      "pctDecline": "-6.820519001"
+    },
+    {
+      "metro": "Washington-Arlington-Alexandria, DC-VA-MD-WV",
+      "declineUnder5": "-25785",
+      "pctDecline": "-6.645687069"
+    },
+    {
+      "metro": "Cleveland, OH",
+      "declineUnder5": "-7619",
+      "pctDecline": "-6.518540066"
+    },
+    {
+      "metro": "Seattle-Tacoma-Bellevue, WA",
+      "declineUnder5": "-14774",
+      "pctDecline": "-6.279139944"
+    },
+    {
+      "metro": "Sacramento-Roseville-Folsom, CA",
+      "declineUnder5": "-8038",
+      "pctDecline": "-5.807551696"
+    },
+    {
+      "metro": "Fresno, CA",
+      "declineUnder5": "-4759",
+      "pctDecline": "-5.655915001"
+    },
+    {
+      "metro": "Baltimore-Columbia-Towson, MD",
+      "declineUnder5": "-8555",
+      "pctDecline": "-5.221302671"
+    },
+    {
+      "metro": "Memphis, TN-MS-AR",
+      "declineUnder5": "-3865",
+      "pctDecline": "-4.359743717"
+    },
+    {
+      "metro": "Phoenix-Mesa-Chandler, AZ",
+      "declineUnder5": "-11744",
+      "pctDecline": "-3.957379988"
+    },
+    {
+      "metro": "Columbus, OH",
+      "declineUnder5": "-5363",
+      "pctDecline": "-3.899059224"
+    },
+    {
+      "metro": "Kansas City, MO-KS",
+      "declineUnder5": "-5170",
+      "pctDecline": "-3.775955127"
+    },
+    {
+      "metro": "New York-Newark-Jersey City, NY-NJ",
+      "declineUnder5": "-40522",
+      "pctDecline": "-3.557544748"
+    },
+    {
+      "metro": "Providence-Warwick, RI-MA",
+      "declineUnder5": "-2789",
+      "pctDecline": "-3.357975342"
+    },
+    {
+      "metro": "Cincinnati, OH-KY-IN",
+      "declineUnder5": "-3311",
+      "pctDecline": "-2.44093037"
+    },
+    {
+      "metro": "Philadelphia-Camden-Wilmington, PA-NJ-DE-MD",
+      "declineUnder5": "-8380",
+      "pctDecline": "-2.438570148"
+    },
+    {
+      "metro": "Miami-Fort Lauderdale-West Palm Beach, FL",
+      "declineUnder5": "-7381",
+      "pctDecline": "-2.196235959"
+    },
+    {
+      "metro": "Tampa-St. Petersburg-Clearwater, FL",
+      "declineUnder5": "-3184",
+      "pctDecline": "-1.936716098"
+    },
+    {
+      "metro": "Hartford-West Hartford-East Hartford, CT",
+      "declineUnder5": "-1051",
+      "pctDecline": "-1.858302244"
+    },
+    {
+      "metro": "Oklahoma City, OK",
+      "declineUnder5": "-1354",
+      "pctDecline": "-1.477827136"
+    },
+    {
+      "metro": "Birmingham, AL",
+      "declineUnder5": "-913",
+      "pctDecline": "-1.308641621"
+    },
+    {
+      "metro": "Boston-Cambridge-Newton, MA-NH",
+      "declineUnder5": "-3215",
+      "pctDecline": "-1.279143789"
+    },
+    {
+      "metro": "Atlanta-Sandy Springs-Roswell, GA",
+      "declineUnder5": "-2667",
+      "pctDecline": "-0.728195103"
+    },
+    {
+      "metro": "Denver-Aurora-Centennial, CO",
+      "declineUnder5": "-885",
+      "pctDecline": "-0.522053055"
+    },
+    {
+      "metro": "Louisville/Jefferson County, KY-IN",
+      "declineUnder5": "810",
+      "pctDecline": "1.012664558"
+    },
+    {
+      "metro": "San Antonio-New Braunfels, TX",
+      "declineUnder5": "2008",
+      "pctDecline": "1.200655338"
+    },
+    {
+      "metro": "Richmond, VA",
+      "declineUnder5": "1172",
+      "pctDecline": "1.570856063"
+    },
+    {
+      "metro": "Houston-Pasadena-The Woodlands, TX",
+      "declineUnder5": "9871",
+      "pctDecline": "1.993847372"
+    },
+    {
+      "metro": "Jacksonville, FL",
+      "declineUnder5": "2676",
+      "pctDecline": "2.814442423"
+    },
+    {
+      "metro": "Indianapolis-Carmel-Greenwood, IN",
+      "declineUnder5": "3763",
+      "pctDecline": "2.824884205"
+    },
+    {
+      "metro": "Orlando-Kissimmee-Sanford, FL",
+      "declineUnder5": "6465",
+      "pctDecline": "4.374006292"
+    },
+    {
+      "metro": "Dallas-Fort Worth-Arlington, TX",
+      "declineUnder5": "27210",
+      "pctDecline": "5.383343094"
+    },
+    {
+      "metro": "Raleigh-Cary, NC",
+      "declineUnder5": "5646",
+      "pctDecline": "6.715672281"
+    },
+    {
+      "metro": "Charlotte-Concord-Gastonia, NC-SC",
+      "declineUnder5": "12595",
+      "pctDecline": "7.836415221"
+    },
+    {
+      "metro": "Nashville-Davidson--Murfreesboro--Franklin, TN",
+      "declineUnder5": "10018",
+      "pctDecline": "8.131691518"
+    },
+    {
+      "metro": "Austin-Round Rock-San Marcos, TX",
+      "declineUnder5": "17532",
+      "pctDecline": "12.79157151"
+    }
+  ]
+}
