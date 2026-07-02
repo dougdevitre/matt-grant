@@ -5,6 +5,11 @@ import { CAMPAIGN, ASSETS_CDN } from "@/lib/site";
 import { getBudgetItems } from "@/lib/budget/items";
 import DonationImpact from "@/components/budget/DonationImpact";
 
+// Public catalog page; the Airtable read is already ISR@60 (listRecords
+// revalidate). Make the route's cache window explicit so it's a documented
+// guardrail, not an implicit side effect — CloudFront serves it, not the SSR Lambda.
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "Donate",
   description:

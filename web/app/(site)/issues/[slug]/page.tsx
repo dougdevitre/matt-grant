@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ISSUES, issueSlugs, getIssue } from "@/lib/issues";
 import { CAMPAIGN, SITE_URL } from "@/lib/site";
@@ -188,8 +189,7 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
       <section className="container-page py-16 sm:py-20">
         <div className="grid gap-10 lg:grid-cols-[1fr_1.2fr] lg:items-center">
           <div className="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-lg border border-line shadow-card">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={issue.graphic} alt={issue.title} className="h-full w-full object-cover" />
+            <Image src={issue.graphic} alt={issue.title} fill className="object-cover" sizes="(max-width:640px) 100vw, 384px" />
           </div>
           <div>
             <p className="eyebrow text-brick">Take it with you</p>
