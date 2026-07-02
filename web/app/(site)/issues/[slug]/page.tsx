@@ -11,6 +11,7 @@ import { IssueChecklist } from "@/components/IssueChecklist";
 import { CtaButton } from "@/components/CtaButton";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { publicPillars } from "@/lib/pillars";
+import { captionTrackFor } from "@/lib/captions";
 
 export function generateStaticParams() {
   return issueSlugs.map((slug) => ({ slug }));
@@ -38,6 +39,9 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
 
   // Public resource hubs that map to this issue (e.g. family-courts → education).
   const relatedPillars = publicPillars.filter((p) => p.relatedIssue === issue.slug);
+
+  // WCAG 1.2.2: captions track for this issue's video, if an authored .vtt exists.
+  const cap = captionTrackFor(issue.video);
 
   return (
     <>
@@ -70,7 +74,9 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
               playsInline
               preload="metadata"
               className="aspect-video w-full bg-ink"
-            />
+            >
+              {cap && <track kind="captions" src={cap.src} srcLang={cap.srclang} label={cap.label} default />}
+            </video>
           </div>
         </div>
       </section>
