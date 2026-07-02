@@ -55,12 +55,14 @@ export const CHARTS: Record<string, ChartDef> = {
     source: DEMOGRAPHICS_SOURCE,
     hasExport: false,
     table: () => ({
-      columns: ["Rank", "Metro", "Under-5 decline", "% decline"],
+      columns: ["Rank", "Metro", "Fewer children under 5", "% decline"],
       rows: rows(loadUnder5DeclineByMetro())
         .slice()
         .sort((a, b) => a.pctDecline - b.pctDecline)
         .slice(0, 12)
-        .map((r, i) => [i + 1, r.metro, r.declineUnder5, pct(r.pctDecline)]),
+        // declineUnder5 is a signed change; show the magnitude under the "fewer" header
+        // so the cell doesn't read as a double negative ("-18,267" under "decline").
+        .map((r, i) => [i + 1, r.metro, Math.abs(r.declineUnder5), pct(r.pctDecline)]),
     }),
   },
 

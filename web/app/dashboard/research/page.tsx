@@ -79,6 +79,7 @@ export default async function ResearchPage() {
         <h2 className="mb-3 font-display text-2xl font-semibold text-ink">Alignment matrix</h2>
         <div className="card overflow-x-auto p-0">
           <table className="w-full text-sm">
+            <caption className="sr-only">MO-02 candidate alignment on Matt&apos;s four priorities, with cash on hand, outside spending, and latest coverage</caption>
             <thead>
               <tr className="border-b border-line text-left">
                 <th scope="col" className="px-4 py-3 font-semibold text-ink">Candidate</th>

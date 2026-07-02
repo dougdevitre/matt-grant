@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { CATEGORIES, EVENT_COLOR, MAP_CENTER, MAP_ZOOM, type Category } from "@/lib/mapData";
-import { TURNOUT_RAMP, MAP_FALLBACK } from "@/lib/viz/palette";
+import { TURNOUT_RAMP, MAP_FALLBACK, EVENT_DRAFT, GOLD_INK } from "@/lib/viz/palette";
 
 const EVENT_TYPE_LABEL: Record<string, string> = {
   rally: "Rally", "town-hall": "Town hall", fundraiser: "Fundraiser", canvass: "Canvass",
@@ -165,7 +165,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         const pr = f.properties as { county?: string; NAME?: string; turnoutPct?: number };
         const note = pr.turnoutPct != null
           ? `County turnout (Aug '24): <strong>${pr.turnoutPct}%</strong>`
-          : `<span style="color:#7c6f8e">Census VTD — no turnout feed</span>`;
+          : `<span style="color:${MAP_FALLBACK.extra}">Census VTD — no turnout feed</span>`;
         new maplibregl.Popup({ closeButton: false, offset: 8 })
           .setLngLat(e.lngLat)
           .setHTML(`<strong>${pr.county ?? ""} Co.</strong><br/>${pr.NAME ?? ""}<br/>${note}`)
@@ -246,7 +246,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
             13, ["match", ["get", "priority"], 1, 14, 2, 11, 3, 8, 11],
           ],
           // Draft events read lighter (gold) than published (green).
-          "circle-color": ["case", ["==", ["get", "status"], "PUBLISHED"], EVENT_COLOR, "#E0A53B"],
+          "circle-color": ["case", ["==", ["get", "status"], "PUBLISHED"], EVENT_COLOR, EVENT_DRAFT],
           // Heavier ring on P1 reinforces the priority read.
           "circle-stroke-width": ["match", ["get", "priority"], 1, 3.5, 2.5],
           "circle-stroke-color": "#ffffff",
@@ -262,7 +262,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         const when = p.start ? new Date(p.start).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "";
         const lines = [
           `<strong>${p.title}</strong>`,
-          `<span style="color:${EVENT_COLOR}">${EVENT_TYPE_LABEL[p.type] ?? "Event"}</span>${p.priority ? ` · <strong>P${p.priority}</strong>` : ""}${p.status !== "PUBLISHED" ? ` · <span style="color:#9a6f1a">${p.status.toLowerCase()}</span>` : ""}`,
+          `<span style="color:${EVENT_COLOR}">${EVENT_TYPE_LABEL[p.type] ?? "Event"}</span>${p.priority ? ` · <strong>P${p.priority}</strong>` : ""}${p.status !== "PUBLISHED" ? ` · <span style="color:${GOLD_INK}">${p.status.toLowerCase()}</span>` : ""}`,
           when,
           p.locationName ? p.locationName : "",
           `<a href="/dashboard/events/${encodeURIComponent(p.id)}" style="display:inline-block;margin-top:6px;color:#B5343B;font-weight:700;text-decoration:none">Open event →</a>`,

@@ -13,6 +13,7 @@ export async function GET() {
   try {
     return NextResponse.json({ groups: await listPhotos(), configured: true });
   } catch (err) {
-    return NextResponse.json({ groups: [], configured: true, error: String(err) }, { status: 502 });
+    console.error("[api] assets/photos:", err); // log the real error server-side; don't leak it
+    return NextResponse.json({ groups: [], configured: true, error: "Couldn't list photos" }, { status: 502 });
   }
 }

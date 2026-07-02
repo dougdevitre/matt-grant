@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { loadCsvManifest } from "@/lib/data/csv";
 import {
   loadChildUnder15ByCounty,
   loadUnder5DeclineByMetro,
@@ -7,6 +8,7 @@ import {
   loadAgingIndexByMetro,
   mo02Counties,
   MO02_COUNTY_NAMES,
+  CountyUnder15,
 } from "./schema";
 
 // Provenance guard: the committed manifests must match the figures published in the
@@ -41,6 +43,17 @@ describe("child under-15 by county", () => {
   // this fails so we re-verify the citation rather than silently shipping a change.
   it("still contains the two documented, unresolved 'Madison County' rows", () => {
     expect(rows().filter((r) => r.county === "Madison County")).toHaveLength(2);
+  });
+
+  // A ragged/blank numeric cell must FAIL validation, not coerce to 0 (which would
+  // render fake zeros on a public figure). Guards the fail-loud contract.
+  it("rejects a blank numeric cell instead of coercing it to 0", () => {
+    const manifest = {
+      generatedFrom: "test",
+      columns: ["county", "under15_2020", "under15_2025", "change", "pctChange"],
+      items: [{ county: "X", under15_2020: "", under15_2025: "100", change: "-1", pctChange: "-1.0" }],
+    };
+    expect(loadCsvManifest(manifest, CountyUnder15, { source: "test" }).ok).toBe(false);
   });
 });
 

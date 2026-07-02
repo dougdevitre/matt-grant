@@ -12,10 +12,11 @@ function DataTable({ id }: { id: string }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-sm">
+        <caption className="sr-only">{CHARTS[id].title} — data table</caption>
         <thead>
           <tr className="border-b border-line text-left">
             {columns.map((c) => (
-              <th key={c} className="px-3 py-2 font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate">
+              <th key={c} scope="col" className="px-3 py-2 font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate">
                 {c}
               </th>
             ))}

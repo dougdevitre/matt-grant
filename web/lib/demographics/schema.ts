@@ -16,7 +16,15 @@ import msaByAge from "./msaPopulationByAge.json";
 
 export const DEMOGRAPHICS_SOURCE = "U.S. Census Bureau 2025 Vintage · analysis J.S. Sándoval, SLU";
 
-const num = z.coerce.number();
+// Require a non-empty numeric cell. Plain z.coerce.number() turns "" → 0
+// (Number("") === 0), so a ragged CSV row would ingest silent zeros and render
+// fake figures — defeating the fail-loud contract above. We map a blank string to
+// NaN before coercion and reject non-finite, so loadCsvManifest fails that row.
+// Typed as ZodType<number> (unknown input) so it composes with loadCsvManifest<T>.
+const num = z.preprocess(
+  (v) => (typeof v === "string" && v.trim() === "" ? NaN : v),
+  z.coerce.number().refine(Number.isFinite, "expected a number"),
+) as unknown as z.ZodType<number>;
 
 // ── Row schemas (values arrive as strings from the CSV manifest) ──
 export const CountyUnder15 = z.object({

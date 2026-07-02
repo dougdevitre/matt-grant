@@ -38,6 +38,15 @@ export const TURNOUT_LEGEND_GRADIENT =
 // Flat fallbacks for boundary-only layers (no turnout feed).
 export const MAP_FALLBACK = { jefferson: "#5b7d6f", extra: "#7c6f8e" } as const;
 
+// Draft campaign-event marker (amber), read as lighter than the published-event
+// green (EVENT_COLOR in lib/mapData.ts).
+export const EVENT_DRAFT = "#E0A53B";
+
+// Dark-gold "ink" for gold-on-light text — the plain gold token fails text
+// contrast. NOTE: #9a6f1a is also hand-typed across ~20 dashboard files; a future
+// `gold-ink` Tailwind token should absorb those (backlog Tier 2).
+export const GOLD_INK = "#9a6f1a";
+
 // Diverging pair for change-around-zero (demographic charts, a future county
 // under-15-change choropleth): decline (brick) ↔ growth (accent blue), neutral
 // gray at the zero midpoint.
