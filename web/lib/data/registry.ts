@@ -3,6 +3,7 @@
 // prose twin. Add a row here whenever you add a CSV manifest, an API route, or a
 // geo layer so the source shows up in the hub with consistent provenance.
 import type { SourceKind } from "./resource";
+import { AIRTABLE_BASES } from "@/lib/airtable/registry";
 
 export type SourceEntry = {
   id: string;
@@ -26,6 +27,12 @@ export type SourceEntry = {
   note?: string;
 };
 
+// Excluded stores (deliberately NOT surfaced here): donor + finance records live
+// in DynamoDB only (single-table), carry supporter/donor PII, and are gated by
+// viewDonorDetail / viewFinanceTotals — they are managed in the Donors/Finance
+// dashboards, not the data hub, and are never mirrored to Airtable. See
+// docs/data-architecture.md ("Excluded sources"). If you add a hub row for them,
+// you are changing that policy on purpose.
 export const SOURCES: SourceEntry[] = [
   // ── CSV / static (build-time generators → committed JSON manifest → import) ──
   {
@@ -121,6 +128,18 @@ export const SOURCES: SourceEntry[] = [
     cache: "force-dynamic",
     note: "Public RSS; relevance-filtered by candidate name.",
   },
+  {
+    id: "openstates",
+    label: "Open States (MO General Assembly)",
+    kind: "api",
+    owner: "v3.openstates.org",
+    endpoint: "/api/research/ingest",
+    enabledEnv: ["OPENSTATES_API_KEY"],
+    cache: "force-dynamic",
+    // No standalone idempotent GET, so not `checkable`; ingested via the field
+    // pipeline. Only runs for candidates who held MO state office.
+    note: "State-legislative record (sponsored bills) for candidates with a MO state-office history; ingested via /api/research/ingest. Free X-API-KEY.",
+  },
 
   // ── Geo (ArcGIS FeatureServer → normalized GeoJSON + meta → maplibre) ──
   {
@@ -168,16 +187,84 @@ export const SOURCES: SourceEntry[] = [
     cache: "no-store",
     note: "Located campaign appearances plotted on the map (published; drafts for event managers). Auth-gated.",
   },
+
+  // ── Airtable (workspace PAT → REST GET; one row per governed base) ──
+  // The full base/table map + CRUD governance live in lib/airtable/{registry,
+  // governance-manifest}.ts; these rows make each base visible + reachability-
+  // checkable in the hub. The `registry.test.ts` drift guard asserts every
+  // AIRTABLE_BASES key has a matching `airtable-<key>` row here.
+  {
+    id: "airtable-masterDb",
+    label: "Master DB — Influential Voters (Airtable)",
+    kind: "airtable",
+    owner: `Airtable — ${AIRTABLE_BASES.masterDb.id}`,
+    endpoint: "/api/airtable/health/masterDb",
+    enabledEnv: ["AIRTABLE_API_KEY"],
+    cache: "no-store",
+    checkable: true,
+    remedy: "Set AIRTABLE_API_KEY (SSM /matt-grant/AIRTABLE_API_KEY) and grant the workspace PAT access to this base",
+    note: "Influencer / influential-voter outreach pipeline (source of truth in Airtable).",
+  },
+  {
+    id: "airtable-volunteer",
+    label: "Volunteer Engagement (Airtable)",
+    kind: "airtable",
+    owner: `Airtable — ${AIRTABLE_BASES.volunteer.id}`,
+    endpoint: "/api/airtable/health/volunteer",
+    enabledEnv: ["AIRTABLE_API_KEY"],
+    cache: "no-store",
+    checkable: true,
+    remedy: "Set AIRTABLE_API_KEY (SSM /matt-grant/AIRTABLE_API_KEY) and grant the workspace PAT access to this base",
+    note: "Volunteer roster mirror + reference tables (roles, skills, turf, contact lists, geo) + events read-model.",
+  },
+  {
+    id: "airtable-socialMedia",
+    label: "Social Media calendar (Airtable)",
+    kind: "airtable",
+    owner: `Airtable — ${AIRTABLE_BASES.socialMedia.id}`,
+    endpoint: "/api/airtable/health/socialMedia",
+    enabledEnv: ["AIRTABLE_API_KEY"],
+    cache: "no-store",
+    checkable: true,
+    remedy: "Set AIRTABLE_API_KEY (SSM /matt-grant/AIRTABLE_API_KEY) and grant the workspace PAT access to this base",
+    note: "Content calendar — posts, channels, pillars, campaigns, assets (source of truth in Airtable).",
+  },
+  {
+    id: "airtable-issues",
+    label: "Issue submissions (Airtable)",
+    kind: "airtable",
+    owner: `Airtable — ${AIRTABLE_BASES.issues.id}`,
+    endpoint: "/api/airtable/health/issues",
+    enabledEnv: ["AIRTABLE_API_KEY"],
+    cache: "no-store",
+    checkable: true,
+    remedy: "Set AIRTABLE_API_KEY (SSM /matt-grant/AIRTABLE_API_KEY) and grant the workspace PAT access to this base",
+    note: "Moderated community issue submissions from /issues (source of truth in Airtable).",
+  },
+  {
+    id: "airtable-budget",
+    label: "Budget Builder (Airtable)",
+    kind: "airtable",
+    owner: `Airtable — ${AIRTABLE_BASES.budget.id}`,
+    endpoint: "/api/airtable/health/budget",
+    enabledEnv: ["AIRTABLE_API_KEY"],
+    cache: "no-store",
+    checkable: true,
+    remedy: "Set AIRTABLE_API_KEY (SSM /matt-grant/AIRTABLE_API_KEY) and grant the workspace PAT access to this base",
+    note: "Planning catalog + expense-approval pipeline (source of truth in Airtable).",
+  },
 ];
 
 export const SOURCES_BY_KIND: Record<SourceKind, SourceEntry[]> = {
   csv: SOURCES.filter((s) => s.kind === "csv"),
   api: SOURCES.filter((s) => s.kind === "api"),
   geo: SOURCES.filter((s) => s.kind === "geo"),
+  airtable: SOURCES.filter((s) => s.kind === "airtable"),
 };
 
 export const KIND_LABEL: Record<SourceKind, string> = {
   csv: "CSV & static manifests",
   api: "Live APIs",
   geo: "Geo layers",
+  airtable: "Airtable bases",
 };

@@ -82,6 +82,23 @@ every source grouped by kind. The hub (`components/data/DataHub.tsx` + `SourceCa
 
 Update the registry whenever you add a source (and set `checkable`/`regen`/`remedy` where they apply).
 
+The `airtable` kind covers the campaign's second datastore: each governed base in
+[`lib/airtable/registry.ts`](../lib/airtable/registry.ts) surfaces as an `airtable-<base>` source whose
+"Check now" pings [`/api/airtable/health/[base]`](../app/api/airtable/health/%5Bbase%5D/route.ts) — a
+1-record read against that base's Front-End Access control table with the workspace PAT. The full CRUD
+governance lives in `lib/airtable/governance-manifest.ts` (its own drift script, `npm run airtable:drift`);
+the hub only reflects reachability. A completeness guard,
+[`lib/data/registry.test.ts`](../lib/data/registry.test.ts), asserts every Airtable base and every live
+integration client appears here — so the inventories can't silently diverge.
+
+### Excluded sources
+
+**Donor and finance records are deliberately not on the hub.** They live in DynamoDB only (single-table),
+carry supporter/donor PII, and are gated by `viewDonorDetail` / `viewFinanceTotals`; they are managed in
+the Donors and Finance dashboards, never mirrored to Airtable, and never health-pinged from this staff-wide
+page. Adding a hub row for them is a policy change, not a bug fix — see the note above `SOURCES` in
+`lib/data/registry.ts`.
+
 ## Conventions to keep
 
 - **Generators stay deterministic** — no `Date.now()` baked into a manifest, so the
