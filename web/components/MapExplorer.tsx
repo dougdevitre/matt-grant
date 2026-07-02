@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import { CATEGORIES, EVENT_COLOR, POIS, PRECINCTS, type Category } from "@/lib/mapData";
 import { useResource } from "@/lib/data/useResource";
+import { TURNOUT_LEGEND_GRADIENT } from "@/lib/viz/palette";
 
 // MapLibre touches window/WebGL — load client-only.
 const RegionMap3D = dynamic(() => import("@/components/RegionMap3D"), {
@@ -132,7 +133,7 @@ export function MapExplorer() {
           </p>
           {turnout && (
             <div className="mt-3">
-              <div className="h-2 w-full rounded-full" style={{ background: "linear-gradient(to right, #d8d5cc, #E0A53B 31%, #cf7a39 62%, #B5343B)" }} aria-hidden />
+              <div className="h-2 w-full rounded-full" style={{ background: TURNOUT_LEGEND_GRADIENT }} aria-hidden />
               <div className="mt-1 flex justify-between font-mono text-[0.6rem] text-slate">
                 <span>~8% low</span>
                 <span>~40% high</span>

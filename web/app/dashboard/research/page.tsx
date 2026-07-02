@@ -175,6 +175,19 @@ export default async function ResearchPage() {
         </div>
       )}
 
+      {/* District demographic context — messaging evidence for Children First */}
+      <section className="mb-10 rounded-sm border border-field/30 bg-field/5 px-5 py-4">
+        <h2 className="font-display text-lg font-semibold text-ink">District demographics (Children First)</h2>
+        <p className="mt-1 max-w-2xl text-sm text-slate">
+          Census 2025 evidence for the child-decline / aging message: MO-02 counties, the St. Louis metro,
+          and national rankings — each figure cited to Census 2025 · Sándoval, SLU.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-3">
+          <Link href="/data/mo-02-by-the-numbers" className="btn-ghost text-sm">MO-02 by the numbers →</Link>
+          <Link href="/dashboard/data" className="btn-ghost text-sm">Data sources →</Link>
+        </div>
+      </section>
+
       <p className="mt-8 text-xs text-slate">
         Public primary sources only (OpenFEC, Congress.gov, House Clerk, cited statements). Contrast must stay
         factual — see <span className="font-mono">candidate/contrast-positioning.md</span>.

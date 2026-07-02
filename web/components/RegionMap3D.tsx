@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { CATEGORIES, EVENT_COLOR, MAP_CENTER, MAP_ZOOM, type Category } from "@/lib/mapData";
+import { TURNOUT_RAMP, MAP_FALLBACK } from "@/lib/viz/palette";
 
 const EVENT_TYPE_LABEL: Record<string, string> = {
   rally: "Rally", "town-hall": "Town hall", fundraiser: "Fundraiser", canvass: "Canvass",
@@ -92,7 +93,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         paint: {
           "fill-extrusion-color": [
             "interpolate", ["linear"], t,
-            8, "#d8d5cc", 18, "#E0A53B", 28, "#cf7a39", 40, "#B5343B",
+            8, TURNOUT_RAMP[0], 18, TURNOUT_RAMP[1], 28, TURNOUT_RAMP[2], 40, TURNOUT_RAMP[3],
           ],
           "fill-extrusion-height": ["*", t, 130],
           "fill-extrusion-base": 0,
@@ -108,8 +109,8 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
       const countyTurnoutColor: maplibregl.ExpressionSpecification = [
         "case",
         ["has", "turnoutPct"],
-        ["interpolate", ["linear"], ["get", "turnoutPct"], 10, "#d8d5cc", 20, "#E0A53B", 30, "#cf7a39", 40, "#B5343B"],
-        "#5b7d6f",
+        ["interpolate", ["linear"], ["get", "turnoutPct"], 10, TURNOUT_RAMP[0], 20, TURNOUT_RAMP[1], 30, TURNOUT_RAMP[2], 40, TURNOUT_RAMP[3]],
+        MAP_FALLBACK.jefferson,
       ];
       const countyTurnoutOpacity: maplibregl.ExpressionSpecification = ["case", ["has", "turnoutPct"], 0.42, 0.18];
       m.addLayer({
@@ -132,7 +133,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         const pr = f.properties as { Precinct?: string; turnoutPct?: number };
         const note = pr.turnoutPct != null
           ? `County turnout (Aug '24): <strong>${pr.turnoutPct}%</strong>`
-          : `<span style="color:#5b7d6f">boundary only — no turnout feed</span>`;
+          : `<span style="color:${MAP_FALLBACK.jefferson}">boundary only — no turnout feed</span>`;
         new maplibregl.Popup({ closeButton: false, offset: 8 })
           .setLngLat(e.lngLat)
           .setHTML(`<strong>Jefferson Co.</strong><br/>${pr.Precinct ?? "Precinct"}<br/>${note}`)
@@ -147,7 +148,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         type: "fill",
         layout: { visibility: showExtra ? "visible" : "none" },
         paint: {
-          "fill-color": ["case", ["has", "turnoutPct"], ["interpolate", ["linear"], ["get", "turnoutPct"], 10, "#d8d5cc", 20, "#E0A53B", 30, "#cf7a39", 40, "#B5343B"], "#7c6f8e"],
+          "fill-color": ["case", ["has", "turnoutPct"], ["interpolate", ["linear"], ["get", "turnoutPct"], 10, TURNOUT_RAMP[0], 20, TURNOUT_RAMP[1], 30, TURNOUT_RAMP[2], 40, TURNOUT_RAMP[3]], MAP_FALLBACK.extra],
           "fill-opacity": ["case", ["has", "turnoutPct"], 0.42, 0.16],
         },
       });
