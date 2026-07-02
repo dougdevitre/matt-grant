@@ -18,8 +18,10 @@ import { join } from "node:path";
 
 const API = join(__dirname); // app/api
 
-// Real authorization primitives (NOT bare staffGate().ok).
-const AUTH = /checkCap\s*\(|requireCap\s*\(|requireStaff\s*\(|isStaff\s*\(|\bcan\s*\(|cronAuthorized\s*\(/;
+// Real authorization primitives (NOT bare staffGate().ok). `extRoute(` counts
+// because the factory (lib/http/ext-route.ts) always applies checkCap() for the
+// extension surface.
+const AUTH = /checkCap\s*\(|requireCap\s*\(|requireStaff\s*\(|isStaff\s*\(|\bcan\s*\(|cronAuthorized\s*\(|extRoute\s*\(/;
 
 // Intentionally public endpoints (rate-limited public reads/writes, public
 // generators, or public geo/ICS) and signature/secret-verified webhooks. Each is

@@ -29,6 +29,18 @@ const clerkEnabled =
   !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
   !!process.env.CLERK_SECRET_KEY;
 
+// Origins whose Clerk session tokens we trust (the `azp` claim), so the Chrome
+// extension can authenticate by sending its Clerk token as `Authorization: Bearer`
+// instead of a cookie. Comma-separated in CLERK_AUTHORIZED_PARTIES (the app origin
+// + chrome-extension://<id>). Unset → Clerk's same-origin default; never accept a
+// cross-origin token without listing its origin here. Pair with EXTENSION_ORIGIN
+// (lib/http/cors.ts), which gates which origin may READ the /api/ext/* responses.
+const authorizedParties = (process.env.CLERK_AUTHORIZED_PARTIES ?? "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+const clerkOptions = authorizedParties.length ? { authorizedParties } : undefined;
+
 // With Clerk configured: gate the staff surfaces behind sign-in.
 // Without Clerk: FAIL CLOSED in production — never expose donor PII / finance /
 // research to the public. Local dev stays open ("demo mode") for convenience.
@@ -48,7 +60,7 @@ export default clerkEnabled
       const signIn = new URL("/sign-in", req.url);
       signIn.searchParams.set("redirect_url", req.nextUrl.pathname + req.nextUrl.search);
       return NextResponse.redirect(signIn);
-    })
+    }, clerkOptions)
   : (req: NextRequest) => {
       const routed = pillarOrVanityResponse(req);
       if (routed) return routed;
