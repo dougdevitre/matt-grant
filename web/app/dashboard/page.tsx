@@ -9,19 +9,11 @@ import { onboardingDismissed } from "@/lib/onboarding";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { PersonalSummary } from "@/components/dashboard/PersonalSummary";
+import { StatTile } from "@/components/ui/StatTile";
+import { Meter } from "@/components/ui/Meter";
 
 // Illustrative primary-cycle fundraising goal — replace with the real number.
 const GOAL_CENTS = 25000000; // $250,000
-
-function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div className="card p-6">
-      <p className="eyebrow text-slate">{label}</p>
-      <p className="mt-3 font-display text-4xl font-semibold text-ink">{value}</p>
-      {sub && <p className="mt-1 font-mono text-xs text-field">{sub}</p>}
-    </div>
-  );
-}
 
 export default async function OverviewPage({ searchParams }: { searchParams: Promise<{ denied?: string }> }) {
   // The overview shows finance/donor totals, so it must gate viewOverview itself —
@@ -44,10 +36,10 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
         <PageHeader kicker="Campaign manager" title="Overview" />
         <DbNotice />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Stat label="Raised (primary)" value="$0" />
-          <Stat label="Cash on hand" value="$0" />
-          <Stat label="Donors" value="0" />
-          <Stat label="Active volunteers" value="0" />
+          <StatTile label="Raised (primary)" value="$0" />
+          <StatTile label="Cash on hand" value="$0" />
+          <StatTile label="Donors" value="0" />
+          <StatTile label="Active volunteers" value="0" />
         </div>
       </>
     );
@@ -88,10 +80,10 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Raised (primary)" value={dollars(o.raisedCents)} sub={`${pct}% of goal`} />
-        <Stat label="Cash on hand" value={dollars(o.cashOnHandCents)} sub={`${dollars(o.spentCents)} spent`} />
-        <Stat label="Donors" value={String(o.donorCount)} />
-        <Stat label="Active volunteers" value={String(o.volActive)} sub={`${o.volunteerTotal} total`} />
+        <StatTile label="Raised (primary)" value={dollars(o.raisedCents)} sub={`${pct}% of goal`} />
+        <StatTile label="Cash on hand" value={dollars(o.cashOnHandCents)} sub={`${dollars(o.spentCents)} spent`} />
+        <StatTile label="Donors" value={String(o.donorCount)} />
+        <StatTile label="Active volunteers" value={String(o.volActive)} sub={`${o.volunteerTotal} total`} />
       </div>
 
       {/* Fundraising thermometer */}
@@ -102,12 +94,13 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
             {dollars(o.raisedCents)} <span className="text-slate/60">/ {dollars(GOAL_CENTS)} (illustrative)</span>
           </p>
         </div>
-        <div className="mt-3 h-4 w-full overflow-hidden rounded-full bg-line">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-field to-gold transition-all"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
+        <Meter
+          label="Raised toward the primary goal"
+          value={pct}
+          valueText={`${dollars(o.raisedCents)} of ${dollars(GOAL_CENTS)} (${pct}%)`}
+          trackClassName="mt-3 h-4 w-full overflow-hidden rounded-full bg-line"
+          fillClassName="rounded-full bg-gradient-to-r from-field to-gold"
+        />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_1fr]">
@@ -159,12 +152,14 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
                   <span className="font-semibold text-ink">{label}</span>
                   <span className="font-mono text-slate">{n as number}</span>
                 </div>
-                <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-line">
-                  <div
-                    className={`h-full ${color}`}
-                    style={{ width: taskTotal ? `${((n as number) / taskTotal) * 100}%` : "0%" }}
-                  />
-                </div>
+                <Meter
+                  label={`${label as string} tasks`}
+                  value={n as number}
+                  max={taskTotal || 1}
+                  valueText={`${n as number} ${label as string}`}
+                  trackClassName="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-line"
+                  fillClassName={color as string}
+                />
               </div>
             ))}
           </div>

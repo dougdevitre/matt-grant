@@ -18,6 +18,8 @@ import {
   summarizePlan,
   toNumber,
 } from "@/lib/budget/plan";
+import { StatTile } from "@/components/ui/StatTile";
+import { Meter } from "@/components/ui/Meter";
 
 const input = "rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink focus:border-field";
 
@@ -176,32 +178,26 @@ export default function BudgetBuilder() {
       </div>
 
       <div className="card flex flex-wrap items-center gap-x-10 gap-y-4 p-5">
-        <LedgerStat label="Available" value={formatUSD0(summary.available)} />
-        <LedgerStat label="Allocated" value={formatUSD0(summary.allocated)} />
-        <LedgerStat
+        <StatTile variant="bare" size="ledger" label="Available" value={formatUSD0(summary.available)} />
+        <StatTile variant="bare" size="ledger" label="Allocated" value={formatUSD0(summary.allocated)} />
+        <StatTile
+          variant="bare"
+          size="ledger"
           label="Remaining"
           value={formatUSD0(summary.remaining)}
           accent={over ? "text-brick" : tight ? "text-[#9a6f1a]" : "text-field"}
         />
         <div className="min-w-48 flex-1">
           <p className="mb-1.5 text-xs text-slate">{Math.round(summary.pctAllocated)}% of funds allocated</p>
-          <div className="h-2.5 w-full overflow-hidden rounded-full bg-line">
-            <div
-              className={`h-full ${over ? "bg-brick" : tight ? "bg-gold" : "bg-field"}`}
-              style={{ width: `${pct}%` }}
-            />
-          </div>
+          <Meter
+            label="Funds allocated"
+            value={pct}
+            valueText={`${Math.round(summary.pctAllocated)}% of funds allocated`}
+            trackClassName="h-2.5 w-full overflow-hidden rounded-full bg-line"
+            fillClassName={over ? "bg-brick" : tight ? "bg-gold" : "bg-field"}
+          />
         </div>
       </div>
-    </div>
-  );
-}
-
-function LedgerStat({ label, value, accent }: { label: string; value: string; accent?: string }) {
-  return (
-    <div>
-      <p className="eyebrow text-slate">{label}</p>
-      <p className={`mt-1 font-mono text-xl font-semibold ${accent ?? "text-ink"}`}>{value}</p>
     </div>
   );
 }

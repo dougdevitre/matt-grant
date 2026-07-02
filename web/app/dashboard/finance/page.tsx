@@ -8,6 +8,8 @@ import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { getBudgetSummary } from "@/lib/budget/expenses";
 import FinanceTabs from "@/components/budget/FinanceTabs";
+import { StatTile } from "@/components/ui/StatTile";
+import { Meter } from "@/components/ui/Meter";
 
 const input = "rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink focus:border-field";
 const CATS = ["Media", "Field", "Fundraising", "Compliance", "Operations", "Travel"];
@@ -20,16 +22,6 @@ const catColor: Record<string, string> = {
   Operations: "bg-slate",
   Travel: "bg-[#7c8a52]",
 };
-
-function Stat({ label, value, accent, sub }: { label: string; value: string; accent?: string; sub?: string }) {
-  return (
-    <div className="card p-6">
-      <p className="eyebrow text-slate">{label}</p>
-      <p className={`mt-3 font-display text-4xl font-semibold ${accent ?? "text-ink"}`}>{value}</p>
-      {sub && <p className="mt-2 text-xs text-slate">{sub}</p>}
-    </div>
-  );
-}
 
 export default async function FinancePage() {
   const { role } = await staffGate();
@@ -59,9 +51,14 @@ export default async function FinancePage() {
                     <span className="font-semibold text-ink">{c.category}</span>
                     <span className="font-mono text-slate">{dollars(c.cents)}</span>
                   </div>
-                  <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-line">
-                    <div className={`h-full ${catColor[c.category] ?? "bg-slate"}`} style={{ width: `${(c.cents / max) * 100}%` }} />
-                  </div>
+                  <Meter
+                    label={`${c.category} spend`}
+                    value={c.cents}
+                    max={max}
+                    valueText={dollars(c.cents)}
+                    trackClassName="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-line"
+                    fillClassName={catColor[c.category] ?? "bg-slate"}
+                  />
                 </div>
               ))}
             </div>
@@ -136,10 +133,10 @@ export default async function FinancePage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Raised" value={dollars(f.raisedCents)} accent="text-field" />
-        <Stat label="Committed" value={dollars(budget.committedCents)} accent="text-[#9a6f1a]" sub="Approved, not yet paid" />
-        <Stat label="Spent" value={dollars(f.spentCents)} accent="text-brick" />
-        <Stat label="Cash on hand" value={dollars(cash)} accent={cash < 0 ? "text-brick" : "text-ink"} />
+        <StatTile label="Raised" value={dollars(f.raisedCents)} accent="text-field" />
+        <StatTile label="Committed" value={dollars(budget.committedCents)} accent="text-[#9a6f1a]" sub="Approved, not yet paid" />
+        <StatTile label="Spent" value={dollars(f.spentCents)} accent="text-brick" />
+        <StatTile label="Cash on hand" value={dollars(cash)} accent={cash < 0 ? "text-brick" : "text-ink"} />
       </div>
 
       <div className="mt-8">
