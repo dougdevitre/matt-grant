@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateStrategy, type StrategyInput } from "@/lib/strategy/engine";
 import { rateLimit, clientIp } from "@/lib/ratelimit";
-import { staffGate } from "@/lib/auth";
+import { checkCap } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,10 +22,13 @@ export async function POST(req: Request) {
     /* empty body → engine uses safe defaults */
   }
 
-  // Gate the deeper output: only a valid session may request full depth.
+  // Gate the deeper output: full depth is the Peace Room's staff/partner view.
+  // `contributePeaceRoom` is exactly staff (admin/captain/volunteer) + partner —
+  // it excludes the public supporter/donor tiers, so a plain signed-in supporter
+  // is clamped to the public teaser (not just "anyone signed in").
   if (body.depth === "full") {
-    const { ok } = await staffGate();
-    if (!ok) body = { ...body, depth: "public" };
+    const { allowed } = await checkCap("contributePeaceRoom");
+    if (!allowed) body = { ...body, depth: "public" };
   }
 
   // generateStrategy never throws — it degrades to the curated, on-platform plan.

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { setAssetTags, type AssetKind } from "@/lib/assets";
-import { staffGate } from "@/lib/auth";
+import { checkCap } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 // (uploaded before the metadata store existed) gets one from the fallback fields
 // the client already knows. Staff-gated, same as the rest of /api/assets.
 export async function POST(req: Request) {
-  if (!(await staffGate()).ok) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!(await checkCap("manageAssets")).allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   let body: { key?: unknown; tags?: unknown; name?: unknown; contentType?: unknown; visibility?: unknown; size?: unknown; kind?: unknown };
   try {
     body = await req.json();

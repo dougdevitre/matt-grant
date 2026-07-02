@@ -68,6 +68,49 @@ export async function clearClerkRoleByEmail(email: string): Promise<void> {
   }
 }
 
+// Reconcile Clerk publicMetadata.role FROM the durable DynamoDB staff rows — the
+// safety net for the "best-effort Clerk write silently failed" drift (setStaffRole
+// updated DynamoDB but setClerkRoleByEmail no-op'd). For each ACTIVE staff row whose
+// signed-up Clerk user disagrees, re-stamp Clerk to the staff row's role.
+//
+// Deliberately narrow + safe: it only touches emails that have an active staff row,
+// so it can NEVER downgrade an external tier (donor/supporter/partner have no staff
+// row) or a pending invite (no Clerk user yet). The staff row is the authoritative
+// record here because the team page writes it in lockstep with Clerk; a Clerk-only
+// manual elevation without a matching staff-row change is unsupported (use the team
+// page). Best-effort per user; never throws. Returns what it changed for logging.
+export async function reconcileStaffRoles(): Promise<{
+  checked: number;
+  fixed: number;
+  changes: { email: string; from: string | null; to: Role }[];
+}> {
+  const changes: { email: string; from: string | null; to: Role }[] = [];
+  if (!process.env.CLERK_SECRET_KEY) return { checked: 0, fixed: 0, changes };
+  const { listStaff } = await import("@/lib/staff");
+  const staff = (await listStaff()).filter((s) => s.status === "active");
+  try {
+    const { clerkClient } = await import("@clerk/nextjs/server");
+    const client = await clerkClient();
+    for (const s of staff) {
+      try {
+        const { data } = await client.users.getUserList({ emailAddress: [s.email], limit: 1 });
+        const user = data[0];
+        if (!user) continue; // pending invite — not signed up yet, nothing in Clerk to fix
+        const current = asRole((user.publicMetadata as { role?: unknown } | undefined)?.role);
+        if (current !== s.role) {
+          await client.users.updateUserMetadata(user.id, { publicMetadata: { role: s.role } });
+          changes.push({ email: s.email, from: current, to: s.role });
+        }
+      } catch {
+        /* best-effort per user; keep reconciling the rest */
+      }
+    }
+  } catch {
+    /* Clerk unavailable — return what we have (nothing) */
+  }
+  return { checked: staff.length, fixed: changes.length, changes };
+}
+
 // Invite a teammate through Clerk so they can sign up even when the instance is
 // in invitation-only ("restricted") mode. The role rides along in the
 // invitation's publicMetadata and is applied to the new user on accept. If the
