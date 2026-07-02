@@ -9,6 +9,7 @@ import { recordContribution } from "@/lib/donors";
 import { dismissOnboarding } from "@/lib/onboarding";
 import { getTaskTemplate } from "@/lib/task-templates";
 import { cleanDate } from "@/lib/dashboard/due";
+import { createTask, setTaskStatus as writeTaskStatus, type TaskStatus } from "@/lib/tasks";
 import { mirrorVolunteerStatusToAirtable } from "@/lib/volunteers/airtable";
 import { staffRole } from "@/lib/staff";
 
@@ -278,24 +279,7 @@ export async function addTask(formData: FormData) {
     volunteerName = (i >= 0 ? volunteer.slice(i + 1) : "") || undefined;
   }
   const dueDate = cleanDate(str(formData, "dueDate")); // optional; validated to YYYY-MM-DD
-  await ddb.send(
-    new PutCommand({
-      TableName: TABLE,
-      Item: {
-        PK: PK.tasks,
-        SK: newId(),
-        title,
-        detail,
-        category,
-        priority,
-        status: "TODO",
-        volunteerId,
-        volunteerName,
-        ...(dueDate ? { dueDate } : {}),
-        createdAt: new Date().toISOString(),
-      },
-    }),
-  );
+  await createTask({ title, detail, category, priority, dueDate, volunteerId, volunteerName });
   revalidatePath("/dashboard/tasks");
   revalidatePath("/dashboard");
 }
@@ -353,15 +337,7 @@ export async function setTaskStatus(formData: FormData) {
   const id = str(formData, "id");
   const status = str(formData, "status");
   if (!id || !status) return;
-  await ddb.send(
-    new UpdateCommand({
-      TableName: TABLE,
-      Key: { PK: PK.tasks, SK: id },
-      UpdateExpression: "SET #s = :s",
-      ExpressionAttributeNames: { "#s": "status" },
-      ExpressionAttributeValues: { ":s": status },
-    }),
-  );
+  await writeTaskStatus(id, status as TaskStatus);
   revalidatePath("/dashboard/tasks");
   revalidatePath("/dashboard");
 }
