@@ -17,7 +17,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ base: s
   const meta: Provenance = { source: `Airtable base ${base}`, kind: "airtable", live: true };
 
   if (!allowed) return NextResponse.json(fail("forbidden", meta), { status: 403 });
-  if (!(base in AIRTABLE_BASES)) return NextResponse.json(fail(`unknown base "${base}"`, meta), { status: 404 });
+  // own-property check: `base in AIRTABLE_BASES` would also match inherited keys
+  // (toString, constructor, …) and probe a garbage base instead of 404-ing.
+  if (!Object.prototype.hasOwnProperty.call(AIRTABLE_BASES, base))
+    return NextResponse.json(fail(`unknown base "${base}"`, meta), { status: 404 });
 
   const health = await checkAirtableBaseHealth(base as keyof typeof AIRTABLE_BASES);
   switch (health.state) {

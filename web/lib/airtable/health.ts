@@ -37,6 +37,10 @@ export async function checkAirtableBaseHealth(baseKey: BaseKey): Promise<Airtabl
     const res = await fetch(`${API_ROOT}/${base.id}/${base.accessTable}?maxRecords=1`, {
       headers: { Authorization: `Bearer ${key}` },
       cache: "no-store",
+      // A probe must fail fast: without this, a half-open socket never throws and
+      // the very status card meant to report "degraded" hangs to maxDuration. The
+      // catch below maps the TimeoutError to state:"error".
+      signal: AbortSignal.timeout(8000),
     });
     if (res.ok) return { state: "live", detail: `Connected — base ${base.id} is reachable.` };
     if (res.status === 401) {
