@@ -28,6 +28,8 @@ flowchart LR
   `publicMetadata.role` → `can(capability)` with **no separate auth path**.
 - Authorization is per-endpoint by **capability** (see the tables). The role model lives in
   [`web/lib/rbac.ts`](../lib/rbac.ts); see [roles-and-permissions.md](./roles-and-permissions.md).
+- **Client starting point:** copy-paste snippets (manifest, auth, typed fetch wrapper) are in
+  [extension-client-example.md](./extension-client-example.md).
 
 ## Turning it on (deployment)
 
