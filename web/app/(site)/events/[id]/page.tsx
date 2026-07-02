@@ -7,7 +7,10 @@ import { formatEventRange } from "@/lib/events/time";
 import { CAMPAIGN } from "@/lib/site";
 import { RsvpForm } from "@/components/site/RsvpForm";
 
-export const dynamic = "force-dynamic";
+// Public published-event content (reads only the event by id — no per-request or
+// auth data), so ISR-cache it and let CloudFront serve it instead of invoking the
+// SSR Lambda per view. New/edited events appear within the revalidate window.
+export const revalidate = 300;
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;

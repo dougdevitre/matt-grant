@@ -16,7 +16,7 @@ const FIELDS: { key: string; label: string }[] = [
   { key: "conversions30d", label: "Conversions (30d)" },
 ];
 
-const priColor = { high: "text-brick", medium: "text-[#9a6f1a]", low: "text-slate" } as const;
+const priColor = { high: "text-brick", medium: "text-gold-ink", low: "text-slate" } as const;
 
 export function SocialProfileOptimizer({ history = [] }: { history?: FootprintSnapshot[] }) {
   const [state, action, pending] = useActionState<{ report: FootprintReport | null; message: string }, FormData>(analyzeProfileAction, { report: null, message: "" });
@@ -150,7 +150,7 @@ export function SocialProfileOptimizer({ history = [] }: { history?: FootprintSn
                     <span className="h-2.5 w-2.5 rounded-full" style={{ background: CHANNELS[c.channel].color }} />
                     {CHANNELS[c.channel].label}
                   </span>
-                  <span className={`font-mono text-xs ${c.health >= 70 ? "text-field" : c.health >= 45 ? "text-[#9a6f1a]" : "text-brick"}`}>health {c.health}</span>
+                  <span className={`font-mono text-xs ${c.health >= 70 ? "text-field" : c.health >= 45 ? "text-gold-ink" : "text-brick"}`}>health {c.health}</span>
                 </div>
                 <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 font-mono text-[0.7rem] text-slate">
                   <div className="flex justify-between"><dt>Engagement</dt><dd className="text-ink">{c.engagementRate.toFixed(1)}%</dd></div>

@@ -19,11 +19,11 @@ export const dynamic = "force-dynamic";
 
 const STATUS_STYLE: Record<string, string> = {
   draft: "bg-ink/5 text-slate",
-  scheduled: "bg-gold/15 text-[#9a6f1a]",
-  posting: "bg-gold/15 text-[#9a6f1a]",
+  scheduled: "bg-gold/15 text-gold-ink",
+  posting: "bg-gold/15 text-gold-ink",
   posted: "bg-field/10 text-field",
-  awaiting: "bg-gold/15 text-[#9a6f1a]",
-  partial: "bg-gold/15 text-[#9a6f1a]",
+  awaiting: "bg-gold/15 text-gold-ink",
+  partial: "bg-gold/15 text-gold-ink",
   failed: "bg-brick/10 text-brick",
   canceled: "bg-ink/5 text-slate",
 };

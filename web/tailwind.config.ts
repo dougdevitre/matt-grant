@@ -18,6 +18,11 @@ const config: Config = {
         paper: "#FBFAF6", // warm white
         slate: "#5A6472", // muted body / captions
         line: "#E4E2DA", // hairline borders
+        // On-light "ink" variants of the accents: the plain `gold`/`gold`-tinted
+        // fills fail text contrast on white, so these darkened tones are the
+        // approved text color. Replaces ~24 hand-typed text-[#9a6f1a] / text-[#1d4ed8].
+        "gold-ink": "#9a6f1a", // dark gold — gold text on light / on gold-tinted fills
+        "blue-ink": "#1d4ed8", // dark blue — accent text on light
       },
       fontFamily: {
         display: ["var(--font-display)", "Georgia", "serif"],

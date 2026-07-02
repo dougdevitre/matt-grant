@@ -68,7 +68,7 @@ export default async function SmsPage() {
                         ? "bg-field/10 text-field"
                         : c.status === "failed"
                           ? "bg-brick/10 text-brick"
-                          : "bg-gold/15 text-[#9a6f1a]"
+                          : "bg-gold/15 text-gold-ink"
                     }`}
                   >
                     {c.status === "scheduled" ? "scheduled" : c.status === "queued" || c.status === "sending" ? "sending" : c.status}

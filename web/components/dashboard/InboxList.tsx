@@ -111,7 +111,7 @@ export function InboxList({ items }: { items: InboxItem[] }) {
                   <span className="rounded-sm bg-brick/10 px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-brick">blocked</span>
                 )}
                 {c.optedOut && !c.blocked && (
-                  <span className="rounded-sm bg-gold/15 px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-[#9a6f1a]">opted out</span>
+                  <span className="rounded-sm bg-gold/15 px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-gold-ink">opted out</span>
                 )}
                 <span className="font-mono text-[0.65rem] text-slate">{when(c.lastAt)}</span>
               </span>

@@ -17,7 +17,7 @@ const COLUMNS = [
 const catColor: Record<string, string> = {
   Field: "text-field",
   Finance: "text-brick",
-  Comms: "text-[#9a6f1a]",
+  Comms: "text-gold-ink",
   Compliance: "text-ink",
   Ops: "text-slate",
 };

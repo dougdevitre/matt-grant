@@ -134,7 +134,7 @@ export default async function FinancePage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile label="Raised" value={dollars(f.raisedCents)} accent="text-field" />
-        <StatTile label="Committed" value={dollars(budget.committedCents)} accent="text-[#9a6f1a]" sub="Approved, not yet paid" />
+        <StatTile label="Committed" value={dollars(budget.committedCents)} accent="text-gold-ink" sub="Approved, not yet paid" />
         <StatTile label="Spent" value={dollars(f.spentCents)} accent="text-brick" />
         <StatTile label="Cash on hand" value={dollars(cash)} accent={cash < 0 ? "text-brick" : "text-ink"} />
       </div>

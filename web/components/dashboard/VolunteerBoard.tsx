@@ -11,7 +11,7 @@ import { VOLUNTEER_TABLE, type VolCtx } from "@/lib/table/volunteers-config";
 
 const STATUSES = ["NEW", "CONTACTED", "ACTIVE", "INACTIVE"] as const;
 const badge: Record<string, string> = {
-  NEW: "bg-gold/15 text-[#9a6f1a]",
+  NEW: "bg-gold/15 text-gold-ink",
   CONTACTED: "bg-field/10 text-field",
   ACTIVE: "bg-field/20 text-field",
   INACTIVE: "bg-line text-slate",
@@ -77,7 +77,7 @@ export function VolunteerBoard({
                       {v.status}
                     </span>
                     {donorSet.has(lc(v.email)) && (
-                      <span className="rounded-sm bg-gold/15 px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-[#9a6f1a]" title="Has also donated">
+                      <span className="rounded-sm bg-gold/15 px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-gold-ink" title="Has also donated">
                         ◈ donor
                       </span>
                     )}

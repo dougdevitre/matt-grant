@@ -38,8 +38,19 @@ export const TURNOUT_LEGEND_GRADIENT =
 // Flat fallbacks for boundary-only layers (no turnout feed).
 export const MAP_FALLBACK = { jefferson: "#5b7d6f", extra: "#7c6f8e" } as const;
 
-// Draft campaign-event marker (amber), read as lighter than the published-event
-// green (EVENT_COLOR in lib/mapData.ts).
+// Map POI categories (categorical) — brand-derived + one amber for "public".
+export const MAP_CATEGORY = {
+  schools: BRAND.field, // #16365C
+  partners: BRAND.brick, // #B5343B
+  public: "#E0A53B", // amber (also the mid turnout-ramp stop)
+  polling: BRAND.ink, // #0F2540
+} as const;
+
+// Published campaign-event marker (field green). Off the core brand set on purpose
+// so events read distinct from POIs; centralized here so it's not a stray hex.
+export const EVENT_COLOR = "#2f7d4f";
+
+// Draft campaign-event marker (amber), read as lighter than the published green.
 export const EVENT_DRAFT = "#E0A53B";
 
 // Dark-gold "ink" for gold-on-light text — the plain gold token fails text

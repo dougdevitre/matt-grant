@@ -185,7 +185,7 @@ export default function BudgetBuilder() {
           size="ledger"
           label="Remaining"
           value={formatUSD0(summary.remaining)}
-          accent={over ? "text-brick" : tight ? "text-[#9a6f1a]" : "text-field"}
+          accent={over ? "text-brick" : tight ? "text-gold-ink" : "text-field"}
         />
         <div className="min-w-48 flex-1">
           <p className="mb-1.5 text-xs text-slate">{Math.round(summary.pctAllocated)}% of funds allocated</p>
