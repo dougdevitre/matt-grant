@@ -22,7 +22,7 @@ export function isAllowedOrigin(origin: string | null): origin is string {
   return !!origin && allowedOrigins().includes(origin);
 }
 
-const ALLOW_METHODS = "GET, POST, PATCH, OPTIONS";
+const ALLOW_METHODS = "GET, POST, PATCH, DELETE, OPTIONS";
 const ALLOW_HEADERS = "Authorization, Content-Type";
 const MAX_AGE = "600"; // cache the preflight for 10 min
 
