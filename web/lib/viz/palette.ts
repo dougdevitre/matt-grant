@@ -20,16 +20,12 @@ export const BRAND = {
   line: "#E4E2DA",
 } as const;
 
-// Sequential turnout ramp, low → high (tan → gold → orange → red). This is the
-// EXISTING campaign map styling, centralized here unchanged.
-//
-// NOTE (dataviz validator): this ramp fails two sequential checks — the light end
-// (#d8d5cc, 1.43:1 vs surface) is too faint, and it spans ~69° of hue (a multi-hue
-// ramp reads as rainbow, not magnitude; the rule is one hue light→dark). A
-// validated single-hue replacement, if we choose to restyle the map, is the brand
-// blue ramp below (kept commented so the swap is a one-line change + a design sign-off):
-//   export const TURNOUT_RAMP = ["#cde2fb", "#6da7ec", "#2a78d6", "#0d366b"] as const;
-export const TURNOUT_RAMP = ["#d8d5cc", "#E0A53B", "#cf7a39", "#B5343B"] as const;
+// Sequential turnout ramp, low → high. Single-hue blue, validated with the dataviz
+// checker (ordinal mode, light surface): monotone lightness, hue spread 4°, light
+// end 2.06:1 vs surface — all checks pass. This replaced the former multi-hue
+// tan→gold→orange→red ramp, which failed single-hue + light-end contrast and, being
+// red, collided with `brick` (CTA/urgency). Steps are dataviz blue 250/350/450/700.
+export const TURNOUT_RAMP = ["#86b6ef", "#5598e7", "#2a78d6", "#0d366b"] as const;
 
 // The legend gradient mirrors the ramp; the % stops track the map's ~8–40 range.
 export const TURNOUT_LEGEND_GRADIENT =

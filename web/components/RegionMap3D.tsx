@@ -82,7 +82,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
       }
 
       // Precinct turnout columns: real MO-02 Nov-2024 turnout (clamped for the
-      // height/color ramp; raw value shown in the popup). Height + heat = turnout.
+      // height/color ramp; raw value shown in the popup). Height + shade = turnout.
       // Ramp tuned to PRIMARY turnout (~8–40%) so precinct variation reads clearly.
       const t: maplibregl.ExpressionSpecification = ["coalesce", ["get", "turnout"], 0];
       m.addSource("precincts", { type: "geojson", data: precinctsRef.current });
