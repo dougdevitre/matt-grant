@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { uploadObject, keyFor, publicUrl, s3Configured, type Visibility } from "@/lib/s3";
 import { optimizeImage } from "@/lib/images";
 import { classifyKind, putAssetMeta } from "@/lib/assets";
-import { staffGate } from "@/lib/auth";
+import { checkCap } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,8 +12,8 @@ const MAX_BYTES = 15 * 1024 * 1024; // 15 MB — campaign images/PDFs, not video
 const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif", "application/pdf"]);
 
 export async function POST(req: Request) {
-  const gate = await staffGate();
-  if (!gate.ok) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const { allowed, gate } = await checkCap("manageAssets");
+  if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!s3Configured) return NextResponse.json({ error: "S3 not configured (set S3_ASSETS_BUCKET)" }, { status: 503 });
   const form = await req.formData();
   const file = form.get("file");

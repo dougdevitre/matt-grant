@@ -8,6 +8,9 @@ import { ddb, TABLE, newId, dbConfigured } from "@/lib/db";
 //     separate so they don't clutter the access-change history.
 const AUDIT_PK = "AUDIT#access";
 const AUDIT_PREVIEW_PK = "AUDIT#preview";
+//   • AUDIT#ext     — writes made through the extension API (/api/ext/*), so a
+//     mutation from outside the dashboard UI is attributable.
+const AUDIT_EXT_PK = "AUDIT#ext";
 
 export type AuditAction = "invite" | "invite_reminder" | "role_change" | "revoke" | "preview_enter" | "preview_exit";
 export type AuditEntry = {
@@ -66,3 +69,18 @@ export const listAccessChanges = (limit = 25): Promise<AuditEntry[]> => list(AUD
 // Admin "view as role" preview switches (preview_enter, preview_exit).
 export const recordPreviewSwitch = (e: AuditEntry): Promise<void> => record(AUDIT_PREVIEW_PK, e);
 export const listPreviewSwitches = (limit = 25): Promise<AuditEntry[]> => list(AUDIT_PREVIEW_PK, limit);
+
+// Writes made through the extension API. Generic (not role-shaped): `action` is a
+// dotted verb like "task.create" / "task.status" and `target` is the affected
+// record id. Best-effort, never blocks the write.
+export type ExtAuditEntry = { at: string; actor: string; action: string; target: string };
+export async function recordExtAction(e: ExtAuditEntry): Promise<void> {
+  if (!dbConfigured) return;
+  try {
+    await ddb.send(
+      new PutCommand({ TableName: TABLE, Item: { PK: AUDIT_EXT_PK, SK: `${e.at}#${newId()}`, ...e } }),
+    );
+  } catch {
+    /* audit is non-critical */
+  }
+}

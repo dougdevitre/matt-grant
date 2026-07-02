@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { emailAllowed } from "@/lib/auth";
 import { staffRole } from "@/lib/staff";
 import { asRole } from "@/lib/rbac";
+import { syncStaffRowFromClerk } from "@/lib/staffSync";
 
 // Clerk webhook: on user.created, stamp the new user's RBAC role into Clerk
 // publicMetadata so it travels with the session everywhere.
@@ -34,21 +35,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "invalid signature" }, { status: 400 });
   }
 
-  if (evt.type !== "user.created") {
-    return NextResponse.json({ ok: true, ignored: evt.type });
-  }
-
   const data = evt.data as {
     id?: string;
     first_name?: string | null;
     email_addresses?: { id: string; email_address: string }[];
     primary_email_address_id?: string;
+    public_metadata?: { role?: unknown };
   };
   const userId = data.id;
   const primary =
     data.email_addresses?.find((e) => e.id === data.primary_email_address_id) ??
     data.email_addresses?.[0];
   const email = primary?.email_address ?? null;
+
+  // Keep the DynamoDB staff fallback in step with Clerk (the authoritative role
+  // store) when a role changes directly in Clerk, and retire the row on delete so a
+  // stale invite can't re-grant access if the email signs up again. Both are
+  // best-effort; the delete payload usually omits the email, so deletion
+  // reconciliation is opportunistic (the periodic reconcile cron backstops it).
+  if (evt.type === "user.updated") {
+    if (email) await syncStaffRowFromClerk(email, data.public_metadata?.role);
+    return NextResponse.json({ ok: true, synced: evt.type, email });
+  }
+  if (evt.type === "user.deleted") {
+    if (email) await syncStaffRowFromClerk(email, undefined);
+    return NextResponse.json({ ok: true, handled: evt.type, email });
+  }
+  if (evt.type !== "user.created") {
+    return NextResponse.json({ ok: true, ignored: evt.type });
+  }
 
   if (!userId || !email) {
     return NextResponse.json({ ok: true, note: "no user id / email" });

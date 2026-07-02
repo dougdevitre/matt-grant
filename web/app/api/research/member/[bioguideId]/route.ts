@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getMember } from "@/lib/integrations/legislative/store";
-import { staffGate } from "@/lib/auth";
+import { checkCap } from "@/lib/auth";
 import { dbConfigured } from "@/lib/db";
 import { type Provenance, ok, fail, degraded } from "@/lib/data/resource";
 
@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ bioguideId: string }> }) {
-  if (!(await staffGate()).ok) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!(await checkCap("viewResearch")).allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { bioguideId } = await params;
   const meta: Provenance = { source: `Congress.gov member ${bioguideId}`, kind: "api", live: true };
   if (!dbConfigured) return NextResponse.json(degraded(null, "research store not connected", meta));
