@@ -6,6 +6,8 @@ vi.mock("server-only", () => ({}));
 
 // eslint-disable-next-line import/first
 import { CHARTS } from "./charts";
+// eslint-disable-next-line import/first
+import { layout, type Mark } from "@/lib/viz/chart";
 
 // Drift guard: the ChartDef.alt sentences quote specific figures ("St. Louis County
 // −5.9%", "20.1% age 65+"). Those numbers must keep coming out of the computed
@@ -35,5 +37,43 @@ describe("chart alt ↔ computed table (drift guard)", () => {
     const pctCol = columns.indexOf("% 65+ (2025)");
     const stl = rows.find((r) => String(r[1]).includes("St. Louis"));
     expect(stl?.[pctCol]).toBe("20.1%");
+  });
+});
+
+// The chart() builders re-derive rows independently of table() (same sort/slice/
+// filter), so they can silently drift. Guard the invariants the SVG relies on.
+describe("chart() specs (drift guard)", () => {
+  const nonTotalRows = (id: string) => table(id).rows.filter((r) => !/Total/i.test(String(r[0]))).length;
+
+  it("every chart()'s bar/group count matches its (non-Total) table rows", () => {
+    for (const id of Object.keys(CHARTS)) {
+      const def = CHARTS[id];
+      if (!def.chart) continue;
+      const spec = def.chart();
+      const count = spec.kind === "bars" ? spec.bars.length : spec.groups.length;
+      expect(count, `${id} bar/group count`).toBe(nonTotalRows(id));
+    }
+  });
+
+  it("ranked charts highlight exactly the St. Louis bar", () => {
+    for (const id of ["under5-metro-ranking", "aging-index-metro"]) {
+      const spec = CHARTS[id].chart!();
+      if (spec.kind !== "bars") throw new Error(`${id} should be bars`);
+      const hl = spec.bars.filter((b) => b.highlight);
+      expect(hl.length, `${id} highlight count`).toBe(1);
+      expect(hl[0].label).toContain("St. Louis");
+    }
+  });
+
+  it("mo02-child-under15 is single-sign and left-anchored (not the degenerate right-pinned render)", () => {
+    const spec = CHARTS["mo02-child-under15"].chart!();
+    if (spec.kind !== "bars") throw new Error("mo02 should be bars");
+    expect(spec.bars.length).toBeGreaterThan(0);
+    expect(spec.bars.every((b) => b.value < 0)).toBe(true); // both counties declined
+    const { marks } = layout(spec);
+    const axis = marks.find((m): m is Extract<Mark, { t: "line" }> => m.t === "line")!;
+    const firstBar = marks.find((m): m is Extract<Mark, { t: "rect" }> => m.t === "rect")!;
+    // The axis line sits at the bars' left edge (left-anchored), not jammed at the right.
+    expect(firstBar.x).toBeCloseTo(axis.x1, 5);
   });
 });

@@ -1,13 +1,15 @@
-// One accessible seam for every demographic chart. Renders the committed
-// Datawrapper SVG export when it exists (web/public/charts/<id>.svg, same-origin);
-// until then it is table-first — the validated data renders as a real table so the
-// figure is useful and WCAG-clean immediately. The text alternative (alt) and the
-// source citation are ALWAYS present, never image-only. Server component.
+// One accessible seam for every demographic chart. Renders the in-app SVG (BarChart)
+// when the chart defines chart() geometry, with the validated data table as the
+// always-present accessible fallback in a <details>; otherwise it is table-first.
+// The text alternative (alt) and the source citation are ALWAYS present, never
+// image-only. Server component.
 import { CHARTS } from "@/lib/demographics/charts";
+import { BarChart } from "./BarChart";
 
 const fmt = (v: string | number) => (typeof v === "number" ? v.toLocaleString("en-US") : v);
 
-function DataTable({ id }: { id: string }) {
+// The demographic figure's own data table (distinct from the dashboard <DataTable>).
+function FigureTable({ id }: { id: string }) {
   const { columns, rows } = CHARTS[id].table();
   return (
     <div className="overflow-x-auto">
@@ -48,16 +50,18 @@ export function Figure({ id }: { id: string }) {
         <h3 className="font-display text-lg font-semibold text-ink">{c.title}</h3>
       </figcaption>
 
-      {c.hasExport ? (
+      {c.chart ? (
         <>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`/charts/${c.id}.svg`} alt={c.alt} className="w-full" />
+          {/* In-app SVG (decorative). The alt sentence + the data table below are the
+              text alternative, so the takeaway is never image-only. */}
+          <p className="mb-3 max-w-prose text-sm text-slate">{c.alt}</p>
+          <BarChart spec={c.chart()} labelGutter={c.chartGutter} />
           <details className="mt-3">
             <summary className="cursor-pointer font-mono text-[0.6rem] uppercase tracking-eyebrow text-field">
               Show data table
             </summary>
             <div className="mt-2">
-              <DataTable id={c.id} />
+              <FigureTable id={c.id} />
             </div>
           </details>
         </>
@@ -65,7 +69,7 @@ export function Figure({ id }: { id: string }) {
         <>
           {/* Table-first: the alt sentence carries the takeaway, the table carries the data. */}
           <p className="mb-3 max-w-prose text-sm text-slate">{c.alt}</p>
-          <DataTable id={c.id} />
+          <FigureTable id={c.id} />
         </>
       )}
 

@@ -24,6 +24,8 @@ export type SourceEntry = {
   regen?: string;
   /** Free-form fix shown when this source is degraded/errored (e.g. "Run /api/research/ingest"). */
   remedy?: string;
+  /** True when a rendered read view exists at /dashboard/data/<id> (not just a health ping). */
+  detail?: boolean;
   note?: string;
 };
 
@@ -127,7 +129,8 @@ export const SOURCES: SourceEntry[] = [
     enabledEnv: ["CENSUS_API_KEY"],
     cache: "public, max-age=3600",
     checkable: true, // idempotent GET that returns a Resource — safe to ping from the hub
-    note: "Demographics; works at low volume without a key. On the Resource layer (no UI consumer yet).",
+    detail: true,
+    note: "Demographics; works at low volume without a key. Read view at /dashboard/data/census.",
   },
   {
     id: "fec",
@@ -149,7 +152,8 @@ export const SOURCES: SourceEntry[] = [
     cache: "force-dynamic",
     checkable: true, // param-free GET on the Resource layer; degrades when the store is unset
     remedy: "Run /api/research/ingest with the CRON_SECRET bearer to populate the store",
-    note: "Family-court-relevant bills from the ingested federal record. Degrades when the store isn't connected.",
+    detail: true,
+    note: "Family-court-relevant bills from the ingested federal record. Read view at /dashboard/data/child-act.",
   },
   {
     id: "congress",

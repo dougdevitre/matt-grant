@@ -11,6 +11,7 @@ import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist"
 import { PersonalSummary } from "@/components/dashboard/PersonalSummary";
 import { StatTile } from "@/components/ui/StatTile";
 import { Meter } from "@/components/ui/Meter";
+import { deltaChip } from "@/lib/trends";
 
 // Illustrative primary-cycle fundraising goal — replace with the real number.
 const GOAL_CENTS = 25000000; // $250,000
@@ -80,10 +81,38 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile label="Raised (primary)" value={dollars(o.raisedCents)} sub={`${pct}% of goal`} />
+        <StatTile
+          label="Raised (primary)"
+          value={dollars(o.raisedCents)}
+          sub={`${pct}% of goal`}
+          spark={o.trends.raised.byDay}
+          delta={deltaChip(o.trends.raised.last7.recent, o.trends.raised.last7.prior, {
+            label: `${dollars(o.trends.raised.last7.recent)} · 7d`,
+            goodWhenUp: true,
+          })}
+        />
+        {/* Cash on hand stays a snapshot — expenditures carry no per-row date, so
+            there's no honest spend trend to draw. */}
         <StatTile label="Cash on hand" value={dollars(o.cashOnHandCents)} sub={`${dollars(o.spentCents)} spent`} />
-        <StatTile label="Donors" value={String(o.donorCount)} />
-        <StatTile label="Active volunteers" value={String(o.volActive)} sub={`${o.volunteerTotal} total`} />
+        <StatTile
+          label="Donors"
+          value={String(o.donorCount)}
+          spark={o.trends.donors.byDay}
+          delta={deltaChip(o.trends.donors.last7.recent, o.trends.donors.last7.prior, {
+            label: `${o.trends.donors.last7.recent} new · 7d`,
+            goodWhenUp: true,
+          })}
+        />
+        <StatTile
+          label="Active volunteers"
+          value={String(o.volActive)}
+          sub={`${o.volunteerTotal} total`}
+          spark={o.trends.volunteers.byDay}
+          delta={deltaChip(o.trends.volunteers.last7.recent, o.trends.volunteers.last7.prior, {
+            label: `${o.trends.volunteers.last7.recent} new · 7d`,
+            goodWhenUp: true,
+          })}
+        />
       </div>
 
       {/* Fundraising thermometer */}

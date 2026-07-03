@@ -1,5 +1,6 @@
 import { QueryCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, dbConfigured } from "@/lib/db";
+import { bucketByDay, windowSums } from "@/lib/trends";
 
 // All dashboard reads. Each entity type is one DynamoDB partition, so a Query by
 // PK lists them; aggregation happens in code (campaign-scale data is small).
@@ -24,9 +25,16 @@ async function queryAll(pk: string): Promise<Item[]> {
   return items;
 }
 
-type Contribution = { amountCents: number };
+type Contribution = { amountCents: number; receivedAt?: string };
 const sumContribs = (d: Item) =>
   ((d.contributions as Contribution[] | undefined) ?? []).reduce((s, c) => s + (c.amountCents || 0), 0);
+
+// Trailing daily series + last-7d-vs-prior-7d for a KPI tile (spark + delta).
+const TREND_DAYS = 30;
+function trendFor(events: { at: string; value: number }[], today: string) {
+  const byDay = bucketByDay(events, { days: TREND_DAYS, today });
+  return { byDay, last7: windowSums(byDay, 7) };
+}
 
 export type DonorRow = {
   id: string;
@@ -104,6 +112,23 @@ export async function getOverview() {
     const milestones = miles
       .sort((a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0))
       .map((m) => ({ id: String(m.SK), phase: String(m.phase), title: String(m.title), target: String(m.target), done: !!m.done }));
+
+    // Data-backed KPI trends (last 30 days). Contributions carry receivedAt;
+    // donors/volunteers carry createdAt. today is stamped at request time.
+    const today = new Date().toISOString().slice(0, 10);
+    const contribEvents = donors.flatMap((d) =>
+      ((d.contributions as Contribution[] | undefined) ?? [])
+        .filter((c) => c.receivedAt)
+        .map((c) => ({ at: c.receivedAt as string, value: c.amountCents || 0 })),
+    );
+    const createdEvents = (rows: Item[]) =>
+      rows.filter((r) => r.createdAt).map((r) => ({ at: String(r.createdAt), value: 1 }));
+    const trends = {
+      raised: trendFor(contribEvents, today),
+      donors: trendFor(createdEvents(donors), today),
+      volunteers: trendFor(createdEvents(vols), today),
+    };
+
     return {
       connected: true as const,
       raisedCents,
@@ -116,6 +141,7 @@ export async function getOverview() {
       tasksDoing: byStatus(tasks, "DOING"),
       tasksDone: byStatus(tasks, "DONE"),
       milestones,
+      trends,
     };
   } catch {
     return { connected: false as const };

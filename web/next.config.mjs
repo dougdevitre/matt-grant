@@ -8,6 +8,19 @@ const nextConfig = {
   reactStrictMode: true,
   // Pin tracing to this app so a stray parent lockfile doesn't confuse Next.
   outputFileTracingRoot: __dirname,
+  // typescript + the eslint toolchain are devDependencies (only eslint-config-next /
+  // @typescript-eslint pull them). Next's file tracer nonetheless bundled typescript
+  // (~8.8 MiB) into the standalone SSR output, eating the thin Amplify 220 MiB-cap
+  // headroom. Nothing runs the TS compiler or eslint at runtime, so exclude them from
+  // the trace — this is pure SSR-bundle relief, no behavior change.
+  outputFileTracingExcludes: {
+    "*": [
+      "node_modules/typescript/**",
+      "node_modules/@typescript-eslint/**",
+      "node_modules/eslint/**",
+      "node_modules/eslint-config-next/**",
+    ],
+  },
   // BUNDLE_GUARD=1 emits the standalone server (server + traced node_modules) so CI can
   // measure a faithful proxy of the Amplify SSR compute bundle and fail a PR BEFORE it
   // tips the hard 220 MiB cap at deploy time. Unset in the real Amplify build, so its
