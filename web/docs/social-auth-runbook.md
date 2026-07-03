@@ -56,7 +56,32 @@ Set these on the deployment being tested (see the Clerk block in [`../.env.examp
 
 ---
 
-## 3. Verify each provider end-to-end
+## 3a. Automated check — provider OAuth handshake (`npm run test:signin`)
+
+`e2e/social-signin.spec.ts` is an executable verifier for the part that most
+often breaks: that each connection is enabled in Clerk and its button starts the
+correct provider OAuth flow (right `client_id` / `redirect_uri`). It loads
+`/sign-in`, asserts all three buttons render, clicks each, and asserts the redirect
+reaches the provider's authorize host with a `client_id`. It does **not** complete
+the provider login (interactive; step 3b covers that).
+
+Point it at a deployment where Clerk is live and the connections are enabled — a
+staging/preview URL or production:
+
+```bash
+cd web
+SIGNIN_URL=https://your-deployment.example \
+A11Y_BASE_URL=https://your-deployment.example \
+npm run test:signin
+```
+
+`SIGNIN_URL` is the target; `A11Y_BASE_URL` (same value) just tells
+`playwright.config.ts` not to boot a local build. With `SIGNIN_URL` unset the whole
+suite **skips**, so it never runs in the default CI a11y job. This must run where
+the network can reach the provider domains (accounts.google.com, facebook.com,
+linkedin.com) — a locked-down egress environment will block them.
+
+## 3b. Verify each provider end-to-end (manual — the interactive login)
 
 For each provider, from a signed-out browser:
 
