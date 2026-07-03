@@ -26,6 +26,33 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-03 -- v1.x -- Federal contribution-limit reconciliation (2025-2026 cycle)
+
+**Changes:**
+- [updated] federal/contribution-limits.md -- reconciled the indexed individual / non-multicandidate-PAC → candidate limit to **$3,500/election** (was $3,300), primary+general to **$7,000** (was $6,600), and individual / non-multicandidate-PAC → national party to **$44,300/yr** (was $41,300); the non-multicandidate-PAC → candidate cell (previously $2,900) is reconciled to the indexed $3,500. Verification date stamped in the staleness banner and the JFC/family-member examples updated.
+- [updated] tools/donor-limit-checker.md -- the operational go/no-go tool: decision-tree limit, Step 3/Step 4 figures, the federal limits table, and the worked sample outputs all moved $3,300 → $3,500 (and $6,600 → $7,000); non-multicandidate-PAC per-election corrected $2,900 → $3,500.
+- [updated] tools/contribution-tracker.md -- sample aggregate-tracking rows updated to the $3,500 cap.
+- [updated] federal/fec-overview.md -- non-multicandidate PAC comparison corrected to $3,500/election.
+- [updated] states/{missouri,texas,florida,ohio,illinois,pennsylvania,michigan,arizona,new-york,georgia,california}/overview.md -- the federal-comparison rows citing $3,300 updated to $3,500 (2025-2026); stale "(2023-24)" labels refreshed to "(2025-26)".
+
+**Verifications Performed:**
+- 2025-2026 FEC limits re-verified 2026-07-03: individual / non-multicandidate-PAC → candidate = **$3,500/election** (matches web/lib/money.ts, verified against fec.gov 2026-06-18); individual → national party = **$44,300/yr**. Cross-checked against fec.gov via web search.
+- Closes the known gap where the reference files still carried the 2023-2024 ($3,300 / $41,300) figures.
+
+**Known Gaps:**
+- Only the indexed figures re-verified this cycle were changed; other indexed rows (coordinated party expenditure limits, PAC→party) still carry a "verify at fec.gov" caveat.
+- Illustrative straw-donor example amounts in federal/prohibited-contributions.md intentionally left as-is (they are arbitrary example figures, not stated current limits).
+
+**Files Modified:**
+- federal/contribution-limits.md
+- tools/donor-limit-checker.md
+- tools/contribution-tracker.md
+- federal/fec-overview.md
+- states/missouri/overview.md, states/texas/overview.md, states/florida/overview.md, states/ohio/overview.md, states/illinois/overview.md, states/pennsylvania/overview.md, states/michigan/overview.md, states/arizona/overview.md, states/new-york/overview.md, states/georgia/overview.md, states/california/overview.md
+- references/update-log.md
+
+---
+
 ## 2026-06-29 -- v1.x -- SMS / Text Messaging Compliance & Templates
 
 **Changes:**

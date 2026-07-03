@@ -174,7 +174,7 @@
 
 | Feature | Federal | Arizona |
 |---------|---------|---------|
-| Individual contribution limit | $3,300/election | **$6,390/election** (CPI-adjusted) |
+| Individual contribution limit | $3,500/election | **$6,390/election** (CPI-adjusted) |
 | Corporate contributions | Prohibited | **Allowed** (same limit as individuals) |
 | Public financing | Presidential only | **Full public financing** (Clean Elections) |
 | Mega PAC concept | No equivalent | **Yes** (doubled limits for qualifying PACs) |

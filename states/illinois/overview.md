@@ -154,7 +154,7 @@ The contribution limits are automatically **suspended** for all candidates in a 
 
 | Feature | Federal | Illinois |
 |---------|---------|---------|
-| Individual contribution limit | $3,300/election | **$5,800/election** (when limits are on) |
+| Individual contribution limit | $3,500/election | **$5,800/election** (when limits are on) |
 | Corporate contributions | Prohibited | **Allowed** ($5,800 limit) |
 | Union contributions | Prohibited (direct) | **Allowed** ($5,800 limit) |
 | PAC-to-candidate limit | $5,000/election | **$58,000/election** |

@@ -97,7 +97,7 @@ You become a **candidate** under federal law when you (or persons acting on your
 
 ### Unauthorized Committees (Independent of Any Candidate)
 - **PAC (Political Action Committee):** Raises funds from a "restricted class" (e.g., a corporation's employees, a union's members) and contributes to candidates. Subject to contribution limits both on receipts and on giving.
-  - **Multicandidate PAC:** A PAC that has been registered for at least 6 months, received contributions from more than 50 people, and contributed to at least 5 federal candidates. Gets higher contribution limits from individuals ($5,000/year vs. $2,900 for non-multicandidate).
+  - **Multicandidate PAC:** A PAC that has been registered for at least 6 months, received contributions from more than 50 people, and contributed to at least 5 federal candidates. Gets higher contribution limits to candidates ($5,000/election vs. $3,500 for non-multicandidate in the 2025-2026 cycle).
   - **Connected (SSF) PAC:** A Separate Segregated Fund established by a corporation, union, trade association, or membership organization. The sponsoring organization can pay administrative costs.
   - **Non-connected PAC:** A PAC with no sponsoring organization. Must pay its own administrative costs from contributions.
 
