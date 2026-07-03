@@ -10,6 +10,13 @@ const PHONE = { width: 390, height: 844 };
 
 test.describe("desktop dropdown", () => {
   test.use({ viewport: DESKTOP });
+  // The hover-driven dropdown is timing-flaky on WebKit specifically (the mouse
+  // moving across the 18px bridge to an item races the 120ms close delay), the same
+  // class of engine flake this file already works around elsewhere (the RAF focus
+  // deferral, the non-Chromium skips). A rare mis-timed run false-failed CI on an
+  // unrelated PR, so retry this block on CI rather than let an engine flake block a
+  // merge; the interaction still has to pass within the retries.
+  test.describe.configure({ retries: process.env.CI ? 2 : 0 });
 
   // Regression: the panel sits 18px below the trigger; before the hover bridge,
   // moving the cursor onto an item crossed dead space, closed the menu, and the
