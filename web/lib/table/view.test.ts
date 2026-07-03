@@ -44,6 +44,21 @@ describe("csvField", () => {
     expect(csvField('she said "hi"')).toBe('"she said ""hi"""');
     expect(csvField("line1\nline2")).toBe('"line1\nline2"');
   });
+  it("neutralizes spreadsheet formula injection (leading = @ + - tab cr)", () => {
+    expect(csvField('=HYPERLINK("http://evil","x")')).toBe(`"'=HYPERLINK(""http://evil"",""x"")"`);
+    expect(csvField("@SUM(A1)")).toBe("'@SUM(A1)");
+    expect(csvField("+1+2")).toBe("'+1+2");
+    expect(csvField("-2-3")).toBe("'-2-3");
+    expect(csvField("\t=1")).toBe("'\t=1");
+  });
+  it("leaves real numbers (including negatives and percentages) un-prefixed", () => {
+    expect(csvField("-5.9%")).toBe("-5.9%");
+    expect(csvField("-1000")).toBe("-1000");
+    expect(csvField("+42")).toBe("+42");
+    // A thousands-separated number is not a formula, so it gets no `'` — but the comma
+    // still triggers ordinary RFC-4180 quoting (correct CSV, not injection defense).
+    expect(csvField("-1,234.50")).toBe('"-1,234.50"');
+  });
 });
 
 describe("toCsv", () => {

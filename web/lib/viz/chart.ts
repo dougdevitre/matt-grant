@@ -141,6 +141,8 @@ export function layoutGrouped(spec: GroupedSpec, opts: { labelGutter?: number } 
   const plotRight = W - rightPad;
 
   const nSeries = spec.series.length;
+  // No series → nothing to plot; also avoids a negative clusterH ((0-1)*subGap).
+  if (nSeries === 0) return { width: W, height: legendH + padY * 2, marks: [] };
   const clusterH = nSeries * subH + (nSeries - 1) * subGap;
   const max = Math.max(0, ...spec.groups.flatMap((g) => g.values));
   const x = linScale(0, max, plotLeft, plotRight);
@@ -163,8 +165,10 @@ export function layoutGrouped(spec: GroupedSpec, opts: { labelGutter?: number } 
     const top = legendH + padY + i * (clusterH + groupGap);
     marks.push({ t: "text", x: gutter - 10, y: top + clusterH / 2, s: g.label, anchor: "end", fill: LABEL, size: 12, weight: 400 });
     g.values.forEach((v, s) => {
+      const series = spec.series[s];
+      if (!series) return; // value with no declared series (shape mismatch) → skip, don't crash
       const y = top + s * (subH + subGap);
-      marks.push({ t: "rect", x: plotLeft, y, w: Math.max(1, x(v) - plotLeft), h: subH, fill: spec.series[s].color, rx: 1 });
+      marks.push({ t: "rect", x: plotLeft, y, w: Math.max(1, x(v) - plotLeft), h: subH, fill: series.color, rx: 1 });
     });
   });
 

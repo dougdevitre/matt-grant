@@ -32,4 +32,11 @@ describe("Resource envelope", () => {
     expect(isEmpty(ok({ type: "FeatureCollection", features: [] }, base))).toBe(true);
     expect(isEmpty(ok({ type: "FeatureCollection", features: [{}] }, base))).toBe(false);
   });
+
+  it("isEmpty() detects record envelopes reporting count:0", () => {
+    // e.g. loadChildActBills() → { count, bills } — an array-only check misses these.
+    expect(isEmpty(ok({ count: 0, bills: [] }, base))).toBe(true);
+    expect(isEmpty(ok({ count: 3, bills: [{}, {}, {}] }, base))).toBe(false);
+    expect(isEmpty(fail("boom", base))).toBe(false); // a hard failure is not "empty"
+  });
 });
