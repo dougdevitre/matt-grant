@@ -18,6 +18,7 @@ import {
   summarizePlan,
   toNumber,
 } from "@/lib/budget/plan";
+import { csvField } from "@/lib/table/view";
 import { StatTile } from "@/components/ui/StatTile";
 import { Meter } from "@/components/ui/Meter";
 
@@ -57,10 +58,7 @@ export default function BudgetBuilder() {
   const setItemQty = (id: string, q: number) => setQty((p) => ({ ...p, [id]: Math.max(0, q) }));
 
   const exportCsv = () => {
-    const cell = (v: unknown) => {
-      const s = String(v ?? "");
-      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-    };
+    const cell = (v: unknown) => csvField(String(v ?? ""));
     const head = ["Item Name", "Category", "Vendor", "Unit Price", "Unit", "Product Link", "Quantity", "Line Total"];
     const lines = [head.join(",")];
     for (const it of items) {

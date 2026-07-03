@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { scoreRows, type PrecinctRow, type ScoredRow, type Strategy } from "@/lib/precincts";
+import { csvField } from "@/lib/table/view";
 
 const tierColor: Record<ScoredRow["tier"], string> = {
   A: "bg-brick/12 text-brick",
@@ -17,7 +18,9 @@ const playColor: Record<ScoredRow["play"], string> = {
 function toCsv(rows: ScoredRow[], strategy: Strategy): string {
   const head = ["rank", "precinct", "municipality", "registered", "turnout_pct", "expected_ballots", "gotv_upside", "tier", "play"];
   const lines = rows.map((r) =>
-    [r.rank, r.name, `"${r.municipality}"`, r.registered, r.turnout ?? "", r.expected, r.gotv, r.tier, r.play].join(","),
+    [r.rank, r.name, r.municipality, r.registered, r.turnout ?? "", r.expected, r.gotv, r.tier, r.play]
+      .map((v) => csvField(String(v)))
+      .join(","),
   );
   return [`# MO-02 precinct targets · strategy=${strategy} · Aug 2024 primary turnout`, head.join(","), ...lines].join("\n");
 }

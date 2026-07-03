@@ -7,6 +7,26 @@ import { saveInfluencer, type InfluencerEditResult } from "@/app/dashboard/influ
 import { DataTable } from "@/components/dashboard/DataTable";
 import { INFLUENCER_TABLE } from "@/lib/table/influencers-config";
 import type { ColumnDef } from "@/lib/table/types";
+import type { ExportColumn } from "@/lib/table/view";
+
+// CSV export keeps every discrete field the old bespoke export had — including the
+// outreach-pipeline fields (Outcome/Alignment/Owner) that the compact table cells
+// merge or omit — so the download stays a complete worklist, not just what's shown.
+const CSV_COLUMNS: ExportColumn<InfluencerRow>[] = [
+  { header: "Name", value: (r) => r.name },
+  { header: "Title", value: (r) => r.title },
+  { header: "Organization", value: (r) => r.org },
+  { header: "Segment", value: (r) => r.segment },
+  { header: "Stage", value: (r) => r.stage },
+  { header: "Influence", value: (r) => String(r.influence) },
+  { header: "Outcome", value: (r) => r.outcome },
+  { header: "Alignment", value: (r) => r.alignment },
+  { header: "Owner", value: (r) => r.owner },
+  { header: "Email", value: (r) => r.email },
+  { header: "Phone", value: (r) => r.phone },
+  { header: "Follow-up", value: (r) => r.followUp },
+  { header: "Next Action", value: (r) => r.nextAction },
+];
 
 // Influencer worklist on the shared <DataTable>: full-text search + segment/stage
 // facets + saved views + column sort from the engine, plus (when `editable`) an
@@ -79,6 +99,7 @@ function EditorRow({ row, onDone }: { row: InfluencerRow; onDone: () => void }) 
   );
 }
 
+// Visible columns are display-only; CSV export is driven by CSV_COLUMNS above.
 const COLUMNS: ColumnDef<InfluencerRow>[] = [
   {
     key: "influence",
@@ -90,9 +111,8 @@ const COLUMNS: ColumnDef<InfluencerRow>[] = [
         <span className="text-slate/30">{"★".repeat(Math.max(0, 5 - r.influence))}</span>
       </span>
     ),
-    csv: (r) => String(r.influence),
   },
-  { key: "name", header: "Name", sortable: true, cell: (r) => <span className="font-semibold text-ink">{r.name}</span>, csv: (r) => r.name },
+  { key: "name", header: "Name", sortable: true, cell: (r) => <span className="font-semibold text-ink">{r.name}</span> },
   {
     key: "role",
     header: "Role / Org",
@@ -102,9 +122,8 @@ const COLUMNS: ColumnDef<InfluencerRow>[] = [
         {r.org ? <span className="block text-xs text-slate/70">{r.org}</span> : null}
       </span>
     ),
-    csv: (r) => [r.title, r.org].filter(Boolean).join(" — "),
   },
-  { key: "segment", header: "Segment", cell: (r) => <span className="whitespace-nowrap text-slate">{r.segment}</span>, csv: (r) => r.segment },
+  { key: "segment", header: "Segment", cell: (r) => <span className="whitespace-nowrap text-slate">{r.segment}</span> },
   {
     key: "stage",
     header: "Stage",
@@ -113,7 +132,6 @@ const COLUMNS: ColumnDef<InfluencerRow>[] = [
         {r.stage || "—"}
       </span>
     ),
-    csv: (r) => r.stage,
   },
   {
     key: "contact",
@@ -126,7 +144,6 @@ const COLUMNS: ColumnDef<InfluencerRow>[] = [
         {!r.email && !r.phone && !r.url ? <span className="text-slate/50">—</span> : null}
       </div>
     ),
-    csv: (r) => [r.email, r.phone, r.url].filter(Boolean).join(" "),
   },
   {
     key: "followUp",
@@ -138,7 +155,6 @@ const COLUMNS: ColumnDef<InfluencerRow>[] = [
         {r.nextAction ? <span className="block text-xs text-slate/70">{r.nextAction}</span> : null}
       </span>
     ),
-    csv: (r) => [r.followUp, r.nextAction].filter(Boolean).join(" — "),
   },
 ];
 
@@ -153,6 +169,7 @@ export function InfluencerTable({ rows, editable = false }: { rows: InfluencerRo
       emptyLabel="No influencers match these filters."
       summary={(f) => `${f.length} of ${rows.length}`}
       minWidthClass="min-w-[60rem]"
+      csvColumns={CSV_COLUMNS}
       csvFilename="mo02-influencers.csv"
       renderDetail={editable ? (row, _ctx, close) => <EditorRow row={row} onDone={close} /> : undefined}
     />

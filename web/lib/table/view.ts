@@ -51,6 +51,28 @@ export function csvField(value: string): string {
   return /[",\n\r]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }
 
+/** A plain header + value accessor for CSV export decoupled from the visible
+ *  columns — lets a list export more (or differently-shaped) fields than it shows
+ *  (e.g. the influencer worklist exports its pipeline fields that share cells). */
+export type ExportColumn<Row, Ctx extends TableCtx = TableCtx> = {
+  header: string;
+  value: (row: Row, ctx: Ctx) => string;
+};
+
+/** Serialize rows to CSV from an explicit ExportColumn list. */
+export function exportCsv<Row, Ctx extends TableCtx>(
+  cols: ExportColumn<Row, Ctx>[],
+  rows: Row[],
+  ctx: Ctx,
+): string {
+  if (cols.length === 0) return "";
+  const lines = [cols.map((c) => csvField(c.header)).join(",")];
+  for (const r of rows) {
+    lines.push(cols.map((c) => csvField(c.value(r, ctx))).join(","));
+  }
+  return lines.join("\r\n");
+}
+
 /**
  * Serialize rows to CSV using each column's `csv` accessor (columns without one are
  * skipped, so a header-only or action column is naturally excluded). The header row
@@ -61,11 +83,8 @@ export function toCsv<Row, Ctx extends TableCtx>(
   rows: Row[],
   ctx: Ctx,
 ): string {
-  const cols = columns.filter((c) => c.csv);
-  if (cols.length === 0) return "";
-  const lines = [cols.map((c) => csvField(c.header)).join(",")];
-  for (const r of rows) {
-    lines.push(cols.map((c) => csvField(c.csv!(r, ctx))).join(","));
-  }
-  return lines.join("\r\n");
+  const cols: ExportColumn<Row, Ctx>[] = columns
+    .filter((c) => c.csv)
+    .map((c) => ({ header: c.header, value: c.csv! }));
+  return exportCsv(cols, rows, ctx);
 }

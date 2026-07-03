@@ -100,7 +100,9 @@ export function DonorTable({ rows, volunteerEmails = [] }: { rows: DonorRow[]; v
       rowKey={(d) => d.id}
       emptyLabel="No donors match these filters."
       minWidthClass="min-w-[34rem]"
-      csvFilename="donors.csv"
+      // The donors page already offers a canonical server-side full-dataset export
+      // (/api/dashboard/export/donors); suppress the client one to avoid two buttons.
+      hideExport
       summary={(f) => `Showing ${dollars(f.reduce((s, d) => s + d.totalCents, 0))} across ${f.length} donor${f.length === 1 ? "" : "s"}`}
     />
   );

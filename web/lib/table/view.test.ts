@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { nextSort, groupRows, csvField, toCsv } from "./view";
+import { nextSort, groupRows, csvField, toCsv, exportCsv, type ExportColumn } from "./view";
 import type { ColumnDef, QueryState } from "./types";
 
 const base: QueryState = { q: "", facets: {}, sort: "amount", dir: "desc" };
@@ -59,5 +59,20 @@ describe("toCsv", () => {
   });
   it("returns empty string when no column exports", () => {
     expect(toCsv([{ key: "x", header: "X", cell: () => null }], [{ name: "a", amt: 1 }], {})).toBe("");
+  });
+});
+
+describe("exportCsv (explicit columns override)", () => {
+  type R = { a: string; b: string };
+  const cols: ExportColumn<R>[] = [
+    { header: "A", value: (r) => r.a },
+    { header: "B", value: (r) => r.b },
+  ];
+  it("exports the given fields regardless of visible columns, with quoting", () => {
+    const out = exportCsv(cols, [{ a: "x", b: 'has "quote"' }], {});
+    expect(out).toBe('A,B\r\nx,"has ""quote"""');
+  });
+  it("returns empty string for no columns", () => {
+    expect(exportCsv([], [{ a: "x", b: "y" }], {})).toBe("");
   });
 });

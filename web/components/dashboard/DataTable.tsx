@@ -3,7 +3,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { DataToolbar } from "@/components/dashboard/DataToolbar";
 import { useTableQuery } from "@/components/dashboard/useTableQuery";
-import { nextSort, groupRows, toCsv } from "@/lib/table/view";
+import { nextSort, groupRows, toCsv, exportCsv, type ExportColumn } from "@/lib/table/view";
 import type { ColumnDef, TableConfig, TableCtx, QueryState } from "@/lib/table/types";
 
 // Shared render layer for dashboard lists: given the existing filter/sort engine
@@ -35,21 +35,29 @@ type Props<Row, Ctx extends TableCtx> = {
   /** Expandable per-row detail (e.g. the influencer inline editor). `close`
    *  collapses the row (for a Cancel/Done button inside the detail). */
   renderDetail?: (row: Row, ctx: Ctx, close: () => void) => ReactNode;
-  /** Filename for the Export CSV button (shown only if a column defines `csv`). */
+  /** Filename for the Export CSV button (shown only when export is available). */
   csvFilename?: string;
+  /** Export these fields instead of the visible columns' `csv` accessors — for lists
+   *  whose CSV should carry more/differently-shaped fields than the table shows. */
+  csvColumns?: ExportColumn<Row, Ctx>[];
+  /** Suppress the built-in Export CSV button (e.g. a page with a server export). */
+  hideExport?: boolean;
 };
 
 export function DataTable<Row, Ctx extends TableCtx>({
   columns, config, rows, ctx, rowKey, emptyLabel, summary,
-  minWidthClass, groupBy, groupOrder, renderDetail, csvFilename,
+  minWidthClass, groupBy, groupOrder, renderDetail, csvFilename, csvColumns, hideExport,
 }: Props<Row, Ctx>) {
   const { state, setState, filtered } = useTableQuery(rows, config, ctx);
   const [open, setOpen] = useState<Set<string>>(() => new Set());
-  const canExport = useMemo(() => columns.some((c) => c.csv), [columns]);
+  const canExport = useMemo(
+    () => !hideExport && (csvColumns ? csvColumns.length > 0 : columns.some((c) => c.csv)),
+    [hideExport, csvColumns, columns],
+  );
   const colSpan = columns.length + (renderDetail ? 1 : 0);
 
   function download() {
-    const csv = toCsv(columns, filtered, ctx);
+    const csv = csvColumns ? exportCsv(csvColumns, filtered, ctx) : toCsv(columns, filtered, ctx);
     if (!csv) return;
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
@@ -186,7 +194,7 @@ function FragmentRow<Row, Ctx extends TableCtx>({
               type="button"
               onClick={onToggle}
               aria-expanded={isOpen}
-              aria-controls={`detail-${rowKey}`}
+              aria-controls={isOpen ? `detail-${rowKey}` : undefined}
               className="rounded-sm border border-line px-2 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate hover:border-ink hover:text-ink"
             >
               {isOpen ? "Close" : "Edit"}
