@@ -19,6 +19,7 @@
     "demographics": "tsx scripts/generate-demographics.ts",
     "test": "vitest run",
     "test:a11y": "playwright test",
+    "test:signin": "playwright test social-signin --project=chromium",
     "compliance": "node scripts/compliance-check.mjs",
     "check:election": "node scripts/check-election-date.mjs",
     "airtable:drift": "tsx scripts/check-airtable-access.ts",
