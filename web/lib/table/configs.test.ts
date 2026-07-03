@@ -2,7 +2,14 @@ import { describe, it, expect } from "vitest";
 import { applyQuery, emptyState } from "./query";
 import { DONOR_TABLE, type DonorCtx } from "./donors-config";
 import { TASK_TABLE } from "./tasks-config";
+import { SUBSCRIBER_TABLE } from "./subscribers-config";
+import { PRINT_TABLE } from "./print-config";
+import { INFLUENCER_TABLE } from "./influencers-config";
 import type { DonorRow, TaskRow } from "@/lib/queries";
+import type { SubscriberRow } from "@/lib/subscribers";
+import type { PrintItem } from "@/lib/data/printTracker";
+import type { InfluencerRow } from "@/lib/influencers/airtable";
+import type { TableConfig } from "./types";
 
 const donor = (over: Partial<DonorRow>): DonorRow => ({
   id: "d", name: "D", email: "d@x.com", city: "Kirkwood", employer: "Acme", occupation: "Engineer",
@@ -86,5 +93,94 @@ describe("TASK_TABLE due facets/sort (ctx today = 2026-07-01)", () => {
   it("due sort orders earliest-first, undated last", () => {
     const state = { ...emptyState(TASK_TABLE), sort: "due", dir: "asc" as const };
     expect(applyQuery(rows, TASK_TABLE, state, ctx).map((r) => r.id)).toEqual(["past", "today", "week", "far", "none"]);
+  });
+});
+
+// ── Configs added with the shared <DataTable> ──
+
+const sub = (over: Partial<SubscriberRow>): SubscriberRow => ({ email: "a@x.com", status: "subscribed", optOut: [], ...over });
+
+describe("SUBSCRIBER_TABLE", () => {
+  const rows = [
+    sub({ email: "sub@x.com" }),
+    sub({ email: "part@x.com", optOut: ["fundraising"] }),
+    sub({ email: "gone@x.com", status: "unsubscribed" }),
+    sub({ email: "bounce@x.com", status: "bounced" }),
+  ];
+  it("status facet filters to the selected statuses", () => {
+    const out = applyQuery(rows, SUBSCRIBER_TABLE, { ...emptyState(SUBSCRIBER_TABLE), facets: { status: ["bounced"] } }, {});
+    expect(out.map((r) => r.email)).toEqual(["bounce@x.com"]);
+  });
+  it("partial facet catches subscribed-with-opt-outs only", () => {
+    const out = applyQuery(rows, SUBSCRIBER_TABLE, { ...emptyState(SUBSCRIBER_TABLE), facets: { partial: true } }, {});
+    expect(out.map((r) => r.email)).toEqual(["part@x.com"]);
+  });
+  it("email search matches", () => {
+    const out = applyQuery(rows, SUBSCRIBER_TABLE, { ...emptyState(SUBSCRIBER_TABLE), q: "gone" }, {});
+    expect(out.map((r) => r.email)).toEqual(["gone@x.com"]);
+  });
+});
+
+const item = (over: Partial<PrintItem>): PrintItem => ({
+  item: "Flyer", category: "Flyers & handouts", template: "t.md", sheet_size: "8.5x11",
+  disclaimer_required: "N", solicitation_tax_line: "N", internal_only: "N",
+  quantity: "", vendor: "", unit_cost: "", order_by_date: "", in_hand_date: "", status: "Draft ready", ...over,
+});
+
+describe("PRINT_TABLE", () => {
+  const rows = [
+    item({ item: "A", disclaimer_required: "Y" }),
+    item({ item: "B", status: "Planned" }),
+    item({ item: "C", internal_only: "Y", category: "Administrative" }),
+  ];
+  it("flag facet matches the disclaimer flag", () => {
+    const out = applyQuery(rows, PRINT_TABLE, { ...emptyState(PRINT_TABLE), facets: { flag: ["disclaimer"] } }, {});
+    expect(out.map((r) => r.item)).toEqual(["A"]);
+  });
+  it("ready facet keeps only ready-to-print statuses", () => {
+    const out = applyQuery(rows, PRINT_TABLE, { ...emptyState(PRINT_TABLE), facets: { ready: true } }, {});
+    expect(out.map((r) => r.item).sort()).toEqual(["A", "C"]);
+  });
+});
+
+const infl = (over: Partial<InfluencerRow>): InfluencerRow => ({
+  id: "i", name: "N", title: "T", org: "O", segment: "Faith", stage: "Researched", influence: 3,
+  outcome: "", alignment: "", owner: "", email: "", phone: "", url: "", nextAction: "", followUp: "", notes: "", ...over,
+});
+
+describe("INFLUENCER_TABLE", () => {
+  const rows = [
+    infl({ id: "hi", influence: 5 }),
+    infl({ id: "lo", influence: 1, segment: "Business" }),
+    infl({ id: "done", outcome: "Endorsed" }),
+  ];
+  it("segment facet filters", () => {
+    const out = applyQuery(rows, INFLUENCER_TABLE, { ...emptyState(INFLUENCER_TABLE), facets: { segment: ["Business"] } }, {});
+    expect(out.map((r) => r.id)).toEqual(["lo"]);
+  });
+  it("open facet excludes resolved outcomes", () => {
+    const out = applyQuery(rows, INFLUENCER_TABLE, { ...emptyState(INFLUENCER_TABLE), facets: { open: true } }, {});
+    expect(out.some((r) => r.id === "done")).toBe(false);
+  });
+  it("default sort is influence descending", () => {
+    const out = applyQuery(rows, INFLUENCER_TABLE, emptyState(INFLUENCER_TABLE), {});
+    expect(out[0].id).toBe("hi");
+  });
+});
+
+describe("every config is structurally sound", () => {
+  // Guard: presets/defaultSort reference real sort keys, facet+sort keys are unique.
+  const configs: TableConfig<unknown>[] = [
+    DONOR_TABLE, TASK_TABLE, SUBSCRIBER_TABLE, PRINT_TABLE, INFLUENCER_TABLE,
+  ] as TableConfig<unknown>[];
+  it.each(configs.map((c) => [c.id, c] as const))("%s: sort keys resolve and are unique", (_id, cfg) => {
+    const sortKeys = cfg.sorts.map((s) => s.key);
+    expect(new Set(sortKeys).size).toBe(sortKeys.length);
+    expect(sortKeys).toContain(cfg.defaultSort.key);
+    const facetKeys = cfg.facets.map((f) => f.key);
+    expect(new Set(facetKeys).size).toBe(facetKeys.length);
+    for (const p of cfg.presets ?? []) {
+      if (p.state.sort) expect(sortKeys).toContain(p.state.sort);
+    }
   });
 });

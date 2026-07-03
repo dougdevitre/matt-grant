@@ -22,19 +22,13 @@ async function unsubSecret(): Promise<string> {
   );
 }
 
-// Subscriber-facing broadcast topics. A subscriber can opt out of any subset
-// (per-topic) or unsubscribe globally. Keys are stable; labels are shown on the
-// preference center and map 1:1 to broadcast templates.
-export const TOPICS = [
-  { key: "news", label: "Campaign news & updates" },
-  { key: "issues", label: "The issues & where Matt stands" },
-  { key: "gotv", label: "Voting & election reminders" },
-  { key: "fundraising", label: "Fundraising appeals" },
-  { key: "events", label: "Event invitations" },
-] as const;
-export type TopicKey = (typeof TOPICS)[number]["key"];
-const TOPIC_KEYS = new Set<string>(TOPICS.map((t) => t.key));
-export const isTopic = (v: unknown): v is TopicKey => typeof v === "string" && TOPIC_KEYS.has(v);
+// Broadcast topics + subscriber types live in a client-safe module (this file
+// imports node:crypto and can't be bundled client-side). Re-exported here so every
+// existing server importer of `@/lib/subscribers` is unchanged.
+import { TOPICS, isTopic } from "./subscribers-shared";
+import type { TopicKey, SuppressStatus, Preferences, SubscriberRow } from "./subscribers-shared";
+export { TOPICS, isTopic };
+export type { TopicKey, SuppressStatus, Preferences, SubscriberRow };
 
 // ───────────────────────── stateless unsubscribe token ─────────────────────────
 async function sign(email: string): Promise<string> {
@@ -68,9 +62,7 @@ export async function verifyUnsubToken(token: string): Promise<string | null> {
 }
 
 // ───────────────────────── preferences / suppression ─────────────────────────
-export type SuppressStatus = "unsubscribed" | "bounced" | "complained";
 const GLOBALLY_SUPPRESSED = new Set<string>(["unsubscribed", "bounced", "complained"]);
-export type Preferences = { status: string; optOut: TopicKey[] };
 
 // Global suppress (one-click unsubscribe, bounces, complaints). Preserves any
 // topic opt-out list (Update, not overwrite).
@@ -119,8 +111,8 @@ export async function getPreferences(email: string): Promise<Preferences> {
 
 // All explicit subscriber records (those who unsubscribed, set topic prefs, or
 // bounced/complained). People with no record are implicitly subscribed and don't
-// appear here — this view is the suppression/preferences ledger.
-export type SubscriberRow = { email: string; status: string; optOut: TopicKey[]; updatedAt?: string };
+// appear here — this view is the suppression/preferences ledger. SubscriberRow is
+// defined in ./subscribers-shared (re-exported above) so client code can use it.
 export async function listSubscribers(limit = 500): Promise<SubscriberRow[]> {
   if (!dbConfigured) return [];
   try {
