@@ -7,6 +7,7 @@ import { updateVolunteer, markVolunteerContacted, setVolunteerCaptain } from "@/
 import { SubmitButton } from "@/components/dashboard/SubmitButton";
 import { DataToolbar } from "@/components/dashboard/DataToolbar";
 import { useTableQuery } from "@/components/dashboard/useTableQuery";
+import { Empty } from "@/components/data/ResourceState";
 import { VOLUNTEER_TABLE, type VolCtx } from "@/lib/table/volunteers-config";
 
 const STATUSES = ["NEW", "CONTACTED", "ACTIVE", "INACTIVE"] as const;
@@ -51,7 +52,7 @@ export function VolunteerBoard({
       <DataToolbar cfg={VOLUNTEER_TABLE} rows={rows} state={state} setState={setState} ctx={ctx} shown={filtered.length} />
 
       {filtered.length === 0 ? (
-        <div className="card p-10 text-center text-slate">No volunteers match these filters.</div>
+        <div className="mt-4"><Empty title="No volunteers match these filters." /></div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((v) => {

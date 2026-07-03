@@ -70,7 +70,7 @@ chooses a state from the envelope, not from per-source ad-hoc flags.
 ## The registry & Data hub
 
 `lib/data/registry.ts` enumerates every source (`id`, `label`, `kind`, `owner`,
-`endpoint`/`manifest`, `enabledEnv`, `cache`, `checkable`, `regen`, `remedy`). It powers the
+`endpoint`/`manifest`, `enabledEnv`, `cache`, `checkable`, `regen`, `remedy`, `detail`). It powers the
 **Data hub** at [`/dashboard/data`](../app/dashboard/data/page.tsx), the live index where staff see
 every source grouped by kind. The hub (`components/data/DataHub.tsx` + `SourceCard.tsx`) adds:
 - a **health bar** + **"Check all"** that live-pings the `checkable` sources at once (status rolled
@@ -78,7 +78,10 @@ every source grouped by kind. The hub (`components/data/DataHub.tsx` + `SourceCa
 - **actionable degraded states** — each unconfigured/degraded source shows its fix via `remedyFor()`
   (the `enabledEnv` to set, or the `regen` command, or the `remedy` string);
 - an **inline preview** (`previewOf()`) — a few real values per source (CSV sample server-side; feature
-  names / rows for a checked geo/api source).
+  names / rows for a checked geo/api source);
+- a **"View data →"** link for sources flagged `detail: true` (currently `census` + `child-act`),
+  opening a full rendered read view at [`/dashboard/data/<id>`](../app/dashboard/data/[id]/page.tsx) —
+  the source's records on the shared `<DataTable>`, not just a health ping.
 
 Update the registry whenever you add a source (and set `checkable`/`regen`/`remedy` where they apply).
 
@@ -135,9 +138,13 @@ All three kinds are now on the pattern — copy the closest one:
 - **API** — `app/api/print/products/route.ts` uses `loadApi` (degrades to an empty catalog when
   `WALGREENS_*` is unset); `components/PrintStudio.tsx` loads it via `useResource`. The imperative
   store-finder/order-submit stay as raw fetch — they're user actions, not declarative loads.
-  `app/api/research/census/route.ts` also returns a `Resource` (ready for a future demographics panel).
+  `app/api/research/census/route.ts` also returns a `Resource`; the route and the read view at
+  `/dashboard/data/census` share `lib/integrations/census/view.ts` (`loadCensusCounties`), rendered by
+  `components/data/CensusTable.tsx` on the shared `<DataTable>`.
 - **Server-side reads** — `lib/data/research.ts` (`loadFieldResearch`, `loadCandidateResearch`) wraps the
   research dashboard's DynamoDB reads in a `Resource`; the pages render `<DegradedNotice>`/`<ProvenanceChip>`
-  for the store-not-connected / not-ingested / stale states. The research read routes (`member/[id]`,
-  `/bills`, `/votes`, `timeline`, `child-act`, `alignment`) return `Resource` envelopes too (no UI consumer
-  — readiness); `health` (503 contract), `graphic` (PNG), `script` (text), and the ingest/cron writes stay as-is.
+  for the store-not-connected / not-ingested / stale states. `child-act` now backs a read view at
+  `/dashboard/data/child-act` (route + page share `lib/analysis/childActView.ts` (`loadChildActBills`),
+  rendered by `components/data/ChildActTable.tsx`). The other research read routes (`member/[id]`, `/bills`,
+  `/votes`, `timeline`, `alignment`) return `Resource` envelopes too (no UI consumer yet — readiness);
+  `health` (503 contract), `graphic` (PNG), `script` (text), and the ingest/cron writes stay as-is.

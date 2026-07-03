@@ -4,17 +4,6 @@
 // (components/dashboard/Notice.tsx).
 import type { Provenance } from "@/lib/data/resource";
 
-export function Loading({ rows = 4, label = "Loading…" }: { rows?: number; label?: string }) {
-  return (
-    <div className="animate-pulse space-y-3 motion-reduce:animate-none" role="status" aria-label={label}>
-      <div className="h-6 w-40 rounded bg-line" />
-      {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="h-12 rounded-lg bg-line/50" />
-      ))}
-    </div>
-  );
-}
-
 export function Empty({ title = "Nothing here yet", children }: { title?: string; children?: React.ReactNode }) {
   return (
     <div className="rounded-sm border border-dashed border-line bg-paper/60 px-5 py-8 text-center text-sm text-slate">
