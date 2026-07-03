@@ -1,6 +1,6 @@
 # Federal Contribution Limits
 
-> **STALENESS WARNING:** Contribution limits are adjusted for inflation in odd-numbered years. The limits in this file reflect the **2025-2026 election cycle** as announced by the FEC. Limits for future cycles will differ. Always verify current limits at [fec.gov/help-candidates-and-committees/candidate-taking-receipts/contribution-limits/](https://www.fec.gov/help-candidates-and-committees/candidate-taking-receipts/contribution-limits/) before relying on any figure.
+> **STALENESS WARNING:** Contribution limits are adjusted for inflation in odd-numbered years. The limits in this file reflect the **2025-2026 election cycle** as announced by the FEC. The indexed **individual / non-multicandidate-PAC → candidate ($3,500/election)** and **individual → national party ($44,300/yr)** figures were re-verified **2026-07-03** against fec.gov (corrected from the prior 2023-2024 values). Other indexed rows should still be confirmed at [fec.gov/help-candidates-and-committees/candidate-taking-receipts/contribution-limits/](https://www.fec.gov/help-candidates-and-committees/candidate-taking-receipts/contribution-limits/) before use. Limits for future cycles will differ.
 
 > **EDUCATIONAL DISCLAIMER:** This is educational information, not legal advice. Consult a campaign finance attorney or the FEC directly for guidance specific to your situation.
 
@@ -12,9 +12,9 @@
 
 ```mermaid
 graph LR
-    IND["Individual\nDonor"] -->|"$3,300\nper election"| CAND["Candidate\nCommittee"]
+    IND["Individual\nDonor"] -->|"$3,500\nper election"| CAND["Candidate\nCommittee"]
     IND -->|"$5,000\nper year"| PAC["Traditional\nPAC"]
-    IND -->|"$41,300\nper year"| PARTY["Party\nCommittee"]
+    IND -->|"$44,300\nper year"| PARTY["Party\nCommittee"]
     IND -->|"Unlimited"| SUPER["Super PAC"]
 
     PAC -->|"$5,000\nper election"| CAND
@@ -33,9 +33,9 @@ graph LR
 
 | Donor | To Candidate Committee (per election) | To National Party Committee (per year) | To State/District/Local Party (per year) | To PAC (Traditional, per year) | To Super PAC |
 |-------|--------------------------------------|---------------------------------------|----------------------------------------|-------------------------------|-------------|
-| **Individual** | $3,300 | $41,300 | $10,000 (combined) | $5,000 | Unlimited |
+| **Individual** | $3,500 | $44,300 | $10,000 (combined) | $5,000 | Unlimited |
 | **Multicandidate PAC** | $5,000 | $15,000 | $5,000 (combined) | $5,000 | Unlimited |
-| **Non-Multicandidate PAC** | $2,900 | $36,500 | $10,000 (combined) | $5,000 | Unlimited |
+| **Non-Multicandidate PAC** | $3,500 | $44,300 | $10,000 (combined) | $5,000 | Unlimited |
 | **National Party Committee** | $5,000 | N/A | Unlimited transfers | $5,000 | Unlimited |
 | **State/District/Local Party** | $5,000 (combined) | Unlimited transfers | Unlimited transfers | $5,000 (combined) | Unlimited |
 | **Corporation / Union** | Prohibited (direct) | Prohibited (direct) | Prohibited (direct) | Prohibited (to traditional PAC; can establish SSF) | Unlimited |
@@ -52,7 +52,7 @@ The Supreme Court struck down aggregate limits in **McCutcheon v. FEC (2014)**. 
 
 Federal contribution limits apply **per election**, not per cycle. The **primary** and **general** elections are separate elections, each with its own limit.
 
-- An individual can give **$3,300 to a candidate for the primary** AND **$3,300 to the same candidate for the general** = $6,600 total for the cycle
+- An individual can give **$3,500 to a candidate for the primary** AND **$3,500 to the same candidate for the general** = $7,000 total for the cycle
 - Runoff elections, special elections, and convention nominations each count as separate elections with separate limits
 - If a candidate runs unopposed in a primary, the primary is still a separate election
 
@@ -150,8 +150,8 @@ Joint fundraising allows two or more committees to raise money together at a sin
 ### Common Structure
 
 A typical presidential JFC might include:
-- The candidate's campaign committee (receives first $3,300 for primary, then $3,300 for general)
-- The national party committee (receives next $41,300)
+- The candidate's campaign committee (receives first $3,500 for primary, then $3,500 for general)
+- The national party committee (receives next $44,300)
 - State party committees (receive up to $10,000 combined each)
 
 This allows a single donor to write **one large check** that is then divided among multiple committees, each within its respective limit. A donor might give $100,000+ to a JFC even though no single committee receives more than its legal limit.
@@ -175,7 +175,7 @@ This allows a single donor to write **one large check** that is then divided amo
 
 ### Family Contributions
 
-- Family members (spouse, parents, children, siblings) are treated as **individual contributors** -- each subject to the individual limit ($3,300/election)
+- Family members (spouse, parents, children, siblings) are treated as **individual contributors** -- each subject to the individual limit ($3,500/election)
 - A candidate's spouse can contribute up to the individual limit from their own funds, plus jointly held funds can be used by the candidate as personal funds
 - Minor children can contribute from their own funds if the decision is genuinely theirs (FEC scrutinizes contributions from minors)
 

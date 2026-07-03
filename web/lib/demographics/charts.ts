@@ -34,8 +34,10 @@ export const CHARTS: Record<string, ChartDef> = {
     id: "mo02-child-under15",
     title: "Children under 15 are declining across MO-02",
     alt:
-      "Children under 15 fell in most MO-02 counties from 2020 to 2025: St. Louis County −5.9%, " +
-      "Jefferson −5.6%, St. Charles −3.8%, Franklin −3.2%; Lincoln (+5.0%) and Warren (+0.6%) grew.",
+      "Children under 15 fell across MO-02's core counties from 2020 to 2025: St. Louis County −5.9% " +
+      "and Jefferson County −5.6%. These are the two MO-02 counties in the St. Louis MSA dataset; the " +
+      "district's three rural counties (Washington, Crawford, Gasconade) are outside this dataset, and " +
+      "MO-02 includes only the western/central part of St. Louis County.",
     source: DEMOGRAPHICS_SOURCE,
     hasExport: false,
     table: () => ({

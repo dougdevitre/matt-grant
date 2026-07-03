@@ -141,7 +141,7 @@ Despite having no contribution limits, Pennsylvania does prohibit:
 
 | Feature | Federal | Pennsylvania |
 |---------|---------|-------------|
-| Individual contribution limit | $3,300/election | **No limit** |
+| Individual contribution limit | $3,500/election | **No limit** |
 | Corporate contributions | Prohibited | **Allowed, no limit** |
 | Union contributions | Prohibited (direct) | **Allowed, no limit** |
 | PAC-to-candidate limit | $5,000/election | **No limit** |

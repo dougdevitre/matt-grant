@@ -134,7 +134,7 @@
 
 | Feature | Federal | Georgia |
 |---------|---------|---------|
-| Individual contribution limit | $3,300/election | **$7,600/election** (statewide); lower for legislative/local |
+| Individual contribution limit | $3,500/election | **$7,600/election** (statewide); lower for legislative/local |
 | Corporate contributions | Prohibited | **Allowed** (up to the limit) |
 | Union contributions | Prohibited (direct) | **Allowed** (up to the limit) |
 | Runoff elections | No federal runoffs | **Majority-vote runoffs** (separate election for limits) |

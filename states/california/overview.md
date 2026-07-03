@@ -145,7 +145,7 @@ Limits are per election. Adjusted for CPI in odd-numbered years.
 
 ## Key Differences from Federal Rules
 
-- **Higher individual limits:** $5,500 per election vs. federal $3,300.
+- **Higher individual limits:** $5,500 per election vs. federal $3,500.
 - **Corporate contributions allowed:** Federal law prohibits direct corporate treasury
   contributions; California allows them subject to the individual limit.
 - **Top-two primary:** Fundamentally different from federal partisan primaries.

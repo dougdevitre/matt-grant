@@ -127,7 +127,7 @@ Florida uses a fixed schedule of reporting deadlines that varies by election yea
 
 | Feature | Federal | Florida |
 |---------|---------|---------|
-| Individual contribution limit | $3,300/election (2023-24) | **$3,000/election** |
+| Individual contribution limit | $3,500/election (2025-26) | **$3,000/election** |
 | Corporate contributions | Prohibited | **Allowed** (up to $3,000) |
 | Union contributions | Prohibited (direct) | **Allowed** (up to $3,000) |
 | Cash contribution cap | $100 | **$50** |

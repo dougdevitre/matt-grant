@@ -145,7 +145,7 @@ based on CPI, rounded to the nearest $25.
 
 ## Key Differences from Federal Rules
 
-- **Lower contribution limits:** Federal individual limit is $3,300/election (2025-2026);
+- **Lower contribution limits:** Federal individual limit is $3,500/election (2025-2026);
   Missouri is $2,875/election for all office levels.
 - **Corporate and union contributions allowed:** Unlike federal law, which prohibits
   direct corporate and union treasury contributions to candidates, Missouri permits them

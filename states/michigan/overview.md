@@ -143,7 +143,7 @@
 
 | Feature | Federal | Michigan |
 |---------|---------|---------|
-| Individual contribution limit | $3,300/election | **$7,150/election** (statewide); lower for legislative |
+| Individual contribution limit | $3,500/election | **$7,150/election** (statewide); lower for legislative |
 | Corporate contributions | Prohibited | **Prohibited** (same) |
 | Union contributions | Prohibited (direct) | **Prohibited** (direct, same) |
 | Cash cap | $100 | **$20** (much lower) |

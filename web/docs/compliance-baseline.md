@@ -24,7 +24,7 @@ The legal standard this app is audited against. Matt Grant is a candidate for th
 
 ## 1. FEC disclaimers ("Paid for by") — *verified 2026-06-27*
 
-**Authorized committee:** Matt Grant for Congress — FEC committee [C00945394](https://www.fec.gov/data/committee/C00945394/) (principal campaign committee; registered 2026-03-27).
+**Authorized committee:** Matt Grant for Congress — FEC committee [C00945394](https://www.fec.gov/data/committee/C00945394/) (principal campaign committee; registered March 2026 — confirm the exact registration date on the FEC committee page).
 
 **Required on:** the public campaign website; mass email (more than 500 substantially similar messages); all public communications (mass mail, phone banks of 500+, ads); printed campaign materials (palm cards, mailers, yard signs, flyers); broadcast/digital ads.
 

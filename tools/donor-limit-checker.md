@@ -8,7 +8,7 @@ flowchart TD
     A --> Z[Other type - check specific rules]
 
     B --> C{What jurisdiction?}
-    C --> D["Federal: $3,300/election"]
+    C --> D["Federal: $3,500/election"]
     C --> E["State: Check state limits"]
 
     D & E --> F{"What is their
@@ -54,12 +54,12 @@ STEP 2: WHAT TYPE OF DONOR?
   └─ Other entity → CHECK JURISDICTION-SPECIFIC RULES
 
 STEP 3: INDIVIDUAL DONOR — FEDERAL LIMITS (2025-2026 cycle)
-  a. Per-election limit to a candidate: $3,300
+  a. Per-election limit to a candidate: $3,500
      - Primary and general are SEPARATE elections
-     - Donor can give $3,300 for primary + $3,300 for general = $6,600 total
+     - Donor can give $3,500 for primary + $3,500 for general = $7,000 total
   b. Calculate: SUM of all prior contributions from this donor 
      to this committee for this specific election
-  c. Remaining = $3,300 - sum from (b)
+  c. Remaining = $3,500 - sum from (b)
   d. IF remaining > 0 → ACCEPT up to remaining amount
      IF remaining = 0 → REJECT (maxed out for this election)
      IF remaining < 0 → ERROR: over-limit; must refund excess
@@ -71,7 +71,7 @@ STEP 3: INDIVIDUAL DONOR — FEDERAL LIMITS (2025-2026 cycle)
 STEP 4: PAC DONOR — FEDERAL LIMITS (2025-2026 cycle)
   a. Multicandidate PAC per-election limit: $5,000
      - Primary + general = $10,000 total possible
-  b. Non-multicandidate PAC per-election limit: $2,900
+  b. Non-multicandidate PAC per-election limit: $3,500 (indexed, same as the individual limit)
   c. Calculate remaining same as Step 3
   d. Verify PAC is registered and has multicandidate status if claiming 
      $5,000 limit (must have been registered 6+ months, received 
@@ -109,13 +109,13 @@ STEP 7: LLC CONTRIBUTIONS
 
 | Donor Type | To Candidate (per election) | To National Party (per year) | To State/Local Party (per year) | To PAC (per year) |
 |---|---|---|---|---|
-| Individual | $3,300 | $41,300 | $10,000 (combined) | $5,000 |
+| Individual | $3,500 | $44,300 | $10,000 (combined) | $5,000 |
 | Multicandidate PAC | $5,000 | $15,000 | $5,000 (combined) | $5,000 |
-| Non-multicandidate PAC | $3,300 | $41,300 | $10,000 (combined) | $5,000 |
+| Non-multicandidate PAC | $3,500 | $44,300 | $10,000 (combined) | $5,000 |
 | National Party | $5,000 | — | — | $5,000 |
 | State/Local Party | $5,000 (combined) | — | — | $5,000 (combined) |
 
-*Note: These limits are indexed for inflation and adjusted in odd-numbered years. Always verify current limits at fec.gov.*
+*Note: These limits are indexed for inflation and adjusted in odd-numbered years. The individual/non-multicandidate-PAC → candidate ($3,500/election) and → national party ($44,300/yr) figures were verified 2026-07-03 against fec.gov. Always re-verify current limits at fec.gov before use.*
 
 ---
 
@@ -167,15 +167,15 @@ Type: Individual
 Race: US House, IL-13 (Federal)
 Election: Primary
 
-Per-election limit:          $3,300.00
+Per-election limit:          $3,500.00
 Previously contributed:      $1,500.00
-Remaining capacity:          $1,800.00
+Remaining capacity:          $2,000.00
 Proposed contribution:       $1,000.00
 
 RESULT: ✓ ACCEPT
 Amount accepted:             $1,000.00
 New aggregate:               $2,500.00
-Remaining after this gift:   $800.00
+Remaining after this gift:   $1,000.00
 ```
 
 ```
@@ -199,8 +199,8 @@ Type: Individual
 Race: US House, IL-13 (Federal)
 Election: General
 
-Per-election limit:          $3,300.00
-Previously contributed:      $3,300.00
+Per-election limit:          $3,500.00
+Previously contributed:      $3,500.00
 Remaining capacity:          $0.00
 Proposed contribution:       $500.00
 
@@ -208,7 +208,7 @@ RESULT: ✗ REJECT — MAXED OUT
 Donor has reached the maximum for this election.
 Options:
   1. Designate to a different election (if donor agrees)
-     - Primary remaining: $3,300.00
+     - Primary remaining: $3,500.00
   2. Return the contribution
   3. Hold for recount/runoff (if applicable)
 ```

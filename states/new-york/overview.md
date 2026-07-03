@@ -172,7 +172,7 @@ New York's new **Public Campaign Finance Board** will administer a statewide mat
 
 | Feature | Federal | New York State | NYC (Matching Participants) |
 |---------|---------|---------------|---------------------------|
-| Individual contribution limit | $3,300/election | $9,400-$69,700/election (varies by office) | $1,000-$2,000/election |
+| Individual contribution limit | $3,500/election | $9,400-$69,700/election (varies by office) | $1,000-$2,000/election |
 | Corporate contributions | Prohibited | **Allowed** ($5,000/year cap) | **Prohibited** |
 | LLC treatment | Treated as partnerships/individuals | **Treated as corporations** | **Prohibited** |
 | Public financing | Presidential only | **Launching 2026** (statewide) | **8:1 matching** |
