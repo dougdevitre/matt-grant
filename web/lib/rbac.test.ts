@@ -10,6 +10,7 @@ import {
   ROLE_BADGE,
   isStaffRole,
   homeFor,
+  postAuthDestination,
   type Capability,
   type Role,
 } from "@/lib/rbac";
@@ -244,6 +245,21 @@ describe("rbac invariants (anti-drift)", () => {
     expect(homeFor("partner").href).toBe("/dashboard/peace-room");
     expect(homeFor("supporter").href).toBe("/dashboard/peace-room");
     expect(homeFor(null).href).toBe("/community"); // not-yet-stamped floor
+  });
+
+  it("postAuthDestination lands each role on the right home after sign-in", () => {
+    // The user-facing contract: a signed-in STAFF user (incl. social sign-in via
+    // Google/Facebook/LinkedIn resolving to a staff email) lands on the dashboard.
+    expect(postAuthDestination("admin")).toBe("/dashboard");
+    expect(postAuthDestination("captain")).toBe("/dashboard");
+    expect(postAuthDestination("volunteer")).toBe("/dashboard");
+    // Peace-Room tiers land on the shared board.
+    expect(postAuthDestination("partner")).toBe("/dashboard/peace-room");
+    expect(postAuthDestination("donor")).toBe("/dashboard/peace-room");
+    expect(postAuthDestination("supporter")).toBe("/dashboard/peace-room");
+    // A brand-new signup whose role hasn't stamped yet falls to the public floor.
+    expect(postAuthDestination(null)).toBe("/community");
+    expect(postAuthDestination(undefined)).toBe("/community");
   });
 });
 
