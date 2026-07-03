@@ -37,7 +37,6 @@ export function BarChart({ spec, labelGutter }: { spec: ChartSpec; labelGutter?:
       viewBox={`0 0 ${width} ${height}`}
       width="100%"
       height={height}
-      role="img"
       aria-hidden="true"
       focusable="false"
       className="max-w-full"

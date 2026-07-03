@@ -59,6 +59,28 @@ describe("layoutBars", () => {
     expect(bars[1].fill).toBe(DIVERGING.negative);
   });
 
+  it("left-anchors single-sign data instead of pinning zero to an edge (MO-02 case)", () => {
+    // Two same-sign (negative) bars: must NOT create an interior zero baseline at the
+    // right edge with near-full-width bars. Bars anchor at the left axis, magnitude-scaled.
+    const spec: BarsSpec = {
+      kind: "bars",
+      colorMode: "diverging",
+      bars: [
+        { label: "STL", value: -5.9, display: "-5.9%" },
+        { label: "Jeff", value: -5.6, display: "-5.6%" },
+      ],
+    };
+    const { marks } = layoutBars(spec, { labelGutter: 130 });
+    const bars = rects(marks);
+    // Both bars share the same left edge (the axis) — not right-anchored.
+    expect(bars[0].x).toBe(bars[1].x);
+    // The larger-magnitude decline (-5.9) is the longer bar.
+    expect(bars[0].w).toBeGreaterThan(bars[1].w);
+    // The bars do not span nearly the whole plot (the old degenerate render did).
+    const lineMark = marks.find((m) => m.t === "line") as Extract<Mark, { t: "line" }>;
+    expect(bars[0].x).toBeCloseTo(lineMark.x1, 5); // axis is at the bars' left edge
+  });
+
   it("gives a near-zero value a minimum-width sliver so it stays visible", () => {
     const spec: BarsSpec = {
       kind: "bars",

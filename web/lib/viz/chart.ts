@@ -84,22 +84,36 @@ export function layoutBars(spec: BarsSpec, opts: { labelGutter?: number } = {}):
   const plotRight = W - valueCol;
 
   const values = spec.bars.map((b) => b.value);
-  const max = Math.max(0, ...values);
-  const min = Math.min(0, ...values);
-  const x = linScale(min, max, plotLeft, plotRight);
-  const zeroX = x(0);
-
   const height = padY * 2 + spec.bars.length * rowH + (spec.bars.length - 1) * gap;
   const marks: Mark[] = [];
 
-  // Zero baseline (or the left axis when all bars share a sign).
-  marks.push({ t: "line", x1: zeroX, y1: padY - 4, x2: zeroX, y2: height - padY + 4, stroke: AXIS });
+  // Only draw an interior zero baseline when the data actually crosses zero. For a
+  // single-sign set (e.g. two counties both declining), pinning "0" to a plot edge
+  // and growing bars the full width from it exaggerates small values and wastes the
+  // diverging layout — so anchor those at the left axis and scale by magnitude, the
+  // same form the ranked charts use.
+  const crossesZero = values.some((v) => v < 0) && values.some((v) => v > 0);
+
+  let barGeom: (v: number) => { left: number; w: number };
+  if (crossesZero) {
+    const x = linScale(Math.min(...values), Math.max(...values), plotLeft, plotRight);
+    const zeroX = x(0);
+    marks.push({ t: "line", x1: zeroX, y1: padY - 4, x2: zeroX, y2: height - padY + 4, stroke: AXIS });
+    barGeom = (v) => {
+      const bx = x(v);
+      return { left: Math.min(zeroX, bx), w: Math.max(2, Math.abs(bx - zeroX)) };
+    };
+  } else {
+    // Left-anchored magnitude bars; the left axis is the baseline.
+    const maxMag = Math.max(1, ...values.map((v) => Math.abs(v)));
+    const mag = linScale(0, maxMag, plotLeft, plotRight);
+    marks.push({ t: "line", x1: plotLeft, y1: padY - 4, x2: plotLeft, y2: height - padY + 4, stroke: AXIS });
+    barGeom = (v) => ({ left: plotLeft, w: Math.max(2, mag(Math.abs(v)) - plotLeft) });
+  }
 
   spec.bars.forEach((b, i) => {
     const y = padY + i * (rowH + gap);
-    const bx = x(b.value);
-    const left = Math.min(zeroX, bx);
-    const w = Math.max(2, Math.abs(bx - zeroX)); // min 2u so a ~0 value is still visible
+    const { left, w } = barGeom(b.value);
     marks.push({ t: "rect", x: left, y, w, h: rowH, fill: barColor(spec.colorMode, b), rx: 2 });
     // Category label (left gutter, right-aligned toward the bars).
     marks.push({ t: "text", x: gutter - 10, y: y + rowH / 2, s: b.label, anchor: "end", fill: LABEL, size: 13, weight: b.highlight ? 700 : 400 });

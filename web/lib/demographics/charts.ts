@@ -1,8 +1,7 @@
 // Chart manifest: the bridge between the validated datasets (schema.ts) and the
 // <Figure> component. Each entry carries the citation, a text alternative (the
-// chart's takeaway in words — WCAG 1.1.1), and an always-available data table so a
-// figure is accessible and useful BEFORE its Datawrapper SVG export lands. When the
-// static export is committed to web/public/charts/<id>.svg, flip `hasExport` true.
+// chart's takeaway in words — WCAG 1.1.1), an in-app chart() geometry rendered as
+// inline SVG, and an always-available data table as the accessible fallback.
 import "server-only";
 import {
   DEMOGRAPHICS_SOURCE,
@@ -23,14 +22,11 @@ export type ChartDef = {
   /** Text alternative — states the chart's finding in words (never "chart of X"). */
   alt: string;
   source: string;
-  /** True once web/public/charts/<id>.svg is committed (Datawrapper export). */
-  hasExport: boolean;
   table: () => ChartTable;
   /**
-   * Optional in-app chart geometry. When present, <Figure> renders an inline SVG
-   * (lib/viz + BarChart) from the same validated rows as table(), so a visual ships
-   * with no Datawrapper export step. The SVG is decorative; table() stays the a11y
-   * text alternative. Omit to fall back to Datawrapper-SVG-or-table.
+   * In-app chart geometry. When present, <Figure> renders an inline SVG (lib/viz +
+   * BarChart) from the same validated rows as table(); the SVG is decorative and
+   * table() stays the accessible text alternative. Omit to render table-only.
    */
   chart?: () => ChartSpec;
   /** Left-gutter width override (chart units) for long category labels. */
@@ -55,7 +51,6 @@ export const CHARTS: Record<string, ChartDef> = {
       "district's three rural counties (Washington, Crawford, Gasconade) are outside this dataset, and " +
       "MO-02 includes only the western/central part of St. Louis County.",
     source: DEMOGRAPHICS_SOURCE,
-    hasExport: false,
     table: () => ({
       columns: ["County", "2020", "2025", "Change", "% change"],
       rows: mo02Counties(rows(loadChildUnder15ByCounty())).map((r) => [
@@ -81,7 +76,6 @@ export const CHARTS: Record<string, ChartDef> = {
       "Among the 50 largest U.S. metros, St. Louis ranks 3rd-worst for the percentage decline in " +
       "children under 5 (2020–2025, −11.2%), behind only Los Angeles and San Jose.",
     source: DEMOGRAPHICS_SOURCE,
-    hasExport: false,
     table: () => ({
       columns: ["Rank", "Metro", "Fewer children under 5", "% decline"],
       rows: rows(loadUnder5DeclineByMetro())
@@ -117,7 +111,6 @@ export const CHARTS: Record<string, ChartDef> = {
       "From 2020 to 2025 St. Charles County's under-15 share fell from 19% to 17% while the 65+ share " +
       "rose from 16% to 19% — most of the county's +21,233 growth was residents age 60 and older.",
     source: DEMOGRAPHICS_SOURCE,
-    hasExport: false,
     table: () => ({
       columns: ["Age group", "2020", "2025", "Change"],
       rows: rows(loadStCharlesAgeStructure()).map((r) => [r.ageGroup, r.pop2020, r.pop2025, r.change]),
@@ -142,7 +135,6 @@ export const CHARTS: Record<string, ChartDef> = {
       "St. Louis has the 9th-highest aging index among the 50 largest U.S. metros in 2025, with 20.1% " +
       "of residents age 65 and older.",
     source: DEMOGRAPHICS_SOURCE,
-    hasExport: false,
     table: () => ({
       columns: ["Rank", "Metro", "Aging index 2025", "% 65+ (2025)"],
       rows: rows(loadAgingIndexByMetro())
@@ -174,7 +166,6 @@ export const CHARTS: Record<string, ChartDef> = {
       "In the St. Louis metro, the youngest cohorts shrank (under-5 down 18,267 since 2020) while 65+ " +
       "cohorts grew — the under-5 group is now the smallest age band under 75.",
     source: DEMOGRAPHICS_SOURCE,
-    hasExport: false,
     table: () => ({
       columns: ["Age group", "2020", "2025", "Change"],
       rows: rows(loadMsaPopulationByAge()).map((r) => [r.ageGroup, r.y2020, r.y2025, r.change]),
