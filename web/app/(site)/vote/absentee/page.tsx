@@ -12,8 +12,54 @@ export const metadata: Metadata = {
 // provides the plain-language walkthrough. Confirm dates and sites there.
 const SOS_GOVOTE = "https://www.sos.mo.gov/elections/govotemissouri"; // the Missouri voting-rules page
 const SOS_HOME = "https://www.sos.mo.gov";
-const STL_COUNTY = "https://www.stlouiscountymovotes.gov";
-const STC_COUNTY = "https://www.sccmo.org";
+
+// MO-02 (2025 enacted map) = the St. Louis County portion of the district plus
+// Jefferson, Washington, Crawford, and Gasconade counties. St. Charles is NOT in
+// MO-02. County election-authority contacts verified 2026-07-03 against the official
+// county sites. Each rural county's election authority is its County Clerk.
+const AUTHORITIES = [
+  {
+    name: "St. Louis County Board of Elections",
+    lines: ["725 Northwest Plaza Dr, St. Ann, MO 63074"],
+    tel: "+13146151833",
+    telLabel: "314.615.1833 / RelayMO 711",
+    email: "boecabsentee@stlouiscountymo.gov",
+    site: "https://www.stlouiscountymovotes.gov",
+    siteLabel: "stlouiscountymovotes.gov",
+  },
+  {
+    name: "Jefferson County Clerk (Election Authority)",
+    lines: ["729 Maple St, Suite G17, Hillsboro, MO 63050", "Mail: P.O. Box 100, Hillsboro, MO 63050"],
+    tel: "+16367975486",
+    telLabel: "636.797.5486",
+    site: "https://www.jeffcomo.org",
+    siteLabel: "jeffcomo.gov",
+  },
+  {
+    name: "Washington County Clerk",
+    lines: ["102 N Missouri St, Potosi, MO 63664"],
+    tel: "+15734367704",
+    telLabel: "573.436.7704",
+    site: "https://www.washcoclerkmo.gov",
+    siteLabel: "washcoclerkmo.gov",
+  },
+  {
+    name: "Crawford County Clerk",
+    lines: ["302 W Main St, #AS, Steelville, MO 65565"],
+    tel: "+15737752376",
+    telLabel: "573.775.2376",
+    site: "https://crawfordcountymo.net",
+    siteLabel: "crawfordcountymo.net",
+  },
+  {
+    name: "Gasconade County Clerk (Election Authority)",
+    lines: ["119 E First St, Suite 2, Hermann, MO 65041"],
+    tel: "+15734865427",
+    telLabel: "573.486.5427",
+    site: "https://gasconadecounty.org",
+    siteLabel: "gasconadecounty.org",
+  },
+];
 // Printable official SOS request form (served from /public) + St. Louis County
 // Library mobile printing, for voters who can't complete the application online.
 const FORM_PDF = "/absentee-ballot-request-form.pdf";
@@ -58,8 +104,9 @@ export default function AbsenteePage() {
           election only. It does not change your registration.
         </p>
         <p className="mt-3">
-          Dates, deadlines, and sites below reflect Missouri law and the St. Louis County and St.
-          Charles County election authorities — rules can change, so always confirm with your
+          Dates, deadlines, and sites below reflect Missouri law and the MO-02 county election
+          authorities — the St. Louis County portion of the district plus Jefferson, Washington,
+          Crawford, and Gasconade counties. Rules can change, so always confirm with your county
           election authority or the{" "}
           <a className="underline" href={SOS_GOVOTE} target="_blank" rel="noopener noreferrer">
             Missouri Secretary of State
@@ -207,28 +254,31 @@ export default function AbsenteePage() {
 
       {/* Election authorities */}
       <h2 className="mt-12 font-display text-2xl font-semibold text-ink">Your election authority</h2>
+      <p className="mt-3 max-w-prose text-sm text-slate">
+        Find the one for <strong className="text-ink">your</strong> county — MO-02 (2025 map) spans the
+        St. Louis County portion of the district plus Jefferson, Washington, Crawford, and Gasconade
+        counties.
+      </p>
       <div className="mt-4 grid gap-6 md:grid-cols-2">
-        <div className="card p-6 text-sm text-slate">
-          <p className="font-display text-base font-semibold text-ink">St. Louis County Board of Elections</p>
-          <p className="mt-2">725 Northwest Plaza Dr, St. Ann, MO 63074</p>
-          <p className="mt-1">
-            <a className="underline" href="tel:+13146151833">314.615.1833</a> / RelayMO 711
-          </p>
-          <p className="mt-1">
-            <a className="underline" href="mailto:boecabsentee@stlouiscountymo.gov">boecabsentee@stlouiscountymo.gov</a>
-          </p>
-          <p className="mt-1">
-            <a className="underline" href={STL_COUNTY} target="_blank" rel="noopener noreferrer">stlouiscountymovotes.gov</a>
-          </p>
-        </div>
-        <div className="card p-6 text-sm text-slate">
-          <p className="font-display text-base font-semibold text-ink">St. Charles County Election Authority</p>
-          <p className="mt-2">397 Turner Blvd, St. Peters, MO 63376</p>
-          <p className="mt-1">
-            <a className="underline" href={STC_COUNTY} target="_blank" rel="noopener noreferrer">sccmo.org</a>{" "}
-            (search &ldquo;Absentee Voting&rdquo;)
-          </p>
-        </div>
+        {AUTHORITIES.map((a) => (
+          <div key={a.name} className="card p-6 text-sm text-slate">
+            <p className="font-display text-base font-semibold text-ink">{a.name}</p>
+            {a.lines.map((l) => (
+              <p key={l} className="mt-2">{l}</p>
+            ))}
+            <p className="mt-1">
+              <a className="underline" href={`tel:${a.tel}`}>{a.telLabel}</a>
+            </p>
+            {a.email && (
+              <p className="mt-1">
+                <a className="underline" href={`mailto:${a.email}`}>{a.email}</a>
+              </p>
+            )}
+            <p className="mt-1">
+              <a className="underline" href={a.site} target="_blank" rel="noopener noreferrer">{a.siteLabel}</a>
+            </p>
+          </div>
+        ))}
       </div>
       <p className="mt-4 max-w-prose text-sm text-slate">
         Not sure which county you&apos;re in? Check your registration and find your local election
@@ -244,9 +294,10 @@ export default function AbsenteePage() {
       </div>
 
       <p className="mt-8 max-w-prose text-xs text-slate">
-        This is educational voting information based on Missouri law and the St. Louis County and St.
-        Charles County election authorities. Rules can change — always confirm with your election
-        authority. The voting process applies to all voters regardless of candidate preference. For
+        This is educational voting information based on Missouri law and the MO-02 county election
+        authorities (St. Louis, Jefferson, Washington, Crawford, and Gasconade counties). Rules can
+        change — always confirm with your election authority. The voting process applies to all voters
+        regardless of candidate preference. For
         the official Missouri voting rules, see{" "}
         <a className="underline" href={SOS_GOVOTE} target="_blank" rel="noopener noreferrer">sos.mo.gov</a>.{" "}
         {CAMPAIGN.paidForBy}

@@ -46,9 +46,23 @@ export function groupRows<Row>(
   return out;
 }
 
-/** Quote a single CSV field per RFC-4180 (only when it must be quoted). */
+// A field that a spreadsheet would evaluate as a formula on open: it begins with
+// = @ TAB or CR, or with +/- while NOT being a plain number. RFC-4180 quoting does
+// NOT defuse these — Excel/Sheets still run `"=HYPERLINK(...)"` — so they must be
+// neutralized separately (prefix a `'`). Real negatives / "-5.9%" stay untouched.
+const NUMERIC = /^[+-]?(\d[\d,]*)(\.\d+)?%?$/;
+function neutralizeFormula(value: string): string {
+  if (value === "") return value;
+  const c = value[0];
+  const dangerous = c === "=" || c === "@" || c === "\t" || c === "\r" || ((c === "+" || c === "-") && !NUMERIC.test(value));
+  return dangerous ? `'${value}` : value;
+}
+
+/** Serialize a single CSV field: neutralize spreadsheet formula injection, then
+ *  quote+escape per RFC-4180 (only when it must be quoted). */
 export function csvField(value: string): string {
-  return /[",\n\r]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+  const v = neutralizeFormula(value);
+  return /[",\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
 }
 
 /** A plain header + value accessor for CSV export decoupled from the visible

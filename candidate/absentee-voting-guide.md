@@ -7,14 +7,15 @@ plan now. This guide walks you through every option, every deadline, and
 every step so your ballot **counts**.
 
 > **STALENESS WARNING:** Dates, deadlines, notary requirements, and early-voting
-> sites below reflect Missouri law (RSMo Ch. 115) and the St. Louis County and
-> St. Charles County election authorities as understood for the August 4, 2026
-> primary. Election rules and site lists change — **always confirm current
-> deadlines, hours, and locations with your election authority** (contacts at the
-> bottom of this guide) or the Missouri Secretary of State at https://www.sos.mo.gov
+> sites below reflect Missouri law (RSMo Ch. 115) and the election authorities for
+> MO-02 (2025 enacted map): the **St. Louis County portion of the district plus
+> Jefferson, Washington, Crawford, and Gasconade counties** (St. Charles is NOT in
+> MO-02). Election rules and site lists change — **always confirm current
+> deadlines, hours, and locations with your county election authority** (contacts at
+> the bottom of this guide) or the Missouri Secretary of State at https://www.sos.mo.gov
 > before you rely on a date. **Dates and notary rules last verified June 24, 2026**
-> against the Missouri SOS and St. Louis County / St. Charles County election
-> authorities.
+> against the Missouri SOS; **MO-02 county election-authority contacts verified
+> July 3, 2026** against the official county websites.
 
 > **EDUCATIONAL DISCLAIMER:** This is educational voting information, not legal
 > advice. The voting process applies to all voters regardless of candidate
@@ -83,9 +84,10 @@ The simplest path for most people.
 - Mid-County Library — Clayton
 - St. Johns UCC — Mehlville
 
-**St. Charles County early voting** (confirm at sccmo.org):
-- St. Charles County Election Authority — 397 Turner Blvd, St. Peters
-- Element St. Charles — 1450 Wall St, St. Charles (Mon–Fri, 9 a.m.–3 p.m.)
+**Outside St. Louis County?** Early and absentee voting in the district's rural
+counties happens at each **County Clerk's office** (Jefferson, Washington, Crawford,
+and Gasconade — full contacts at the bottom of this guide). Call ahead to confirm
+early-voting hours, or look up your election authority at sos.mo.gov.
 
 ---
 
@@ -190,14 +192,29 @@ month.**
 
 ## ☎️ Your election authority
 
+Find the one for **your** county — MO-02 (2025 map) spans the St. Louis County
+portion of the district plus Jefferson, Washington, Crawford, and Gasconade counties.
+
 **St. Louis County Board of Elections**
 725 Northwest Plaza Dr, St. Ann, MO 63074
 📞 314.615.1833 / RelayMO 711 · ✉️ boecabsentee@stlouiscountymo.gov
 🌐 stlouiscountymovotes.gov
 
-**St. Charles County Election Authority**
-397 Turner Blvd, St. Peters, MO 63376
-🌐 sccmo.org (search "Absentee Voting")
+**Jefferson County Clerk (Election Authority)**
+729 Maple St, Suite G17, Hillsboro, MO 63050 (mail: P.O. Box 100, Hillsboro, MO 63050)
+📞 636.797.5486 · 🌐 jeffcomo.gov
+
+**Washington County Clerk**
+102 N Missouri St, Potosi, MO 63664
+📞 573.436.7704 · 🌐 washcoclerkmo.gov
+
+**Crawford County Clerk**
+302 W Main St, #AS, Steelville, MO 65565
+📞 573.775.2376 · 🌐 crawfordcountymo.net
+
+**Gasconade County Clerk (Election Authority)**
+119 E First St, Suite 2, Hermann, MO 65041
+📞 573.486.5427 · 🌐 gasconadecounty.org
 
 Not sure which county you're in? Check your registration and find your
 local election authority at **sos.mo.gov**.
@@ -214,10 +231,11 @@ Every vote for **Matt Grant** starts with a plan. Make yours today.
 
 ---
 
-*This is educational voting information based on Missouri law and the
-St. Louis County and St. Charles County election authorities. Rules can
-change — always confirm with your election authority. The voting process
-applies to all voters regardless of candidate preference.*
+*This is educational voting information based on Missouri law and the MO-02
+county election authorities (St. Louis, Jefferson, Washington, Crawford, and
+Gasconade counties). Rules can change — always confirm with your election
+authority. The voting process applies to all voters regardless of candidate
+preference.*
 
 *Paid for by Matt Grant for Congress.*
 

@@ -119,4 +119,26 @@ describe("layoutGrouped", () => {
     const g65 = dataBars.slice(-2);
     expect(g65[1].w).toBeGreaterThan(g65[0].w);
   });
+
+  it("skips values with no declared series instead of crashing (shape mismatch)", () => {
+    const spec: GroupedSpec = {
+      kind: "grouped",
+      series: [{ name: "2025", color: BRAND.field }], // 1 series…
+      groups: [{ label: "0-14", values: [100, 90, 80] }], // …but 3 values
+    };
+    const { marks } = layoutGrouped(spec);
+    // Only the first value (matching the single series) becomes a data bar; the two
+    // extra values are skipped rather than dereferencing an undefined series.color.
+    // 1 legend swatch (y=6, h=12) + 1 data bar (h=subH=11) = 2 rects total.
+    const all = rects(marks);
+    expect(all).toHaveLength(2);
+    expect(all.filter((r) => r.h === 11)).toHaveLength(1); // exactly one data bar
+  });
+
+  it("returns an empty plot when there are no series", () => {
+    const spec: GroupedSpec = { kind: "grouped", series: [], groups: [{ label: "x", values: [1] }] };
+    const { marks, height } = layoutGrouped(spec);
+    expect(rects(marks)).toHaveLength(0);
+    expect(height).toBeGreaterThan(0); // non-negative, no (0-1)*gap underflow
+  });
 });
