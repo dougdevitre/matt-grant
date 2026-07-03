@@ -10,6 +10,7 @@ import {
   ROLE_BADGE,
   isStaffRole,
   homeFor,
+  postAuthDestination,
   type Capability,
   type Role,
 } from "@/lib/rbac";
@@ -244,6 +245,28 @@ describe("rbac invariants (anti-drift)", () => {
     expect(homeFor("partner").href).toBe("/dashboard/peace-room");
     expect(homeFor("supporter").href).toBe("/dashboard/peace-room");
     expect(homeFor(null).href).toBe("/community"); // not-yet-stamped floor
+  });
+
+  it("postAuthDestination lands each role on the right home after sign-in", () => {
+    // The user-facing contract: a signed-in STAFF user (incl. social sign-in via
+    // Google/Facebook/LinkedIn resolving to a staff email) lands on the dashboard.
+    expect(postAuthDestination("admin")).toBe("/dashboard");
+    expect(postAuthDestination("captain")).toBe("/dashboard");
+    expect(postAuthDestination("volunteer")).toBe("/dashboard");
+    // A donor lands on their private giving portal (consistent with homeFor).
+    expect(postAuthDestination("donor")).toBe("/my-giving");
+    // Peace-Room tiers land on the shared board.
+    expect(postAuthDestination("partner")).toBe("/dashboard/peace-room");
+    expect(postAuthDestination("supporter")).toBe("/dashboard/peace-room");
+    // A brand-new signup whose role hasn't stamped yet falls to the public floor.
+    expect(postAuthDestination(null)).toBe("/community");
+    expect(postAuthDestination(undefined)).toBe("/community");
+  });
+
+  it("postAuthDestination agrees with homeFor for every role (single source of truth)", () => {
+    for (const role of [...ROLES, null] as (Role | null)[]) {
+      expect(postAuthDestination(role)).toBe(homeFor(role).href);
+    }
   });
 });
 
