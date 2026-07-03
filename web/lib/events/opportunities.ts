@@ -1,7 +1,9 @@
-// Curated catalog of recurring MO-02 appearance opportunities an admin can turn
-// into a draft event in one click. This is LOGISTICAL public-event data — a
-// shortlist of places a campaign might consider appearing — NOT a schedule, an
-// endorsement, or a claim that the campaign is attending or invited.
+// Curated catalog of recurring MO-02 (and adjacent-county) appearance opportunities
+// an admin can turn into a draft event in one click. This is LOGISTICAL public-event
+// data — a shortlist of places a campaign might consider appearing — NOT a schedule,
+// an endorsement, or a claim that the campaign is attending or invited. A few high-draw
+// stops sit just outside the district (e.g. Franklin County fairs) and are included as
+// border outreach — they are labeled by their true county, not asserted as in-district.
 //
 // COMPLIANCE: every entry carries a source link and a `verifiedAt` date. Annual
 // dates shift year to year, so each is a TYPICAL window to confirm with the
@@ -12,9 +14,11 @@
 // appear — see lib/events/priority.ts for the rubric. It's a judgment call on
 // public events, not a prediction; staff can override per event after creating.
 //
-// Counties use the FIPS-backed labels the district resolver understands
-// (St. Louis 189, Jefferson 099, Franklin 071, Washington 221). Type maps onto
-// the existing EVENT_TYPES so "Add to calendar" produces a normal draft event.
+// `county` is the event's true county label. The in-district MO-02 counties are
+// St. Louis (part), Jefferson, Washington, Crawford, and Gasconade (see
+// lib/events/districts.ts MO02_COUNTY_FIPS); Franklin is adjacent, NOT in MO-02, and
+// appears here only as border outreach. Type maps onto the existing EVENT_TYPES so
+// "Add to calendar" produces a normal draft event.
 
 import type { EventType, EventPriority, EventInput } from "@/lib/events/types";
 

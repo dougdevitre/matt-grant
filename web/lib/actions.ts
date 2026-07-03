@@ -18,12 +18,12 @@ export const AREA_SUGGESTIONS = [
 ];
 
 // Major public school districts serving the MO-02 area (the St. Louis County
-// communities above + Franklin County). Quick-picks only — free text is allowed,
-// and district lines don't follow congressional lines, so confirm your own
-// district officially. Not an exhaustive or authoritative MO-02 list.
+// communities above). Quick-picks only — free text is allowed, and district lines
+// don't follow congressional lines, so confirm your own district officially. Not an
+// exhaustive or authoritative MO-02 list.
 export const SCHOOL_DISTRICT_SUGGESTIONS = [
   "Rockwood School District", "Parkway School District", "Kirkwood School District",
-  "Lindbergh Schools", "Mehlville School District", "Washington School District",
+  "Lindbergh Schools", "Mehlville School District",
 ];
 
 // Fill {area}/{issue}/{tag}/{n} in an action template.

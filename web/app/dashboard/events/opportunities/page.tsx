@@ -30,7 +30,7 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
 
       <HowTo
         steps={[
-          "A starter shortlist of recurring MO-02 appearances — fairs, festivals, July 4 parades, and county GOP events — worth considering.",
+          "A starter shortlist of recurring appearances in MO-02 and a few adjacent border counties — fairs, festivals, July 4 parades, and county GOP events — worth considering.",
           "These are public-event listings, not a schedule or an invitation. Click the source to verify this year's dates and whether the campaign can appear.",
           "“Add to calendar” creates a DRAFT event prefilled from the opportunity and opens it — set the real date/time, then publish when confirmed.",
         ]}
