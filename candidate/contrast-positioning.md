@@ -6,7 +6,7 @@ The opponent is never the subject of a sentence; the *gap* is. Voters draw the c
 
 > **Guardrails (non-negotiable).** No fabricated or paraphrased quotes attributed to anyone. No
 > personal or derogatory characterizations. Any factual claim about a public record needs a
-> `source_url` before publish (see `campaign.config.md` §5 and §7). This file is strategy, not
+> `source_url` before publish (see `references/ethics-and-guardrails.md`). This file is strategy, not
 > opposition research, and not legal advice — have election counsel confirm disclaimers and
 > compliance. Numbers below are illustrative planning placeholders.
 
@@ -67,7 +67,7 @@ Voters discount challengers who only assert difference. Back each pillar with a 
 the incumbent's posture can't easily match:
 
 - **Accessibility:** publish a standing town-hall calendar across every county in the current map
-  (verify which map is in legal effect — see `campaign.config.md` §1). Showing up *is* the contrast.
+  (verify which map is in legal effect — see `candidate/data-and-map-plan.md`). Showing up *is* the contrast.
 - **Term limits:** sign a public self-imposed term-limit pledge. The act, not the ad, is the message.
 - **Children first:** the CHILD Protection Act one-pager — a concrete bill no one else is carrying.
 - **Results:** a short record of coalition wins from his legal career (sourced, candidate-approved).
@@ -76,7 +76,7 @@ the incumbent's posture can't easily match:
 
 ## 5. Audience routing (where the unnamed contrast does the most work)
 
-- **New-map rural counties** (verify: Jefferson/Franklin/Washington/Crawford/Gasconade): lead with
+- **New-map rural counties** (Jefferson/Washington/Crawford/Gasconade): lead with
   "shows up everywhere, not just the wealthy suburbs" — accessibility + district-first, no name.
 - **Suburban St. Louis County Republicans:** lead with results + affordability discipline.
 - **First-time primary voters:** lead with fresh energy + term limits.

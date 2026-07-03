@@ -137,7 +137,7 @@ It is illegal to:
 - Knowingly accept a contribution made in the name of another
 
 **Examples of violations:**
-- Person A gives Person B $3,300 and asks Person B to contribute it to Candidate X -- this is an illegal straw donor contribution
+- Person A gives Person B $3,500 and asks Person B to contribute it to Candidate X -- this is an illegal straw donor contribution
 - A corporation gives bonuses to employees with the understanding that they will contribute to a specific candidate
 - A parent contributes in their minor child's name without the child's genuine participation
 
@@ -224,7 +224,7 @@ A sole proprietorship is legally the same as the individual owner. Contributions
   1. The decision to contribute is **genuinely** the minor's own
   2. The funds contributed are **owned or controlled by the minor** (allowance, earned income, savings)
   3. The contribution is **not directed or controlled by a parent** or other adult
-- The FEC scrutinizes contributions from very young children -- a $3,300 contribution from a 5-year-old will raise red flags
+- The FEC scrutinizes contributions from very young children -- a $3,500 contribution from a 5-year-old will raise red flags
 - There is no minimum age for making a contribution, but the genuineness requirement effectively limits contributions from very young children
 
 ### Contributions via Cryptocurrency

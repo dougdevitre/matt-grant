@@ -51,13 +51,26 @@ export function isDegraded<T>(r: Resource<T>): boolean {
   return r.ok && !!r.meta.degraded;
 }
 
-/** True when the resource is ok but carries no rows (empty manifest / empty FeatureCollection). */
+/** True when the resource is ok but carries no rows (empty manifest / empty
+ *  FeatureCollection / a record envelope reporting `count: 0`). */
 export function isEmpty<T>(r: Resource<T>): boolean {
   if (!r.ok) return false;
-  const d = r.data as unknown;
+  return isEmptyData(r.data as unknown);
+}
+
+/** Shared emptiness test over a raw payload: an empty array, an empty
+ *  FeatureCollection, or an object whose own `count` is 0 (research/CHILD-Act
+ *  envelopes shaped `{ count, bills }` — an array check alone misses these). */
+export function isEmptyData(d: unknown): boolean {
   if (Array.isArray(d)) return d.length === 0;
-  if (d && typeof d === "object" && "features" in d) {
-    return Array.isArray((d as { features: unknown[] }).features) && (d as { features: unknown[] }).features.length === 0;
+  if (d && typeof d === "object") {
+    if ("features" in d) {
+      const f = (d as { features?: unknown[] }).features;
+      return Array.isArray(f) && f.length === 0;
+    }
+    if (typeof (d as { count?: unknown }).count === "number") {
+      return (d as { count: number }).count === 0;
+    }
   }
   return d == null;
 }

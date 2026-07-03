@@ -7,18 +7,9 @@
 // Accepts either a Resource envelope OR a bare payload (back-compat with the
 // existing routes that return {...FeatureCollection, meta} or {configured,...}).
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { type Provenance, type Resource } from "./resource";
+import { type Provenance, type Resource, isEmptyData } from "./resource";
 
 export type ResourceUiState = "idle" | "loading" | "ready" | "empty" | "error" | "degraded";
-
-function isEmptyData(d: unknown): boolean {
-  if (Array.isArray(d)) return d.length === 0;
-  if (d && typeof d === "object" && "features" in d) {
-    const f = (d as { features?: unknown[] }).features;
-    return Array.isArray(f) && f.length === 0;
-  }
-  return d == null;
-}
 
 // Coerce any response into a Resource. Recognizes our envelope; otherwise wraps a
 // bare payload, lifting a `.meta` block if the route already provides one.
