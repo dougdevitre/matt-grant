@@ -15,7 +15,8 @@ What the repo *does* control is the **landing after sign-in**:
 1. `app/sign-in/[[...sign-in]]/page.tsx` and `app/sign-up/[[...sign-up]]/page.tsx` render Clerk with `fallbackRedirectUrl="/go"`.
 2. `app/go/page.tsx` (the post-auth router) resolves the signed-in user's role via `staffGate()` and redirects using `postAuthDestination(role)` (`lib/rbac.ts`):
    - staff (**admin / captain / volunteer**) → **`/dashboard`**
-   - Peace-Room tiers (**partner / donor / supporter**) → **`/dashboard/peace-room`**
+   - **donor** → **`/my-giving`** (their private giving portal)
+   - Peace-Room tiers (**partner / supporter**) → **`/dashboard/peace-room`**
    - not-yet-stamped brand-new signup (role `null`) → **`/community`** (public floor)
 3. A user bounced from a protected page keeps their own `redirect_url` (set in `middleware.ts`); only *direct* sign-ins fall through to `/go`.
 
@@ -83,9 +84,9 @@ Also verify:
 ## Troubleshooting
 
 - **Redirect/URI mismatch error at the provider:** the URI in the provider console must match the one Clerk shows **exactly** (scheme, host, path, trailing slash).
-- **Signed in but landed on the wrong page:** check the resolved role. `postAuthDestination` sends only staff to `/dashboard`; donor/supporter/partner go to `/dashboard/peace-room`, and an unstamped account goes to `/community`. Add the email to `DASHBOARD_ALLOWLIST` or stamp a staff role to reach `/dashboard`.
+- **Signed in but landed on the wrong page:** check the resolved role. `postAuthDestination` sends only staff to `/dashboard`; a donor goes to `/my-giving`, partner/supporter go to `/dashboard/peace-room`, and an unstamped account goes to `/community`. Add the email to `DASHBOARD_ALLOWLIST` or stamp a staff role to reach `/dashboard`.
 - **No social buttons appear:** the connection isn't enabled in the Clerk dashboard, or the app is in demo mode (Clerk keys unset).
 
-## Known follow-up (not a blocker)
+## Resolved
 
-`postAuthDestination` (app/go) and `homeFor` (the "your account" nav link, also in `lib/rbac.ts`) **disagree for donors**: post-auth sends a donor to `/dashboard/peace-room`, while their account link points to `/my-giving`. Both are intentional today; reconciling them is a separate product decision, tracked here so it isn't lost.
+`postAuthDestination` (app/go) now delegates to `homeFor` (`lib/rbac.ts`), so the post-sign-in landing and the "your account" nav link are a single mapping. A donor lands on their giving portal (`/my-giving`) after signing in, consistent with their account link.

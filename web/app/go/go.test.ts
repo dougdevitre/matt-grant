@@ -32,9 +32,12 @@ describe("GoPage post-auth redirect", () => {
     expect(await runGoFor("volunteer")).toBe("/dashboard");
   });
 
-  it("sends Peace-Room tiers (partner/donor/supporter) to the shared board", async () => {
+  it("sends a donor to their private giving portal", async () => {
+    expect(await runGoFor("donor")).toBe("/my-giving");
+  });
+
+  it("sends Peace-Room tiers (partner/supporter) to the shared board", async () => {
     expect(await runGoFor("partner")).toBe("/dashboard/peace-room");
-    expect(await runGoFor("donor")).toBe("/dashboard/peace-room");
     expect(await runGoFor("supporter")).toBe("/dashboard/peace-room");
   });
 

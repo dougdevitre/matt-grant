@@ -231,16 +231,11 @@ export function homeFor(role: Role | null | undefined): { href: string; label: s
   return { href: "/community", label: "Our Community" }; // not-yet-stamped floor
 }
 
-// Where the post-auth router (app/go) sends a freshly signed-in user, by
-// capability. Kept capability-driven (not role-string branches) so it tracks the
-// RBAC matrix automatically: staff (viewOverview) land on the dashboard; anyone
-// who can see the shared Peace Room (partner/donor/supporter) lands there; a
-// brand-new signup whose role hasn't stamped yet (can() is false for null) falls
-// through to the public community floor. NOTE: this intentionally differs from
-// homeFor() for donors (here: Peace Room; homeFor: /my-giving) — reconciling that
-// is a separate decision, tracked in docs/social-auth-runbook.md.
+// Where the post-auth router (app/go) sends a freshly signed-in user. Delegates to
+// homeFor so the landing after sign-in and the "your account" nav link stay the
+// single same mapping: staff → /dashboard, donor → their private giving portal,
+// partner/supporter → the shared Peace Room, and a not-yet-stamped signup → the
+// public community floor.
 export function postAuthDestination(role: Role | null | undefined): string {
-  if (can(role, "viewOverview")) return "/dashboard"; // admin / captain / volunteer
-  if (can(role, "viewPeaceRoom")) return "/dashboard/peace-room"; // partner / donor / supporter
-  return "/community"; // supporter-floor default for a not-yet-stamped signup
+  return homeFor(role).href;
 }
