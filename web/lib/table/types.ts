@@ -2,6 +2,11 @@
 // + sort across dashboard lists (Volunteers, Donors, Tasks). A list supplies a
 // declarative TableConfig; the pure engine in query.ts applies it, and DataToolbar
 // renders the controls. No server calls — all client-side over already-loaded rows.
+//
+// TableConfig owns search/facets/sort. ColumnDef (below) is the separate, optional
+// render half consumed by <DataTable>: the config filters/sorts the rows, the
+// columns say how to draw them. Type-only React import so query.ts stays React-free.
+import type { ReactNode } from "react";
 
 export type SortDir = "asc" | "desc";
 export type FacetType = "select" | "multi" | "boolean";
@@ -39,6 +44,25 @@ export type QueryState = {
 };
 
 export type Preset = { name: string; state: Partial<QueryState> };
+
+export type Align = "left" | "right";
+
+/**
+ * One column of a <DataTable>. `cell` draws the value; when `sortable` is true the
+ * header becomes a click-to-sort toggle and `key` must match a SortDef.key in the
+ * config (so the click reuses the existing comparator + URL state). `csv`, when
+ * present on any column, enables the table's Export button.
+ */
+export type ColumnDef<Row, Ctx extends TableCtx = TableCtx> = {
+  key: string;
+  header: string;
+  align?: Align; // default "left"; use "right" for numeric / date columns
+  sortable?: boolean;
+  cell: (row: Row, ctx: Ctx) => ReactNode;
+  csv?: (row: Row, ctx: Ctx) => string;
+  cellClassName?: string;
+  headerClassName?: string;
+};
 
 export type TableConfig<Row> = {
   id: string; // URL/localStorage namespace
