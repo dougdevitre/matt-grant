@@ -2,6 +2,8 @@
 
 How to turn the Social Command Center from **manual/staged** mode into **live API auto-posting** for X, LinkedIn, Facebook, and Instagram. This is the one-time setup the campaign does once per platform; day-to-day use is covered in [`social-command-center.md`](./social-command-center.md).
 
+> **Not to be confused with user login.** This runbook connects the campaign's *own* accounts for **posting**. For **"Sign in with Google / Facebook / LinkedIn"** (end-user login → dashboard), see [`social-auth-runbook.md`](./social-auth-runbook.md).
+
 > **This is operational setup, not legal advice.** Each platform's API terms, review process, and political-content rules are theirs — read them before you post at scale.
 
 ---

@@ -230,3 +230,12 @@ export function homeFor(role: Role | null | undefined): { href: string; label: s
   if (role === "supporter") return { href: "/dashboard/peace-room", label: "Our Community" };
   return { href: "/community", label: "Our Community" }; // not-yet-stamped floor
 }
+
+// Where the post-auth router (app/go) sends a freshly signed-in user. Delegates to
+// homeFor so the landing after sign-in and the "your account" nav link stay the
+// single same mapping: staff → /dashboard, donor → their private giving portal,
+// partner/supporter → the shared Peace Room, and a not-yet-stamped signup → the
+// public community floor.
+export function postAuthDestination(role: Role | null | undefined): string {
+  return homeFor(role).href;
+}
