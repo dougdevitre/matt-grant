@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { CATEGORIES, EVENT_COLOR, MAP_CENTER, MAP_ZOOM, type Category } from "@/lib/mapData";
+import { TURNOUT_RAMP, MAP_FALLBACK, EVENT_DRAFT, GOLD_INK } from "@/lib/viz/palette";
 
 const EVENT_TYPE_LABEL: Record<string, string> = {
   rally: "Rally", "town-hall": "Town hall", fundraiser: "Fundraiser", canvass: "Canvass",
@@ -81,7 +82,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
       }
 
       // Precinct turnout columns: real MO-02 Nov-2024 turnout (clamped for the
-      // height/color ramp; raw value shown in the popup). Height + heat = turnout.
+      // height/color ramp; raw value shown in the popup). Height + shade = turnout.
       // Ramp tuned to PRIMARY turnout (~8–40%) so precinct variation reads clearly.
       const t: maplibregl.ExpressionSpecification = ["coalesce", ["get", "turnout"], 0];
       m.addSource("precincts", { type: "geojson", data: precinctsRef.current });
@@ -92,7 +93,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         paint: {
           "fill-extrusion-color": [
             "interpolate", ["linear"], t,
-            8, "#d8d5cc", 18, "#E0A53B", 28, "#cf7a39", 40, "#B5343B",
+            8, TURNOUT_RAMP[0], 18, TURNOUT_RAMP[1], 28, TURNOUT_RAMP[2], 40, TURNOUT_RAMP[3],
           ],
           "fill-extrusion-height": ["*", t, 130],
           "fill-extrusion-base": 0,
@@ -108,8 +109,8 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
       const countyTurnoutColor: maplibregl.ExpressionSpecification = [
         "case",
         ["has", "turnoutPct"],
-        ["interpolate", ["linear"], ["get", "turnoutPct"], 10, "#d8d5cc", 20, "#E0A53B", 30, "#cf7a39", 40, "#B5343B"],
-        "#5b7d6f",
+        ["interpolate", ["linear"], ["get", "turnoutPct"], 10, TURNOUT_RAMP[0], 20, TURNOUT_RAMP[1], 30, TURNOUT_RAMP[2], 40, TURNOUT_RAMP[3]],
+        MAP_FALLBACK.jefferson,
       ];
       const countyTurnoutOpacity: maplibregl.ExpressionSpecification = ["case", ["has", "turnoutPct"], 0.42, 0.18];
       m.addLayer({
@@ -132,7 +133,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         const pr = f.properties as { Precinct?: string; turnoutPct?: number };
         const note = pr.turnoutPct != null
           ? `County turnout (Aug '24): <strong>${pr.turnoutPct}%</strong>`
-          : `<span style="color:#5b7d6f">boundary only — no turnout feed</span>`;
+          : `<span style="color:${MAP_FALLBACK.jefferson}">boundary only — no turnout feed</span>`;
         new maplibregl.Popup({ closeButton: false, offset: 8 })
           .setLngLat(e.lngLat)
           .setHTML(`<strong>Jefferson Co.</strong><br/>${pr.Precinct ?? "Precinct"}<br/>${note}`)
@@ -147,7 +148,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         type: "fill",
         layout: { visibility: showExtra ? "visible" : "none" },
         paint: {
-          "fill-color": ["case", ["has", "turnoutPct"], ["interpolate", ["linear"], ["get", "turnoutPct"], 10, "#d8d5cc", 20, "#E0A53B", 30, "#cf7a39", 40, "#B5343B"], "#7c6f8e"],
+          "fill-color": ["case", ["has", "turnoutPct"], ["interpolate", ["linear"], ["get", "turnoutPct"], 10, TURNOUT_RAMP[0], 20, TURNOUT_RAMP[1], 30, TURNOUT_RAMP[2], 40, TURNOUT_RAMP[3]], MAP_FALLBACK.extra],
           "fill-opacity": ["case", ["has", "turnoutPct"], 0.42, 0.16],
         },
       });
@@ -164,7 +165,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         const pr = f.properties as { county?: string; NAME?: string; turnoutPct?: number };
         const note = pr.turnoutPct != null
           ? `County turnout (Aug '24): <strong>${pr.turnoutPct}%</strong>`
-          : `<span style="color:#7c6f8e">Census VTD — no turnout feed</span>`;
+          : `<span style="color:${MAP_FALLBACK.extra}">Census VTD — no turnout feed</span>`;
         new maplibregl.Popup({ closeButton: false, offset: 8 })
           .setLngLat(e.lngLat)
           .setHTML(`<strong>${pr.county ?? ""} Co.</strong><br/>${pr.NAME ?? ""}<br/>${note}`)
@@ -245,7 +246,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
             13, ["match", ["get", "priority"], 1, 14, 2, 11, 3, 8, 11],
           ],
           // Draft events read lighter (gold) than published (green).
-          "circle-color": ["case", ["==", ["get", "status"], "PUBLISHED"], EVENT_COLOR, "#E0A53B"],
+          "circle-color": ["case", ["==", ["get", "status"], "PUBLISHED"], EVENT_COLOR, EVENT_DRAFT],
           // Heavier ring on P1 reinforces the priority read.
           "circle-stroke-width": ["match", ["get", "priority"], 1, 3.5, 2.5],
           "circle-stroke-color": "#ffffff",
@@ -261,7 +262,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         const when = p.start ? new Date(p.start).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "";
         const lines = [
           `<strong>${p.title}</strong>`,
-          `<span style="color:${EVENT_COLOR}">${EVENT_TYPE_LABEL[p.type] ?? "Event"}</span>${p.priority ? ` · <strong>P${p.priority}</strong>` : ""}${p.status !== "PUBLISHED" ? ` · <span style="color:#9a6f1a">${p.status.toLowerCase()}</span>` : ""}`,
+          `<span style="color:${EVENT_COLOR}">${EVENT_TYPE_LABEL[p.type] ?? "Event"}</span>${p.priority ? ` · <strong>P${p.priority}</strong>` : ""}${p.status !== "PUBLISHED" ? ` · <span style="color:${GOLD_INK}">${p.status.toLowerCase()}</span>` : ""}`,
           when,
           p.locationName ? p.locationName : "",
           `<a href="/dashboard/events/${encodeURIComponent(p.id)}" style="display:inline-block;margin-top:6px;color:#B5343B;font-weight:700;text-decoration:none">Open event →</a>`,

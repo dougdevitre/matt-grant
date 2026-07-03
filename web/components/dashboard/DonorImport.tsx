@@ -45,7 +45,7 @@ export function DonorImport() {
           <p className="text-xs text-slate">
             Preview: <span className="font-semibold text-field">{preview.valid.length} ready</span>
             {withAmount > 0 && <span className="text-slate"> · {withAmount} with an amount</span>}
-            {preview.skipped > 0 && <span className="text-[#9a6f1a]"> · {preview.skipped} skipped (missing name)</span>}
+            {preview.skipped > 0 && <span className="text-gold-ink"> · {preview.skipped} skipped (missing name)</span>}
             {preview.mappedColumns.length > 0 && <span className="text-slate"> · columns: {preview.mappedColumns.join(", ")}</span>}
           </p>
         )}

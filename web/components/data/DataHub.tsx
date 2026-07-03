@@ -17,7 +17,9 @@ export type HubRow = {
   sample?: string[];
 };
 
-const KINDS: SourceKind[] = ["csv", "api", "geo"];
+// Derived from KIND_LABEL (not a hand-kept literal) so adding a SourceKind can't
+// silently drop a group — a new kind renders as soon as it has a label.
+const KINDS = Object.keys(KIND_LABEL) as SourceKind[];
 
 function Pill({ color, n, label }: { color: string; n: number; label: string }) {
   if (n === 0) return null;

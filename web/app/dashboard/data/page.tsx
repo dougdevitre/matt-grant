@@ -21,7 +21,11 @@ export default async function DataHubPage() {
 
   const rows: HubRow[] = SOURCES.map((entry) => {
     const row: HubRow = { entry };
-    if (entry.kind === "api") row.enabled = entry.enabledEnv ? entry.enabledEnv.every(envPresent) : true;
+    // Airtable shares the api pre-check: env-var presence drives the config badge.
+    // (envPresent sees only the env var, not the SSM fallback — the live "Check
+    // now" via /api/airtable/health/<base> is the authoritative signal.)
+    if (entry.kind === "api" || entry.kind === "airtable")
+      row.enabled = entry.enabledEnv ? entry.enabledEnv.every(envPresent) : true;
     if (entry.id === "print-tracker") {
       row.liveCount = print.ok ? print.meta.count : undefined;
       row.sample = print.ok ? print.data.slice(0, 3).map((i) => i.item) : [];
@@ -41,9 +45,10 @@ export default async function DataHubPage() {
         </Link>
       </PageHeader>
       <p className="mb-6 max-w-prose text-sm text-slate">
-        Every data source the app reads — CSV manifests, live APIs, and geo layers — in one place,
-        each shown with the same provenance and state. CSV rows ship in the build; API rows degrade to
-        a notice when their keys are unset; geo layers fall back to sample boundaries. See{" "}
+        Every data source the app reads — CSV manifests, live APIs, geo layers, and Airtable bases — in
+        one place, each shown with the same provenance and state. CSV rows ship in the build; API rows
+        degrade to a notice when their keys are unset; geo layers fall back to sample boundaries; each
+        Airtable base can be reachability-checked against the workspace token. See{" "}
         <span className="font-mono text-xs">web/docs/data-architecture.md</span> for the contract.
       </p>
       <HowTo

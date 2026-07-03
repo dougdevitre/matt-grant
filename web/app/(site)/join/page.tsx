@@ -3,8 +3,9 @@ import type { Metadata } from "next";
 import { CAMPAIGN } from "@/lib/site";
 import { JoinUpdatesForm } from "@/components/join/JoinUpdatesForm";
 import { JoinPledgeForm } from "@/components/join/JoinPledgeForm";
+import { JoinCta } from "@/components/join/JoinCta";
+import { clerkEnabled } from "@/lib/auth";
 
-export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Join the movement",
   description:
@@ -14,18 +15,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/join" },
 };
 
-// True if a Clerk session exists. Wrapped so keyless/demo builds still render the
-// page (CTAs then point straight at the detail forms).
-async function isSignedIn(): Promise<boolean> {
-  try {
-    const { auth } = await import("@clerk/nextjs/server");
-    const { userId } = await auth();
-    return !!userId;
-  } catch {
-    return false;
-  }
-}
-
 type Door = {
   key: string;
   glyph: string;
@@ -33,17 +22,15 @@ type Door = {
   tagline: string;
   give: string;
   account: string;
-  cta: string;
-  href: string;
-  external?: boolean;
   accent: string; // border/title accent
+  // Static CTA (anchor) …
+  cta?: string;
+  href?: string;
+  // … or an auth-aware CTA resolved client-side (volunteer / captain).
+  auth?: { path: string; signedInLabel: string; signedOutLabel: string };
 };
 
-export default async function JoinPage() {
-  const signedIn = await isSignedIn();
-  const volunteerHref = signedIn ? "/join/volunteer" : "/sign-up?redirect_url=/join/volunteer";
-  const captainHref = signedIn ? "/join/captain" : "/sign-up?redirect_url=/join/captain";
-
+export default function JoinPage() {
   const doors: Door[] = [
     {
       key: "updates",
@@ -63,8 +50,7 @@ export default async function JoinPage() {
       tagline: "Give time — doors, calls, events, and more.",
       give: "A few hours + your skills",
       account: "Free account",
-      cta: signedIn ? "Build my profile" : "Sign up to volunteer",
-      href: volunteerHref,
+      auth: { path: "/join/volunteer", signedInLabel: "Build my profile", signedOutLabel: "Sign up to volunteer" },
       accent: "text-brick",
     },
     {
@@ -85,8 +71,7 @@ export default async function JoinPage() {
       tagline: "Recruit and lead a crew of volunteers.",
       give: "Leadership + ongoing time",
       account: "Account + quick review",
-      cta: signedIn ? "Apply to lead" : "Sign up to lead",
-      href: captainHref,
+      auth: { path: "/join/captain", signedInLabel: "Apply to lead", signedOutLabel: "Sign up to lead" },
       accent: "text-ink",
     },
   ];
@@ -130,12 +115,14 @@ export default async function JoinPage() {
                 <dd>{d.account}</dd>
               </div>
             </dl>
-            {d.href.startsWith("#") ? (
+            {d.auth ? (
+              <JoinCta path={d.auth.path} signedInLabel={d.auth.signedInLabel} signedOutLabel={d.auth.signedOutLabel} clerkEnabled={clerkEnabled} />
+            ) : d.href?.startsWith("#") ? (
               <a href={d.href} className="btn-primary mt-5 text-center">
                 {d.cta}
               </a>
             ) : (
-              <Link href={d.href} className="btn-primary mt-5 text-center">
+              <Link href={d.href ?? "#"} className="btn-primary mt-5 text-center">
                 {d.cta}
               </Link>
             )}

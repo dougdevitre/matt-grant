@@ -4,7 +4,7 @@ vi.mock("server-only", () => ({}));
 const getSecret = vi.fn();
 vi.mock("@/lib/ssm", () => ({ getSecret: (...a: unknown[]) => getSecret(...a) }));
 vi.mock("@/lib/airtable/registry", () => ({
-  AIRTABLE_BASES: { volunteer: { id: "appVOL", tables: { volunteers: "tblVOL" } } },
+  AIRTABLE_BASES: { volunteer: { id: "appVOL", accessTable: "tblACCESS", tables: { volunteers: "tblVOL" } } },
 }));
 
 import { checkAirtableHealth } from "./health";
@@ -28,8 +28,8 @@ describe("checkAirtableHealth", () => {
     getSecret.mockResolvedValue("key123");
     fetchMock.mockResolvedValue({ ok: true, status: 200 });
     expect((await checkAirtableHealth()).state).toBe("live");
-    // probes the volunteer base with a 1-record read
-    expect(fetchMock.mock.calls[0][0]).toContain("appVOL/tblVOL");
+    // probes the volunteer base's Front-End Access control table with a 1-record read
+    expect(fetchMock.mock.calls[0][0]).toContain("appVOL/tblACCESS");
     expect(fetchMock.mock.calls[0][0]).toContain("maxRecords=1");
   });
 

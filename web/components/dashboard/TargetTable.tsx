@@ -5,12 +5,12 @@ import { scoreRows, type PrecinctRow, type ScoredRow, type Strategy } from "@/li
 
 const tierColor: Record<ScoredRow["tier"], string> = {
   A: "bg-brick/12 text-brick",
-  B: "bg-gold/20 text-[#1d4ed8]",
+  B: "bg-gold/20 text-blue-ink",
   C: "bg-line text-slate",
 };
 const playColor: Record<ScoredRow["play"], string> = {
   Persuade: "text-field",
-  "Persuade + GOTV": "text-[#1d4ed8]",
+  "Persuade + GOTV": "text-blue-ink",
   Mobilize: "text-brick",
 };
 

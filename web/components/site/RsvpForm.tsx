@@ -40,10 +40,10 @@ export function RsvpForm({ eventId, full = false, spotsLeft = null }: { eventId:
         <p className="mt-1 text-xs font-semibold text-brick">Only {spotsLeft} spot{spotsLeft === 1 ? "" : "s"} left</p>
       )}
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <input name="name" required placeholder="Your name" className={`${input} sm:col-span-2`} />
-        <input name="email" type="email" placeholder="Email (optional)" className={input} />
-        <input name="phone" type="tel" placeholder="Mobile (optional)" className={input} />
-        <select name="role" className={input} defaultValue="">
+        <input name="name" required placeholder="Your name" aria-label="Your name" className={`${input} sm:col-span-2`} />
+        <input name="email" type="email" placeholder="Email (optional)" aria-label="Email (optional)" className={input} />
+        <input name="phone" type="tel" placeholder="Mobile (optional)" aria-label="Mobile (optional)" className={input} />
+        <select name="role" aria-label="How you'd like to help" className={input} defaultValue="">
           <option value="">I&apos;m attending</option>
           <option value="Canvass">Help canvass</option>
           <option value="Phones">Help make calls</option>

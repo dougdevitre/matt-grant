@@ -8,6 +8,7 @@
 //   • `zip code tabulation area` does NOT nest in state in 2023  → for=zip…  with
 //     NO `in=` clause (adding it returns "unknown/unsupported geography hierarchy").
 import { ACS_BASE, VARS, EDU_VARS, acsNum, householdsWithChildrenPct } from "./client";
+import { fetchJsonWithRetry } from "@/lib/integrations/http";
 
 export type PlaceAcs = {
   name: string; // Census label, e.g. "Chesterfield city, Missouri"
@@ -77,9 +78,9 @@ function common(header: string[], r: string[]) {
 export async function fetchMoPlaceAcs(): Promise<PlaceAcs[]> {
   const u = new URL(placeAcsUrl());
   if (process.env.CENSUS_API_KEY) u.searchParams.set("key", process.env.CENSUS_API_KEY);
-  const res = await fetch(u, { headers: { accept: "application/json" } });
-  if (!res.ok) throw new Error(`census place ${res.status}`);
-  const { header, data } = rows(await res.json());
+  // Shared transport: hard timeout + bounded retry (the raw fetch had neither, so a
+  // hung Census socket rode maxDuration to a 502 — see lib/integrations/http.ts).
+  const { header, data } = rows(await fetchJsonWithRetry<unknown>(u, { headers: { accept: "application/json" }, label: "census place" }));
   const idx = (k: string) => header.indexOf(k);
   return data.map((r) => {
     const placeFips = r[idx("place")];
@@ -98,9 +99,8 @@ export async function fetchZctaAcs(zctas: string[]): Promise<ZctaAcs[]> {
   if (!zctas.length) return [];
   const u = new URL(zctaAcsUrl(zctas));
   if (process.env.CENSUS_API_KEY) u.searchParams.set("key", process.env.CENSUS_API_KEY);
-  const res = await fetch(u, { headers: { accept: "application/json" } });
-  if (!res.ok) throw new Error(`census zcta ${res.status}`);
-  const { header, data } = rows(await res.json());
+  // Shared transport: hard timeout + bounded retry (see fetchMoPlaceAcs above).
+  const { header, data } = rows(await fetchJsonWithRetry<unknown>(u, { headers: { accept: "application/json" }, label: "census zcta" }));
   const idx = (k: string) => header.indexOf(k);
   return data.map((r) => {
     const zcta = r[idx("zip code tabulation area")] ?? r[header.length - 1];

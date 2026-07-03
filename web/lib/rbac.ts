@@ -72,7 +72,7 @@ export const ROLE_BLURBS: Record<Role, string> = {
 // hand-maintains its own partial color map (the rbac.test invariant enforces this).
 export const ROLE_BADGE: Record<Role, string> = {
   admin: "bg-brick/10 text-brick",
-  captain: "bg-gold/15 text-[#9a6f1a]",
+  captain: "bg-gold/15 text-gold-ink",
   volunteer: "bg-field/10 text-field",
   donor: "bg-field/15 text-[#1f6f54]",
   supporter: "bg-line text-slate",

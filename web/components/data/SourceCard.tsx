@@ -16,6 +16,7 @@ const KIND_STYLE: Record<SourceKind, string> = {
   csv: "bg-field/10 text-field",
   api: "bg-brick/10 text-brick",
   geo: "bg-gold/15 text-ink",
+  airtable: "bg-field/15 text-field",
 };
 
 function KindBadge({ kind }: { kind: SourceKind }) {
@@ -71,7 +72,7 @@ export function SourceCard({ entry, enabled, liveCount, sample, checkNonce = 0, 
       if (state === "degraded") return "degraded";
       return "live"; // ready | empty (reachable)
     }
-    if (entry.kind === "api") return enabled ? "configured" : "unconfigured";
+    if (entry.kind === "api" || entry.kind === "airtable") return enabled ? "configured" : "unconfigured";
     if (entry.kind === "csv") return "live";
     return "idle"; // geo not checked yet
   })();
@@ -98,7 +99,7 @@ export function SourceCard({ entry, enabled, liveCount, sample, checkNonce = 0, 
         {typeof liveCount === "number" && <Row k="Rows" v={String(liveCount)} />}
         {entry.endpoint && <Row k="Endpoint" v={entry.endpoint} />}
         <Row k="Cache" v={entry.cache} />
-        {entry.kind === "api" && (
+        {(entry.kind === "api" || entry.kind === "airtable") && (
           <Row
             k="Status"
             v={enabled ? "configured" : `not configured${entry.enabledEnv ? ` — set ${entry.enabledEnv.join(", ")}` : ""}`}

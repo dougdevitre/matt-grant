@@ -11,6 +11,7 @@ export async function GET() {
   try {
     return NextResponse.json({ items: await listAssets(), configured: true });
   } catch (err) {
-    return NextResponse.json({ items: [], configured: true, error: String(err) }, { status: 502 });
+    console.error("[api] assets/list:", err); // log the real error server-side; don't leak it
+    return NextResponse.json({ items: [], configured: true, error: "Couldn't list assets" }, { status: 502 });
   }
 }

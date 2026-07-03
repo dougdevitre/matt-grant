@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { SOCIAL_POSTS, PILLARS, type Pillar, type SocialPost } from "@/lib/socialPosts";
 import { ASSETS_CDN, SITE_URL, BRAND_DOWNLOADS, PRINT_DOWNLOADS, CAMPAIGN } from "@/lib/site";
+import { captionTrackFor } from "@/lib/captions";
 import manifest from "@/lib/assets.manifest.json";
 
 type Asset = { key: string; url: string; label: string; bytes: number };
@@ -13,11 +14,11 @@ const pillarColor: Record<Pillar, string> = {
   "Children First": "bg-brick/12 text-brick",
   "Term Limits": "bg-field/15 text-field",
   "Smaller Government": "bg-ink/10 text-ink",
-  "Lower Taxes": "bg-gold/20 text-[#1d4ed8]",
+  "Lower Taxes": "bg-gold/20 text-blue-ink",
   "Bio & Values": "bg-field/12 text-field",
   Contrast: "bg-brick/12 text-brick",
   GOTV: "bg-brick/15 text-brick",
-  Coalition: "bg-gold/20 text-[#1d4ed8]",
+  Coalition: "bg-gold/20 text-blue-ink",
   "Faith & Community": "bg-field/12 text-field",
 };
 
@@ -130,17 +131,22 @@ export function MediaLibrary() {
       <section className="card mb-8 p-6">
         <p className="eyebrow text-slate">Video</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          {VIDEOS.map((v) => (
+          {VIDEOS.map((v) => {
+            // WCAG 1.2.2: render a captions <track> only when an authored .vtt exists
+            // for this video (captionTrackFor returns null otherwise — never a fake track).
+            const cap = captionTrackFor(v.url);
+            return (
             <figure key={v.key} className="overflow-hidden rounded-sm border border-line transition duration-200 hover:-translate-y-0.5 hover:border-ink hover:shadow-card motion-reduce:hover:translate-y-0">
-              {/* TODO(a11y, WCAG 1.2.2): add <track kind="captions" src="…vtt"> once
-                  caption files are authored — these campaign videos carry audio. */}
-              <video src={v.url} aria-label={v.label} className="aspect-video w-full bg-ink object-cover" muted loop playsInline controls preload="metadata" />
+              <video src={v.url} aria-label={v.label} className="aspect-video w-full bg-ink object-cover" muted loop playsInline controls preload="metadata">
+                {cap && <track kind="captions" src={cap.src} srcLang={cap.srclang} label={cap.label} default />}
+              </video>
               <figcaption className="flex items-center justify-between px-3 py-2 text-xs">
                 <span className="text-ink">{v.label}</span>
                 <a href={v.url} target="_blank" rel="noopener noreferrer" download className="font-mono text-field">MP4 ↓</a>
               </figcaption>
             </figure>
-          ))}
+            );
+          })}
         </div>
       </section>
 

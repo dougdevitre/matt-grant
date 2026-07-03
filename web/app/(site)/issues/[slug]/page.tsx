@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ISSUES, issueSlugs, getIssue } from "@/lib/issues";
 import { CAMPAIGN, SITE_URL } from "@/lib/site";
@@ -11,6 +12,8 @@ import { IssueChecklist } from "@/components/IssueChecklist";
 import { CtaButton } from "@/components/CtaButton";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { publicPillars } from "@/lib/pillars";
+import { captionTrackFor } from "@/lib/captions";
+import { Figure } from "@/components/data/Figure";
 
 export function generateStaticParams() {
   return issueSlugs.map((slug) => ({ slug }));
@@ -38,6 +41,9 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
 
   // Public resource hubs that map to this issue (e.g. family-courts → education).
   const relatedPillars = publicPillars.filter((p) => p.relatedIssue === issue.slug);
+
+  // WCAG 1.2.2: captions track for this issue's video, if an authored .vtt exists.
+  const cap = captionTrackFor(issue.video);
 
   return (
     <>
@@ -70,7 +76,9 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
               playsInline
               preload="metadata"
               className="aspect-video w-full bg-ink"
-            />
+            >
+              {cap && <track kind="captions" src={cap.src} srcLang={cap.srclang} label={cap.label} default />}
+            </video>
           </div>
         </div>
       </section>
@@ -86,6 +94,20 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
           <p className="mt-3 font-display text-xl font-semibold text-ink">{issue.commitment}</p>
         </aside>
       </section>
+
+      {/* The data (Children First / family-courts only) */}
+      {issue.slug === "family-courts" && (
+        <section className="border-t border-line bg-white">
+          <div className="container-page py-12 sm:py-16">
+            <p className="eyebrow text-brick">The data</p>
+            <h2 className="mt-2 font-display text-2xl font-semibold text-ink">Fewer children in MO-02 every year</h2>
+            <Figure id="mo02-child-under15" />
+            <Link href="/data/mo-02-by-the-numbers" className="btn-ghost text-sm">
+              See MO-02 by the numbers →
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* Signature legislation (family-courts) */}
       {issue.signature && (
@@ -167,8 +189,7 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
       <section className="container-page py-16 sm:py-20">
         <div className="grid gap-10 lg:grid-cols-[1fr_1.2fr] lg:items-center">
           <div className="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-lg border border-line shadow-card">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={issue.graphic} alt={issue.title} className="h-full w-full object-cover" />
+            <Image src={issue.graphic} alt={issue.title} fill className="object-cover" sizes="(max-width:640px) 100vw, 384px" />
           </div>
           <div>
             <p className="eyebrow text-brick">Take it with you</p>

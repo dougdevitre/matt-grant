@@ -29,7 +29,8 @@ async function handle(req: Request) {
         results[c.slug] = { name: c.name, bio: null };
       }
     } catch (err) {
-      results[c.slug] = { name: c.name, error: String(err) };
+      console.error(`[api] research/bio ${c.slug}:`, err); // log real error; don't leak it
+      results[c.slug] = { name: c.name, error: "fetch failed" };
     }
   }
   return jobOk({ count: targets.length, results });

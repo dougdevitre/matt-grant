@@ -31,7 +31,7 @@ const kindColor: Record<Deadline["kind"], string> = {
   "Pre-Primary": "text-brick",
   "Pre-General": "text-brick",
   "Year-End": "text-slate",
-  "48-Hour": "text-[#9a6f1a]",
+  "48-Hour": "text-gold-ink",
 };
 
 export default async function CompliancePage() {

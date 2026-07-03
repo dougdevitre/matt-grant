@@ -16,6 +16,7 @@
     "cta": "node scripts/cta-images.mjs",
     "sync:pillars": "node scripts/sync-pillars.mjs",
     "print-tracker": "tsx scripts/generate-print-tracker.ts",
+    "demographics": "tsx scripts/generate-demographics.ts",
     "test": "vitest run",
     "test:a11y": "playwright test",
     "compliance": "node scripts/compliance-check.mjs",
