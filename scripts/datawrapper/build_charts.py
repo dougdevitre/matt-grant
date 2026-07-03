@@ -45,51 +45,79 @@ def csv(headers, rows):
     return "\n".join(out)
 
 
+# Diverging bars are colored by a "Direction" category column (Decline vs Growth):
+# red for loss, blue for gain. Datawrapper ignores metadata keys it doesn't use, so
+# this is a safe best-effort; if your workspace names the keys differently, the
+# Direction column is still in the data and you can map colors in the UI in one click.
+DIVERGE = {
+    "color-by-column": True,
+    "color-column": "Direction",
+    "color-category": {"map": {"Decline": BRICK, "Growth": ACCENT}},
+}
+STL = "St. Louis, MO-IL"
+
+
+def direction(v):
+    return "Decline" if float(v) < 0 else "Growth"
+
+
 def specs():
-    """id -> {title, type, csv, metadata} — one per figure in charts.ts."""
+    """id -> {title, intro, type, csv, visualize} — one per figure in charts.ts.
+    Rows are PRE-SORTED to the display order (Datawrapper keeps data order), so no
+    sort metadata is needed."""
     county = {r["county"]: r for r in load("childUnder15ByCounty.json")}
-    mo02 = [county[c] for c in MO02 if c in county]
-    under5 = sorted(load("under5DeclineByMetro.json"), key=lambda r: float(r["pctDecline"]))[:12]
+    mo02 = sorted((county[c] for c in MO02 if c in county), key=lambda r: float(r["pctChange"]))
+    under5 = sorted(load("under5DeclineByMetro.json"), key=lambda r: float(r["pctDecline"]))[:15]
     stc = [r for r in load("stCharlesAgeStructure.json") if r["ageGroup"] != "Total"]
-    aging = sorted(load("agingIndexByMetro.json"), key=lambda r: -float(r["agingIndex2025"]))[:12]
+    aging = sorted(load("agingIndexByMetro.json"), key=lambda r: -float(r["agingIndex2025"]))[:15]
     msa = [r for r in load("msaPopulationByAge.json") if r["ageGroup"] != "Total"]
 
     return {
+        # Diverging bar: most decline → growth, colored by sign.
         "mo02-child-under15": {
             "title": "Children under 15 are declining across MO-02",
+            "intro": "Change in the under-15 population by county, 2020–2025.",
             "type": "d3-bars",
-            "csv": csv(["County", "% change 2020-2025"],
-                      [[r["county"].replace(" County", ""), r["pctChange"]] for r in mo02]),
-            "visualize": {"custom-colors": {}, "color-by-column": True,
-                          "background": False, "thick": True},
+            "csv": csv(["County", "% change 2020–2025", "Direction"],
+                      [[r["county"].replace(" County", ""), r["pctChange"], direction(r["pctChange"])] for r in mo02]),
+            "visualize": DIVERGE,
         },
+        # Ranked bar, St. Louis highlighted. Most negative first (pre-sorted).
         "under5-metro-ranking": {
             "title": "St. Louis: 3rd-worst U.S. metro for the decline in children under 5",
+            "intro": "Percent change in the under-5 population, 2020–2025, 50 largest metros.",
             "type": "d3-bars",
             "csv": csv(["Metro", "% decline (under 5)"],
                       [[r["metro"], r["pctDecline"]] for r in under5]),
-            "visualize": {"highlighted-values": ["St. Louis, MO-IL"]},
+            "visualize": {"highlighted-values": [STL]},
         },
+        # Grouped bars: 2020 vs 2025 population per age band (natural age order).
         "stcharles-age-structure": {
             "title": "St. Charles County: seniors now outnumber children",
+            "intro": "Population by age band, 2020 vs 2025.",
             "type": "d3-bars-split",
             "csv": csv(["Age group", "2020", "2025"],
                       [[r["ageGroup"].replace("Age ", ""), r["pop2020"], r["pop2025"]] for r in stc]),
             "visualize": {},
         },
+        # Ranked bar, St. Louis highlighted.
         "aging-index-metro": {
             "title": "St. Louis ranks among the oldest large U.S. metros",
+            "intro": "Aging index (65+ per 100 under-15) in 2025, 50 largest metros.",
             "type": "d3-bars",
             "csv": csv(["Metro", "Aging index 2025"],
                       [[r["metro"], r["agingIndex2025"]] for r in aging]),
-            "visualize": {"highlighted-values": ["St. Louis, MO-IL"]},
+            "visualize": {"highlighted-values": [STL]},
         },
+        # Diverging bar: net change per age band — youngest shrink, oldest grow.
         "msa-age-series": {
-            "title": "St. Louis MSA: fewer children, more seniors (2020-2025)",
-            "type": "d3-bars-split",
-            "csv": csv(["Age group", "2020", "2025"],
-                      [[r["ageGroup"].replace("Age ", ""), r["y2020"], r["y2025"]] for r in msa]),
-            "visualize": {},
+            "title": "St. Louis MSA: fewer children, more seniors (2020–2025)",
+            "intro": "Net change in population by age band, 2020–2025.",
+            "type": "d3-bars",
+            "csv": csv(["Age group", "Change 2020–2025", "Direction"],
+                      [[r["ageGroup"].replace("Age ", ""), int(r["y2025"]) - int(r["y2020"]),
+                        direction(int(r["y2025"]) - int(r["y2020"]))] for r in msa]),
+            "visualize": DIVERGE,
         },
     }
 
@@ -116,9 +144,14 @@ class DW:
             "title": spec["title"],
             "type": spec["type"],
             "metadata": {
-                "describe": {"source-name": SOURCE_NAME, "source-url": SOURCE_URL},
-                "visualize": {"thick": True, "base-color": FIELD,
-                              "custom-colors": {}, **spec.get("visualize", {})},
+                "describe": {
+                    "source-name": SOURCE_NAME,
+                    "source-url": SOURCE_URL,
+                    "intro": spec.get("intro", ""),
+                },
+                # thick bars + brand base color; per-chart keys (highlight / diverging
+                # color-by-column) layer on top.
+                "visualize": {"thick": True, "base-color": FIELD, **spec.get("visualize", {})},
                 "publish": {"blocks": {"logo": False, "get-the-data": True, "embed": False}},
             },
         }
