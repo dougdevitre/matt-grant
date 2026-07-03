@@ -6,6 +6,7 @@
 // via the shared `checkNonce`). Each card reports its resolved status up so the hub
 // header can summarize health. An expandable preview shows a few real values.
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 import type { SourceEntry } from "@/lib/data/registry";
 import type { SourceKind } from "@/lib/data/resource";
 import { useResource } from "@/lib/data/useResource";
@@ -127,16 +128,23 @@ export function SourceCard({ entry, enabled, liveCount, sample, checkNonce = 0, 
         </details>
       )}
 
-      {canCheck && (
+      {(canCheck || entry.detail) && (
         <div className="mt-3 flex items-center gap-3 border-t border-line/60 pt-2">
-          <button className="btn-ghost text-xs" onClick={() => reload()} disabled={state === "loading"}>
-            {state === "loading" ? "Checking…" : state === "idle" ? "Check now" : "Re-check"}
-          </button>
-          {state === "error" ? (
+          {canCheck && (
+            <button className="btn-ghost text-xs" onClick={() => reload()} disabled={state === "loading"}>
+              {state === "loading" ? "Checking…" : state === "idle" ? "Check now" : "Re-check"}
+            </button>
+          )}
+          {entry.detail && (
+            <Link href={`/dashboard/data/${entry.id}`} className="btn-ghost text-xs">
+              View data →
+            </Link>
+          )}
+          {canCheck && (state === "error" ? (
             <span className="text-xs text-brick">{error ?? "check failed"}</span>
           ) : state !== "idle" && state !== "loading" ? (
             <ProvenanceChip meta={meta} />
-          ) : null}
+          ) : null)}
         </div>
       )}
     </div>
