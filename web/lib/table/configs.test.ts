@@ -5,6 +5,8 @@ import { TASK_TABLE } from "./tasks-config";
 import { SUBSCRIBER_TABLE } from "./subscribers-config";
 import { PRINT_TABLE } from "./print-config";
 import { INFLUENCER_TABLE } from "./influencers-config";
+import { CENSUS_TABLE } from "./census-config";
+import { CHILDACT_TABLE } from "./childact-config";
 import type { DonorRow, TaskRow } from "@/lib/queries";
 import type { SubscriberRow } from "@/lib/subscribers";
 import type { PrintItem } from "@/lib/data/printTracker";
@@ -168,10 +170,42 @@ describe("INFLUENCER_TABLE", () => {
   });
 });
 
+describe("CENSUS_TABLE + CHILDACT_TABLE", () => {
+  it("census searches county names and sorts population desc by default", () => {
+    const rows = [
+      { name: "Jefferson County", countyFips: "1", population: 100, medianHouseholdIncome: null, medianAge: null, medianHomeValue: null, bachelorsPlusPct: null, householdsWithChildrenPct: null, sourceUrl: "" },
+      { name: "Crawford County", countyFips: "2", population: 300, medianHouseholdIncome: null, medianAge: null, medianHomeValue: null, bachelorsPlusPct: null, householdsWithChildrenPct: null, sourceUrl: "" },
+    ];
+    expect(applyQuery(rows, CENSUS_TABLE, emptyState(CENSUS_TABLE), {})[0].name).toBe("Crawford County"); // 300 > 100
+    expect(applyQuery(rows, CENSUS_TABLE, { ...emptyState(CENSUS_TABLE), q: "jefferson" }, {})).toHaveLength(1);
+  });
+  it("census null numeric sorts last (ascending)", () => {
+    const rows = [
+      { name: "A", countyFips: "1", population: null, medianHouseholdIncome: null, medianAge: null, medianHomeValue: null, bachelorsPlusPct: null, householdsWithChildrenPct: null, sourceUrl: "" },
+      { name: "B", countyFips: "2", population: 5, medianHouseholdIncome: null, medianAge: null, medianHomeValue: null, bachelorsPlusPct: null, householdsWithChildrenPct: null, sourceUrl: "" },
+    ];
+    const out = applyQuery(rows, CENSUS_TABLE, { ...emptyState(CENSUS_TABLE), sort: "population", dir: "asc" }, {});
+    expect(out.map((r) => r.name)).toEqual(["B", "A"]); // null last
+  });
+
+  const bill = (over: Partial<import("@/lib/analysis/childActView").RankedBill>): import("@/lib/analysis/childActView").RankedBill => ({
+    key: "k", congress: 119, billType: "hr", number: "1", title: "T", policyArea: "Families", introducedDate: "2025-01-01", sourceUrl: "https://x", relevance: { score: 5, tier: "core", matched: [] }, subjects: [], ...over,
+  });
+  it("childact tier facet filters by relevance tier", () => {
+    const rows = [bill({ key: "a", relevance: { score: 9, tier: "core", matched: [] } }), bill({ key: "b", relevance: { score: 1, tier: "tangential", matched: [] } })];
+    const out = applyQuery(rows, CHILDACT_TABLE, { ...emptyState(CHILDACT_TABLE), facets: { tier: ["core"] } }, {});
+    expect(out.map((r) => r.key)).toEqual(["a"]);
+  });
+  it("childact default sort is score descending", () => {
+    const rows = [bill({ key: "lo", relevance: { score: 2, tier: "related", matched: [] } }), bill({ key: "hi", relevance: { score: 8, tier: "core", matched: [] } })];
+    expect(applyQuery(rows, CHILDACT_TABLE, emptyState(CHILDACT_TABLE), {})[0].key).toBe("hi");
+  });
+});
+
 describe("every config is structurally sound", () => {
   // Guard: presets/defaultSort reference real sort keys, facet+sort keys are unique.
   const configs: TableConfig<unknown>[] = [
-    DONOR_TABLE, TASK_TABLE, SUBSCRIBER_TABLE, PRINT_TABLE, INFLUENCER_TABLE,
+    DONOR_TABLE, TASK_TABLE, SUBSCRIBER_TABLE, PRINT_TABLE, INFLUENCER_TABLE, CENSUS_TABLE, CHILDACT_TABLE,
   ] as TableConfig<unknown>[];
   it.each(configs.map((c) => [c.id, c] as const))("%s: sort keys resolve and are unique", (_id, cfg) => {
     const sortKeys = cfg.sorts.map((s) => s.key);
