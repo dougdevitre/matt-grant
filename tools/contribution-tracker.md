@@ -166,9 +166,9 @@ Maintain a separate donor summary table:
 
 ```csv
 donor_id,donor_name,cycle,election,total_contributed,total_refunded,net_aggregate,limit,remaining_capacity,itemized
-DONOR-00042,"Smith, Jane A.",2025-2026,primary,750.00,0.00,750.00,3300.00,2550.00,TRUE
-DONOR-00042,"Smith, Jane A.",2025-2026,general,0.00,0.00,0.00,3300.00,3300.00,FALSE
-DONOR-00101,"Jones, Robert",2025-2026,primary,100.00,0.00,100.00,3300.00,3200.00,FALSE
+DONOR-00042,"Smith, Jane A.",2025-2026,primary,750.00,0.00,750.00,3500.00,2750.00,TRUE
+DONOR-00042,"Smith, Jane A.",2025-2026,general,0.00,0.00,0.00,3500.00,3500.00,FALSE
+DONOR-00101,"Jones, Robert",2025-2026,primary,100.00,0.00,100.00,3500.00,3400.00,FALSE
 ```
 
 ### Duplicate Donor Detection

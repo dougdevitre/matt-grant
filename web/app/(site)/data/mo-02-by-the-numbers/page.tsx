@@ -31,8 +31,10 @@ export default function ByTheNumbersPage() {
           <p className="eyebrow text-brick">Our district</p>
           <h2 className="mt-2 font-display text-2xl font-semibold text-ink">The child population is shrinking across MO-02</h2>
           <p className="mt-3 max-w-prose text-slate">
-            Between 2020 and 2025, the number of children under 15 fell in most MO-02 counties — St. Louis
-            County, Jefferson, St. Charles, and Franklin all declined. Only Lincoln and Warren grew.
+            Between 2020 and 2025, the number of children under 15 fell across MO-02&apos;s core counties —
+            St. Louis County (of which MO-02 holds the western/central part) dropped 5.9% and Jefferson
+            County 5.6%. Those are the two MO-02 counties captured in this St. Louis-metro dataset; the
+            district&apos;s three rural counties — Washington, Crawford, and Gasconade — sit outside it.
           </p>
           <Figure id="mo02-child-under15" />
         </section>
@@ -68,7 +70,9 @@ export default function ByTheNumbersPage() {
           </p>
           <p className="mt-6 font-mono text-[0.65rem] uppercase tracking-eyebrow text-slate">
             Source for every figure on this page: {DEMOGRAPHICS_SOURCE}. Figures are county- and
-            metro-level Census estimates; the MO-02 district is a subset of these counties.
+            metro-level Census estimates. Under the 2025 map, MO-02 is St. Louis County (part),
+            Jefferson, Washington, Crawford, and Gasconade; only St. Louis County and Jefferson appear
+            in this St. Louis-metro dataset.
           </p>
         </section>
       </div>

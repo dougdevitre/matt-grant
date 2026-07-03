@@ -117,7 +117,7 @@ Judicial candidates face separate voluntary limits. If a judicial candidate agre
 
 | Feature | Federal | Texas |
 |---------|---------|-------|
-| Individual contribution limits | $3,300/election (2023-24) | **No limit** |
+| Individual contribution limits | $3,500/election (2025-26) | **No limit** |
 | Corporate contributions to candidates | Prohibited | **Prohibited** (same as federal) |
 | PAC contributions to candidates | $5,000/election | **No limit** |
 | Cash contribution cap | $100 | **$100** (same) |

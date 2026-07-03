@@ -30,8 +30,12 @@ SOURCE_URL = "https://www.census.gov/programs-surveys/popest.html"
 # Campaign brand tokens (web/tailwind.config.ts)
 INK, FIELD, ACCENT, BRICK, PAPER = "#0F2540", "#16365C", "#2563EB", "#B5343B", "#FBFAF6"
 
-MO02 = ["St. Louis County", "St. Charles County", "Jefferson County",
-        "Franklin County", "Warren County", "Lincoln County"]
+# MO-02 under the 2025 enacted map. Of the five district counties, only St. Louis
+# County and Jefferson County are in the St. Louis MSA source file; Washington,
+# Crawford, and Gasconade are outside the MSA and absent from the data. St. Charles,
+# Franklin, Warren, and Lincoln are NOT in MO-02 (they're MO-03). See
+# web/lib/countySources.ts and web/lib/demographics/schema.ts.
+MO02 = ["St. Louis County", "Jefferson County"]
 
 
 def load(name):

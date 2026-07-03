@@ -14,7 +14,7 @@ gantt
     Q3 Report Due           :milestone, m3, 2026-10-15, 0d
 
     section Pre-Election Reports
-    Pre-Primary Report Due  :milestone, m4, 2026-05-22, 0d
+    Pre-Primary Report Due  :milestone, m4, 2026-07-23, 0d
     Pre-General Report Due  :milestone, m5, 2026-10-22, 0d
 
     section Post-Election Reports
@@ -286,6 +286,15 @@ The FEC calculates fines based on:
 Late e-filing: The FEC timestamps electronically. A report submitted 
 at 12:01 AM ET the day after the deadline is late.
 ```
+
+> **Verify before relying on these figures.** The FEC administrative-fine
+> schedule (per-day amounts, the first-tier threshold, and the maximum) is set
+> by regulation (11 CFR 111.43) and adjusted for inflation, so the dollar
+> amounts above are illustrative approximations, not the current published
+> schedule. Confirm the amounts in effect for the 2025–2026 cycle at
+> [fec.gov](https://www.fec.gov/) before quoting them in campaign operations.
+> *This is educational information, not legal advice. Consult a campaign
+> finance attorney or the FEC for guidance specific to your situation.*
 
 ### State Penalty Examples
 

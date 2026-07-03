@@ -32,10 +32,18 @@ describe("child under-15 by county", () => {
     expect(by("Jefferson County").change).toBe(-2396); // "lost 2,396 children under age 15"
   });
 
-  it("exposes the six MO-02 counties in fixed order", () => {
+  it("exposes only the in-data MO-02 counties (St. Louis Co. + Jefferson), in fixed order", () => {
+    // MO02_COUNTY_NAMES is the true 2025-map district (5 counties); this MSA dataset
+    // only contains St. Louis County and Jefferson County, so mo02Counties() returns
+    // those two, ordered as they appear in MO02_COUNTY_NAMES. The rural three
+    // (Washington/Crawford/Gasconade) are absent from the source.
     const mo = mo02Counties(rows());
-    expect(mo.map((r) => r.county)).toEqual([...MO02_COUNTY_NAMES]);
+    expect(mo.map((r) => r.county)).toEqual(["St. Louis County", "Jefferson County"]);
     for (const r of mo) expect(r.under15_2025).toBeGreaterThan(0);
+    // Guard the canonical district list itself so it can't silently regress to the
+    // wrong (MO-03) counties.
+    expect(MO02_COUNTY_NAMES).toContain("Washington County");
+    expect(MO02_COUNTY_NAMES).not.toContain("St. Charles County");
   });
 
   // Tripwire: the source lists "Madison County" twice (IL + an unlabeled second row,

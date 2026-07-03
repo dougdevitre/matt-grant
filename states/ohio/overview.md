@@ -126,7 +126,7 @@
 
 | Feature | Federal | Ohio |
 |---------|---------|------|
-| Individual contribution limit | $3,300/election (2023-24) | **~$13,838/election** (CPI-adjusted) |
+| Individual contribution limit | $3,500/election (2025-26) | **~$13,838/election** (CPI-adjusted) |
 | Limit adjustment | Every odd year (inflation) | **Every odd year (CPI)** |
 | Corporate contributions | Prohibited | **Prohibited** (same) |
 | Union contributions | Prohibited (direct) | **Prohibited** (direct, same) |

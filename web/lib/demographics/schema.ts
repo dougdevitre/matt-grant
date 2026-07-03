@@ -81,19 +81,29 @@ export const loadMsaPopulationByAge = (): Resource<MsaAgeRow[]> =>
   loadCsvManifest(msaByAge, MsaAgeRow, { source: "St. Louis MSA population by age (2020–2025)" });
 
 // ── Framing helpers (MO-02 first) ──
-// The Missouri counties in the county dataset that make up the MO-02 region.
-// (County-level data; the district is a subset of these counties. St. Louis city
-// is listed separately in the source and is not in MO-02.)
+// The counties that make up MO-02 under the 2025 enacted map (in effect for the
+// Aug 4 2026 primary): St. Louis County (western/central PART only), Jefferson,
+// Washington, Crawford, and Gasconade. See web/lib/countySources.ts for the
+// authoritative map registry. St. Charles, Franklin, Warren, and Lincoln are NOT
+// in MO-02 (they sit in MO-03) — earlier inclusions here were wrong.
+//
+// NOTE ON THIS DATASET: the under-15 county file is built from the St. Louis MSA
+// footprint, so of the five MO-02 counties it only contains **St. Louis County and
+// Jefferson County**. Washington, Crawford, and Gasconade are outside the MSA and
+// are absent here; mo02Counties() therefore returns those two in-data counties.
+// St. Louis County appears whole in the source (MO-02 holds only its western/central
+// part), so treat its figure as county-wide context, not a district-exact number.
 export const MO02_COUNTY_NAMES = [
   "St. Louis County",
-  "St. Charles County",
   "Jefferson County",
-  "Franklin County",
-  "Warren County",
-  "Lincoln County",
+  "Washington County",
+  "Crawford County",
+  "Gasconade County",
 ] as const;
 
-/** MO-02 county rows, in the fixed order above (ignores IL context + the MSA total). */
+/** MO-02 county rows present in this dataset, in the fixed order above (only St.
+ * Louis County + Jefferson County overlap the MSA file; ignores IL context + the
+ * MSA total). */
 export function mo02Counties(rows: CountyUnder15[]): CountyUnder15[] {
   const by = new Map(rows.map((r) => [r.county, r]));
   return MO02_COUNTY_NAMES.map((n) => by.get(n)).filter((r): r is CountyUnder15 => !!r);

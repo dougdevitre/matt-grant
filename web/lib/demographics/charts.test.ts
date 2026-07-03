@@ -18,7 +18,10 @@ describe("chart alt ↔ computed table (drift guard)", () => {
     const pctCol = columns.indexOf("% change");
     const cell = (county: string) => rows.find((r) => r[0] === county)?.[pctCol];
     expect(cell("St. Louis County")).toBe("-5.9%"); // alt: −5.9%
-    expect(cell("Lincoln County")).toBe("+5.0%"); // alt: +5.0%
+    expect(cell("Jefferson County")).toBe("-5.6%"); // alt: −5.6%
+    // Non-district counties (MO-03) must NOT appear in the MO-02 table.
+    expect(cell("St. Charles County")).toBeUndefined();
+    expect(cell("Lincoln County")).toBeUndefined();
   });
 
   it("under5-metro-ranking: St. Louis is the 3rd row at -11.2%", () => {
