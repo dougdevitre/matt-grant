@@ -7,17 +7,21 @@
 export const MAP_CENTER: [number, number] = [-90.47, 38.45];
 export const MAP_ZOOM = 9.4;
 
+import { MAP_CATEGORY, EVENT_COLOR } from "@/lib/viz/palette";
+
 export type Category = "schools" | "partners" | "public" | "polling";
 
+// Colors come from the viz palette (single source); labels/blurbs stay here.
 export const CATEGORIES: Record<Category, { label: string; color: string; blurb: string }> = {
-  schools: { label: "Schools", color: "#16365C", blurb: "Where families gather — children-first message lives here." },
-  partners: { label: "Strategic partners", color: "#B5343B", blurb: "Chambers, clubs, committees — coalition anchors. (Sample.)" },
-  public: { label: "Public places", color: "#E0A53B", blurb: "Libraries, parks, markets, rec centers — high foot traffic." },
-  polling: { label: "Polling places", color: "#0F2540", blurb: "Vote locations — load the official county GIS layer." },
+  schools: { label: "Schools", color: MAP_CATEGORY.schools, blurb: "Where families gather — children-first message lives here." },
+  partners: { label: "Strategic partners", color: MAP_CATEGORY.partners, blurb: "Chambers, clubs, committees — coalition anchors. (Sample.)" },
+  public: { label: "Public places", color: MAP_CATEGORY.public, blurb: "Libraries, parks, markets, rec centers — high foot traffic." },
+  polling: { label: "Polling places", color: MAP_CATEGORY.polling, blurb: "Vote locations — load the official county GIS layer." },
 };
 
-// Events layer marker color (distinct from the POI categories above). Field green.
-export const EVENT_COLOR = "#2f7d4f";
+// Events layer marker color (distinct from the POI categories above). Re-exported
+// from the palette so existing importers (RegionMap3D, MapExplorer) are unchanged.
+export { EVENT_COLOR };
 
 export type Poi = { name: string; category: Category; lng: number; lat: number; note?: string };
 

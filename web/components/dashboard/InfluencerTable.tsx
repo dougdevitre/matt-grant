@@ -120,7 +120,7 @@ export function InfluencerTable({ rows, editable = false }: { rows: InfluencerRo
             key={s}
             onClick={() => setSegment(s)}
             className={`rounded-sm px-3 py-1.5 text-xs font-semibold transition-colors ${
-              segment === s ? "bg-gold/15 text-[#9a6f1a]" : "bg-slate/10 text-slate hover:bg-slate/15"
+              segment === s ? "bg-gold/15 text-gold-ink" : "bg-slate/10 text-slate hover:bg-slate/15"
             }`}
           >
             {s}
@@ -170,7 +170,7 @@ export function InfluencerTable({ rows, editable = false }: { rows: InfluencerRo
                   </td>
                   <td className="px-3 py-2.5 text-xs">
                     <div className="flex flex-col gap-0.5">
-                      {r.email ? <a className="text-[#9a6f1a] hover:underline" href={`mailto:${r.email}`}>{r.email}</a> : null}
+                      {r.email ? <a className="text-gold-ink hover:underline" href={`mailto:${r.email}`}>{r.email}</a> : null}
                       {r.phone ? <a className="text-slate hover:underline" href={`tel:${r.phone.replace(/[^\d+]/g, "")}`}>{r.phone}</a> : null}
                       {r.url ? <a className="text-slate hover:underline" href={r.url} target="_blank" rel="noopener noreferrer">Official page ↗</a> : null}
                       {!r.email && !r.phone && !r.url ? <span className="text-slate/50">—</span> : null}

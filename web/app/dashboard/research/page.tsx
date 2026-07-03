@@ -79,6 +79,7 @@ export default async function ResearchPage() {
         <h2 className="mb-3 font-display text-2xl font-semibold text-ink">Alignment matrix</h2>
         <div className="card overflow-x-auto p-0">
           <table className="w-full text-sm">
+            <caption className="sr-only">MO-02 candidate alignment on Matt&apos;s four priorities, with cash on hand, outside spending, and latest coverage</caption>
             <thead>
               <tr className="border-b border-line text-left">
                 <th scope="col" className="px-4 py-3 font-semibold text-ink">Candidate</th>
@@ -174,6 +175,19 @@ export default async function ResearchPage() {
           </p>
         </div>
       )}
+
+      {/* District demographic context — messaging evidence for Children First */}
+      <section className="mb-10 rounded-sm border border-field/30 bg-field/5 px-5 py-4">
+        <h2 className="font-display text-lg font-semibold text-ink">District demographics (Children First)</h2>
+        <p className="mt-1 max-w-2xl text-sm text-slate">
+          Census 2025 evidence for the child-decline / aging message: MO-02 counties, the St. Louis metro,
+          and national rankings — each figure cited to Census 2025 · Sándoval, SLU.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-3">
+          <Link href="/data/mo-02-by-the-numbers" className="btn-ghost text-sm">MO-02 by the numbers →</Link>
+          <Link href="/dashboard/data" className="btn-ghost text-sm">Data sources →</Link>
+        </div>
+      </section>
 
       <p className="mt-8 text-xs text-slate">
         Public primary sources only (OpenFEC, Congress.gov, House Clerk, cited statements). Contrast must stay

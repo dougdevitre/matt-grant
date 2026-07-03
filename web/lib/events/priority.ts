@@ -17,7 +17,7 @@ export const PRIORITY_LABEL: Record<EventPriority, string> = {
 // Tailwind badge classes, matching the dashboard's tier conventions.
 export const PRIORITY_BADGE: Record<EventPriority, string> = {
   1: "bg-brick/15 text-brick",
-  2: "bg-gold/20 text-[#9a6f1a]",
+  2: "bg-gold/20 text-gold-ink",
   3: "bg-field/15 text-field",
 };
 

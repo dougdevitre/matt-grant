@@ -9,8 +9,8 @@ import { EXPENSE_TRANSITIONS } from "@/lib/budget/types";
 import { formatUSD } from "@/lib/budget/plan";
 
 const PILL: Record<ExpenseStatus, string> = {
-  Proposed: "bg-gold/15 text-[#9a6f1a]",
-  "Under Review": "bg-gold/15 text-[#9a6f1a]",
+  Proposed: "bg-gold/15 text-gold-ink",
+  "Under Review": "bg-gold/15 text-gold-ink",
   Approved: "bg-field/10 text-field",
   Paid: "bg-ink/10 text-ink",
   Rejected: "bg-brick/10 text-brick",

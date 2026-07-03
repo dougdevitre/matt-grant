@@ -1,0 +1,12 @@
+WEBVTT
+
+NOTE
+Template only — not wired to any video. Copy to <basename>.en.vtt, replace the
+cues with a real transcript of the video's audio, then register <basename> in
+web/lib/captions.ts (CAPTIONED). See README.md in this folder.
+
+00:00:00.000 --> 00:00:04.000
+[Replace with the first line of spoken audio.]
+
+00:00:04.000 --> 00:00:08.000
+[Replace with the next line, timed to the audio.]

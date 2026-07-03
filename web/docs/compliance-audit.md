@@ -19,7 +19,7 @@
 | 2026-06-18 | P-8 | Added the "Paid for by" disclaimer to the dashboard Studio graphics generator (`app/api/graphics/route.tsx`) — those images are downloaded and posted as standalone public communications. (The script-based `generate-social-graphics.mjs` already carried it.) Visually QA'd via dev server across `ig_square`, `x_header`, and `web_banner` (navy + gold themes): disclaimer renders fully and legibly, no clipping. Wide formats use a smaller disclaimer font so the line clears the short bottom margin. |
 | 2026-06-18 | D-1 | Wrote the internal donor/supporter data-handling runbook (`docs/donor-data-handling.md`): access layers (Clerk auth → `DASHBOARD_ALLOWLIST` → RBAC capability matrix, donor PII = admin-only), FEC 3-year retention, deletion/data-request process, security/incident basics. |
 
-*Remaining open (need content/product input, not audit work): **E-1 suppression store** (only when a broadcast/mass-send path is built); **video caption `.vtt` files** (WCAG 1.2.2 — content authoring); **X-5** verified-on discipline (ongoing convention). All severity-ranked findings P-1…P-8, D-1, D-2 are resolved or verified-pass.*
+*Remaining open (need content/product input, not audit work): **E-1 suppression store** (only when a broadcast/mass-send path is built); **video caption content** (WCAG 1.2.2 — the caption *mechanism* now ships: `lib/captions.ts` + a `<track>` on the `/media` and per-issue players + a `web/public/video/` authoring scaffold; 1.2.2 closes per-video as real `.vtt` transcripts are authored and registered in `CAPTIONED`. `HeroVideo` is exempt — muted + `aria-hidden` decorative, so 1.2.2 does not apply); **X-5** verified-on discipline (ongoing convention). All severity-ranked findings P-1…P-8, D-1, D-2 are resolved or verified-pass.*
 
 ## Addendum — second-pass findings ("what did we miss?", 2026-06-18)
 
@@ -96,8 +96,8 @@ Consent + third-party policy link is good. Confirm the campaign's own Data Polic
 
 ### 🟡 P-7 — Accessibility pass not yet evidenced
 **Where:** site-wide
-Spot-checks look reasonable (form `<label>`s, `role="status"`, `aria-hidden` on decorative images, alt text). No evidence of a full WCAG 2.1 AA pass (contrast ratios, keyboard focus order, video captions on `HeroVideo`).
-**Fix:** run axe/Lighthouse + a manual keyboard pass; caption hero video; document results.
+Spot-checks look reasonable (form `<label>`s, `role="status"`, `aria-hidden` on decorative images, alt text). The axe-core 4.10 pass under P-7 (2026-06-18) returned 0 violations across all 13 public routes. Captions (1.2.2): the mechanism now ships for the audio-carrying players (`/media`, per-issue) via `lib/captions.ts`; `HeroVideo` is exempt (muted + `aria-hidden` decorative). Remaining: real `.vtt` transcript content (see "Remaining open" above) + an ongoing manual keyboard pass.
+**Fix:** author `.vtt` transcripts and register them in `CAPTIONED`; keep a manual keyboard pass in the release checklist; document results.
 
 ### 🟡 P-8 — "Paid for by" present in footer but verify it renders on standalone/og and embedded surfaces
 **Where:** `components/SiteFooter.tsx`

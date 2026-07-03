@@ -7,7 +7,7 @@
 //   • geo routes:       { ...FeatureCollection, meta }    → { data: FeatureCollection, meta }
 //   • research routes:  { ok, count, results }            → { ok, data, meta.count }
 
-export type SourceKind = "csv" | "api" | "geo";
+export type SourceKind = "csv" | "api" | "geo" | "airtable";
 
 export type Provenance = {
   /** Human label for where the data came from, e.g. "candidate/letters/print-tracker.csv" or "OpenFEC". */

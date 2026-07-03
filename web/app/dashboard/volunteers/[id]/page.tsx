@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 
 const STATUSES = ["NEW", "CONTACTED", "ACTIVE", "INACTIVE"] as const;
 const badge: Record<string, string> = {
-  NEW: "bg-gold/15 text-[#9a6f1a]",
+  NEW: "bg-gold/15 text-gold-ink",
   CONTACTED: "bg-field/10 text-field",
   ACTIVE: "bg-field/20 text-field",
   INACTIVE: "bg-line text-slate",

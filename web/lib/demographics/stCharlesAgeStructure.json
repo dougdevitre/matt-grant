@@ -1,0 +1,125 @@
+{
+  "generatedFrom": "candidate/data/st-charles-age-structure-2020-2025.csv",
+  "columns": [
+    "ageGroup",
+    "pop2020",
+    "pop2025",
+    "change"
+  ],
+  "items": [
+    {
+      "ageGroup": "Total",
+      "pop2020": "405266",
+      "pop2025": "426499",
+      "change": "21233"
+    },
+    {
+      "ageGroup": "Age 0-4",
+      "pop2020": "23101",
+      "pop2025": "21475",
+      "change": "-1626"
+    },
+    {
+      "ageGroup": "Age 5-9",
+      "pop2020": "26322",
+      "pop2025": "25435",
+      "change": "-887"
+    },
+    {
+      "ageGroup": "Age 10-14",
+      "pop2020": "28130",
+      "pop2025": "27719",
+      "change": "-411"
+    },
+    {
+      "ageGroup": "Age 15-19",
+      "pop2020": "27481",
+      "pop2025": "27759",
+      "change": "278"
+    },
+    {
+      "ageGroup": "Age 20-24",
+      "pop2020": "23344",
+      "pop2025": "26132",
+      "change": "2788"
+    },
+    {
+      "ageGroup": "Age 25-29",
+      "pop2020": "22926",
+      "pop2025": "25253",
+      "change": "2327"
+    },
+    {
+      "ageGroup": "Age 30-34",
+      "pop2020": "26677",
+      "pop2025": "26654",
+      "change": "-23"
+    },
+    {
+      "ageGroup": "Age 35-39",
+      "pop2020": "28656",
+      "pop2025": "29304",
+      "change": "648"
+    },
+    {
+      "ageGroup": "Age 40-44",
+      "pop2020": "26406",
+      "pop2025": "30472",
+      "change": "4066"
+    },
+    {
+      "ageGroup": "Age 45-49",
+      "pop2020": "25383",
+      "pop2025": "27157",
+      "change": "1774"
+    },
+    {
+      "ageGroup": "Age 50-54",
+      "pop2020": "25538",
+      "pop2025": "25056",
+      "change": "-482"
+    },
+    {
+      "ageGroup": "Age 55-59",
+      "pop2020": "29076",
+      "pop2025": "25081",
+      "change": "-3995"
+    },
+    {
+      "ageGroup": "Age 60-64",
+      "pop2020": "27135",
+      "pop2025": "27826",
+      "change": "691"
+    },
+    {
+      "ageGroup": "Age 65-69",
+      "pop2020": "21683",
+      "pop2025": "26328",
+      "change": "4645"
+    },
+    {
+      "ageGroup": "Age 70-74",
+      "pop2020": "17135",
+      "pop2025": "20763",
+      "change": "3628"
+    },
+    {
+      "ageGroup": "Age 75-79",
+      "pop2020": "11735",
+      "pop2025": "15718",
+      "change": "3983"
+    },
+    {
+      "ageGroup": "Age 80-84",
+      "pop2020": "7499",
+      "pop2025": "9866",
+      "change": "2367"
+    },
+    {
+      "ageGroup": "Age 85+",
+      "pop2020": "7039",
+      "pop2025": "8501",
+      "change": "1462"
+    }
+  ]
+}

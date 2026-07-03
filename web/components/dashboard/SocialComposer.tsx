@@ -20,7 +20,7 @@ type LibraryPost = {
 };
 
 const CTAS = ["Donate", "Volunteer", "Vote", "Learn more", "Share"];
-const sevColor: Record<Severity, string> = { error: "text-brick", warn: "text-[#9a6f1a]", tip: "text-slate" };
+const sevColor: Record<Severity, string> = { error: "text-brick", warn: "text-gold-ink", tip: "text-slate" };
 
 export function SocialComposer({ library }: { library: LibraryPost[] }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(schedulePost, { ok: false, message: "" });
@@ -247,7 +247,7 @@ export function SocialComposer({ library }: { library: LibraryPost[] }) {
                   <span className="h-2.5 w-2.5 rounded-full" style={{ background: spec.color }} />
                   {spec.label}
                 </span>
-                <span className={`font-mono text-xs ${s.score >= 80 ? "text-field" : s.score >= 60 ? "text-[#9a6f1a]" : "text-brick"}`}>{s.score}/100</span>
+                <span className={`font-mono text-xs ${s.score >= 80 ? "text-field" : s.score >= 60 ? "text-gold-ink" : "text-brick"}`}>{s.score}/100</span>
               </div>
               <div className="mt-2 flex items-center justify-between font-mono text-[0.7rem]">
                 <span className={over ? "text-brick" : "text-slate"}>

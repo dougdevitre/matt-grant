@@ -1,0 +1,124 @@
+{
+  "generatedFrom": "candidate/data/children-under-15-by-county-2020-2025.csv",
+  "columns": [
+    "county",
+    "under15_2020",
+    "under15_2025",
+    "change",
+    "pctChange"
+  ],
+  "items": [
+    {
+      "county": "Bond County",
+      "under15_2020": "2499",
+      "under15_2025": "2295",
+      "change": "-204",
+      "pctChange": "-8.163265306"
+    },
+    {
+      "county": "Calhoun County",
+      "under15_2020": "745",
+      "under15_2025": "696",
+      "change": "-49",
+      "pctChange": "-6.577181208"
+    },
+    {
+      "county": "Clinton County",
+      "under15_2020": "6710",
+      "under15_2025": "6605",
+      "change": "-105",
+      "pctChange": "-1.564828614"
+    },
+    {
+      "county": "Jersey County",
+      "under15_2020": "3566",
+      "under15_2025": "3235",
+      "change": "-331",
+      "pctChange": "-9.282108805"
+    },
+    {
+      "county": "Macoupin County",
+      "under15_2020": "7666",
+      "under15_2025": "6967",
+      "change": "-699",
+      "pctChange": "-9.11818419"
+    },
+    {
+      "county": "Madison County",
+      "under15_2020": "46922",
+      "under15_2025": "43865",
+      "change": "-3057",
+      "pctChange": "-6.515067559"
+    },
+    {
+      "county": "Madison County",
+      "under15_2020": "6574",
+      "under15_2025": "5951",
+      "change": "-623",
+      "pctChange": "-9.476726498"
+    },
+    {
+      "county": "St. Clair County",
+      "under15_2020": "50416",
+      "under15_2025": "44551",
+      "change": "-5865",
+      "pctChange": "-11.63321168"
+    },
+    {
+      "county": "Franklin County",
+      "under15_2020": "19550",
+      "under15_2025": "18917",
+      "change": "-633",
+      "pctChange": "-3.237851662"
+    },
+    {
+      "county": "Jefferson County",
+      "under15_2020": "43151",
+      "under15_2025": "40755",
+      "change": "-2396",
+      "pctChange": "-5.552594378"
+    },
+    {
+      "county": "Lincoln County",
+      "under15_2020": "12763",
+      "under15_2025": "13405",
+      "change": "642",
+      "pctChange": "5.030165322"
+    },
+    {
+      "county": "St. Charles County",
+      "under15_2020": "77553",
+      "under15_2025": "74629",
+      "change": "-2924",
+      "pctChange": "-3.77032481"
+    },
+    {
+      "county": "St. Louis County",
+      "under15_2020": "182884",
+      "under15_2025": "172144",
+      "change": "-10740",
+      "pctChange": "-5.872574966"
+    },
+    {
+      "county": "Warren County",
+      "under15_2020": "6950",
+      "under15_2025": "6994",
+      "change": "44",
+      "pctChange": "0.633093525"
+    },
+    {
+      "county": "St. Louis city",
+      "under15_2020": "47398",
+      "under15_2025": "40580",
+      "change": "-6818",
+      "pctChange": "-14.38457319"
+    },
+    {
+      "county": "Saint Louis MSA",
+      "under15_2020": "515347",
+      "under15_2025": "481589",
+      "change": "-33758",
+      "pctChange": "-6.550537793"
+    }
+  ]
+}

@@ -45,8 +45,7 @@ export default function IssuesPage() {
             className="group card flex flex-col overflow-hidden p-0 transition duration-200 hover:-translate-y-1 hover:border-ink hover:shadow-lg motion-reduce:hover:translate-y-0"
           >
             <div className="relative aspect-square w-full overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={issue.graphic} alt={issue.title} className="h-full w-full object-cover" loading="lazy" />
+              <Image src={issue.graphic} alt={issue.title} fill className="object-cover" sizes="(max-width:640px) 100vw, 33vw" />
             </div>
             <div className="p-6">
               <p className="font-mono text-xs uppercase tracking-eyebrow text-gold">{issue.n} · {issue.eyebrow}</p>
