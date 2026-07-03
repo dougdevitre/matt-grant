@@ -13,6 +13,8 @@ import {
   loadMsaPopulationByAge,
   mo02Counties,
 } from "./schema";
+import type { ChartSpec } from "@/lib/viz/chart";
+import { BRAND } from "@/lib/viz/palette";
 
 export type ChartTable = { columns: string[]; rows: (string | number)[][] };
 export type ChartDef = {
@@ -24,10 +26,24 @@ export type ChartDef = {
   /** True once web/public/charts/<id>.svg is committed (Datawrapper export). */
   hasExport: boolean;
   table: () => ChartTable;
+  /**
+   * Optional in-app chart geometry. When present, <Figure> renders an inline SVG
+   * (lib/viz + BarChart) from the same validated rows as table(), so a visual ships
+   * with no Datawrapper export step. The SVG is decorative; table() stays the a11y
+   * text alternative. Omit to fall back to Datawrapper-SVG-or-table.
+   */
+  chart?: () => ChartSpec;
+  /** Left-gutter width override (chart units) for long category labels. */
+  chartGutter?: number;
 };
 
 const rows = <T,>(r: { ok: boolean; data: T[] | null }): T[] => (r.ok && r.data ? r.data : []);
 const pct = (n: number) => `${n > 0 ? "+" : ""}${n.toFixed(1)}%`;
+const signed = (n: number) => `${n > 0 ? "+" : ""}${n.toLocaleString("en-US")}`;
+// Metro names are long ("Los Angeles-Long Beach-Anaheim, CA"); the bar's left gutter
+// shows just the primary city. The full name stays in the data table.
+const shortMetro = (m: string) => m.split(/[-,]/)[0].trim();
+const noAge = (g: string) => g.replace(/^Age\s*/, "");
 
 export const CHARTS: Record<string, ChartDef> = {
   "mo02-child-under15": {
@@ -46,6 +62,16 @@ export const CHARTS: Record<string, ChartDef> = {
         r.county, r.under15_2020, r.under15_2025, r.change, pct(r.pctChange),
       ]),
     }),
+    chart: () => ({
+      kind: "bars",
+      colorMode: "diverging",
+      bars: mo02Counties(rows(loadChildUnder15ByCounty())).map((r) => ({
+        label: r.county.replace(" County", ""),
+        value: r.pctChange,
+        display: pct(r.pctChange),
+      })),
+    }),
+    chartGutter: 130,
   },
 
   "under5-metro-ranking": {
@@ -66,6 +92,22 @@ export const CHARTS: Record<string, ChartDef> = {
         // so the cell doesn't read as a double negative ("-18,267" under "decline").
         .map((r, i) => [i + 1, r.metro, Math.abs(r.declineUnder5), pct(r.pctDecline)]),
     }),
+    chart: () => ({
+      kind: "bars",
+      colorMode: "highlight",
+      // Rank by steepest decline; plot the magnitude so all bars read the same
+      // direction, and highlight St. Louis. The signed % is the value label.
+      bars: rows(loadUnder5DeclineByMetro())
+        .slice()
+        .sort((a, b) => a.pctDecline - b.pctDecline)
+        .slice(0, 12)
+        .map((r) => ({
+          label: shortMetro(r.metro),
+          value: Math.abs(r.pctDecline),
+          display: pct(r.pctDecline),
+          highlight: r.metro.includes("St. Louis"),
+        })),
+    }),
   },
 
   "stcharles-age-structure": {
@@ -80,6 +122,17 @@ export const CHARTS: Record<string, ChartDef> = {
       columns: ["Age group", "2020", "2025", "Change"],
       rows: rows(loadStCharlesAgeStructure()).map((r) => [r.ageGroup, r.pop2020, r.pop2025, r.change]),
     }),
+    chart: () => ({
+      kind: "grouped",
+      series: [
+        { name: "2020", color: "#B7C0CC" },
+        { name: "2025", color: BRAND.field },
+      ],
+      groups: rows(loadStCharlesAgeStructure())
+        .filter((r) => r.ageGroup !== "Total")
+        .map((r) => ({ label: noAge(r.ageGroup), values: [r.pop2020, r.pop2025] })),
+    }),
+    chartGutter: 92,
   },
 
   "aging-index-metro": {
@@ -98,6 +151,20 @@ export const CHARTS: Record<string, ChartDef> = {
         .slice(0, 12)
         .map((r, i) => [i + 1, r.metro, r.agingIndex2025.toFixed(1), `${r.pct65plus2025.toFixed(1)}%`]),
     }),
+    chart: () => ({
+      kind: "bars",
+      colorMode: "highlight",
+      bars: rows(loadAgingIndexByMetro())
+        .slice()
+        .sort((a, b) => b.agingIndex2025 - a.agingIndex2025)
+        .slice(0, 12)
+        .map((r) => ({
+          label: shortMetro(r.metro),
+          value: r.agingIndex2025,
+          display: r.agingIndex2025.toFixed(1),
+          highlight: r.metro.includes("St. Louis"),
+        })),
+    }),
   },
 
   "msa-age-series": {
@@ -112,6 +179,16 @@ export const CHARTS: Record<string, ChartDef> = {
       columns: ["Age group", "2020", "2025", "Change"],
       rows: rows(loadMsaPopulationByAge()).map((r) => [r.ageGroup, r.y2020, r.y2025, r.change]),
     }),
+    chart: () => ({
+      kind: "bars",
+      colorMode: "diverging",
+      // Net change per age band (2025 − 2020): youngest cohorts shrink (brick),
+      // oldest grow (blue), around a zero baseline.
+      bars: rows(loadMsaPopulationByAge())
+        .filter((r) => r.ageGroup !== "Total")
+        .map((r) => ({ label: noAge(r.ageGroup), value: r.y2025 - r.y2020, display: signed(r.y2025 - r.y2020) })),
+    }),
+    chartGutter: 92,
   },
 };
 
