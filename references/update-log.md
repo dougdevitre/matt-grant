@@ -26,6 +26,36 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-04 -- v1.x -- "What we missed" audit round 5 (deadline correctness, fail-closed suppression, edge IP, test gaps)
+
+**Changes:**
+- [updated] web/lib/ratelimit.ts -- resolved the round-4 `RATELIMIT_TRUSTED_PROXY_HOPS` open question. A live-edge measurement showed Amplify chains two CloudFront distributions, so the rightmost x-forwarded-for hop is a shared CloudFront IP (was over-bucketing real users), and `cloudfront-viewer-address` carries the true, edge-stamped client. `clientIp()` now prefers that header (IPv6-safe), with the XFF/hop-count path kept only as a non-CloudFront fallback -- no env tuning needed. Tests cover header preference, XFF-spoof immunity, IPv6.
+- [updated] web/lib/subscribers.ts -- `isSuppressed()` failed **open**: a transient DynamoDB read error returned "not suppressed", so a globally unsubscribed/bounced/complained recipient could slip through the broadcast guard (CAN-SPAM risk). Now fails **closed** (treats a read error as suppressed); the sole caller (campaigns.ts send loop) counts it as suppressed and skips.
+- [updated] federal/compliance-calendar.md -- surfaced the concrete FEC deadlines for the **Aug 4, 2026 MO-02 primary** (pre-primary report: close of books Jul 15, postmark-by Jul 20, received-by Jul 23; 48-hour-notice window Jul 15-Aug 4 for contributions >=$1,000; Q2 due Jul 15) in a dated callout + the July summary row, and caveated the stale 2025 general-election gantt as a generic template.
+- [added] tests -- web/lib/sms/send.test.ts now pins the Twilio inbound-webhook signature wire format via independent recomputation (the consent auth gate had only a determinism test); web/lib/integrations/batchWrite.test.ts covers the UnprocessedItems retry/chunking/throw-loudly behavior that guards against silent write loss.
+
+**Verifications Performed:**
+- Aug-4-2026 primary confirmed via web search; FEC pre-primary/48-hour dates computed from 11 CFR 104.5 (fec.gov blocks automated fetch -- callout stamped for reconfirmation against the official Missouri notice).
+- Edge topology confirmed with a temporary secret-gated diagnostic against the live Amplify deployment (chain: `<client>, <inner-CloudFront>`; `cloudfront-viewer-address` = the client); diagnostic removed after use.
+- web/: `tsc --noEmit` clean, `eslint` clean on changed files, full vitest suite 1384 passed / 1 skipped.
+
+**Known Gaps (report-only, no code change this round):**
+- Amplify **build role** IAM likely scoped to `ssm:GetParameter` on `/matt-grant/*`, re-exposing the secrets moved to runtime -- scope to build-only params (infra/IAM, not in repo).
+- `CLERK_SECRET_KEY` still written to `.env.production` at build (Clerk SDK reads `process.env`); confirm it doesn't reach the deployed bundle.
+- amplify.yml `rm -rf .next/cache` vs caching `.next/cache` -> Next incremental cache never persists (build-cost only).
+- Public AI routes (act/strategy, press/topics) have per-IP limits but no global token budget (cost-DoS; mitigated by Haiku + small max_tokens).
+- Games leaderboard is replay-verified + ceiling-clamped but not bot-proof (client-chosen seed, no server nonce); cosmetic/PII-free.
+
+**Files Modified:**
+- web/lib/ratelimit.ts, web/lib/ratelimit.test.ts
+- web/lib/subscribers.ts
+- federal/compliance-calendar.md
+- web/lib/sms/send.test.ts
+- web/lib/integrations/batchWrite.test.ts
+- references/update-log.md
+
+---
+
 ## 2026-07-04 -- v1.x -- "What we missed" audit round 4 (rate-limit spoofing, unmetered routes, consistency)
 
 **Changes:**

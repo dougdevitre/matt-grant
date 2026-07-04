@@ -142,6 +142,10 @@ export async function isSuppressed(email: string, topic?: TopicKey): Promise<boo
     if (topic && Array.isArray(r.Item.optOut) && (r.Item.optOut as string[]).includes(topic)) return true;
     return false;
   } catch {
-    return false;
+    // Fail CLOSED: a transient read error must not let a globally unsubscribed /
+    // bounced / complained recipient through the broadcast guard (CAN-SPAM). The
+    // only caller (campaigns.ts send loop) counts this as suppressed and skips —
+    // safer to miss one send than to mail someone who opted out.
+    return true;
   }
 }
