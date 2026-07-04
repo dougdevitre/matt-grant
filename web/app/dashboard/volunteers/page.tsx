@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { getVolunteers, getTasks, getDonors } from "@/lib/queries";
 import { emailSet } from "@/lib/engagement";
 import { staffGate } from "@/lib/auth";
@@ -13,6 +14,11 @@ export const dynamic = "force-dynamic"; // reads auth + DB; the board uses useSe
 
 export default async function VolunteersPage() {
   const { role, email } = await staffGate();
+  // Gate the roster: it carries volunteer PII (names, emails, phones, notes). staffGate()
+  // only proves a session exists (self-signups are auto-stamped `supporter`), so without
+  // this redirect any signed-in member of the public could read the whole roster. The
+  // `can(role, …)` calls below are display flags, not a gate.
+  if (!can(role, "manageVolunteers")) redirect("/dashboard?denied=volunteers");
   const [{ connected, rows }, tasks] = await Promise.all([getVolunteers(), getTasks()]);
   // How many tasks each volunteer is assigned (for the card badge + detail link).
   const taskCounts: Record<string, number> = {};

@@ -38,7 +38,13 @@ describe("dashboard page auth coverage", () => {
       const rel = f.slice(f.indexOf("app/dashboard/"));
       if (ALLOW.has(rel)) continue;
       const src = readFileSync(f, "utf8");
-      const gated = /requireCap\s*\(/.test(src) || (/staffGate\s*\(/.test(src) && /\bcan\s*\(/.test(src));
+      // A page is gated by requireCap(), OR by staffGate()+can() *plus an actual
+      // control-flow bailout* (redirect/notFound/requireStaff). Requiring the bailout
+      // is the point: staffGate()+can() alone can be present purely for display flags
+      // (donor badges, admin nudges) while the page still renders for everyone — the
+      // exact hole that leaked the volunteer roster. Imports aren't a gate; a branch is.
+      const bailout = /\bredirect\s*\(/.test(src) || /\bnotFound\s*\(/.test(src) || /\brequireStaff\s*\(/.test(src);
+      const gated = /requireCap\s*\(/.test(src) || (/staffGate\s*\(/.test(src) && /\bcan\s*\(/.test(src) && bailout);
       if (!gated) ungated.push(rel);
     }
     expect(ungated, `ungated dashboard pages:\n${ungated.join("\n")}`).toEqual([]);

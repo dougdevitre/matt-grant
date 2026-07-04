@@ -276,3 +276,7 @@ In-kind contributions (goods or services donated) count against contribution lim
 5. **Update limits annually.** Federal limits are indexed for inflation. New limits take effect January 1 of odd-numbered years. Subscribe to FEC updates.
 
 6. **Train all fundraising staff.** Everyone who solicits or receives contributions must understand basic limits and prohibited sources. A single illegal contribution can trigger an audit.
+
+---
+
+*This is educational information, not legal advice. Consult a campaign finance attorney or your filing agency for guidance specific to your situation. Contribution limits are indexed for inflation and change in odd-numbered years — the federal figures in this file were verified 2026-07-03 against fec.gov; always re-verify current limits at fec.gov before relying on them.*
