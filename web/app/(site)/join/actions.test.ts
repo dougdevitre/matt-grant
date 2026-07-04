@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const saveVolunteerSignup = vi.fn();
 vi.mock("@/lib/volunteers/intake", () => ({ saveVolunteerSignup: (a: unknown) => saveVolunteerSignup(a) }));
 const rateLimit = vi.fn();
-vi.mock("@/lib/ratelimit", () => ({ rateLimit: (...a: unknown[]) => rateLimit(...a) }));
+vi.mock("@/lib/ratelimit", () => ({ rateLimit: (...a: unknown[]) => rateLimit(...a), clientIpFromHeaders: () => "203.0.113.1" }));
 const staffGate = vi.fn();
 vi.mock("@/lib/auth", () => ({ staffGate: () => staffGate() }));
 vi.mock("next/headers", () => ({ headers: async () => new Map<string, string>() }));

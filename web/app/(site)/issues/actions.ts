@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, newId, dbConfigured } from "@/lib/db";
-import { rateLimit } from "@/lib/ratelimit";
+import { rateLimit, clientIpFromHeaders } from "@/lib/ratelimit";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { volunteerWelcome } from "@/lib/email/templates";
 import { CAMPAIGN } from "@/lib/site";
@@ -39,7 +39,7 @@ export async function commitToIssue(_prev: CommitResult | null, formData: FormDa
   // fan out welcome emails. Fails open (lib/ratelimit) — a DynamoDB blip never
   // blocks a real supporter.
   const h = await headers();
-  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+  const ip = clientIpFromHeaders(h);
   const rl = await rateLimit(`issue-commit:${ip}`, { limit: 10, windowSec: 3600 });
   if (!rl.allowed) {
     return { ok: false, message: "Too many submissions from this connection — please try again in a little while." };
@@ -122,7 +122,7 @@ export async function submitTopic(_prev: TopicResult | null, formData: FormData)
   // Rate-limit per client IP before the write so the public board can't be flooded.
   // Fails open (lib/ratelimit) so an infra blip never blocks a real supporter.
   const h = await headers();
-  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+  const ip = clientIpFromHeaders(h);
   const rl = await rateLimit(`issue-topic:${ip}`, { limit: 5, windowSec: 3600 });
   if (!rl.allowed) {
     return { ok: false, message: "Too many submissions from this connection — please try again in a little while." };
