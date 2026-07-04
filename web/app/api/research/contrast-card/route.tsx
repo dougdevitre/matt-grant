@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { rateLimit, clientIp } from "@/lib/ratelimit";
 import { loadField } from "@/lib/integrations/research/candidates";
 import { loadStatements } from "@/lib/integrations/statements/data";
 import { alignCandidate } from "@/lib/analysis/alignment";
@@ -22,6 +23,9 @@ const BRICK = "#B5343B";
 const usd = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
 
 export async function GET(req: Request) {
+  const rl = await rateLimit(`contrast-card:${clientIp(req)}`, { limit: 60, windowSec: 60 });
+  if (!rl.allowed) return new Response("Too many requests — please slow down.", { status: 429 });
+
   const slug = new URL(req.url).searchParams.get("candidate") ?? "";
   const c = loadField().find((x) => x.slug === slug);
   if (!c) return new Response(`unknown candidate: ${slug}`, { status: 404 });

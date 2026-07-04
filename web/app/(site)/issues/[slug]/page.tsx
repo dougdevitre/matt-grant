@@ -80,6 +80,7 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
               controls
               playsInline
               preload="metadata"
+              aria-label={`Watch: ${issue.eyebrow}`}
               className="aspect-video w-full bg-ink"
             >
               {cap && <track kind="captions" src={cap.src} srcLang={cap.srclang} label={cap.label} default />}

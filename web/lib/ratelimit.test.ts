@@ -29,12 +29,27 @@ describe("windowStart", () => {
 describe("clientIp", () => {
   const reqWith = (headers: Record<string, string>) => new Request("https://x.test", { headers });
 
-  it("takes the first hop of x-forwarded-for", () => {
-    expect(clientIp(reqWith({ "x-forwarded-for": "203.0.113.7, 70.0.0.1, 10.0.0.1" }))).toBe("203.0.113.7");
+  it("takes the last hop (the trusted proxy's appended client IP), ignoring spoofed leftmost entries", () => {
+    // A client sends a fake leftmost value; CloudFront appends the real viewer IP last.
+    expect(clientIp(reqWith({ "x-forwarded-for": "9.9.9.9, 203.0.113.7" }))).toBe("203.0.113.7");
+    // A single-entry chain is that entry.
+    expect(clientIp(reqWith({ "x-forwarded-for": "203.0.113.7" }))).toBe("203.0.113.7");
+  });
+
+  it("honors RATELIMIT_TRUSTED_PROXY_HOPS for extra trusted internal hops", () => {
+    const prev = process.env.RATELIMIT_TRUSTED_PROXY_HOPS;
+    process.env.RATELIMIT_TRUSTED_PROXY_HOPS = "2";
+    try {
+      // spoofed, realClient, internalProxy → the real client is 2nd from the end.
+      expect(clientIp(reqWith({ "x-forwarded-for": "9.9.9.9, 203.0.113.7, 10.0.0.1" }))).toBe("203.0.113.7");
+    } finally {
+      if (prev === undefined) delete process.env.RATELIMIT_TRUSTED_PROXY_HOPS;
+      else process.env.RATELIMIT_TRUSTED_PROXY_HOPS = prev;
+    }
   });
 
   it("trims whitespace around the client IP", () => {
-    expect(clientIp(reqWith({ "x-forwarded-for": "  198.51.100.4  , 10.0.0.1" }))).toBe("198.51.100.4");
+    expect(clientIp(reqWith({ "x-forwarded-for": "  9.9.9.9 , 198.51.100.4  " }))).toBe("198.51.100.4");
   });
 
   it("falls back to x-real-ip, then to 'unknown'", () => {

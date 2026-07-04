@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { rateLimit, clientIp } from "@/lib/ratelimit";
 import { loadField, partyLabel } from "@/lib/integrations/research/candidates";
 import { loadStatements } from "@/lib/integrations/statements/data";
 import { alignCandidate } from "@/lib/analysis/alignment";
@@ -17,6 +18,9 @@ const FIELD = "#3f7d52";
 const BRICK = "#B5343B";
 
 export async function GET(req: Request) {
+  const rl = await rateLimit(`research-graphic:${clientIp(req)}`, { limit: 60, windowSec: 60 });
+  if (!rl.allowed) return new Response("Too many requests — please slow down.", { status: 429 });
+
   const slug = new URL(req.url).searchParams.get("candidate") ?? "";
   const c = loadField().find((x) => x.slug === slug);
   if (!c) return new Response(`unknown candidate: ${slug}`, { status: 404 });
