@@ -160,7 +160,8 @@ export function AskMatt() {
                       value={f}
                       onChange={(e) => setFriends((arr) => arr.map((x, j) => (j === i ? e.target.value : x)))}
                       placeholder={`Friend ${i + 1}`}
-                      className="min-w-0 flex-1 rounded-sm border border-line bg-white px-2.5 py-1.5 text-sm outline-none focus:border-ink"
+                      aria-label={`Friend ${i + 1} to bring to the polls`}
+                      className="min-w-0 flex-1 rounded-sm border border-line bg-white px-2.5 py-1.5 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-field/30"
                     />
                     <a
                       href={`sms:?&body=${encodeURIComponent(inviteMsg(f.trim()))}`}

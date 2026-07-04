@@ -6,7 +6,7 @@ import { CAMPAIGN } from "@/lib/site";
 import type { IntakeResult } from "@/lib/volunteers/intake";
 
 const input =
-  "mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink";
+  "mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-field/30";
 
 // "Donor Pledge" — captures intent (and optional amount) for follow-up, then hands
 // off to WinRed for the actual gift. Real donor status is set by the WinRed webhook,
