@@ -52,7 +52,7 @@ Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026
 
 ## "I need to contact voters"
 
-- [voter-engagement-tools.md](voter-engagement-tools.md) -- 15 interactive voter engagement tools
+- [tools/voter-engagement-tools.md](tools/voter-engagement-tools.md) -- 15 interactive voter engagement tools
 - [workflows/volunteer-management.md](workflows/volunteer-management.md) -- Recruiting, training, and retaining volunteers
 - [workflows/gotv-plan.md](workflows/gotv-plan.md) -- Get Out The Vote operations
 - [tactics/ballot-chase-program.md](tactics/ballot-chase-program.md) -- Tracking and chasing ballots
