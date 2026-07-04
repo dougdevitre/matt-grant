@@ -49,8 +49,11 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
   const pct = Math.min(100, Math.round((o.raisedCents / GOAL_CENTS) * 100));
   const taskTotal = o.tasksTodo + o.tasksDoing + o.tasksDone;
   const doneMiles = o.milestones.filter((m) => m.done).length;
-  const teamInvited = (await listStaff()).filter((s) => s.status === "active").length;
-  const showOnboarding = !(await onboardingDismissed(email));
+  // Independent reads — fetch in parallel on this hot authenticated path (getOverview
+  // above must stay first: it gates the !connected early return).
+  const [staff, dismissed] = await Promise.all([listStaff(), onboardingDismissed(email)]);
+  const teamInvited = staff.filter((s) => s.status === "active").length;
+  const showOnboarding = !dismissed;
 
   return (
     <>
