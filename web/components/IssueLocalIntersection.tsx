@@ -13,7 +13,7 @@ import type { LocalSnapshot } from "@/lib/issues/localSnapshot";
 // issue's documented `commitment` passed in as a prop. AI-personalized response
 // ("how Matt might respond" tuned to the local figures) is a LATER, gated phase —
 // it does not live here. See web/docs/local-intersection/SPEC.md.
-const input = "mt-1 rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink";
+const input = "mt-1 rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-field/30";
 const DISCLAIMER = `For education and civic engagement only — not legal advice. ${CAMPAIGN.paidForBy}`;
 
 export function IssueLocalIntersection({

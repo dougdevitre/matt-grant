@@ -70,7 +70,7 @@ export function CommunityOnboarding() {
             inputMode="numeric"
             placeholder="63101"
             maxLength={5}
-            className="mt-1 w-32 rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink"
+            className="mt-1 w-32 rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-field/30"
           />
           <span className="mt-1 block text-xs text-slate">So we can point you to local action.</span>
         </label>

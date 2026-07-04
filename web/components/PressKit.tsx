@@ -79,7 +79,7 @@ export function PressKit() {
             value={outlet}
             onChange={(e) => setOutlet(e.target.value)}
             placeholder="e.g. KSDK, The Unknown Podcast"
-            className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink"
+            className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-field/30"
           />
         </label>
         <label className="block">
@@ -87,7 +87,7 @@ export function PressKit() {
           <select
             value={format}
             onChange={(e) => setFormat(e.target.value as (typeof FORMATS)[number])}
-            className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink"
+            className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-field/30"
           >
             {FORMATS.map((f) => (
               <option key={f}>{f}</option>
@@ -100,7 +100,7 @@ export function PressKit() {
             value={focus}
             onChange={(e) => setFocus(e.target.value)}
             placeholder="e.g. family-court reform, term limits, the new MO-02 map"
-            className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink"
+            className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-field/30"
           />
         </label>
       </div>

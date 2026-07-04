@@ -95,7 +95,7 @@ export function AgendaBuilder() {
                 value={area}
                 onChange={(e) => reset(setArea)(e.target.value)}
                 placeholder="Your town or county"
-                className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink"
+                className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-field/30"
               />
             </label>
             <span className="mt-2 flex flex-wrap gap-1.5">
@@ -113,7 +113,7 @@ export function AgendaBuilder() {
                 maxLength={5}
                 onChange={(e) => reset(setZip)(e.target.value.replace(/\D/g, "").slice(0, 5))}
                 placeholder="e.g. 63017"
-                className="mt-1 w-full max-w-[10rem] rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink"
+                className="mt-1 w-full max-w-[10rem] rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-field/30"
               />
             </label>
           </div>
@@ -122,7 +122,7 @@ export function AgendaBuilder() {
             <select
               value={issueSlug}
               onChange={(e) => reset(setIssueSlug)(e.target.value)}
-              className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink"
+              className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-field/30"
             >
               {ISSUES.map((i) => (
                 <option key={i.slug} value={i.slug}>{i.eyebrow} — {i.title}</option>
