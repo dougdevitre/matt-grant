@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { publicPillars, getPillar } from "@/lib/pillars";
 import { getManifest } from "@/lib/pillars-content";
-import { CAMPAIGN } from "@/lib/site";
+import { CAMPAIGN, MAIN_SITE_URL } from "@/lib/site";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 
@@ -27,7 +27,16 @@ export async function generateMetadata({ params }: { params: Promise<{ pillar: s
   const { pillar: pillarSlug, tool: toolSlug } = await params;
   const tool = getManifest(pillarSlug)?.tools.find((t) => t.slug === toolSlug);
   if (!tool) return {};
-  return { title: `${tool.label} — ${getPillar(pillarSlug)?.eyebrow}` };
+  // Canonical = apex path (subdomains aren't provisioned) + a description the tool page
+  // previously lacked, so Google isn't left to auto-snippet an iframed embed.
+  const canonical = `${MAIN_SITE_URL}/pillars/${pillarSlug}/tools/${toolSlug}`;
+  const description = `${tool.label} — an interactive ${getPillar(pillarSlug)?.eyebrow} resource.`;
+  return {
+    title: `${tool.label} — ${getPillar(pillarSlug)?.eyebrow}`,
+    description,
+    alternates: { canonical },
+    openGraph: { title: tool.label, description, url: canonical },
+  };
 }
 
 export default async function PillarToolPage({ params }: { params: Promise<{ pillar: string; tool: string }> }) {
