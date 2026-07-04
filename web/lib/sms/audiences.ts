@@ -47,8 +47,11 @@ export async function resolveSmsRecipients(groups: SmsGroup[], roles: Role[] = [
       if (e && opted.has(e)) add(e);
     }
   }
-  for (const role of roles) {
-    for (const c of await listClerkContactsByRole(role)) {
+  // Each role scan pages the full Clerk userbase (no server-side metadata filter), so
+  // fan them out in parallel rather than one role at a time.
+  const perRole = await Promise.all(roles.map((role) => listClerkContactsByRole(role)));
+  for (const contacts of perRole) {
+    for (const c of contacts) {
       const e = c.phone ? toE164(c.phone) : null;
       if (e && opted.has(e)) add(e);
     }
