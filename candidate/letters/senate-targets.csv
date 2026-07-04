@@ -9,8 +9,8 @@ district,title,first_name,last_name,salutation,room,phone,email,party,leadership
 27,Sen.,Jamie,Burger,Senator,334,(573) 751-2459,jamie.burger@senate.mo.gov,R,,"Judiciary and Civil and Criminal Jurisprudence",Member,,JUDICIARY,B
 32,Sen.,Jill,Carter,Senator,320,(573) 751-2173,jill.carter@senate.mo.gov,R,Majority Caucus Whip,"Families, Seniors and Health (Chair)",Chair,,FAMILIES,A
 11,Sen.,Joe,Nicola,Senator,226,(573) 751-3074,joe.nicola@senate.mo.gov,R,,"Families, Seniors and Health (Vice-Chair)",Vice-Chair,,FAMILIES,A
-7,Sen.,Patty,Lewis,Senator,425,(573) 751-6607,patty.lewis@senate.mo.gov,R,,"Families, Seniors and Health",Member,,FAMILIES,B
-17,Sen.,Maggie,Nurrenbern,Senator,330,(573) 751-5282,maggie.nurrenbern@senate.mo.gov,R,,"Families, Seniors and Health; Education; Appropriations",Member,,FAMILIES,B
+7,Sen.,Patty,Lewis,Senator,425,(573) 751-6607,patty.lewis@senate.mo.gov,D,,"Families, Seniors and Health",Member,,FAMILIES,B
+17,Sen.,Maggie,Nurrenbern,Senator,330,(573) 751-5282,maggie.nurrenbern@senate.mo.gov,D,,"Families, Seniors and Health; Education; Appropriations",Member,,FAMILIES,B
 31,Sen.,Rick,Brattin,Senator,331,(573) 751-2108,rick.brattin@senate.mo.gov,R,,"Families, Seniors and Health; Education (Chair)",Member,,FAMILIES,B
 33,Sen.,Brad,Hudson,Senator,426,(573) 751-1882,brad.hudson@senate.mo.gov,R,,"Families, Seniors and Health; Education (Vice-Chair); Appropriations (Vice-Chair)",Member,,FAMILIES,B
 18,Sen.,Cindy,O'Laughlin,Senator,326,(573) 751-7985,cindy.olaughlin@senate.mo.gov,R,President Pro Tem,"Education",Member,,LEADERSHIP,A

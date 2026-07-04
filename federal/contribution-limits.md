@@ -199,13 +199,13 @@ This allows a single donor to write **one large check** that is then divided amo
 
 ### What Happens If a Campaign Receives an Excessive Contribution
 
-The campaign has **30 days** from the treasurer's receipt to resolve an excessive contribution by:
+The campaign has **60 days** from the treasurer's receipt to resolve an excessive contribution by:
 
 1. **Refunding** the excess amount to the donor
 2. **Redesignating** the excess to another election (with written donor permission) -- e.g., moving excess primary funds to the general election account
 3. **Reattributing** the excess to another person (e.g., if a couple intended to contribute jointly, reattribute half to the spouse, with written permission from both)
 
-If not resolved within 30 days, both the campaign and the donor may be subject to enforcement action.
+If not resolved within 60 days, both the campaign and the donor may be subject to enforcement action.
 
 ### Record-Keeping for Limits
 

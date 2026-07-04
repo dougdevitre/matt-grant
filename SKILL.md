@@ -199,6 +199,8 @@ Load only what is needed for the current task:
 | `states/arizona/overview.md` | Running in Arizona — Clean Elections public financing, Mega PAC designation |
 | `states/michigan/overview.md` | Running in Michigan — open primary, independent committees, $20 cash limit |
 
+Every non-Missouri state above **also** carries the full 5-file set following the Missouri pattern — `contribution-limits.md`, `disclosure-requirements.md`, `ballot-access.md`, and `local-rules.md` alongside its `overview.md`. Load the matching deeper file when the user's question is about that state's contribution limits, disclosure/reporting schedule, ballot access, or local (county/city/school-board) rules — e.g. `states/texas/contribution-limits.md`, `states/florida/ballot-access.md`.
+
 **Workflow reference files (Phase 4 — complete):**
 
 | File | Load When |

@@ -1,15 +1,19 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
 // Mock the data layer so we can assert what recordContribution sends to DynamoDB
-// without a real table. GetCommand (dedupe read) returns h.getResult; any command
-// carrying an UpdateExpression is the write and returns {}.
-const h = vi.hoisted(() => ({ sends: [] as { input: Record<string, unknown> }[], getResult: { Item: undefined as unknown } }));
+// without a real table. Every write carries an UpdateExpression. When
+// h.conditionFails is set, the mock throws ConditionalCheckFailedException so we
+// can exercise the idempotent no-op path (a duplicate/concurrent webhook delivery).
+const h = vi.hoisted(() => ({ sends: [] as { input: Record<string, unknown> }[], conditionFails: false }));
 
 vi.mock("@/lib/db", () => ({
   ddb: {
     send: vi.fn(async (cmd: { input: Record<string, unknown> }) => {
       h.sends.push(cmd);
-      return "UpdateExpression" in cmd.input ? {} : h.getResult;
+      if (h.conditionFails && "ConditionExpression" in cmd.input) {
+        throw Object.assign(new Error("conditional"), { name: "ConditionalCheckFailedException" });
+      }
+      return {};
     }),
   },
   TABLE: "T",
@@ -21,19 +25,31 @@ vi.mock("@/lib/db", () => ({
 import { recordContribution } from "@/lib/donors";
 
 const writes = () => h.sends.filter((c) => "UpdateExpression" in c.input);
-const reads = () => h.sends.filter((c) => !("UpdateExpression" in c.input));
 
 beforeEach(() => {
   h.sends.length = 0;
-  h.getResult = { Item: undefined };
+  h.conditionFails = false;
 });
 
 describe("recordContribution", () => {
-  it("is idempotent: a known externalId is read but not re-written", async () => {
-    h.getResult = { Item: { contributions: [{ externalId: "wr_123", amountCents: 5000 }] } };
+  it("guards the append with a per-externalId condition so retries can't double-count", async () => {
     await recordContribution({ email: "Jane@Example.com", externalId: "wr_123", amountCents: 5000 });
-    expect(reads()).toHaveLength(1); // the dedupe Get happened
-    expect(writes()).toHaveLength(0); // ...and no double-count write
+    const input = writes()[0].input as {
+      UpdateExpression: string;
+      ConditionExpression?: string;
+      ExpressionAttributeValues: Record<string, unknown>;
+    };
+    expect(input.UpdateExpression).toContain("ADD seenIds"); // externalId tracked in a set
+    expect(input.ConditionExpression).toContain("contains(seenIds, :xid)"); // only append when new
+    expect(input.ExpressionAttributeValues[":xid"]).toBe("wr_123");
+  });
+
+  it("is idempotent: a duplicate delivery that fails the condition is a silent no-op", async () => {
+    h.conditionFails = true;
+    await expect(
+      recordContribution({ email: "Jane@Example.com", externalId: "wr_123", amountCents: 5000 }),
+    ).resolves.toBeUndefined(); // ConditionalCheckFailedException swallowed, not thrown
+    expect(writes()).toHaveLength(1); // the single atomic write was attempted...
   });
 
   it("appends a new gift and accumulates on one row keyed by email", async () => {
@@ -56,10 +72,17 @@ describe("recordContribution", () => {
     expect(input.ExpressionAttributeValues[":emp"]).toBe("NewCo"); // but profile still updated
   });
 
-  it("only dedupes when BOTH externalId and email are present (manual gifts use a fresh key)", async () => {
+  it("falls back to the externalId as the row key when no email is present", async () => {
+    await recordContribution({ amountCents: 1000, externalId: "wr_555" });
+    const input = writes()[0].input as { Key: { SK: string }; ConditionExpression?: string };
+    expect(input.Key.SK).toBe("x:wr_555"); // retries collapse onto one row instead of a random key
+    expect(input.ConditionExpression).toBeDefined(); // still guarded against double-count
+  });
+
+  it("uses a fresh key and no condition for a manual gift with neither email nor externalId", async () => {
     await recordContribution({ amountCents: 1000, method: "Cash" });
-    expect(reads()).toHaveLength(0); // no dedupe read without email+externalId
-    const input = writes()[0].input as { Key: { SK: string } };
+    const input = writes()[0].input as { Key: { SK: string }; ConditionExpression?: string };
     expect(input.Key.SK).toBe("generated-id");
+    expect(input.ConditionExpression).toBeUndefined(); // manual entry isn't retried by a webhook
   });
 });

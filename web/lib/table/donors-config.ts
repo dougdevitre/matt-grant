@@ -56,7 +56,7 @@ export const DONOR_TABLE: TableConfig<DonorRow> = {
       key: "over",
       label: "Over per-election limit",
       type: "boolean",
-      match: (r) => r.totalCents > FEC_INDIVIDUAL_PER_ELECTION_CENTS,
+      match: (r) => r.maxPerElectionCents > FEC_INDIVIDUAL_PER_ELECTION_CENTS,
     },
     {
       key: "alsoVolunteer",

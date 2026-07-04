@@ -15,7 +15,7 @@ import type { TableConfig } from "./types";
 
 const donor = (over: Partial<DonorRow>): DonorRow => ({
   id: "d", name: "D", email: "d@x.com", city: "Kirkwood", employer: "Acme", occupation: "Engineer",
-  totalCents: 5000, thankedAt: null, ...over,
+  totalCents: 5000, maxPerElectionCents: 5000, thankedAt: null, ...over,
 });
 const task = (over: Partial<TaskRow>): TaskRow => ({
   id: "t", title: "Knock doors", detail: null, category: "Field", status: "TODO", priority: "MEDIUM",
@@ -30,17 +30,21 @@ describe("DONOR_TABLE facets", () => {
   const rows = [
     donor({ id: "ok" }),
     donor({ id: "missing", employer: null }),
-    donor({ id: "over", totalCents: 400000 }),
+    donor({ id: "over", totalCents: 400000, maxPerElectionCents: 400000 }),
     donor({ id: "thanked", thankedAt: "2026-06-01" }),
     donor({ id: "novol", email: "z@x.com" }),
+    // Compliant: $3,500 primary + $3,500 general = $700,000c lifetime, but never
+    // over the per-election cap — must NOT be flagged.
+    donor({ id: "split", totalCents: 700000, maxPerElectionCents: 350000 }),
   ];
 
   it("MISSING surfaces donors without employer/occupation", () => {
     const out = applyQuery(rows, DONOR_TABLE, withFacets(DONOR_TABLE, { fec: ["MISSING"] }), ctx);
     expect(out.map((r) => r.id)).toEqual(["missing"]);
   });
-  it("over-limit flags contributions past the per-election cap", () => {
+  it("over-limit flags a per-election overage, not a lifetime total across elections", () => {
     const out = applyQuery(rows, DONOR_TABLE, withFacets(DONOR_TABLE, { over: true }), ctx);
+    // "over" exceeds the cap in one election; "split" is $3,500+$3,500 across two — compliant.
     expect(out.map((r) => r.id)).toEqual(["over"]);
   });
   it("not-thanked excludes thanked donors", () => {
