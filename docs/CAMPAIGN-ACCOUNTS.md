@@ -38,12 +38,17 @@ Powers the AI writing/press tools on the site.
 
 For sending campaign texts (GOTV, volunteer coordination).
 
-- **Create:** <https://www.twilio.com> (committee email + billing) → buy a phone number.
-- **Register for political texting (required):** Twilio **A2P 10DLC** brand + campaign
-  registration. US carriers require this for any campaign SMS, and **political** use
-  needs the committee's legal info (FEC committee name, EIN, address, website). This
-  review can take **several business days** — which is why it's first.
-- **Send me:** the Account SID + Auth Token (or add me as a user) and the number.
+- **Create:** <https://www.twilio.com> (committee email + billing) → buy a **toll-free**
+  number (the campaign texts from a toll-free sender, +1 844-314-7912).
+- **Register for political texting (required):** because the sender is toll-free, this is
+  Twilio **Toll-Free Verification** — *not* A2P 10DLC (10DLC applies only if you text from a
+  local 10-digit long code instead). US carriers require verification for any campaign SMS,
+  and **political** use needs the committee's legal info (FEC committee name, EIN, address,
+  website). This review can take **several business days** — which is why it's first.
+- **Send me:** the **Account SID**, **Auth Token**, and the **Messaging Service SID** (or add
+  me as a user). The app sends through a **Messaging Service**, so create one in Twilio and
+  attach the toll-free number to it — the Messaging Service SID is the piece the app needs
+  (a raw number alone won't work).
 - **Cost:** pay-as-you-go per text + a small monthly number fee.
 
 ---
