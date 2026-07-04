@@ -52,7 +52,7 @@ Instant-generation triggers. When a user types any of these commands, generate t
 | `/onesheet` | Campaign one-sheet / leave-behind (print-ready) |
 | `/announcement` | Campaign announcement press release + email + social posts |
 | `/endorsement [name]` | Endorsement announcement press release |
-| `/position [issue]` | Issue position statement (press release format) |
+| `/positionpress [issue]` | Issue position statement (press release format) |
 | `/response [topic]` | Rapid response statement to an attack or news event |
 | `/contrast` | Side-by-side contrast document (your candidate vs. opponent) |
 | `/op-ed [issue]` | Op-ed draft for submission to local newspaper |
