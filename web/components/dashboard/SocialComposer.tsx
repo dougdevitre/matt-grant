@@ -6,6 +6,7 @@ import { schedulePost, type ActionState } from "@/app/dashboard/social/actions";
 import { CHANNELS, CHANNEL_IDS, type ChannelId } from "@/lib/social/channels";
 import { scoreContent, type Severity } from "@/lib/social/optimize";
 import { AssetPicker, type PickerAsset } from "@/components/dashboard/AssetPicker";
+import { RecentMedia } from "@/components/dashboard/RecentMedia";
 import { trimHeadline } from "@/lib/social/headline";
 
 type LibraryPost = {
@@ -183,6 +184,10 @@ export function SocialComposer({ library }: { library: LibraryPost[] }) {
               </span>
             )}
           </div>
+
+          {/* One-click reuse of recent post-ready images (incl. the graphic you just
+              saved in Studio) — the full media library is behind the picker above. */}
+          <RecentMedia onSelect={chooseAsset} selectedKey={selectedAsset?.key} />
 
           {/* A library image may or may not carry the disclaimer, so require the
               acknowledgment just like the no-auto-graphic case. */}
