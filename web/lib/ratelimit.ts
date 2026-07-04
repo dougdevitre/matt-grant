@@ -18,18 +18,29 @@ export function windowStart(nowMs: number, windowSec: number): number {
   return Math.floor(nowMs / 1000 / windowSec) * windowSec;
 }
 
-// Client IP for rate-limiting, read from the proxy chain. `x-forwarded-for` is
-// built left-to-right (client, proxy1, proxy2, …) and the LEFTMOST entries are
-// attacker-supplied — a client can send its own x-forwarded-for and the trusted
-// proxies in front only APPEND to it. Keying on the leftmost value would let an
-// anonymous caller rotate a fake IP per request and defeat every rate limit, so
-// we count from the RIGHT: with N trusted proxies ahead of the app (CloudFront /
-// Amplify), the real client is the Nth entry from the end.
-// RATELIMIT_TRUSTED_PROXY_HOPS makes N match the live edge topology (default 1 —
-// CloudFront appends the true viewer IP as the last hop). Setting it too low
-// re-opens spoofing; too high buckets many users into one key. Falls back to a
-// constant so a missing header buckets together rather than throwing.
+// Client IP for rate-limiting. PREFER CloudFront's `cloudfront-viewer-address` —
+// it is the address of the TCP peer CloudFront actually saw, stamped by the
+// trusted edge and NOT forgeable by the client, so it is immune to the
+// x-forwarded-for spoofing below and independent of how many proxy hops sit in
+// front of the app. On this Amplify deployment the SSR request traverses two
+// chained CloudFront distributions, so the app-visible x-forwarded-for is
+// `<client>, <inner-CloudFront>` — its rightmost entry is a shared CloudFront IP,
+// not the client (verified live 2026-07-04), which is exactly why hop-counting
+// XFF is the fallback, not the primary source. Format is "<ip>:<port>" (the ip
+// may itself contain colons for IPv6), so strip the trailing :port.
+//
+// FALLBACK (local dev / non-CloudFront proxies): x-forwarded-for is built
+// left-to-right (client, proxy1, proxy2, …) and the LEFTMOST entries are
+// attacker-supplied — trusted proxies only APPEND. Keying on the leftmost value
+// would let an anonymous caller rotate a fake IP per request and defeat every
+// limit, so we count RATELIMIT_TRUSTED_PROXY_HOPS from the RIGHT (default 1).
 export function clientIp(req: Request): string {
+  const cfViewer = req.headers.get("cloudfront-viewer-address");
+  if (cfViewer) {
+    const idx = cfViewer.lastIndexOf(":");
+    const ip = (idx > 0 ? cfViewer.slice(0, idx) : cfViewer).replace(/^\[|\]$/g, "");
+    if (ip) return ip;
+  }
   const parts = (req.headers.get("x-forwarded-for") ?? "")
     .split(",")
     .map((s) => s.trim())
