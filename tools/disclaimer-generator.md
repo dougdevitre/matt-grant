@@ -70,7 +70,7 @@ Paid for by [PAC Name] ([website or address]). Not authorized by any candidate o
 **Template:**
 ```
 ┌─────────────────────────────────────────────────┐
-│ Paid for by Friends of [Candidate Name].        │
+│ Paid for by [Committee Name].                   │
 │ [Address or Website]                             │
 └─────────────────────────────────────────────────┘
 ```
@@ -96,7 +96,7 @@ Paid for by [PAC Name] ([website or address]). Not authorized by any candidate o
 **Template (candidate ad):**
 ```
 [VISUAL — On screen for minimum 4 seconds:]
-"Paid for by Friends of [Candidate Name]"
+"Paid for by [Committee Name]"
 
 [AUDIO — Candidate voice and image:]
 "I'm [Candidate Name] and I approve this message."
@@ -129,7 +129,7 @@ or candidate's committee."
 "I'm [Candidate Name], candidate for [Office], and I approve this message."
 
 [ANNOUNCER VOICE:]
-"Paid for by Friends of [Candidate Name]."
+"Paid for by [Committee Name]."
 ```
 
 **Template (independent expenditure):**
@@ -150,13 +150,13 @@ or candidate's committee."
 
 **Full disclaimer (large format ads, landing pages):**
 ```
-Paid for by Friends of [Candidate Name]. [website.com]
+Paid for by [Committee Name]. [website.com]
 ```
 
 **Adapted disclaimer (small format — banner ads under 200x200 pixels):**
 ```
 [Ad Text]
-Paid for by Friends of [Candidate Name]
+Paid for by [Committee Name]
 [Clear link/button to full disclaimer page]
 ```
 
@@ -178,7 +178,7 @@ Paid for by Friends of [Candidate Name]
 **Template (place at bottom of every email):**
 ```
 ---
-Paid for by Friends of [Candidate Name]
+Paid for by [Committee Name]
 [Street Address], [City], [State] [ZIP]
 [website.com]
 
@@ -195,13 +195,13 @@ Paid for by Friends of [Candidate Name]
 
 **Full text message with disclaimer:**
 ```
-[Message content] Paid for by Friends of [Candidate Name]. 
+[Message content] Paid for by [Committee Name]. 
 Reply STOP to opt out.
 ```
 
 **Adapted disclaimer (for very short texts):**
 ```
-[Message content] Pd for by Friends of [Candidate]. 
+[Message content] Pd for by [Committee Name]. 
 [Link to full disclaimer] Reply STOP to quit.
 ```
 
@@ -220,13 +220,13 @@ Reply STOP to opt out.
 ```
 [Post content]
 
-Paid for by Friends of [Candidate Name].
+Paid for by [Committee Name].
 ```
 
 **Template (social media profile/bio):**
 ```
 Official campaign account for [Candidate Name], candidate for [Office].
-Paid for by Friends of [Candidate Name]. [website.com]
+Paid for by [Committee Name]. [website.com]
 ```
 
 ### Yard Signs and Banners
@@ -240,7 +240,7 @@ Paid for by Friends of [Candidate Name]. [website.com]
 CANDIDATE NAME
 for [OFFICE]
 ────────────────────
-Paid for by Friends of [Candidate Name]
+Paid for by [Committee Name]
 ```
 
 **Size guidance:**
@@ -263,7 +263,7 @@ Paid for by Friends of [Candidate Name]
 **Template (front or back of mailer):**
 ```
 ┌──────────────────────────────────────────────────────────┐
-│ Paid for by Friends of [Candidate Name]                  │
+│ Paid for by [Committee Name]                             │
 │ 123 Campaign Trail, Springfield, IL 62701                │
 │ www.candidatewebsite.com                                 │
 └──────────────────────────────────────────────────────────┘
