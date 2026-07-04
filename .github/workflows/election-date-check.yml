@@ -23,4 +23,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Pin the runtime (matches the other workflows) so this doesn't silently ride
+      # the runner's default Node. The script uses only Node builtins today, so no
+      # `npm ci` is needed — add one here if check-election ever gains a dependency.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - run: npm run check:election

@@ -100,10 +100,21 @@ keep them in env so step 3 only removes *secret* names from the bake loop.
    confirm both before merging to `main`. After deploy, verify webhooks/cron still
    authenticate and the press-topics LLM call still works, then confirm the four
    secrets are absent from the deployed env.
-4. **Rotate.** Any secret that ever lived in a baked/cached build is considered
-   exposed — regenerate it in its console (Clerk, Anthropic, WinRed, and the
-   app-generated `CRON_SECRET`/`UNSUB_SECRET`) and update the SSM parameter. Then
-   remove SSM/KMS from the **build** role.
+4. **Rotate + scope the build role.** Any secret that ever lived in a baked/cached
+   build is considered exposed — regenerate it in its console (Clerk, Anthropic,
+   WinRed, and the app-generated `CRON_SECRET`/`UNSUB_SECRET`) and update the SSM
+   parameter. Then **scope** the build role's SSM/KMS: the build still needs
+   `ssm:GetParameter` for the **9 params its preBuild pull loop reads**
+   (`DASHBOARD_ALLOWLIST`, `CLERK_WEBHOOK_SIGNING_SECRET`, `ANTHROPIC_MODEL`,
+   `CONGRESS_GOV_API_KEY`, `FEC_API_KEY`, `OPENSTATES_API_KEY`, `CENSUS_API_KEY`,
+   `GAMES_LEAD_BASE_ID`, `GAMES_LEAD_TABLE_ID`) — but it should **not** hold a
+   wildcard on `/matt-grant/*`, which today re-grants the build read access to the
+   four runtime-only secrets (`CRON_SECRET`, `ANTHROPIC_API_KEY`,
+   `WINRED_WEBHOOK_SECRET`, `UNSUB_SECRET`) that step 3 deliberately kept out of the
+   artifact. A compromised dependency during `npm ci` could otherwise exfiltrate
+   them. Replace the wildcard grant with the least-privilege inline policy in
+   **`infra/build-role-policy.json`** (fill in `ACCOUNT_ID` / `KMS_KEY_ARN`). Keep
+   this list in sync with the pull loop in `amplify.yml` if either changes.
 
 ## Why env-first matters
 

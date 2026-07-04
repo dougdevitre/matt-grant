@@ -1,0 +1,42 @@
+{
+  "_comment": [
+    "Least-privilege inline policy for the AMPLIFY BUILD role (SECRETS-MIGRATION.md step 4).",
+    "The build's SSM-pull loop (amplify.yml preBuild) reads exactly the 9 parameters listed",
+    "below. Scoping the build role to just these — instead of a wildcard on /matt-grant/* —",
+    "keeps the four RUNTIME-ONLY secrets (CRON_SECRET, ANTHROPIC_API_KEY, WINRED_WEBHOOK_SECRET,",
+    "UNSUB_SECRET) out of the build blast radius, which is the whole point of the migration.",
+    "The runtime SSR compute role keeps its separate /matt-grant/* read (setup-aws.sh step 6).",
+    "Replace ACCOUNT_ID with the AWS account and KMS_KEY_ARN with the CMK used for SecureStrings",
+    "(or drop the KMS statement if all 9 params are plain String type). Region assumed us-east-1."
+  ],
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "BuildReadOnlyItsOwnParams",
+      "Effect": "Allow",
+      "Action": "ssm:GetParameter",
+      "Resource": [
+        "arn:aws:ssm:us-east-1:ACCOUNT_ID:parameter/matt-grant/DASHBOARD_ALLOWLIST",
+        "arn:aws:ssm:us-east-1:ACCOUNT_ID:parameter/matt-grant/CLERK_WEBHOOK_SIGNING_SECRET",
+        "arn:aws:ssm:us-east-1:ACCOUNT_ID:parameter/matt-grant/ANTHROPIC_MODEL",
+        "arn:aws:ssm:us-east-1:ACCOUNT_ID:parameter/matt-grant/CONGRESS_GOV_API_KEY",
+        "arn:aws:ssm:us-east-1:ACCOUNT_ID:parameter/matt-grant/FEC_API_KEY",
+        "arn:aws:ssm:us-east-1:ACCOUNT_ID:parameter/matt-grant/OPENSTATES_API_KEY",
+        "arn:aws:ssm:us-east-1:ACCOUNT_ID:parameter/matt-grant/CENSUS_API_KEY",
+        "arn:aws:ssm:us-east-1:ACCOUNT_ID:parameter/matt-grant/GAMES_LEAD_BASE_ID",
+        "arn:aws:ssm:us-east-1:ACCOUNT_ID:parameter/matt-grant/GAMES_LEAD_TABLE_ID"
+      ]
+    },
+    {
+      "Sid": "DecryptSecureStringsViaSsmOnly",
+      "Effect": "Allow",
+      "Action": "kms:Decrypt",
+      "Resource": "KMS_KEY_ARN",
+      "Condition": {
+        "StringEquals": {
+          "kms:ViaService": "ssm.us-east-1.amazonaws.com"
+        }
+      }
+    }
+  ]
+}
