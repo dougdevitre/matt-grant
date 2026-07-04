@@ -11,5 +11,5 @@ Interactive utilities for tracking, checking, and generating campaign artifacts.
 - [donor-limit-checker.md](donor-limit-checker.md) -- Decision tree to determine if a donor can legally contribute more
 - [expenditure-tracker.md](expenditure-tracker.md) -- Track spending, monitor budgets, ensure reporting compliance, and flag personal use violations
 - [filing-deadline-calendar.md](filing-deadline-calendar.md) -- Generate .ics calendar events for federal and state filing deadlines
-- [voter-engagement-tools.md](voter-engagement-tools.md) -- Reference index to the 15 interactive voter engagement tools
+- [voter-engagement-tools.md](voter-engagement-tools.md) -- 15 interactive voter engagement tools voters use and share (voting plan builder, reg checker, issue quiz, candidate comparison, pledge/endorsement cards, and more)
 - [pdf-letterhead/](pdf-letterhead/) -- Python generator for print-ready PDF letters on the branded letterhead, with an optional scannable QR "Take Action" band (Vote / Act / Donate)
