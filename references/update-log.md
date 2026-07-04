@@ -26,6 +26,39 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-04 -- v1.x -- "What we missed" audit round 3 (accuracy, structure, donation idempotency)
+
+**Changes:**
+- [updated] federal/contribution-limits.md -- corrected the excessive-contribution cure window from **30 days** to **60 days** (11 CFR 110.1) in both the enumerated-options intro and the enforcement sentence. The 30-day figure is the *prohibited-source* rule (correctly stated in prohibited-contributions.md) and had been conflated here; it also contradicted tools/donor-limit-checker.md and tools/contribution-tracker.md, which already say 60 days.
+- [updated] CLAUDE.md, SKILL.md -- corrected the false "other states have overview files only" claim (all 11 covered states carry the full 5-file set) and added a routing note so the skill loads each non-Missouri state's contribution-limits / disclosure-requirements / ballot-access / local-rules files, not just overview.md (previously 40 complete state files were undiscoverable).
+- [updated] INDEX.md, commands/README.md -- removed two dangling links to a nonexistent repo-root `commands.md` (the real file is commands/commands.md, correctly linked alongside).
+- [updated] tools/contribution-tracker.md, tools/expenditure-tracker.md -- added the required educational disclaimer footer (both carry compliance content and were missing it).
+- [updated] candidate/letters/senate-targets.csv -- corrected party labels for Sen. Patty Lewis (Dist. 7) and Sen. Maggie Nurrenbern (Dist. 17) from R to D (verified against the Missouri Senate roster / Ballotpedia); a committee-majority assumption had bled into the party field.
+- [updated] web/lib/donors.ts -- made contribution recording atomically idempotent: the append is now guarded by a per-externalId `seenIds` set + ConditionExpression (was a non-atomic read-then-write that could double-count FEC-reportable totals under concurrent WinRed webhook retries), and gifts with no email now key on the externalId so retries collapse onto one row instead of creating a random-keyed row per delivery.
+- [updated] web/lib/queries.ts, web/lib/table/donors-config.ts -- the "Over per-election limit" donor facet now compares the max net total in any single election against the $3,500 per-election cap (was comparing the lifetime total across all elections, which would false-flag a compliant $3,500-primary + $3,500-general donor once general-election gifts are recorded).
+- [updated] web/lib/donors.test.ts, web/lib/table/configs.test.ts -- rewrote/extended tests to cover the atomic idempotency (condition-failure no-op) and the election-aware limit facet.
+
+**Verifications Performed:**
+- Party labels verified 2026-07-04 via web search against senate.mo.gov and Ballotpedia (both Lewis and Nurrenbern are Democrats).
+- 60-day excessive-contribution cure window cross-checked against the repo's own tools files and 11 CFR 110.1.
+- web/: `tsc --noEmit` clean, `next lint` clean on changed files, full vitest suite 1376 passed / 1 skipped.
+- Confirmed no remaining stale federal figures and no dangling root-`commands.md` references after the fix.
+
+**Known Gaps:**
+- Infra items from the 2026-06-19 assessment (Amplify EventBridge cron for email-drain/research-ingest, domain cutover, secret-baking, DynamoDB PITR) are human/IaC-owned and out of scope for this code round.
+- `seenIds` grows one entry per distinct donation per donor row; unbounded over many years but negligible at campaign scale.
+
+**Files Modified:**
+- federal/contribution-limits.md
+- CLAUDE.md, SKILL.md, INDEX.md, commands/README.md
+- tools/contribution-tracker.md, tools/expenditure-tracker.md
+- candidate/letters/senate-targets.csv
+- web/lib/donors.ts, web/lib/queries.ts, web/lib/table/donors-config.ts
+- web/lib/donors.test.ts, web/lib/table/configs.test.ts
+- references/update-log.md
+
+---
+
 ## 2026-07-03 -- v1.x -- Federal contribution-limit reconciliation (2025-2026 cycle)
 
 **Changes:**

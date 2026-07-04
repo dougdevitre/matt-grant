@@ -429,3 +429,7 @@ Apply these validation rules on every data entry:
 7. **Back up your data.** Maintain at least two copies of all contribution records. Campaign finance records must be retained for 3 years after filing (federal).
 
 8. **Reconcile monthly at minimum.** Do not wait until filing time to reconcile. Monthly reconciliation catches errors early.
+
+---
+
+> **EDUCATIONAL DISCLAIMER:** This is educational information, not legal advice. Consult a campaign finance attorney or your filing agency for guidance specific to your situation.

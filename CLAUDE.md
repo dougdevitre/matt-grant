@@ -81,7 +81,7 @@ Missouri is the template state with full coverage (5 files):
 4. `states/missouri/ballot-access.md` -- How to get on the ballot
 5. `states/missouri/local-rules.md` -- County, city, school board specifics
 
-Other states currently have overview files only. When expanding coverage, each state should follow the same 5-file pattern.
+All 11 covered states (Missouri plus Arizona, California, Florida, Georgia, Illinois, Michigan, New York, Ohio, Pennsylvania, and Texas) carry the same 5-file set. When adding a new state, follow the same 5-file pattern.
 
 ---
 

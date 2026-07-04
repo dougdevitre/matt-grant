@@ -292,3 +292,7 @@ These are acceptable:
 7. **Separate campaign and personal finances completely.** Use a dedicated campaign bank account and campaign credit card. Never mix funds.
 
 8. **Retain records for 3 years** after the filing date of the report that covers the transaction (federal requirement).
+
+---
+
+> **EDUCATIONAL DISCLAIMER:** This is educational information, not legal advice. Consult a campaign finance attorney or your filing agency for guidance specific to your situation.

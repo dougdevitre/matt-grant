@@ -110,8 +110,7 @@ Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026
 
 ## "I want to generate a document"
 
-- [commands.md](commands.md) -- All slash commands for instant document generation
-- [commands/commands.md](commands/commands.md) -- Detailed command reference
+- [commands/commands.md](commands/commands.md) -- All slash commands for instant document generation
 - [artifacts/campaign-documents.md](artifacts/campaign-documents.md) -- Master template reference for every document type
 
 ## Quick Reference

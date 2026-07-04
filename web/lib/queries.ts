@@ -25,9 +25,23 @@ async function queryAll(pk: string): Promise<Item[]> {
   return items;
 }
 
-type Contribution = { amountCents: number; receivedAt?: string };
+type Contribution = { amountCents: number; receivedAt?: string; election?: string };
 const sumContribs = (d: Item) =>
   ((d.contributions as Contribution[] | undefined) ?? []).reduce((s, c) => s + (c.amountCents || 0), 0);
+
+// Largest net total attributable to any single election (untagged gifts default
+// to the primary). This — not the lifetime total — is what the FEC per-election
+// limit applies to, so a compliant $3,500-primary + $3,500-general donor isn't
+// flagged, and a real per-election overage isn't masked by refunds netting the
+// lifetime total down.
+const maxPerElectionCents = (d: Item) => {
+  const byElection = new Map<string, number>();
+  for (const c of (d.contributions as Contribution[] | undefined) ?? []) {
+    const k = (c.election || "PRIMARY").toUpperCase();
+    byElection.set(k, (byElection.get(k) ?? 0) + (c.amountCents || 0));
+  }
+  return byElection.size ? Math.max(...byElection.values()) : 0;
+};
 
 // Trailing daily series + last-7d-vs-prior-7d for a KPI tile (spark + delta).
 const TREND_DAYS = 30;
@@ -44,6 +58,7 @@ export type DonorRow = {
   employer: string | null;
   occupation: string | null;
   totalCents: number;
+  maxPerElectionCents: number;
   thankedAt: string | null;
 };
 
@@ -161,6 +176,7 @@ export async function getDonors(): Promise<{ connected: boolean; rows: DonorRow[
         employer: (d.employer as string) ?? null,
         occupation: (d.occupation as string) ?? null,
         totalCents: sumContribs(d),
+        maxPerElectionCents: maxPerElectionCents(d),
         thankedAt: (d.thankedAt as string) ?? null,
         createdAt: String(d.createdAt ?? ""),
       }))
