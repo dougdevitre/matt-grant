@@ -52,7 +52,7 @@ const COLUMNS: ColumnDef<DonorRow, DonorCtx>[] = [
     align: "right",
     sortable: true,
     cell: (d) => {
-      const overLimit = d.totalCents > FEC_INDIVIDUAL_PER_ELECTION_CENTS;
+      const overLimit = d.maxPerElectionCents > FEC_INDIVIDUAL_PER_ELECTION_CENTS;
       const missingFec = !d.employer || !d.occupation;
       return (
         <>

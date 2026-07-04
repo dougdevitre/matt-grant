@@ -136,7 +136,7 @@ function buildSvg(quote, eyebrow) {
   <text x="60" y="1024" font-family="Helvetica, Arial, sans-serif" font-size="24" font-weight="700" fill="${C.white}">MATT GRANT FOR CONGRESS <tspan fill="${C.blueSoft}" font-weight="400">· Missouri District 2</tspan></text>
   <text x="1020" y="1018" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="28" font-weight="700" fill="${C.red}">AUGUST 4, 2026</text>
   <text x="1020" y="1046" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="${C.muted}">Paid for by Matt Grant for Congress.</text>
-  <text x="60" y="1052" font-family="Helvetica, Arial, sans-serif" font-size="18" fill="${C.muted}">mattgrantforcongress.com</text>
+  <text x="60" y="1052" font-family="Helvetica, Arial, sans-serif" font-size="18" fill="${C.muted}">mattgrantforcongress.org</text>
 </svg>`);
 }
 
@@ -171,7 +171,7 @@ function buildStorySvg(quote, eyebrow) {
   <line x1="80" y1="1740" x2="1000" y2="1740" stroke="${C.blue}" stroke-opacity="0.25" stroke-width="2"/>
   <text x="540" y="1800" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="${C.white}">MATT GRANT FOR CONGRESS · MO-02</text>
   <text x="540" y="1846" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="34" font-weight="700" fill="${C.red}">AUGUST 4, 2026</text>
-  <text x="540" y="1884" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="${C.muted}">mattgrantforcongress.com · Paid for by Matt Grant for Congress.</text>
+  <text x="540" y="1884" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="${C.muted}">mattgrantforcongress.org · Paid for by Matt Grant for Congress.</text>
 </svg>`);
 }
 
