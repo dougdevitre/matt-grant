@@ -176,6 +176,22 @@ Content: Give three options: donate ($25), volunteer (link to signup), share (so
 
 ## Complete Email Templates
 
+> **Required footer — append to EVERY template below (and the Welcome Series).** Fundraising
+> email is a paid public communication, so every send must close with the standard compliance
+> footer. The templates show only the persuasive body; do not send one without it.
+>
+> ```
+> Paid for by Matt Grant for Congress.
+> Matt Grant for Congress · 1625 Mason Knoll Rd, St. Louis, MO 63131
+> You're receiving this because you signed up at our website or event.
+> [Unsubscribe]  ·  Update your preferences
+> ```
+>
+> This satisfies FEC 11 CFR 110.11 ("Paid for by") **and** CAN-SPAM (a valid physical postal
+> address + a working one-click unsubscribe in every commercial/fundraising email). The live
+> web sender (`web/lib/email/layout.ts`) already renders this automatically; these how-to
+> templates must carry it too so nothing ships without it.
+
 ### Template 1: The Deadline Ask
 
 Subject: We're $[amount] away (midnight deadline)
