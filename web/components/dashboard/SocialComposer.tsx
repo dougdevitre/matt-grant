@@ -72,6 +72,15 @@ export function SocialComposer({ library, initialMedia }: { library: LibraryPost
   const mediaUrl = selectedAsset ? selectedAsset.url : attachGraphic ? graphicUrl : "";
   const mediaKey = selectedAsset?.key ?? "";
 
+  // "Make a graphic" hand-off to the Graphics studio, prefilled with the caption's
+  // hook as the headline. The studio's "Use in a post" button brings it back here.
+  const studioHref = useMemo(() => {
+    const headline = trimHeadline(caption.split("\n")[0] || "", 80).trim();
+    const params = new URLSearchParams({ sub: "Matt Grant for Congress" });
+    if (headline) params.set("headline", headline);
+    return `/dashboard/studio?${params.toString()}`;
+  }, [caption]);
+
   const scores = useMemo(
     () => channels.map((ch) => scoreContent({ channel: ch, caption, hashtags: tagList, hasMedia, link: link || undefined, cta, hasDisclaimer })),
     [channels, caption, tagList, hasMedia, link, cta, hasDisclaimer],
@@ -177,6 +186,9 @@ export function SocialComposer({ library, initialMedia }: { library: LibraryPost
           {/* Or pull an image from the whole media center — Assets, Studio, or Photos. */}
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <AssetPicker onSelect={chooseAsset} trigger={selectedAsset ? "Choose a different image" : "or choose from the media library"} />
+            <a href={studioHref} className="btn-ghost text-sm">
+              or make a graphic in Studio ↗
+            </a>
             {selectedAsset && (
               <span className="text-xs text-slate">
                 Using <span className="font-medium text-ink">{selectedAsset.name}</span> ·{" "}

@@ -27,11 +27,20 @@ const BRAND_KIT = [
   { file: "icon-192.png", label: "Favicon (192)" },
 ];
 
-export function StudioForm() {
-  const [format, setFormat] = useState("ig_square");
+export function StudioForm({
+  initialHeadline,
+  initialSub,
+  initialFormat,
+}: {
+  initialHeadline?: string;
+  initialSub?: string;
+  initialFormat?: string;
+} = {}) {
+  // Prefill from the composer's "Make a graphic" hand-off (query params), else defaults.
+  const [format, setFormat] = useState(FORMATS.some((f) => f.id === initialFormat) ? (initialFormat as string) : "ig_square");
   const [theme, setTheme] = useState("navy");
-  const [headline, setHeadline] = useState("Put Missouri's children first.");
-  const [sub, setSub] = useState("Matt Grant for Congress");
+  const [headline, setHeadline] = useState(initialHeadline?.slice(0, 80) || "Put Missouri's children first.");
+  const [sub, setSub] = useState(initialSub?.slice(0, 90) || "Matt Grant for Congress");
   const [photo, setPhoto] = useState(true);
 
   const query = useMemo(() => {

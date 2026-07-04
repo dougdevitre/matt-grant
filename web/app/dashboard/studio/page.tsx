@@ -4,8 +4,15 @@ import { requireCap } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export default async function StudioPage() {
+export default async function StudioPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ headline?: string; sub?: string; format?: string }>;
+}) {
   await requireCap("useStudio");
+  // Prefill from the Social composer's "Make a graphic" hand-off. Text-only params
+  // that flow into the existing /api/graphics generator the form already drives.
+  const { headline, sub, format } = await searchParams;
   return (
     <>
       <PageHeader kicker="Brand" title="Graphics studio" />
@@ -23,7 +30,7 @@ export default async function StudioPage() {
           "Printing what you make? Take the PNG to the St. Louis County Library — see the “Print at the library” callout on /media.",
         ]}
       />
-      <StudioForm />
+      <StudioForm initialHeadline={headline} initialSub={sub} initialFormat={format} />
     </>
   );
 }

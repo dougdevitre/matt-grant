@@ -147,6 +147,10 @@ The composer's Image card shows a one-click **Recent** rail (`components/dashboa
 
 The Graphics studio's **"Use in a post"** button (`StudioForm`, shown after Save to library) deep-links to `/dashboard/social?mediaKey=…&mediaUrl=…&mediaName=…`. The social page sanitizes those params (`sanitizeMediaUrl` + a `public/` key check) and passes them to the composer as `initialMedia`, which pre-selects the graphic with the auto on-brand graphic turned off. `schedulePost` re-sanitizes on submit as a second gate.
 
+### Social → Studio hand-off (round-trip)
+
+The composer's **"or make a graphic in Studio"** link deep-links to `/dashboard/studio?headline=…&sub=…`, prefilled with the caption's first line as the headline. `StudioForm` reads those params as its initial `headline`/`sub`/`format`. Craft the graphic, Save to library, then click **"Use in a post"** to land back in the composer with it attached — the two hand-offs chain into a full round-trip.
+
 ## Compliance guardrails
 
 - **"Paid for by" disclaimer.** Public campaign communications must carry it. The composer treats an attached on-brand graphic as satisfying this (the image carries the line) and otherwise requires the admin to confirm the disclaimer is in the copy — `scoreContent()` raises an **error** if neither is true. For character-limited formats (X), the FEC's **Adapted Disclaimer** rule allows a shortened sponsor ID plus a link to the full disclaimer when the full text "would occupy more than 25 percent of the communication." *(Verified 2026-06-22 against fec.gov advertising-and-disclaimers guidance and the FEC internet-communications disclaimer rule.)*
