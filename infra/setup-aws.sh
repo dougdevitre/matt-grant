@@ -87,6 +87,7 @@ DEST_SMS="$(create_destination matt-grant-sms-drain /api/cron/sms-drain)"
 DEST_NEWS="$(create_destination matt-grant-research-news /api/research/news)"
 DEST_BIO="$(create_destination matt-grant-research-bio /api/research/bio)"
 DEST_DISTRICTS="$(create_destination matt-grant-district-insights /api/cron/district-insights)"
+DEST_RECONCILE="$(create_destination matt-grant-reconcile-roles /api/cron/reconcile-roles)"
 
 # Execution role EventBridge assumes to invoke the API destinations. Trust must be
 # events.amazonaws.com for EventBridge Rules. (Idempotently corrected from any
@@ -132,6 +133,9 @@ create_rule matt-grant-research-bio    "cron(0 9 ? * MON *)" "$DEST_BIO"
 # Per-district event-calendar insights (Census + AI), refreshed nightly. The route
 # only regenerates entries that are missing or >14 days stale, so this is cheap.
 create_rule matt-grant-district-insights "cron(0 7 * * ? *)" "$DEST_DISTRICTS"
+# Clerk role-drift safety net: the real-time webhook is primary; this reconciles
+# any role changes it missed, every 6 hours.
+create_rule matt-grant-reconcile-roles "rate(6 hours)" "$DEST_RECONCILE"
 
 # ── 4. Alerting ──────────────────────────────────────────────────────────────────
 # Without this, donations/emails can stop silently. Alarm on SSR Lambda errors and

@@ -18,13 +18,25 @@ export function windowStart(nowMs: number, windowSec: number): number {
   return Math.floor(nowMs / 1000 / windowSec) * windowSec;
 }
 
-// Client IP from the proxy chain. Amplify/CloudFront set x-forwarded-for; we take
-// the first hop (the original client). Falls back to a constant so a missing
-// header buckets together rather than throwing.
+// Client IP for rate-limiting, read from the proxy chain. `x-forwarded-for` is
+// built left-to-right (client, proxy1, proxy2, …) and the LEFTMOST entries are
+// attacker-supplied — a client can send its own x-forwarded-for and the trusted
+// proxies in front only APPEND to it. Keying on the leftmost value would let an
+// anonymous caller rotate a fake IP per request and defeat every rate limit, so
+// we count from the RIGHT: with N trusted proxies ahead of the app (CloudFront /
+// Amplify), the real client is the Nth entry from the end.
+// RATELIMIT_TRUSTED_PROXY_HOPS makes N match the live edge topology (default 1 —
+// CloudFront appends the true viewer IP as the last hop). Setting it too low
+// re-opens spoofing; too high buckets many users into one key. Falls back to a
+// constant so a missing header buckets together rather than throwing.
 export function clientIp(req: Request): string {
-  const xff = req.headers.get("x-forwarded-for") ?? "";
-  const first = xff.split(",")[0]?.trim();
-  return first || req.headers.get("x-real-ip") || "unknown";
+  const parts = (req.headers.get("x-forwarded-for") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const hops = Math.max(1, Number(process.env.RATELIMIT_TRUSTED_PROXY_HOPS) || 1);
+  const client = parts[parts.length - hops] ?? parts[0];
+  return client || req.headers.get("x-real-ip") || "unknown";
 }
 
 export async function rateLimit(

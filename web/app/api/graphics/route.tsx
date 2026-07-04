@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { CAMPAIGN } from "@/lib/site";
 import { trimHeadline } from "@/lib/social/headline";
+import { rateLimit, clientIp } from "@/lib/ratelimit";
 
 // Server-side campaign-graphic generator. Composites Matt's photo + custom copy
 // into branded social/print formats. Reads the processed avatar from /public.
@@ -29,6 +30,12 @@ async function avatarDataUri(): Promise<string> {
 }
 
 export async function GET(req: Request) {
+  // Public, renders arbitrary user text via satori (CPU/memory-heavy) with an
+  // infinitely-varying cache key — rate-limit so an anonymous loop can't pin
+  // Lambda compute or run up hosting cost.
+  const rl = await rateLimit(`graphics:${clientIp(req)}`, { limit: 60, windowSec: 60 });
+  if (!rl.allowed) return new Response("Too many requests — please slow down.", { status: 429 });
+
   const sp = new URL(req.url).searchParams;
   const fmt = FORMATS[sp.get("format") ?? "ig_square"] ?? FORMATS.ig_square;
   const theme = THEMES[sp.get("theme") ?? "navy"] ?? THEMES.navy;

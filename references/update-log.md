@@ -26,6 +26,42 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-04 -- v1.x -- "What we missed" audit round 4 (rate-limit spoofing, unmetered routes, consistency)
+
+**Changes:**
+- [updated] web/lib/ratelimit.ts -- `clientIp()` read the **leftmost** x-forwarded-for hop, which is client-spoofable behind CloudFront/Amplify; an anonymous caller could rotate a fake IP per request and defeat every public rate limit at once (contact/join/events writes, SES/Airtable sends, paid Anthropic calls, print orders). Now counts from the right with a configurable trusted-proxy hop count (`RATELIMIT_TRUSTED_PROXY_HOPS`, default 1). **Verify the hop count against the live edge topology.**
+- [updated] web/app/api/graphics/route.tsx, web/app/api/research/graphic/route.tsx, web/app/api/research/contrast-card/route.tsx -- added per-IP rate limits (60/min) to the three public satori/OG-image generators, which were unmetered and CPU/memory-heavy (compute/cost-DoS surface).
+- [updated] web/components/dashboard/DonorTable.tsx -- the Total-column "over limit" badge still compared lifetime `totalCents` against the per-election cap (the round-3 fix corrected only the sibling filter chip); now uses `maxPerElectionCents`, so a compliant $3,500-primary + $3,500-general donor isn't falsely flagged.
+- [updated] web/scripts/generate-social-graphics.mjs -- public share graphics printed `mattgrantforcongress.com`; canonical is `.org` (lib/site.ts). Fixed both footer lines.
+- [updated] commands/commands.md -- `/position` was defined twice with different behaviors; renamed the press-release variant to `/positionpress`.
+- [updated] infra/setup-aws.sh -- scheduled the `reconcile-roles` cron (Clerk role-drift safety net), which had a route but no EventBridge rule.
+- [updated] web/app/(site)/issues/[slug]/page.tsx -- added an `aria-label` to the issue-detail `<video>` (was announced only as "video").
+- [updated] tests -- rewrote lib/ratelimit.test.ts for the right-hop/configurable behavior.
+
+**Verifications Performed:**
+- web/: `tsc --noEmit` clean, `eslint` clean on changed files, `bash -n` on setup-aws.sh clean, full vitest suite 1377 passed / 1 skipped.
+- Confirmed the assessment's **C2 scheduling gap is now resolved**: infra/setup-aws.sh wires EventBridge rules (with CRON_SECRET via a Connection) for email/social/sms drains, research ingest/news/bio, and district-insights; vercel.json is deleted.
+- Skill-vs-app consistency verified: money.ts $3,500 constant, disclaimer wording, campaign facts (phone/email/address/FEC/WinRed), Aug-4-2026 date, and the four priorities all match canonical.
+
+**Known Gaps (flagged, not fixed here):**
+- **RATELIMIT_TRUSTED_PROXY_HOPS default (1) must be confirmed** against the live CloudFront/Amplify hop count — too low re-opens spoofing, too high buckets users together.
+- **WCAG 1.2.2 video captions still missing** (issue-detail + /media players): only the `<track>` wiring and a `_TEMPLATE.en.vtt` exist; no production `.vtt` files, and axe CI cannot catch this. Authoring accurate captions requires the real video transcripts — human content task.
+- `/api/act/strategy` calls the paid Anthropic API even for the public teaser (reflecting user `area`/`zip`/`issue` into the prompt); the now-effective rate limit is the only cost brake — consider gating the API to `depth:"full"`.
+- No staleness alarm on last-drain/last-ingest timestamps; setup-aws.sh is not CI-invoked, so there's no automated proof it was applied in prod.
+- The 11 orphaned candidate/*-plan.md files are intentional web build-plan docs, correctly not routed into SKILL.md.
+
+**Files Modified:**
+- web/lib/ratelimit.ts, web/lib/ratelimit.test.ts
+- web/app/api/graphics/route.tsx, web/app/api/research/graphic/route.tsx, web/app/api/research/contrast-card/route.tsx
+- web/components/dashboard/DonorTable.tsx
+- web/scripts/generate-social-graphics.mjs
+- web/app/(site)/issues/[slug]/page.tsx
+- infra/setup-aws.sh
+- commands/commands.md
+- references/update-log.md
+
+---
+
 ## 2026-07-04 -- v1.x -- "What we missed" audit round 3 (accuracy, structure, donation idempotency)
 
 **Changes:**
