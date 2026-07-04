@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import crypto from "node:crypto";
 import { toE164, expectedTwilioSignature, sendSms } from "@/lib/sms/send";
 
 describe("toE164", () => {
@@ -26,6 +27,20 @@ describe("expectedTwilioSignature", () => {
     expect(a).toBe(b);
     expect(a).not.toBe(expectedTwilioSignature("tok", url, { From: "+13145550100", Body: "START" }));
     expect(a).not.toBe(expectedTwilioSignature("other", url, { From: "+13145550100", Body: "STOP" }));
+  });
+
+  // Pin the EXACT wire format via an independent recomputation — catches a
+  // self-consistent-but-wrong signature (a change to the sort, the key+value
+  // concatenation, the hash, or the encoding) that the determinism test misses.
+  it("hashes url + params sorted by key, concatenated key+value, HMAC-SHA1, base64", () => {
+    const token = "tok_test";
+    const url = "https://example.org/api/webhooks/twilio";
+    const params = { From: "+13145550100", Body: "STOP", MessageSid: "SM1" };
+    // Spec, spelled out: keys sorted alphabetically (Body, From, MessageSid),
+    // each appended as key immediately followed by value, no separators.
+    const data = url + "BodySTOP" + "From+13145550100" + "MessageSidSM1";
+    const expected = crypto.createHmac("sha1", token).update(Buffer.from(data, "utf-8")).digest("base64");
+    expect(expectedTwilioSignature(token, url, params)).toBe(expected);
   });
 });
 

@@ -4,6 +4,13 @@
 
 > **EDUCATIONAL DISCLAIMER:** This is educational information, not legal advice. Missed filing deadlines carry automatic civil penalties. Consult a campaign finance attorney or the FEC directly for guidance specific to your committee's filing obligations.
 
+> **⚠️ MATT GRANT MO-02 — KEY 2026 PRIMARY FEC DATES** (computed 2026-07-04 from 11 CFR 104.5 for the **August 4, 2026** primary; reconfirm against the official Missouri notice at [fec.gov/.../dates-and-deadlines](https://www.fec.gov/help-candidates-and-committees/dates-and-deadlines/)):
+> - **Pre-primary report** — required of any candidate committee on the Aug 4 ballot: **close of books July 15, 2026** (20 days before); **due July 23, 2026** if filed electronically (12 days before), or **postmarked by July 20, 2026** if mailed (15 days before).
+> - **48-hour notices** — any contribution of **$1,000 or more** from a single source received **July 15 – August 4, 2026** (the 20-day pre-election window) must be reported within 48 hours.
+> - **Q2 quarterly report** (Apr 1 – Jun 30): **due July 15, 2026** (quarterly filers) — same week as the pre-primary close of books.
+> - **Primary election: August 4, 2026.** The normal quarterly schedule then resumes (Q3 due Oct 15, 2026).
+> Matt Grant for Congress (FEC **C00945394**) files with the **FEC**, not the Missouri Ethics Commission — the MEC state-committee report dates in the `states/missouri/` files do **not** apply to this federal congressional committee.
+
 ---
 
 ## Filing Frequency Options
@@ -257,6 +264,8 @@ Typical penalties range from a few hundred dollars for low-activity late reports
 
 ## Annual Compliance Calendar Diagram
 
+> **Note:** the diagram below is a generic **general-election-year template** (illustrative 2025 dates) showing the *shape* of the annual cycle. It is **not** Matt Grant's 2026 primary calendar — for the actual MO-02 dates see the **2026 primary callout at the top of this file**.
+
 ```mermaid
 gantt
     title Federal Campaign Filing Calendar (Election Year)
@@ -305,8 +314,8 @@ gantt
 | **April** | Apr 15: Q1 report due; Monthly report due Apr 20 |
 | **May** | Monthly report due May 20; Watch for primary pre-election reports |
 | **June** | Monthly report due Jun 20; Primary-season 48-hour notices |
-| **July** | Jul 15: Q2 report due; Monthly report due Jul 20 |
-| **August** | Monthly report due Aug 20; Watch for primary runoff reports |
+| **July** | Jul 15: Q2 report due; Monthly report due Jul 20. **For an August primary** (e.g. MO-02 Aug 4, 2026): the pre-primary report (close of books ~20 days before, due ~12 days before) and the 48-hour-notice window (opens ~20 days before) both fall this month — see the 2026 primary callout at the top of this file. |
+| **August** | Monthly report due Aug 20; post-primary, watch for any runoff reports |
 | **September** | Monthly report due Sep 20 |
 | **October** | Oct 15: Q3 report due; Monthly report due Oct 20; Pre-general report (~12 days before Nov election); 48-hour notice window begins ~20 days before general |
 | **November** | General election; Monthly report due Nov 20 (if applicable); Post-general report due ~30 days after election |
