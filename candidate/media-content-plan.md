@@ -5,8 +5,8 @@ How the campaign turns brand assets into a repeatable, voter-targeted content en
 library**, and a path to **automated posting** (API / connector / MCP).
 
 > Integrity: every post reflects Matt's published platform, never names or attacks the opponent, and
-> carries no fabricated quotes/stats/endorsements. Public posts keep the "Paid for by the Matt Grant
-> for Congress Committee." line.
+> carries no fabricated quotes/stats/endorsements. Public posts keep the verbatim "Paid for by Matt
+> Grant for Congress." line.
 
 ## 1. What's built (live)
 
