@@ -171,9 +171,9 @@ export function SocialComposer({ library }: { library: LibraryPost[] }) {
             <input type="checkbox" checked={attachGraphic} onChange={toggleAutoGraphic} />
           </label>
 
-          {/* Or pull an image straight from the Assets library. */}
+          {/* Or pull an image from the whole media center — Assets, Studio, or Photos. */}
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <AssetPicker onSelect={chooseAsset} trigger={selectedAsset ? "Choose a different image" : "or choose from the Assets library"} />
+            <AssetPicker onSelect={chooseAsset} trigger={selectedAsset ? "Choose a different image" : "or choose from the media library"} />
             {selectedAsset && (
               <span className="text-xs text-slate">
                 Using <span className="font-medium text-ink">{selectedAsset.name}</span> ·{" "}

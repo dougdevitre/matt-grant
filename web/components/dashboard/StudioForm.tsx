@@ -52,6 +52,7 @@ export function StudioForm() {
       const fd = new FormData();
       fd.append("file", new File([blob], `matt-grant-${format}.png`, { type: "image/png" }));
       fd.append("visibility", "public");
+      fd.append("tags", "studio"); // lets the Social composer surface a Studio tab in its media picker
       const r = await fetch("/api/assets/upload", { method: "POST", body: fd });
       const d = await r.json();
       setSaved(r.ok ? d.url || "Saved to S3" : d.error || "Save failed");

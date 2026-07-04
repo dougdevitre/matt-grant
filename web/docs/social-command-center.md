@@ -114,7 +114,30 @@ signing/replay nonces aren't used because the EventBridge Connection can only in
 
 ## Media / S3
 
-Attaching an **on-brand graphic** uses the existing `/api/graphics` generator (which already bakes the FEC "Paid for by" line) and the same S3 + CloudFront path the Graphics Studio uses. Admins can also paste any public image URL (e.g. an Asset-library CloudFront link). The graphic's `mediaUrl` rides along with the scheduled post and is what API publishers attach / manual posters download.
+Attaching an **on-brand graphic** uses the existing `/api/graphics` generator (which already bakes the FEC "Paid for by" line) and the same S3 + CloudFront path the Graphics Studio uses. The graphic's `mediaUrl` rides along with the scheduled post and is what API publishers attach / manual posters download.
+
+### Media picker — one picker over the whole media center
+
+Instead of the auto graphic, the composer can pull an image from **all three media-center surfaces** through one tabbed picker (`components/dashboard/AssetPicker.tsx`):
+
+| Tab | Source | Postable as-is? |
+|---|---|---|
+| **Assets** | Public images from `/api/assets/list` | ✅ stable CloudFront URL |
+| **Studio** | The tagged subset of public assets the Graphics Studio saves (tag `studio`, or the legacy `matt-grant-*` name) — see `isStudioGraphic()` | ✅ same |
+| **Photos** | The private shoot library (`/api/assets/photos`) | ❌ promoted on select (below) |
+
+Only **public images** are valid post media directly: private assets and photos are served via short-lived presigned URLs that **expire before a scheduled `drainDue()` fires** and that social networks can't fetch. `isPublicImage()` (`lib/social/assetMedia.ts`) is the filter for the Assets/Studio tabs.
+
+### Photo promote-on-select
+
+Picking a **private photo** publishes a **stable public copy** so it becomes postable — `POST /api/assets/promote` → `promoteToPublicImage()` (`lib/social/promoteMedia.ts`):
+
+- Copies the private object to a **deterministic** public key (`publicSocialKey()`: `private/photos/events/a.jpg → public/social/photos-events-a.jpg`), so re-promoting the same photo overwrites the same object instead of duplicating it.
+- **Web-safes + optimizes** the bytes (`toWebSafeImage()` in `lib/images.ts`): multi-MB masters are downscaled to platform limits and HEIC/TIFF phone photos are transcoded to JPEG (extension adjusted to match).
+- Records the copy in the asset library (tags `social`, `photo`) so it also shows up under Assets.
+- **The original photo stays private** — only the public copy is created. Gated on `manageSocial` (admin-only), the tightest cap, since it makes staff-only media public; the picker shows a "the original stays private" note.
+
+Any picked image that isn't the auto on-brand graphic still trips the "Paid for by disclaimer" acknowledgment in `scoreContent()` — promoted photos included.
 
 ## Compliance guardrails
 

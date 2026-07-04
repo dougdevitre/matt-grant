@@ -46,6 +46,14 @@ export async function presignedGet(key: string, expiresIn = 900): Promise<string
   return getSignedUrl(s3, new GetObjectCommand({ Bucket: BUCKET, Key: key }), { expiresIn });
 }
 
+// Read an object's raw bytes + content type. Used to copy a private library object
+// into a public one when promoting a photo to postable social media.
+export async function getObjectBytes(key: string): Promise<{ body: Buffer; contentType: string }> {
+  const res = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
+  const bytes = await res.Body!.transformToByteArray();
+  return { body: Buffer.from(bytes), contentType: res.ContentType ?? "application/octet-stream" };
+}
+
 export type AssetItem = {
   key: string;
   name: string;

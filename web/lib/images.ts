@@ -40,3 +40,24 @@ export async function optimizeImage(
     return { buffer: input, contentType }; // optimization is best-effort; never block the upload
   }
 }
+
+// Formats a browser / social platform can render directly. optimizeImage keeps a
+// raster image in its own format; anything outside this set (HEIC, TIFF from a phone
+// camera) must be converted before it can be used as public web/social media.
+const WEB_SAFE = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
+
+/**
+ * Return a web-renderable version of an image. Web-safe formats go through the normal
+ * keep-format optimizer; everything else (HEIC/TIFF/…) is transcoded to JPEG. Unlike
+ * optimizeImage this DOES throw if a non-web format can't be decoded — the caller is
+ * making a public copy and a broken image is worse than a clear failure.
+ */
+export async function toWebSafeImage(input: Buffer, contentType: string): Promise<OptimizeResult> {
+  if (WEB_SAFE.has(contentType)) return optimizeImage(input, contentType);
+  const buffer = await sharp(input, { failOn: "none" })
+    .rotate()
+    .resize({ width: DEFAULT_MAX_EDGE, height: DEFAULT_MAX_EDGE, fit: "inside", withoutEnlargement: true })
+    .jpeg({ quality: 82, mozjpeg: true })
+    .toBuffer();
+  return { buffer, contentType: "image/jpeg" };
+}

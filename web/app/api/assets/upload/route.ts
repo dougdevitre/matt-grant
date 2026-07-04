@@ -26,6 +26,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: `Unsupported file type: ${contentType}` }, { status: 415 });
   }
   const visibility: Visibility = form.get("visibility") === "private" ? "private" : "public";
+  // Optional caller-supplied tags (comma-separated) — e.g. the Graphics studio tags
+  // its saves "studio" so the composer's picker can surface a Studio tab. putAssetMeta
+  // dedupes/normalizes and caps the list.
+  const tags = String(form.get("tags") ?? "")
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
   const key = keyFor(visibility, file.name);
 
   // Optimize images for web by default (keep-format); "Original quality" sends optimize=0.
@@ -56,7 +63,7 @@ export async function POST(req: Request) {
       originalSize,
       uploadedAt: new Date().toISOString(),
       uploadedBy: gate.email ?? undefined,
-      tags: [],
+      tags,
     });
     const savedPct = originalSize > 0 ? Math.max(0, Math.round((1 - size / originalSize) * 100)) : 0;
     return NextResponse.json({
