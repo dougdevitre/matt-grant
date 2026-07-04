@@ -139,6 +139,14 @@ Picking a **private photo** publishes a **stable public copy** so it becomes pos
 
 Any picked image that isn't the auto on-brand graphic still trips the "Paid for by disclaimer" acknowledgment in `scoreContent()` — promoted photos included.
 
+### Recent-media rail
+
+The composer's Image card shows a one-click **Recent** rail (`components/dashboard/RecentMedia.tsx`) of the newest post-ready images from `/api/assets/list` (public images only, newest-first). It's the fast path for the common case — reuse the graphic you just saved, or a recent upload — without opening the picker. Selecting a thumbnail runs the same select handler as the picker (turns off the auto graphic, highlights the active tile). Silent until loaded and when empty.
+
+### Studio → Social hand-off
+
+The Graphics studio's **"Use in a post"** button (`StudioForm`, shown after Save to library) deep-links to `/dashboard/social?mediaKey=…&mediaUrl=…&mediaName=…`. The social page sanitizes those params (`sanitizeMediaUrl` + a `public/` key check) and passes them to the composer as `initialMedia`, which pre-selects the graphic with the auto on-brand graphic turned off. `schedulePost` re-sanitizes on submit as a second gate.
+
 ## Compliance guardrails
 
 - **"Paid for by" disclaimer.** Public campaign communications must carry it. The composer treats an attached on-brand graphic as satisfying this (the image carries the line) and otherwise requires the admin to confirm the disclaimer is in the copy — `scoreContent()` raises an **error** if neither is true. For character-limited formats (X), the FEC's **Adapted Disclaimer** rule allows a shortened sponsor ID plus a link to the full disclaimer when the full text "would occupy more than 25 percent of the communication." *(Verified 2026-06-22 against fec.gov advertising-and-disclaimers guidance and the FEC internet-communications disclaimer rule.)*

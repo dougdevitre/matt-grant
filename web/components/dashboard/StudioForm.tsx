@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const FORMATS = [
   { id: "ig_square", label: "IG / FB square", dims: "1080×1080" },
@@ -44,9 +44,25 @@ export function StudioForm() {
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
+  // The saved graphic's key+url, kept so we can hand it straight to the Social
+  // composer. Cleared whenever the graphic changes (below) so the hand-off link
+  // never points at a stale render.
+  const [savedMedia, setSavedMedia] = useState<{ key: string; url: string } | null>(null);
+  useEffect(() => {
+    setSaved(null);
+    setSavedMedia(null);
+  }, [src]);
+  const usePostHref = savedMedia
+    ? `/dashboard/social?${new URLSearchParams({
+        mediaKey: savedMedia.key,
+        mediaUrl: savedMedia.url,
+        mediaName: `matt-grant-${format}.png`,
+      }).toString()}`
+    : null;
   async function saveToS3() {
     setSaving(true);
     setSaved(null);
+    setSavedMedia(null);
     try {
       const blob = await (await fetch(src)).blob();
       const fd = new FormData();
@@ -56,6 +72,7 @@ export function StudioForm() {
       const r = await fetch("/api/assets/upload", { method: "POST", body: fd });
       const d = await r.json();
       setSaved(r.ok ? d.url || "Saved to S3" : d.error || "Save failed");
+      if (r.ok && d.key && d.url) setSavedMedia({ key: d.key, url: d.url });
     } catch (e) {
       setSaved(String(e));
     } finally {
@@ -126,6 +143,11 @@ export function StudioForm() {
           {saving ? "Saving…" : "Save to S3 (CloudFront)"}
         </button>
         {saved && <p className="break-all font-mono text-xs text-field">{saved}</p>}
+        {usePostHref && (
+          <a href={usePostHref} className="btn-primary w-full text-center">
+            Use in a post →
+          </a>
+        )}
       </div>
 
       {/* Preview + brand kit */}

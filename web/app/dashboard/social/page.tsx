@@ -13,6 +13,7 @@ import { SOCIAL_POSTS } from "@/lib/socialPosts";
 import { channelConfigured } from "@/lib/social/publish";
 import { listSnapshots } from "@/lib/social/footprint";
 import { getConnection, type SocialConnection } from "@/lib/social/connections";
+import { sanitizeMediaUrl } from "@/lib/social/validate";
 import type { ProviderSummary } from "@/components/dashboard/SocialConnections";
 
 export const dynamic = "force-dynamic";
@@ -31,9 +32,23 @@ const STATUS_STYLE: Record<string, string> = {
 const when = (iso?: string) =>
   iso ? new Date(iso).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—";
 
-export default async function SocialPage({ searchParams }: { searchParams: Promise<{ connected?: string; error?: string }> }) {
+export default async function SocialPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ connected?: string; error?: string; mediaKey?: string; mediaUrl?: string; mediaName?: string }>;
+}) {
   await requireCap("manageSocial");
-  const { connected, error } = await searchParams;
+  const { connected, error, mediaKey, mediaUrl, mediaName } = await searchParams;
+
+  // Hand-off from the Graphics studio's "Use in a post": pre-select that public
+  // graphic in the composer. The URL is user-supplied, so sanitize it (rejects
+  // javascript:/data:/protocol-relative) and only trust a public/ asset key; the
+  // schedulePost action re-sanitizes on submit as a second gate.
+  const safeMediaUrl = sanitizeMediaUrl(mediaUrl);
+  const initialMedia =
+    safeMediaUrl && mediaKey?.startsWith("public/")
+      ? { key: mediaKey, url: safeMediaUrl, name: mediaName?.slice(0, 120) || mediaKey.split("/").pop() || "graphic" }
+      : undefined;
 
   const [posts, snapshots, fbConn, xConn, liConn, ttConn, ytConn] = await Promise.all([
     listPosts(),
@@ -125,7 +140,7 @@ export default async function SocialPage({ searchParams }: { searchParams: Promi
         <SocialAutoSchedule />
       </div>
 
-      <SocialComposer library={library} />
+      <SocialComposer library={library} initialMedia={initialMedia} />
 
       {/* Ready to post — manual channels staged by the scheduler */}
       {awaiting.length > 0 && (

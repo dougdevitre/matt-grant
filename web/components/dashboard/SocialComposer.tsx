@@ -23,7 +23,7 @@ type LibraryPost = {
 const CTAS = ["Donate", "Volunteer", "Vote", "Learn more", "Share"];
 const sevColor: Record<Severity, string> = { error: "text-brick", warn: "text-gold-ink", tip: "text-slate" };
 
-export function SocialComposer({ library }: { library: LibraryPost[] }) {
+export function SocialComposer({ library, initialMedia }: { library: LibraryPost[]; initialMedia?: { key: string; url: string; name: string } }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(schedulePost, { ok: false, message: "" });
 
   const [caption, setCaption] = useState("");
@@ -32,8 +32,10 @@ export function SocialComposer({ library }: { library: LibraryPost[] }) {
   const [cta, setCta] = useState("Learn more");
   const [pillar, setPillar] = useState("");
   const [link, setLink] = useState("");
-  const [attachGraphic, setAttachGraphic] = useState(true);
-  const [selectedAsset, setSelectedAsset] = useState<{ key: string; url: string; name: string } | null>(null);
+  // Arriving from the Graphics studio's "Use in a post" hand-off pre-selects that
+  // graphic and turns the auto on-brand graphic off (mutually exclusive image sources).
+  const [attachGraphic, setAttachGraphic] = useState(!initialMedia);
+  const [selectedAsset, setSelectedAsset] = useState<{ key: string; url: string; name: string } | null>(initialMedia ?? null);
   const [disclaimerInCopy, setDisclaimerInCopy] = useState(false);
   const [scheduledAt, setScheduledAt] = useState("");
 
