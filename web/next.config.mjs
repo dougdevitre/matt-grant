@@ -15,6 +15,12 @@ const nextConfig = {
   //    / @typescript-eslint only); the TS compiler / eslint never run at runtime.
   //  - caniuse-lite + browserslist + autoprefixer (~2.5 MiB): browser-support data used
   //    by PostCSS/browserslist at BUILD time; the runtime server never consults them.
+  //  - sharp's musl libvips binaries (~16.3 MiB): the tracer pulls BOTH the glibc
+  //    (@img/sharp-*-linux-x64) and musl (@img/sharp-*-linuxmusl-x64) variants, but the
+  //    Amplify SSR compute is an Amazon Linux 2 (glibc) Lambda, so the Alpine/musl build
+  //    is never loaded. Excluding it keeps the glibc binary sharp actually runs and drops
+  //    the single largest piece of dead weight. (Verified: standalone server boots and
+  //    OG/next-image/upload routes serve with the glibc binary after the exclude.)
   outputFileTracingExcludes: {
     "*": [
       "node_modules/typescript/**",
@@ -24,6 +30,8 @@ const nextConfig = {
       "node_modules/caniuse-lite/**",
       "node_modules/browserslist/**",
       "node_modules/autoprefixer/**",
+      "node_modules/@img/sharp-libvips-linuxmusl-x64/**",
+      "node_modules/@img/sharp-linuxmusl-x64/**",
     ],
   },
   // BUNDLE_GUARD=1 emits the standalone server (server + traced node_modules) so CI can
