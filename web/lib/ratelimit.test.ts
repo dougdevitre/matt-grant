@@ -29,6 +29,33 @@ describe("windowStart", () => {
 describe("clientIp", () => {
   const reqWith = (headers: Record<string, string>) => new Request("https://x.test", { headers });
 
+  it("prefers cloudfront-viewer-address (edge-set, non-spoofable), stripping the :port", () => {
+    // The real live shape: the app-visible XFF rightmost is a CloudFront hop, but
+    // cloudfront-viewer-address holds the true client — it must win.
+    expect(
+      clientIp(reqWith({
+        "cloudfront-viewer-address": "18.234.124.44:37192",
+        "x-forwarded-for": "18.234.124.44, 64.252.66.122",
+      })),
+    ).toBe("18.234.124.44");
+  });
+
+  it("cannot be spoofed via x-forwarded-for when cloudfront-viewer-address is present", () => {
+    expect(
+      clientIp(reqWith({
+        "cloudfront-viewer-address": "203.0.113.7:443",
+        "x-forwarded-for": "9.9.9.9, 8.8.8.8", // attacker-controlled left entries
+      })),
+    ).toBe("203.0.113.7");
+  });
+
+  it("handles an IPv6 cloudfront-viewer-address (strip only the trailing :port)", () => {
+    expect(clientIp(reqWith({ "cloudfront-viewer-address": "2600:1f18:abcd:1::5:52024" }))).toBe(
+      "2600:1f18:abcd:1::5",
+    );
+    expect(clientIp(reqWith({ "cloudfront-viewer-address": "[2600:1f18::5]:443" }))).toBe("2600:1f18::5");
+  });
+
   it("takes the last hop (the trusted proxy's appended client IP), ignoring spoofed leftmost entries", () => {
     // A client sends a fake leftmost value; CloudFront appends the real viewer IP last.
     expect(clientIp(reqWith({ "x-forwarded-for": "9.9.9.9, 203.0.113.7" }))).toBe("203.0.113.7");
