@@ -12,7 +12,7 @@ const { createSubmission, issueBoardConfigured } = vi.hoisted(() => ({
 vi.mock("next/headers", () => ({
   headers: async () => ({ get: () => "203.0.113.9" }),
 }));
-vi.mock("@/lib/ratelimit", () => ({ rateLimit }));
+vi.mock("@/lib/ratelimit", () => ({ rateLimit, clientIpFromHeaders: () => "203.0.113.9" }));
 vi.mock("@/lib/db", () => ({
   ddb: { send },
   TABLE: "test-table",

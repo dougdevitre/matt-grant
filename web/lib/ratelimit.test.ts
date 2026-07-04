@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { windowStart, clientIp } from "@/lib/ratelimit";
+import { windowStart, clientIp, clientIpFromHeaders } from "@/lib/ratelimit";
 
 describe("windowStart", () => {
   it("buckets timestamps to the start of their fixed window (unix seconds)", () => {
@@ -82,5 +82,25 @@ describe("clientIp", () => {
   it("falls back to x-real-ip, then to 'unknown'", () => {
     expect(clientIp(reqWith({ "x-real-ip": "192.0.2.9" }))).toBe("192.0.2.9");
     expect(clientIp(reqWith({}))).toBe("unknown");
+  });
+});
+
+describe("clientIpFromHeaders (server-action path)", () => {
+  // Server actions have no Request; they key off next/headers()'s Headers object.
+  // This is the exact derivation the public contact/join/events/issues forms use,
+  // so the spoof-resistance must hold here too — a leftmost XFF entry must NOT win.
+  const hdr = (headers: Record<string, string>) => new Headers(headers);
+
+  it("takes the last hop, not the attacker-supplied leftmost entry", () => {
+    expect(clientIpFromHeaders(hdr({ "x-forwarded-for": "9.9.9.9, 203.0.113.7" }))).toBe("203.0.113.7");
+  });
+
+  it("prefers the non-spoofable cloudfront-viewer-address over a forged XFF", () => {
+    expect(
+      clientIpFromHeaders(hdr({
+        "cloudfront-viewer-address": "203.0.113.7:443",
+        "x-forwarded-for": "9.9.9.9, 8.8.8.8",
+      })),
+    ).toBe("203.0.113.7");
   });
 });

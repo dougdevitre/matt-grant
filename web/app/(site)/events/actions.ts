@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { addSignup, getEvent, isEventFull, type EventRow } from "@/lib/events";
 import { formatEventRange } from "@/lib/events/time";
-import { rateLimit } from "@/lib/ratelimit";
+import { rateLimit, clientIpFromHeaders } from "@/lib/ratelimit";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { renderEmail, renderText } from "@/lib/email/layout";
 import { SITE_URL, CAMPAIGN } from "@/lib/site";
@@ -49,7 +49,7 @@ export async function rsvp(formData: FormData): Promise<RsvpState> {
   if (!id || !name) return { ok: false, message: "Please enter your name." };
 
   const h = await headers();
-  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+  const ip = clientIpFromHeaders(h);
   const rl = await rateLimit(`rsvp:${ip}`, { limit: 12, windowSec: 3600 });
   if (!rl.allowed) return { ok: false, message: "Too many sign-ups from this connection — try again later." };
 

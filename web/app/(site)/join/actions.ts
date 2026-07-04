@@ -1,7 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
-import { rateLimit } from "@/lib/ratelimit";
+import { rateLimit, clientIpFromHeaders } from "@/lib/ratelimit";
 import { staffGate } from "@/lib/auth";
 import { saveVolunteerSignup, type IntakeResult } from "@/lib/volunteers/intake";
 import { isJoinDoor, type JoinDoor } from "@/lib/volunteer/taxonomy";
@@ -9,7 +9,7 @@ import { isJoinDoor, type JoinDoor } from "@/lib/volunteer/taxonomy";
 // Per-IP throttle shared by the public (no-account) join forms.
 async function throttle(bucket: string): Promise<boolean> {
   const h = await headers();
-  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+  const ip = clientIpFromHeaders(h);
   const rl = await rateLimit(`${bucket}:${ip}`, { limit: 10, windowSec: 3600 });
   return rl.allowed;
 }
