@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { publicPillars, getPillar } from "@/lib/pillars";
 import { getManifest, getDoc } from "@/lib/pillars-content";
 import { renderMarkdownDoc } from "@/lib/markdown";
-import { CAMPAIGN } from "@/lib/site";
+import { CAMPAIGN, MAIN_SITE_URL } from "@/lib/site";
 import { MermaidRender } from "@/components/MermaidRender";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 
@@ -29,7 +29,16 @@ export async function generateMetadata({ params }: { params: Promise<{ pillar: s
   const { pillar: pillarSlug, slug } = await params;
   const found = getDoc(pillarSlug, slug[0]);
   if (!found) return {};
-  return { title: found.doc.title, description: `${getPillar(pillarSlug)?.eyebrow} — ${found.doc.title}` };
+  // Canonical = the apex path (subdomains aren't provisioned) — same convention as the
+  // parent pillar page, which the child routes previously skipped.
+  const canonical = `${MAIN_SITE_URL}/pillars/${pillarSlug}/${slug.join("/")}`;
+  const description = `${getPillar(pillarSlug)?.eyebrow} — ${found.doc.title}`;
+  return {
+    title: found.doc.title,
+    description,
+    alternates: { canonical },
+    openGraph: { title: found.doc.title, description, url: canonical },
+  };
 }
 
 // Same scoped typography as components/PolicyPage.tsx, kept in sync by hand.

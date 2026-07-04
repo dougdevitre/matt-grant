@@ -61,7 +61,7 @@ export function StrategyLab() {
               setIssueSlug(e.target.value);
               setResult(null);
             }}
-            className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink"
+            className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-field/30"
           >
             {ISSUES.map((i) => (
               <option key={i.slug} value={i.slug}>{i.eyebrow} — {i.title}</option>
@@ -77,7 +77,7 @@ export function StrategyLab() {
               setResult(null);
             }}
             placeholder="Town, city, county, or school district"
-            className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink"
+            className="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-field/30"
           />
           <span className="mt-2 flex flex-wrap gap-1.5">
             {AREA_SUGGESTIONS.slice(0, 6).map((a) => (

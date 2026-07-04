@@ -14,7 +14,7 @@ import {
 } from "@/lib/volunteer/taxonomy";
 
 const input =
-  "mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink";
+  "mt-1 w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-field/30";
 const chip =
   "flex cursor-pointer items-center gap-2 rounded-sm border border-line px-3 py-2 text-sm text-ink hover:border-ink has-[:checked]:border-brick has-[:checked]:bg-brick/5";
 

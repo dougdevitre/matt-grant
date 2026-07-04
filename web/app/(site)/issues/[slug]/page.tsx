@@ -23,10 +23,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const issue = getIssue(slug);
   if (!issue) return {};
+  const canonical = `${SITE_URL}/issues/${slug}`;
   return {
     title: issue.title,
     description: issue.tagline,
-    openGraph: { title: issue.title, description: issue.tagline, images: [issue.graphic] },
+    alternates: { canonical },
+    openGraph: { title: issue.title, description: issue.tagline, url: canonical, images: [issue.graphic] },
+    // Without an explicit twitter card, X fell back to the generic root twitter-image
+    // for every issue. Mirror the OG card so the issue's own graphic + copy show on X.
+    twitter: { card: "summary_large_image", title: issue.title, description: issue.tagline, images: [issue.graphic] },
   };
 }
 

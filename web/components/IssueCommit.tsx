@@ -7,7 +7,7 @@ import { CtaButton } from "@/components/CtaButton";
 import { commitToIssue, type CommitResult } from "@/app/(site)/issues/actions";
 
 const WAYS = ["Share it with friends", "Talk to my neighbors", "Volunteer", "Host a conversation", "Chip in"];
-const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-ink";
+const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-ink focus:ring-2 focus:ring-field/30";
 
 export function IssueCommit({ slug, issueLabel }: { slug: string; issueLabel: string }) {
   const [state, action, pending] = useActionState<CommitResult | null, FormData>(commitToIssue, null);
