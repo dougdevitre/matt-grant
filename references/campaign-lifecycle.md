@@ -37,7 +37,7 @@ Assessing whether a campaign is viable before making a public commitment. This i
 - Ignoring residency or eligibility requirements
 - Announcing publicly before doing adequate research
 
-**Skill Commands:** `/explore-viability`, `/district-research`, `/office-lookup`
+**Skill Commands:** `/viability`, `/districtdashboard`, `/officexplainer`
 
 ---
 
@@ -62,7 +62,7 @@ Completing the legal steps to become a candidate. This includes ballot access re
 - Commingling personal and campaign funds before the bank account is open
 - Failing to register the committee before accepting contributions
 
-**Skill Commands:** `/filing-checklist`, `/ballot-access`, `/agency-lookup`
+**Skill Commands:** `/checklist`, `/calendar`, `/launch`
 
 ---
 
@@ -87,7 +87,7 @@ Assembling the infrastructure for a functioning campaign. This means recruiting 
 - No written campaign plan or budget
 - Neglecting to set a clear win number and vote goal
 
-**Skill Commands:** `/campaign-plan`, `/win-number`, `/budget-template`
+**Skill Commands:** `/plan`, `/budget`, `/personas`
 
 ---
 
@@ -112,7 +112,7 @@ Raising the money needed to execute the campaign plan. This is continuous once i
 - Missing required disclaimers on solicitation materials
 - Failing to track in-kind contributions
 
-**Skill Commands:** `/fundraising-plan`, `/contribution-limits`, `/call-time-tips`
+**Skill Commands:** `/callscript`, `/askemail`, `/houseparty`, `/limitcheck`
 
 ---
 
@@ -137,7 +137,7 @@ Active campaigning: delivering the message, making direct voter contact, engagin
 - Starting GOTV planning too late (should begin weeks before election)
 - Candidate burnout from poor scheduling
 
-**Skill Commands:** `/gotv-plan`, `/messaging-framework`, `/canvass-script`, `/media-pitch`
+**Skill Commands:** `/doorscript`, `/phonescript`, `/gotvplan`, `/announcement`
 
 ---
 
@@ -162,7 +162,7 @@ Meeting campaign finance disclosure obligations. These reports are legally requi
 - Failing to itemize contributions that meet the threshold
 - Not collecting employer/occupation from donors at time of contribution
 
-**Skill Commands:** `/filing-deadlines`, `/reporting-checklist`, `/compliance-review`
+**Skill Commands:** `/reportchecklist`, `/limitcheck`, `/disclaimer`, `/treasurermemo`
 
 ---
 
@@ -187,4 +187,4 @@ Win or lose, there are legal and practical obligations after election day. Winne
 - Failing to file termination report when closing the committee
 - Neglecting to preserve records for the required retention period
 
-**Skill Commands:** `/wind-down-checklist`, `/surplus-funds`, `/termination-report`
+**Skill Commands:** `/winddown`, `/thankyouall`, `/victoryspeech`, `/concessionspeech`
