@@ -34,20 +34,29 @@ export function windowStart(nowMs: number, windowSec: number): number {
 // attacker-supplied — trusted proxies only APPEND. Keying on the leftmost value
 // would let an anonymous caller rotate a fake IP per request and defeat every
 // limit, so we count RATELIMIT_TRUSTED_PROXY_HOPS from the RIGHT (default 1).
-export function clientIp(req: Request): string {
-  const cfViewer = req.headers.get("cloudfront-viewer-address");
+// Minimal read-only view over request headers. Satisfied by both a `Request`'s
+// `headers` and Next's `headers()` return value (ReadonlyHeaders), so the same
+// hardened derivation serves API routes and server actions alike.
+type HeaderGetter = { get(name: string): string | null };
+
+export function clientIpFromHeaders(h: HeaderGetter): string {
+  const cfViewer = h.get("cloudfront-viewer-address");
   if (cfViewer) {
     const idx = cfViewer.lastIndexOf(":");
     const ip = (idx > 0 ? cfViewer.slice(0, idx) : cfViewer).replace(/^\[|\]$/g, "");
     if (ip) return ip;
   }
-  const parts = (req.headers.get("x-forwarded-for") ?? "")
+  const parts = (h.get("x-forwarded-for") ?? "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
   const hops = Math.max(1, Number(process.env.RATELIMIT_TRUSTED_PROXY_HOPS) || 1);
   const client = parts[parts.length - hops] ?? parts[0];
-  return client || req.headers.get("x-real-ip") || "unknown";
+  return client || h.get("x-real-ip") || "unknown";
+}
+
+export function clientIp(req: Request): string {
+  return clientIpFromHeaders(req.headers);
 }
 
 export async function rateLimit(

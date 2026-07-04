@@ -74,8 +74,17 @@ export async function rankFor(gameId: string, score: number): Promise<number | n
     const out = await ddb.send(
       new QueryCommand({
         TableName: TABLE,
-        KeyConditionExpression: "PK = :pk AND SK > :floor",
-        ExpressionAttributeValues: { ":pk": PK.gameScores, ":floor": `${gameId}#${pad(score)}#~` },
+        // BETWEEN keeps the range inside THIS game's partition. A bare `SK > :floor`
+        // would spill into every other game whose id sorts after `gameId` (they share
+        // PK.gameScores), inflating the rank. :ceil is the highest possible SK for the
+        // game (max padded score + the `~` id sentinel), so the count is exactly the
+        // number of strictly-higher scores for this game.
+        KeyConditionExpression: "PK = :pk AND SK BETWEEN :floor AND :ceil",
+        ExpressionAttributeValues: {
+          ":pk": PK.gameScores,
+          ":floor": `${gameId}#${pad(score)}#~`,
+          ":ceil": `${gameId}#${"9".repeat(SCORE_PAD)}#~`,
+        },
         Select: "COUNT",
       }),
     );
