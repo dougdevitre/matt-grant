@@ -3,9 +3,10 @@ import { cronAuthorized } from "@/lib/cron-auth";
 import { sendSms, smsEnabled, toE164 } from "@/lib/sms/send";
 import { isOptedIn } from "@/lib/sms/consent";
 
-// Manual test-send for the Twilio Messaging Service. There is no SMS dashboard yet,
-// so this is the way to fire a single real text on the deployed app once creds are in
-// SSM. Protected by the same CRON_SECRET bearer as the cron drains (lib/cron-auth.ts):
+// Manual test-send for the Twilio Messaging Service — a scriptable way to fire a single
+// real text (e.g. to smoke-test creds on the deployed app once they're in SSM), separate
+// from the SMS dashboard/composer at /dashboard/sms. Protected by the same CRON_SECRET
+// bearer as the cron drains (lib/cron-auth.ts):
 //   curl -X POST https://<site>/api/sms/test \
 //     -H "Authorization: Bearer $CRON_SECRET" -H 'content-type: application/json' \
 //     -d '{"to":"+13145550100","body":"Test. Reply STOP to opt out."}'
