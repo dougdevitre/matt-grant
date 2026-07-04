@@ -59,6 +59,17 @@ if (emailLayout) {
     fail("lib/email/layout.ts: mass email must include an unsubscribe mechanism (CAN-SPAM).");
 }
 
+// 3b. Mass-SMS suffix must carry the FEC disclaimer (a political text is a public
+//     communication). Reuses CAMPAIGN.paidForBy, so the check tracks the single
+//     source of truth rather than a literal string.
+const smsTemplates = read("lib/sms/templates.ts");
+if (smsTemplates) {
+  if (!/SMS_COMPLIANCE_SUFFIX\s*=[^;]*CAMPAIGN\.paidForBy/.test(smsTemplates))
+    fail("lib/sms/templates.ts: SMS_COMPLIANCE_SUFFIX must include CAMPAIGN.paidForBy (FEC disclaimer on mass texts).");
+  if (!/Reply STOP/i.test(smsTemplates))
+    fail("lib/sms/templates.ts: SMS_COMPLIANCE_SUFFIX must include a STOP opt-out (TCPA).");
+}
+
 // 4. Solicitation notices on the donate / fundraising surface -----------------
 const donate = read("app/(site)/donate/page.tsx");
 if (donate) {

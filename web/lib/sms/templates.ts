@@ -12,8 +12,12 @@ export type SmsTemplateDef = {
   build: (vars: Record<string, string>) => string;
 };
 
-// Sender identity + opt-out, appended to every broadcast (TCPA / carrier rules).
-export const SMS_COMPLIANCE_SUFFIX = ` — ${CAMPAIGN.candidate} for Congress. Reply STOP to opt out.`;
+// FEC "Paid for by" disclaimer (11 CFR 110.11) + TCPA opt-out, appended to every
+// broadcast. A mass political text is a public communication, so it carries the full
+// authorized-committee disclaimer — the same standard as every sample in
+// messaging/sms-texting.md — reusing the single source of truth (CAMPAIGN.paidForBy
+// already ends with a period).
+export const SMS_COMPLIANCE_SUFFIX = ` — ${CAMPAIGN.paidForBy} Reply STOP to opt out.`;
 
 export function withCompliance(body: string): string {
   const b = body.trim();
