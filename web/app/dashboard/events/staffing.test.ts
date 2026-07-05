@@ -5,6 +5,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // import stays hermetic (no AI/SES/geocoder pulled in).
 const staffGate = vi.fn();
 const updateEvent = vi.fn();
+const mutateEvent = vi.fn();
 const getEvent = vi.fn();
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
@@ -12,6 +13,7 @@ vi.mock("@/lib/auth", () => ({ staffGate: () => staffGate() }));
 vi.mock("@/lib/events", () => ({
   createEvent: vi.fn(),
   updateEvent: (...a: unknown[]) => updateEvent(...a),
+  mutateEvent: (...a: unknown[]) => mutateEvent(...a),
   setEventStatus: vi.fn(),
   deleteEvent: vi.fn(),
   getEvent: (...a: unknown[]) => getEvent(...a),
@@ -36,6 +38,11 @@ const fd = (o: Record<string, string>) => {
   return f;
 };
 const patchOf = () => (updateEvent.mock.calls[0] as unknown[])[1] as Record<string, unknown>;
+// The array/checklist actions now go through mutateEvent(id, apply); run the captured
+// apply against a fixture event to assert the patch it would persist (null = no-op).
+type EvFixture = { volunteers?: unknown[]; checklist?: unknown[] };
+const applyOf = () => (mutateEvent.mock.calls[0] as unknown[])[1] as (ev: EvFixture) => Record<string, unknown> | null;
+const runApply = (ev: EvFixture) => applyOf()(ev);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -55,24 +62,26 @@ describe("setEventCaptain", () => {
 });
 
 describe("addEventVolunteer", () => {
-  it("appends a volunteer to the roster", async () => {
-    getEvent.mockResolvedValue({ volunteers: [{ id: "v1", name: "Ann" }] });
+  it("appends a volunteer to the roster (applied to the fresh event under CAS)", async () => {
     await addEventVolunteer(fd({ id: "e1", volunteer: "v2|Ben" }));
-    expect(patchOf()).toEqual({ volunteers: [{ id: "v1", name: "Ann" }, { id: "v2", name: "Ben" }] });
+    expect(mutateEvent.mock.calls[0][0]).toBe("e1");
+    expect(runApply({ volunteers: [{ id: "v1", name: "Ann" }] })).toEqual({
+      volunteers: [{ id: "v1", name: "Ann" }, { id: "v2", name: "Ben" }],
+    });
   });
 
-  it("is idempotent — adding someone already on the roster is a no-op", async () => {
-    getEvent.mockResolvedValue({ volunteers: [{ id: "v1", name: "Ann" }] });
+  it("is idempotent — apply returns null when already on the roster", async () => {
     await addEventVolunteer(fd({ id: "e1", volunteer: "v1|Ann" }));
-    expect(updateEvent).not.toHaveBeenCalled();
+    expect(runApply({ volunteers: [{ id: "v1", name: "Ann" }] })).toBeNull();
   });
 });
 
 describe("removeEventVolunteer", () => {
   it("drops the volunteer by id", async () => {
-    getEvent.mockResolvedValue({ volunteers: [{ id: "v1", name: "Ann" }, { id: "v2", name: "Ben" }] });
     await removeEventVolunteer(fd({ id: "e1", volunteerId: "v1" }));
-    expect(patchOf()).toEqual({ volunteers: [{ id: "v2", name: "Ben" }] });
+    expect(runApply({ volunteers: [{ id: "v1", name: "Ann" }, { id: "v2", name: "Ben" }] })).toEqual({
+      volunteers: [{ id: "v2", name: "Ben" }],
+    });
   });
 });
 
@@ -89,39 +98,38 @@ describe("setEventPriority", () => {
 });
 
 describe("checklist actions", () => {
+  const checklistOf = (patch: Record<string, unknown> | null) =>
+    (patch!.checklist as Array<Record<string, unknown>>);
+
   it("toggleChecklistItem checks an item and stamps who/when", async () => {
-    getEvent.mockResolvedValue({ checklist: [{ id: "i1", text: "Banner", done: false }] });
     await toggleChecklistItem(fd({ id: "e1", itemId: "i1" }));
-    const item = (patchOf().checklist as Array<Record<string, unknown>>)[0];
+    const item = checklistOf(runApply({ checklist: [{ id: "i1", text: "Banner", done: false }] }))[0];
     expect(item.done).toBe(true);
     expect(item.doneBy).toBe("a@x.test");
     expect(typeof item.doneAt).toBe("string");
   });
 
   it("toggleChecklistItem unchecks and clears the stamp", async () => {
-    getEvent.mockResolvedValue({ checklist: [{ id: "i1", text: "Banner", done: true, doneBy: "x", doneAt: "t" }] });
     await toggleChecklistItem(fd({ id: "e1", itemId: "i1" }));
-    const item = (patchOf().checklist as Array<Record<string, unknown>>)[0];
+    const item = checklistOf(runApply({ checklist: [{ id: "i1", text: "Banner", done: true, doneBy: "x", doneAt: "t" }] }))[0];
     expect(item.done).toBe(false);
     expect(item.doneBy).toBeUndefined();
   });
 
   it("addChecklistItem appends a new item with a generated id", async () => {
-    getEvent.mockResolvedValue({ checklist: [] });
     await addChecklistItem(fd({ id: "e1", text: "Bring water" }));
-    expect(patchOf().checklist).toEqual([{ id: "new-item-id", text: "Bring water", done: false }]);
+    expect(checklistOf(runApply({ checklist: [] }))).toEqual([{ id: "new-item-id", text: "Bring water", done: false }]);
   });
 
   it("removeChecklistItem drops by id", async () => {
-    getEvent.mockResolvedValue({ checklist: [{ id: "i1", text: "A", done: false }, { id: "i2", text: "B", done: false }] });
     await removeChecklistItem(fd({ id: "e1", itemId: "i1" }));
-    expect((patchOf().checklist as Array<Record<string, unknown>>).map((i) => i.id)).toEqual(["i2"]);
+    const list = checklistOf(runApply({ checklist: [{ id: "i1", text: "A", done: false }, { id: "i2", text: "B", done: false }] }));
+    expect(list.map((i) => i.id)).toEqual(["i2"]);
   });
 
   it("assignChecklistItem sets the assignee from id|name", async () => {
-    getEvent.mockResolvedValue({ checklist: [{ id: "i1", text: "A", done: false }] });
     await assignChecklistItem(fd({ id: "e1", itemId: "i1", assignee: "v2|Ben" }));
-    const item = (patchOf().checklist as Array<Record<string, unknown>>)[0];
+    const item = checklistOf(runApply({ checklist: [{ id: "i1", text: "A", done: false }] }))[0];
     expect(item.assigneeId).toBe("v2");
     expect(item.assigneeName).toBe("Ben");
   });
@@ -135,5 +143,6 @@ describe("RBAC gate", () => {
     await setEventPriority(fd({ id: "e1", priority: "1" }));
     await toggleChecklistItem(fd({ id: "e1", itemId: "i1" }));
     expect(updateEvent).not.toHaveBeenCalled();
+    expect(mutateEvent).not.toHaveBeenCalled();
   });
 });
