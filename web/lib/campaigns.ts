@@ -1,5 +1,5 @@
 import { PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { ddb, TABLE, newId, dbConfigured } from "@/lib/db";
+import { ddb, TABLE, newId, dbConfigured, queryAllPages } from "@/lib/db";
 import { isSuppressed, type TopicKey } from "@/lib/subscribers";
 import { getBroadcast } from "@/lib/email/broadcasts";
 import { sendBroadcastEmail } from "@/lib/campaignSend";
@@ -115,15 +115,15 @@ export async function createCampaign(input: {
 }
 
 async function allCampaigns(): Promise<CampaignItem[]> {
-  const r = await ddb.send(
-    new QueryCommand({
-      TableName: TABLE,
-      KeyConditionExpression: "PK = :p",
-      ExpressionAttributeValues: { ":p": CAMPAIGN_PK },
-      ScanIndexForward: false,
-    }),
-  );
-  return (r.Items ?? []) as CampaignItem[];
+  // Paginate: campaign items embed the full recipients[] array, so the CAMPAIGN
+  // partition passes DynamoDB's 1 MB query-page limit after only a few broadcasts.
+  // A single page would strand any campaign past the boundary (never drained/sent).
+  return (await queryAllPages({
+    TableName: TABLE,
+    KeyConditionExpression: "PK = :p",
+    ExpressionAttributeValues: { ":p": CAMPAIGN_PK },
+    ScanIndexForward: false,
+  })) as CampaignItem[];
 }
 
 async function getStats(): Promise<Record<string, { delivered: number; opens: number; clicks: number }>> {

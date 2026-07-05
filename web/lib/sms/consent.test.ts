@@ -5,7 +5,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // unparseable number.
 const { send } = vi.hoisted(() => ({ send: vi.fn() }));
 const { toE164 } = vi.hoisted(() => ({ toE164: vi.fn() }));
-vi.mock("@/lib/db", () => ({ ddb: { send }, TABLE: "test-table", dbConfigured: true }));
+vi.mock("@/lib/db", () => ({
+  ddb: { send },
+  TABLE: "test-table",
+  dbConfigured: true,
+  // listConsent() paginates via queryAllPages; delegate to the same send stub so
+  // tests keep driving results with send.mockResolvedValue({ Items }).
+  queryAllPages: async () => ((await send()) as { Items?: unknown[] }).Items ?? [],
+}));
 vi.mock("@/lib/sms/send", () => ({ toE164 }));
 
 import { isOptedIn, consentStatus, recordConsent, recordOptOut, optedInSet } from "./consent";
