@@ -240,7 +240,11 @@ const EVENT_EDIT_SKIP = new Set([
 // Build a targeted UpdateItem that SET/REMOVEs only the editable fields of a
 // freshly-built event item, leaving the atomically-owned fields untouched. Every
 // field name is aliased so reserved words (status, name, location, end, …) are safe.
-function editEventUpdate(sk: string, item: object) {
+// When `guardUpdatedAt` is provided, the write becomes a compare-and-swap: it only
+// applies if the row's `updatedAt` still equals the value the caller read — so two
+// concurrent read-modify-write edits can't silently overwrite each other. `null`
+// guards a legacy row that has no `updatedAt` yet (attribute_not_exists).
+function editEventUpdate(sk: string, item: object, guardUpdatedAt?: string | null) {
   const names: Record<string, string> = {};
   const values: Record<string, unknown> = {};
   const sets: string[] = [];
@@ -262,26 +266,30 @@ function editEventUpdate(sk: string, item: object) {
   const expr = [sets.length ? `SET ${sets.join(", ")}` : "", removes.length ? `REMOVE ${removes.join(", ")}` : ""]
     .filter(Boolean)
     .join(" ");
+  let ConditionExpression: string | undefined;
+  if (guardUpdatedAt !== undefined) {
+    names["#uu"] = "updatedAt";
+    if (guardUpdatedAt === null) {
+      ConditionExpression = "attribute_not_exists(#uu)";
+    } else {
+      ConditionExpression = "#uu = :uu";
+      values[":uu"] = guardUpdatedAt;
+    }
+  }
   return {
     TableName: TABLE,
     Key: { PK: PK.events, SK: sk },
     UpdateExpression: expr,
     ExpressionAttributeNames: names,
     ...(Object.keys(values).length ? { ExpressionAttributeValues: values } : {}),
+    ...(ConditionExpression ? { ConditionExpression } : {}),
   };
 }
 
-// Edit an event. The common case (start unchanged) is a TARGETED update that only
-// touches editable fields — it can't clobber a signup or notify claim that lands
-// concurrently. If `start` changes the SK moves, so we re-read the freshest
-// signups/notify state and put-new + delete-old (a narrow, rare move race remains).
-export async function updateEvent(id: string, patch: Partial<EventInput> & { status?: EventStatus }): Promise<boolean> {
-  const raw = await findRaw(id);
-  if (!raw) return false;
-  const cur = rawToRow(raw);
-  const oldSK = String(raw.SK);
-  const now = new Date().toISOString();
-  const merged: EventInput = {
+// Resolve a patch against the current row into a full EventInput (patch field wins
+// when provided, else keep current). Shared by updateEvent and mutateEvent.
+function mergeEventInput(cur: EventRow, patch: Partial<EventInput> & { status?: EventStatus }): EventInput {
+  return {
     title: patch.title ?? cur.title,
     type: patch.type ?? cur.type,
     start: patch.start ?? cur.start,
@@ -300,6 +308,19 @@ export async function updateEvent(id: string, patch: Partial<EventInput> & { sta
     status: patch.status ?? cur.status,
     createdBy: cur.createdBy,
   };
+}
+
+// Edit an event. The common case (start unchanged) is a TARGETED update that only
+// touches editable fields — it can't clobber a signup or notify claim that lands
+// concurrently. If `start` changes the SK moves, so we re-read the freshest
+// signups/notify state and put-new + delete-old (a narrow, rare move race remains).
+export async function updateEvent(id: string, patch: Partial<EventInput> & { status?: EventStatus }): Promise<boolean> {
+  const raw = await findRaw(id);
+  if (!raw) return false;
+  const cur = rawToRow(raw);
+  const oldSK = String(raw.SK);
+  const now = new Date().toISOString();
+  const merged = mergeEventInput(cur, patch);
   const item = buildItem(id, merged, now, cur);
   let written = item;
   if (String(item.SK) === oldSK) {
@@ -319,6 +340,43 @@ export async function updateEvent(id: string, patch: Partial<EventInput> & { sta
   const recId = await mirrorEventToAirtable(rawToRow(written), cur.airtableRecId);
   if (recId && recId !== cur.airtableRecId) await saveAirtableRecId(id, String(written.SK), recId);
   return true;
+}
+
+// Read-modify-write an event under optimistic concurrency. `apply` receives the FRESH
+// row and returns a patch to persist, or null for a no-op (e.g. a dedupe hit). The
+// write is a compare-and-swap on `updatedAt`, so two staffers editing the same event's
+// volunteers/checklist at once can't clobber each other: the loser's CAS fails, we
+// re-read and re-apply the delta onto the winner's state, then write again. Because
+// the whole read-apply-write lives here (not split across the caller's getEvent + a
+// later updateEvent), the guard actually covers the read the patch was derived from.
+// Use this for array/field mutations that read-then-write; it never moves the SK, so a
+// patch that changes `start` falls back to updateEvent (not a concern for the callers).
+export async function mutateEvent(
+  id: string,
+  apply: (ev: EventRow) => (Partial<EventInput> & { status?: EventStatus }) | null,
+  tries = 5,
+): Promise<boolean> {
+  if (!dbConfigured || !id) return false;
+  for (let attempt = 0; attempt < tries; attempt += 1) {
+    const raw = await findRaw(id);
+    if (!raw) return false;
+    const cur = rawToRow(raw);
+    const patch = apply(cur);
+    if (!patch) return true; // apply decided there's nothing to write
+    if (patch.start !== undefined && patch.start !== cur.start) return updateEvent(id, patch); // SK move — rare
+    const now = new Date().toISOString();
+    const item = buildItem(id, mergeEventInput(cur, patch), now, cur);
+    try {
+      await ddb.send(new UpdateCommand(editEventUpdate(String(raw.SK), item, cur.updatedAt ?? null)));
+    } catch (e) {
+      if ((e as { name?: string })?.name === "ConditionalCheckFailedException") continue; // someone else wrote; retry
+      throw e;
+    }
+    const recId = await mirrorEventToAirtable(rawToRow(item), cur.airtableRecId);
+    if (recId && recId !== cur.airtableRecId) await saveAirtableRecId(id, String(item.SK), recId);
+    return true;
+  }
+  return false; // retries exhausted (extremely unlikely for human-paced edits)
 }
 
 export async function setEventStatus(id: string, status: EventStatus): Promise<boolean> {

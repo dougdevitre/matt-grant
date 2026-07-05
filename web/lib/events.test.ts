@@ -19,7 +19,7 @@ vi.mock("@/lib/ssm", () => ({ getSecret: vi.fn(async () => undefined) }));
 import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import {
   createEvent, claimNotify, listUpcomingEvents, toPublicEvent,
-  updateEvent, deleteEvent, setEventStatus, setEventNotify, addSignup,
+  updateEvent, mutateEvent, deleteEvent, setEventStatus, setEventNotify, addSignup,
 } from "./events";
 import type { EventRow } from "@/lib/events/types";
 
@@ -130,6 +130,60 @@ describe("updateEvent (SK move on start change)", () => {
   it("returns false when the event isn't found", async () => {
     withItems();
     expect(await updateEvent("missing", { title: "x" })).toBe(false);
+  });
+});
+
+describe("mutateEvent (optimistic concurrency)", () => {
+  const raw = {
+    id: "e1", PK: "EVENT", SK: "s#e1", start: "2026-07-12T23:00:00.000Z",
+    title: "T", type: "rally", location: { name: "", address: "", city: "Chesterfield", county: "" },
+    status: "DRAFT", updatedAt: "2026-06-01T00:00:00.000Z", volunteers: [{ id: "v1", name: "Ann" }],
+  };
+
+  it("applies the patch and writes a CAS-guarded update that skips signups/notified*", async () => {
+    withItems(raw);
+    const ok = await mutateEvent("e1", (ev) => ({ volunteers: [...(ev.volunteers ?? []), { id: "v2", name: "Ben" }] }));
+    expect(ok).toBe(true);
+    const upd = oneOf("UpdateCommand");
+    // Compare-and-swap on the updatedAt we read — the guard that covers the caller's read.
+    expect(upd.input.ConditionExpression).toContain("#uu");
+    expect(upd.input.ExpressionAttributeValues[":uu"]).toBe("2026-06-01T00:00:00.000Z");
+    const fields = Object.values(upd.input.ExpressionAttributeNames as Record<string, string>);
+    for (const owned of ["signups", "notifiedEmailAt", "notifiedSmsAt", "notifyResult", "createdAt"]) {
+      expect(fields).not.toContain(owned);
+    }
+    expect(fields).toContain("volunteers");
+  });
+
+  it("retries on a CAS conflict — re-reads and re-applies to the fresh event, then succeeds", async () => {
+    let updates = 0;
+    send.mockImplementation((cmd: { constructor: { name: string } }) => {
+      const name = cmd.constructor.name;
+      if (name === "QueryCommand") return Promise.resolve({ Items: [raw] });
+      if (name === "UpdateCommand") {
+        updates += 1;
+        if (updates === 1) return Promise.reject(Object.assign(new Error("cc"), { name: "ConditionalCheckFailedException" }));
+        return Promise.resolve({});
+      }
+      return Promise.resolve({});
+    });
+    let applyCalls = 0;
+    const ok = await mutateEvent("e1", (ev) => { applyCalls += 1; return { volunteers: ev.volunteers }; });
+    expect(ok).toBe(true);
+    expect(updates).toBe(2); // first write conflicted, second succeeded
+    expect(applyCalls).toBe(2); // apply re-ran against the fresh re-read
+  });
+
+  it("returns true and writes nothing when apply returns null (no-op / dedupe)", async () => {
+    withItems(raw);
+    const ok = await mutateEvent("e1", () => null);
+    expect(ok).toBe(true);
+    expect(anyOf("UpdateCommand")).toBe(false);
+  });
+
+  it("returns false when the event isn't found", async () => {
+    withItems();
+    expect(await mutateEvent("missing", () => ({ volunteers: [] }))).toBe(false);
   });
 });
 

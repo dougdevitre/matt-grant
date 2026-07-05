@@ -5,7 +5,7 @@ import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { newId } from "@/lib/db";
 import {
-  createEvent, updateEvent, setEventStatus, deleteEvent, getEvent, setEventNotify,
+  createEvent, updateEvent, mutateEvent, setEventStatus, deleteEvent, getEvent, setEventNotify,
   isEventType, type EventType, type EventLocation, type EventPriority, type EventChecklistItem,
 } from "@/lib/events";
 import { localCentralToIso } from "@/lib/events/time";
@@ -199,10 +199,11 @@ export async function addEventVolunteer(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "").trim();
   const who = parseStaffer(String(formData.get("volunteer") ?? ""));
   if (!id || !who) return;
-  const ev = await getEvent(id);
-  if (!ev) return;
-  if (ev.volunteers.some((v) => v.id === who.id)) return; // already on the roster
-  await updateEvent(id, { volunteers: [...ev.volunteers, who] });
+  // mutateEvent reads the freshest roster and CAS-writes, so a concurrent edit can't
+  // clobber this add; the dedupe runs inside apply (null = already on the roster).
+  await mutateEvent(id, (ev) =>
+    ev.volunteers.some((v) => v.id === who.id) ? null : { volunteers: [...ev.volunteers, who] },
+  );
   refresh(id);
 }
 
@@ -213,9 +214,7 @@ export async function removeEventVolunteer(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "").trim();
   const volunteerId = String(formData.get("volunteerId") ?? "").trim();
   if (!id || !volunteerId) return;
-  const ev = await getEvent(id);
-  if (!ev) return;
-  await updateEvent(id, { volunteers: ev.volunteers.filter((v) => v.id !== volunteerId) });
+  await mutateEvent(id, (ev) => ({ volunteers: ev.volunteers.filter((v) => v.id !== volunteerId) }));
   refresh(id);
 }
 
@@ -253,16 +252,15 @@ export async function toggleChecklistItem(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "").trim();
   const itemId = String(formData.get("itemId") ?? "").trim();
   if (!id || !itemId) return;
-  const ev = await getEvent(id);
-  if (!ev) return;
-  const checklist = ev.checklist.map((it) => {
-    if (it.id !== itemId) return it;
-    const done = !it.done;
-    return done
-      ? { ...it, done, doneBy: g.email ?? "system", doneAt: new Date().toISOString() }
-      : { ...it, done, doneBy: undefined, doneAt: undefined };
-  });
-  await updateEvent(id, { checklist });
+  await mutateEvent(id, (ev) => ({
+    checklist: ev.checklist.map((it) => {
+      if (it.id !== itemId) return it;
+      const done = !it.done;
+      return done
+        ? { ...it, done, doneBy: g.email ?? "system", doneAt: new Date().toISOString() }
+        : { ...it, done, doneBy: undefined, doneAt: undefined };
+    }),
+  }));
   refresh(id);
 }
 
@@ -273,10 +271,9 @@ export async function addChecklistItem(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "").trim();
   const text = String(formData.get("text") ?? "").trim().slice(0, 200);
   if (!id || !text) return;
-  const ev = await getEvent(id);
-  if (!ev) return;
+  // newId() computed once (outside apply) so a CAS retry reuses the same item id.
   const item: EventChecklistItem = { id: newId(), text, done: false };
-  await updateEvent(id, { checklist: [...ev.checklist, item] });
+  await mutateEvent(id, (ev) => ({ checklist: [...ev.checklist, item] }));
   refresh(id);
 }
 
@@ -287,9 +284,7 @@ export async function removeChecklistItem(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "").trim();
   const itemId = String(formData.get("itemId") ?? "").trim();
   if (!id || !itemId) return;
-  const ev = await getEvent(id);
-  if (!ev) return;
-  await updateEvent(id, { checklist: ev.checklist.filter((it) => it.id !== itemId) });
+  await mutateEvent(id, (ev) => ({ checklist: ev.checklist.filter((it) => it.id !== itemId) }));
   refresh(id);
 }
 
@@ -301,12 +296,11 @@ export async function assignChecklistItem(formData: FormData): Promise<void> {
   const itemId = String(formData.get("itemId") ?? "").trim();
   if (!id || !itemId) return;
   const who = parseStaffer(String(formData.get("assignee") ?? ""));
-  const ev = await getEvent(id);
-  if (!ev) return;
-  const checklist = ev.checklist.map((it) =>
-    it.id === itemId ? { ...it, assigneeId: who?.id, assigneeName: who?.name } : it,
-  );
-  await updateEvent(id, { checklist });
+  await mutateEvent(id, (ev) => ({
+    checklist: ev.checklist.map((it) =>
+      it.id === itemId ? { ...it, assigneeId: who?.id, assigneeName: who?.name } : it,
+    ),
+  }));
   refresh(id);
 }
 
