@@ -62,6 +62,7 @@ export const GET = geoRoute({
     // precinct polygons (St. Louis County portion). Without this it would show
     // MO-01/MO-03 sites too.
     let districtFiltered = false;
+    let pollingLive = !!live;
     const countyCount = polling.length;
     if (live) {
       const geo = await fetchCd2Geometry();
@@ -75,15 +76,22 @@ export const GET = geoRoute({
           ),
         );
         districtFiltered = true;
+      } else {
+        // The county polling layer has NO district field, so without the MO-02
+        // geometry we can't clip it. Serving it unclipped would plot MO-01/MO-03
+        // polling sites on the MO-02 map — fall back to the curated in-district
+        // sample instead of leaking neighboring districts.
+        polling = sampleFeatures().filter((f) => f.properties.category === "polling");
+        pollingLive = false;
       }
     }
 
     return {
       fc: { type: "FeatureCollection", features: [...nonPolling, ...polling] },
       meta: {
-        live_layers: live ? ["polling"] : [],
+        live_layers: pollingLive ? ["polling"] : [],
         pollingCount: polling.length,
-        pollingLive: !!live,
+        pollingLive,
         districtFiltered,
         countyCount, // before clipping, for reference
         coverage: "St. Louis County portion of MO-02",
