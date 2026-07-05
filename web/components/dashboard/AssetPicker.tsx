@@ -204,8 +204,9 @@ export function AssetPicker({
 
             {tab === "photos" && (
               <p className="mt-3 rounded-sm bg-paper px-3 py-2 text-xs text-slate">
-                Shoot photos are staff-only. Picking one publishes a public, post-ready copy so it can be attached — the
-                original stays private.
+                Shoot photos are staff-only. Picking one publishes a <span className="font-medium text-ink">permanent public copy</span> so
+                it can be attached — the original stays private. Remove the copy anytime from <span className="font-mono">Assets</span> (it&apos;s
+                tagged <span className="font-mono">social</span>).
               </p>
             )}
 

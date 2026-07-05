@@ -7,14 +7,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const checkCap = vi.fn();
 vi.mock("@/lib/auth", () => ({ checkCap: (cap: string) => checkCap(cap) }));
 // Stores are never reached on the denied path, but stub them so the modules load.
-vi.mock("@/lib/s3", () => ({ listAssets: vi.fn(), listPhotos: vi.fn(), s3Configured: true }));
-vi.mock("@/lib/assets", () => ({ setAssetTags: vi.fn() }));
+vi.mock("@/lib/s3", () => ({ listAssets: vi.fn(), listPhotos: vi.fn(), deleteObject: vi.fn(), s3Configured: true }));
+vi.mock("@/lib/assets", () => ({ setAssetTags: vi.fn(), deleteAssetMeta: vi.fn() }));
 vi.mock("@/lib/social/promoteMedia", () => ({ promoteToPublicImage: vi.fn() }));
 
 import { GET as listGET } from "./list/route";
 import { GET as photosGET } from "./photos/route";
 import { POST as tagsPOST } from "./tags/route";
 import { POST as promotePOST } from "./promote/route";
+import { POST as deletePOST } from "./delete/route";
 
 beforeEach(() => vi.clearAllMocks());
 
@@ -55,5 +56,16 @@ describe("/api/assets/* capability gate", () => {
     const res = await promotePOST(req);
     expect(res.status).toBe(403);
     expect(checkCap).toHaveBeenCalledWith("manageSocial");
+  });
+
+  it("delete (write) returns 403 for a non-manager and checks manageAssets", async () => {
+    checkCap.mockResolvedValue({ allowed: false });
+    const req = new Request("http://test/api/assets/delete", {
+      method: "POST",
+      body: JSON.stringify({ key: "public/social/x.jpg" }),
+    });
+    const res = await deletePOST(req);
+    expect(res.status).toBe(403);
+    expect(checkCap).toHaveBeenCalledWith("manageAssets");
   });
 });

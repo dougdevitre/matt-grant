@@ -135,7 +135,8 @@ Picking a **private photo** publishes a **stable public copy** so it becomes pos
 - Copies the private object to a **deterministic** public key (`publicSocialKey()`: `private/photos/events/a.jpg → public/social/photos-events-a.jpg`), so re-promoting the same photo overwrites the same object instead of duplicating it.
 - **Web-safes + optimizes** the bytes (`toWebSafeImage()` in `lib/images.ts`): multi-MB masters are downscaled to platform limits and HEIC/TIFF phone photos are transcoded to JPEG (extension adjusted to match).
 - Records the copy in the asset library (tags `social`, `photo`) so it also shows up under Assets.
-- **The original photo stays private** — only the public copy is created. Gated on `manageSocial` (admin-only), the tightest cap, since it makes staff-only media public; the picker shows a "the original stays private" note.
+- **The original photo stays private** — only the public copy is created. Gated on `manageSocial` (admin-only), the tightest cap, since it makes staff-only media public; the picker shows a "permanent public copy" note.
+- **Taking it back down:** the copy is a normal public asset (tagged `social`, `photo`), so it can be deleted from the Assets page — **Delete** removes the S3 object + metadata via `POST /api/assets/delete` (`manageAssets`, with a confirm). Deletion doesn't touch the private original.
 
 Any picked image that isn't the auto on-brand graphic still trips the "Paid for by disclaimer" acknowledgment in `scoreContent()` — promoted photos included.
 

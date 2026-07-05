@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, ListObjectsV2Command, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { classifyKind, listAssetMeta, type AssetKind } from "@/lib/assets";
 
@@ -52,6 +52,12 @@ export async function getObjectBytes(key: string): Promise<{ body: Buffer; conte
   const res = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
   const bytes = await res.Body!.transformToByteArray();
   return { body: Buffer.from(bytes), contentType: res.ContentType ?? "application/octet-stream" };
+}
+
+// Delete an object. Used to remove an asset from the library (including a promoted
+// public/social copy). Idempotent — S3 returns success even if the key is gone.
+export async function deleteObject(key: string): Promise<void> {
+  await s3.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }));
 }
 
 export type AssetItem = {

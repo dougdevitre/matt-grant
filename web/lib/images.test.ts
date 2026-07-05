@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import sharp from "sharp";
-import { optimizeImage } from "@/lib/images";
+import { optimizeImage, toWebSafeImage } from "@/lib/images";
 
 describe("optimizeImage", () => {
   it("passes non-raster input (pdf/other) through untouched", async () => {
@@ -26,5 +26,29 @@ describe("optimizeImage", () => {
     const r = await optimizeImage(tiny, "image/png");
     expect(r.contentType).toBe("image/png");
     expect(r.buffer.length).toBeLessThanOrEqual(tiny.length);
+  });
+});
+
+describe("toWebSafeImage", () => {
+  it("keeps a web-safe format (delegates to optimizeImage)", async () => {
+    const png = await sharp({ create: { width: 16, height: 16, channels: 3, background: { r: 5, g: 5, b: 5 } } }).png().toBuffer();
+    const r = await toWebSafeImage(png, "image/png");
+    expect(r.contentType).toBe("image/png"); // format preserved
+  });
+
+  it("transcodes a non-web format (TIFF) to JPEG so browsers/social can render it", async () => {
+    const tiff = await sharp({ create: { width: 32, height: 24, channels: 3, background: { r: 200, g: 40, b: 40 } } }).tiff().toBuffer();
+    const r = await toWebSafeImage(tiff, "image/tiff");
+    expect(r.contentType).toBe("image/jpeg");
+    const meta = await sharp(r.buffer).metadata();
+    expect(meta.format).toBe("jpeg"); // actually decodable as JPEG
+  });
+
+  it("downscales an oversized non-web master while transcoding", async () => {
+    const big = await sharp({ create: { width: 4000, height: 3000, channels: 3, background: { r: 10, g: 120, b: 200 } } }).tiff().toBuffer();
+    const r = await toWebSafeImage(big, "image/tiff");
+    expect(r.contentType).toBe("image/jpeg");
+    const meta = await sharp(r.buffer).metadata();
+    expect(Math.max(meta.width ?? 0, meta.height ?? 0)).toBeLessThanOrEqual(2560);
   });
 });

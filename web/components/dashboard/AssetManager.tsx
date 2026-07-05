@@ -112,6 +112,31 @@ export function AssetManager() {
     }).catch(() => load());
   }, [items, load]);
 
+  // Delete an asset (S3 object + metadata). Confirms first — irreversible — then
+  // removes it optimistically and reloads on failure to resync.
+  const remove = useCallback(
+    (a: Asset) => {
+      if (!window.confirm(`Delete “${a.name}” permanently? This removes it from S3 and can't be undone.`)) return;
+      setItems((cur) => cur.filter((x) => x.key !== a.key));
+      fetch("/api/assets/delete", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ key: a.key }),
+      })
+        .then((r) => {
+          if (!r.ok) {
+            setMsg(`Couldn't delete ${a.name}.`);
+            load();
+          }
+        })
+        .catch(() => {
+          setMsg(`Couldn't delete ${a.name}.`);
+          load();
+        });
+    },
+    [load],
+  );
+
   const allTags = useMemo(() => [...new Set(items.flatMap((a) => a.tags))].sort(), [items]);
 
   const filtered = useMemo(() => {
@@ -245,6 +270,7 @@ export function AssetManager() {
                     <div className="mt-3 flex gap-2">
                       <a href={a.url} target="_blank" rel="noopener noreferrer" className="btn-ghost flex-1 px-2 py-1 text-xs">Open</a>
                       <button onClick={() => navigator.clipboard?.writeText(a.url)} className="btn-ghost px-2 py-1 text-xs">Copy URL</button>
+                      <button onClick={() => remove(a)} aria-label={`Delete ${a.name}`} className="btn-ghost px-2 py-1 text-xs text-brick hover:border-brick">Delete</button>
                     </div>
                   </div>
                 </div>
@@ -278,6 +304,7 @@ export function AssetManager() {
                         <td className="px-4 py-3 text-right">
                           <a href={a.url} target="_blank" rel="noopener noreferrer" className="btn-ghost px-2 py-1 text-xs">Open</a>
                           <button onClick={() => navigator.clipboard?.writeText(a.url)} className="btn-ghost ml-1 px-2 py-1 text-xs">Copy</button>
+                          <button onClick={() => remove(a)} aria-label={`Delete ${a.name}`} className="btn-ghost ml-1 px-2 py-1 text-xs text-brick hover:border-brick">Delete</button>
                         </td>
                       </tr>
                     ))}
