@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { staffGate } from "@/lib/auth";
+import { staffGate, isStaff } from "@/lib/auth";
 import { isNotificationType } from "@/lib/notifications/types";
 import { setMutedNotifications } from "@/lib/notifications/prefs";
 
@@ -10,12 +10,14 @@ export type PrefsResult = { ok: boolean; message: string };
 // Save the signed-in staffer's OWN notification opt-outs. The form posts the full set of
 // relevant type keys (`allTypes`) plus the ones left checked (`subscribed`); muted = the
 // difference. No RBAC capability needed beyond being staff — you're editing your own prefs.
+// Gate on isStaff (not gate.ok, which also admits external tiers like supporter/partner):
+// notification prefs are a staff-only feature, so a non-staff caller has no business here.
 export async function saveNotificationPrefs(
   _prev: PrefsResult | null,
   formData: FormData,
 ): Promise<PrefsResult> {
   const gate = await staffGate();
-  if (!gate.ok || !gate.email) return { ok: false, message: "Not signed in." };
+  if (!isStaff(gate) || !gate.email) return { ok: false, message: "Not signed in." };
 
   const allTypes = formData.getAll("allTypes").map(String).filter(isNotificationType);
   const subscribed = new Set(formData.getAll("subscribed").map(String).filter(isNotificationType));

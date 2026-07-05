@@ -32,6 +32,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   process.env.EXTENSION_ORIGIN = EXT;
   checkCap.mockResolvedValue({ allowed: true, gate: { email: "a@x.com" } });
+  setTaskStatus.mockResolvedValue(true); // task exists → updated; override per-test for not-found
 });
 afterEach(() => {
   process.env.EXTENSION_ORIGIN = prev;
@@ -80,6 +81,13 @@ describe("PATCH /api/ext/tasks (status)", () => {
     expect(recordExtAction).toHaveBeenCalledWith(
       expect.objectContaining({ action: "task.status", target: "t1" }),
     );
+  });
+
+  it("404 when the task id does not exist (no phantom upsert, no audit)", async () => {
+    setTaskStatus.mockResolvedValue(false); // attribute_exists guard failed → not found
+    const res = await PATCH(jsonReq("PATCH", { id: "ghost", status: "DONE" }));
+    expect(res.status).toBe(404);
+    expect(recordExtAction).not.toHaveBeenCalled();
   });
 
   it("403 without manageTasks", async () => {

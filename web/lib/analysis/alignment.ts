@@ -40,8 +40,12 @@ function verdictFor(stance: Stance): Verdict {
 
 function latest(statements: Statement[]): Statement | null {
   if (statements.length === 0) return null;
-  // Most recently retrieved source wins; stable for equal dates.
-  return [...statements].sort((a, b) => (a.retrievedAt < b.retrievedAt ? 1 : -1))[0];
+  // Most recently retrieved source wins; stable for equal dates. localeCompare
+  // returns 0 on a tie, so V8's stable sort keeps input order and the first-listed
+  // same-date source wins deterministically. (The old `< ? 1 : -1` comparator never
+  // returned 0 — not antisymmetric — so a same-date conflicting pair resolved by
+  // sort internals, silently flipping a candidate's agree/differ verdict.)
+  return [...statements].sort((a, b) => b.retrievedAt.localeCompare(a.retrievedAt))[0];
 }
 
 export function alignCandidate(candidate: Candidate, statements: Statement[]): CandidateAlignment {

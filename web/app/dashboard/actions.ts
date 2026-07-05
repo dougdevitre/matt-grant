@@ -298,14 +298,21 @@ export async function setTaskVolunteer(formData: FormData) {
     volunteerId = (i >= 0 ? volunteer.slice(0, i) : volunteer) || null;
     volunteerName = (i >= 0 ? volunteer.slice(i + 1) : "") || null;
   }
-  await ddb.send(
-    new UpdateCommand({
-      TableName: TABLE,
-      Key: { PK: PK.tasks, SK: id },
-      UpdateExpression: "SET volunteerId = :vid, volunteerName = :vn",
-      ExpressionAttributeValues: { ":vid": volunteerId, ":vn": volunteerName },
-    }),
-  );
+  // attribute_exists guards against upserting a phantom task from a non-existent id
+  // (see setTaskStatus); a missing task is a silent no-op, not a fabricated row.
+  try {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: PK.tasks, SK: id },
+        UpdateExpression: "SET volunteerId = :vid, volunteerName = :vn",
+        ExpressionAttributeValues: { ":vid": volunteerId, ":vn": volunteerName },
+        ConditionExpression: "attribute_exists(SK)",
+      }),
+    );
+  } catch (e) {
+    if ((e as { name?: string })?.name !== "ConditionalCheckFailedException") throw e;
+  }
   revalidatePath("/dashboard/tasks");
   revalidatePath("/dashboard");
 }
@@ -318,15 +325,22 @@ export async function setTaskDueDate(formData: FormData) {
   const id = str(formData, "id");
   if (!id) return;
   const due = cleanDate(str(formData, "dueDate"));
-  await ddb.send(
-    new UpdateCommand({
-      TableName: TABLE,
-      Key: { PK: PK.tasks, SK: id },
-      ...(due
-        ? { UpdateExpression: "SET dueDate = :d", ExpressionAttributeValues: { ":d": due } }
-        : { UpdateExpression: "REMOVE dueDate" }),
-    }),
-  );
+  // attribute_exists: a non-existent id must not upsert a phantom task (see
+  // setTaskStatus). Missing task → silent no-op.
+  try {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: PK.tasks, SK: id },
+        ConditionExpression: "attribute_exists(SK)",
+        ...(due
+          ? { UpdateExpression: "SET dueDate = :d", ExpressionAttributeValues: { ":d": due } }
+          : { UpdateExpression: "REMOVE dueDate" }),
+      }),
+    );
+  } catch (e) {
+    if ((e as { name?: string })?.name !== "ConditionalCheckFailedException") throw e;
+  }
   revalidatePath("/dashboard/tasks");
   revalidatePath("/dashboard");
 }

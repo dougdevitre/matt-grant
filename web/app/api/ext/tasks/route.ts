@@ -75,7 +75,8 @@ export async function PATCH(req: Request): Promise<Response> {
     );
   }
   try {
-    await setTaskStatus(parsed.data.id, parsed.data.status);
+    const updated = await setTaskStatus(parsed.data.id, parsed.data.status);
+    if (!updated) return withCors(NextResponse.json(fail("task not found", meta), { status: 404 }), req);
     await recordExtAction({ at: new Date().toISOString(), actor: gate.email ?? "unknown", action: "task.status", target: parsed.data.id });
     return withCors(NextResponse.json(ok({ id: parsed.data.id, status: parsed.data.status }, meta)), req);
   } catch {
