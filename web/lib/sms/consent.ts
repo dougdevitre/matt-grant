@@ -1,5 +1,5 @@
-import { GetCommand, UpdateCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { ddb, TABLE, dbConfigured } from "@/lib/db";
+import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { ddb, TABLE, dbConfigured, queryAllPages } from "@/lib/db";
 import { toE164 } from "@/lib/sms/send";
 
 // SMS consent ledger — the TCPA gate for broadcast texting. A number is texted
@@ -74,8 +74,11 @@ export async function consentStatus(phone: string): Promise<SmsConsentStatus | "
 export async function listConsent(): Promise<SmsConsentRow[]> {
   if (!dbConfigured) return [];
   try {
-    const r = await ddb.send(new QueryCommand({ TableName: TABLE, KeyConditionExpression: "PK = :p", ExpressionAttributeValues: { ":p": SMS_PK } }));
-    return (r.Items ?? []).map((i) => ({
+    // Paginate the whole ledger: optedInSet() builds broadcast audiences from this,
+    // so a single 1 MB page would silently omit every opted-in number past the
+    // boundary — they'd never receive an "all opted-in" text, and counts would be low.
+    const items = await queryAllPages({ TableName: TABLE, KeyConditionExpression: "PK = :p", ExpressionAttributeValues: { ":p": SMS_PK } });
+    return items.map((i) => ({
       phone: String(i.SK),
       status: (i.status === "opted_in" ? "opted_in" : "opted_out") as SmsConsentStatus,
       source: i.source ? String(i.source) : undefined,

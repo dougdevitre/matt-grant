@@ -1,5 +1,5 @@
-import { GetCommand, UpdateCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { ddb, TABLE, PK, dbConfigured } from "@/lib/db";
+import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { ddb, TABLE, PK, dbConfigured, queryAllPages } from "@/lib/db";
 import { ISSUE_IDS, isIssueId, type IssueId } from "@/lib/integrations/research/issues";
 
 // Supporter involvement profile — the queryable CRM that drives personalization,
@@ -114,10 +114,14 @@ export const ALL_ISSUES = ISSUE_IDS;
 export async function segmentEmails(filter: { issue?: IssueId; wayToHelp?: WayToHelp }): Promise<string[]> {
   if (!dbConfigured) return [];
   try {
-    const r = await ddb.send(
-      new QueryCommand({ TableName: TABLE, KeyConditionExpression: "PK = :p", ExpressionAttributeValues: { ":p": PK.profile } }),
-    );
-    return (r.Items ?? [])
+    // Paginate every PROFILE row: a single 1 MB page would silently drop supporters
+    // past the boundary from a targeted broadcast audience once the base grows.
+    const items = await queryAllPages({
+      TableName: TABLE,
+      KeyConditionExpression: "PK = :p",
+      ExpressionAttributeValues: { ":p": PK.profile },
+    });
+    return items
       .filter((i) => {
         if (filter.issue && !(Array.isArray(i.issues) && (i.issues as string[]).includes(filter.issue))) return false;
         if (filter.wayToHelp && !(Array.isArray(i.waysToHelp) && (i.waysToHelp as string[]).includes(filter.wayToHelp))) return false;
@@ -137,10 +141,14 @@ export async function segmentCounts(): Promise<{ issues: Record<string, number>;
   const ways: Record<string, number> = {};
   if (!dbConfigured) return { issues, ways };
   try {
-    const r = await ddb.send(
-      new QueryCommand({ TableName: TABLE, KeyConditionExpression: "PK = :p", ExpressionAttributeValues: { ":p": PK.profile } }),
-    );
-    for (const it of r.Items ?? []) {
+    // Paginate: a single page would undercount every "Family courts (42)" tally in
+    // the targeting UI once PROFILE rows exceed one 1 MB query page.
+    const items = await queryAllPages({
+      TableName: TABLE,
+      KeyConditionExpression: "PK = :p",
+      ExpressionAttributeValues: { ":p": PK.profile },
+    });
+    for (const it of items) {
       for (const iss of Array.isArray(it.issues) ? (it.issues as string[]) : []) {
         if (isIssueId(iss)) issues[iss] = (issues[iss] ?? 0) + 1;
       }

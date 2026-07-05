@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand, type QueryCommandInput } from "@aws-sdk/lib-dynamodb";
 
 // Single-table DynamoDB store. Credentials come from the default AWS chain
 // (IAM role on Amplify/Lambda; AWS_* env or profile locally). The table name is
@@ -65,4 +65,26 @@ export const PK = {
 
 export function newId(): string {
   return crypto.randomUUID();
+}
+
+// Query a full partition, following LastEvaluatedKey across every page. A single
+// QueryCommand returns at most 1 MB; treating that one page as "all rows"
+// silently drops everything past the boundary. Where completeness drives an
+// action or an aggregate — draining every due campaign, counting supporters,
+// building an opt-in audience — that truncation becomes unsent broadcasts,
+// undercounts, and omitted recipients once a partition grows past ~1 MB. Callers
+// that need EVERY row (not a bounded list) must use this. The caller's
+// ScanIndexForward is preserved, so pages concatenate in global sort order and a
+// later slice(0, n) still yields the true newest/oldest N.
+export async function queryAllPages(
+  input: Omit<QueryCommandInput, "ExclusiveStartKey">,
+): Promise<Record<string, unknown>[]> {
+  const items: Record<string, unknown>[] = [];
+  let ExclusiveStartKey: Record<string, unknown> | undefined;
+  do {
+    const out = await ddb.send(new QueryCommand({ ...input, ExclusiveStartKey }));
+    items.push(...((out.Items as Record<string, unknown>[]) ?? []));
+    ExclusiveStartKey = out.LastEvaluatedKey as Record<string, unknown> | undefined;
+  } while (ExclusiveStartKey);
+  return items;
 }

@@ -37,7 +37,19 @@ const kindColor: Record<Deadline["kind"], string> = {
 export default async function CompliancePage() {
   if (!can((await staffGate()).role, "viewCompliance")) redirect("/dashboard?denied=compliance");
   // Server component: current time resolves at request render, which is correct here.
-  const now = Date.now();
+  // Countdown is a whole-CALENDAR-day count anchored to midnight in the campaign's
+  // zone (Central — MO-02), so the badge flips at local midnight, not mid-day. A
+  // wall-clock `Date.now()` minus a noon-anchored deadline with `Math.ceil` was off
+  // by ~half a day: it read "in 1d" on the morning a report was actually due, and
+  // still "today" the morning after it was past.
+  const DAY_MS = 86_400_000;
+  const todayCt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Chicago",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date()); // YYYY-MM-DD in Central
+  const todayMs = Date.parse(`${todayCt}T00:00:00Z`);
   const fmt = (iso: string) =>
     new Date(iso + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
@@ -70,8 +82,7 @@ export default async function CompliancePage() {
 
       <ol className="card divide-y divide-line p-0">
         {DEADLINES.map((d) => {
-          const t = new Date(d.date + "T12:00:00").getTime();
-          const days = Math.ceil((t - now) / 86400000);
+          const days = Math.round((Date.parse(`${d.date}T00:00:00Z`) - todayMs) / DAY_MS);
           const past = days < 0;
           return (
             <li key={d.date + d.report} className="flex flex-wrap items-center gap-4 px-5 py-4">

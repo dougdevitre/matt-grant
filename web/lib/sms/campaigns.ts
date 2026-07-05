@@ -1,5 +1,5 @@
-import { PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { ddb, TABLE, PK, newId, dbConfigured } from "@/lib/db";
+import { PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { ddb, TABLE, PK, newId, dbConfigured, queryAllPages } from "@/lib/db";
 import { sendSms } from "@/lib/sms/send";
 import { isOptedIn } from "@/lib/sms/consent";
 import { isBlocked } from "@/lib/sms/moderation";
@@ -92,15 +92,15 @@ export async function createSmsCampaign(input: {
 }
 
 async function allSmsCampaigns(): Promise<SmsCampaignItem[]> {
-  const r = await ddb.send(
-    new QueryCommand({
-      TableName: TABLE,
-      KeyConditionExpression: "PK = :p",
-      ExpressionAttributeValues: { ":p": SMS_PK },
-      ScanIndexForward: false,
-    }),
-  );
-  return (r.Items ?? []) as SmsCampaignItem[];
+  // Paginate: like email campaigns, each row embeds the full recipients[] array,
+  // so a single query page would strand any SMS campaign past the 1 MB boundary
+  // and it would never drain. queryAllPages keeps ScanIndexForward:false ordering.
+  return (await queryAllPages({
+    TableName: TABLE,
+    KeyConditionExpression: "PK = :p",
+    ExpressionAttributeValues: { ":p": SMS_PK },
+    ScanIndexForward: false,
+  })) as SmsCampaignItem[];
 }
 
 export async function listSmsCampaigns(limit = 15): Promise<SmsCampaignSummary[]> {

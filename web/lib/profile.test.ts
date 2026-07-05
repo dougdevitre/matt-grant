@@ -20,6 +20,9 @@ vi.mock("@/lib/db", () => ({
   TABLE: "T",
   PK: { profile: "PROFILE" },
   dbConfigured: true,
+  // segmentEmails()/segmentCounts() paginate via queryAllPages; return the same
+  // stubbed rows the ddb.send Query path would.
+  queryAllPages: async () => h.items,
 }));
 
 import { getProfile, saveProfile, setVoterRegistration, segmentEmails, segmentCounts } from "@/lib/profile";

@@ -1,5 +1,6 @@
 "use server";
 
+import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
@@ -47,6 +48,25 @@ export async function importDonors(_prev: DonorImportState | null, formData: For
     return { ok: false, message: `No importable rows. Include a header row with at least a name column.${skipped ? ` (${skipped} rows skipped.)` : ""}` };
   }
 
+  // Deterministic per-row idempotency key so re-submitting the SAME CSV (a double
+  // click, a network retry, or a re-paste) doesn't append every gift a second time.
+  // recordContribution only engages its atomic `seenIds` dedup when an externalId is
+  // present; without one, the bulk-import path double-counted on resubmit — and a
+  // doubled total can falsely trip a donor's FEC over-limit flag. The key hashes the
+  // row's identifying fields; a per-content occurrence counter keeps two genuinely
+  // identical rows in one file as two distinct gifts and makes the key stable under
+  // row reordering, so only an exact re-import collapses.
+  const seen = new Map<string, number>();
+  const rowExternalId = (d: (typeof valid)[number]): string => {
+    const content = [d.name, d.email, d.city, d.state, d.zip, d.employer, d.occupation, d.amountCents ?? 0]
+      .map((x) => String(x ?? "").trim().toLowerCase())
+      .join("|");
+    const h = createHash("sha256").update(content).digest("hex").slice(0, 24);
+    const n = seen.get(h) ?? 0;
+    seen.set(h, n + 1);
+    return `import:${h}:${n}`;
+  };
+
   let imported = 0;
   for (const d of valid.slice(0, MAX_ROWS)) {
     try {
@@ -61,6 +81,7 @@ export async function importDonors(_prev: DonorImportState | null, formData: For
         amountCents: d.amountCents ?? 0,
         method: "Import",
         source: "import",
+        externalId: rowExternalId(d),
       });
       imported++;
     } catch {
