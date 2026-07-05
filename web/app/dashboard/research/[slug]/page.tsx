@@ -4,6 +4,7 @@ import { requireCap } from "@/lib/auth";
 import { PageHeader } from "@/components/dashboard/Notice";
 import { DegradedNotice, ProvenanceChip } from "@/components/data/ResourceState";
 import { loadCandidateResearch } from "@/lib/data/research";
+import { externalHttpUrl } from "@/lib/url";
 import { partyLabel } from "@/lib/integrations/research/candidates";
 import { ISSUE_AXES, axis } from "@/lib/integrations/research/issues";
 import { CoalitionScript } from "@/components/dashboard/CoalitionScript";
@@ -40,10 +41,10 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
 
       <p className="mb-6 text-sm text-slate">
         {partyLabel(c.party)} · {c.primary} primary{c.incumbent ? " · incumbent" : ""} · {c.office ?? "U.S. House MO-02"}
-        {c.website ? (
+        {externalHttpUrl(c.website) ? (
           <>
             {" · "}
-            <a href={c.website} target="_blank" rel="noopener noreferrer" className="text-field hover:underline">
+            <a href={externalHttpUrl(c.website)} target="_blank" rel="noopener noreferrer" className="text-field hover:underline">
               campaign site ↗
             </a>
           </>
@@ -63,7 +64,7 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
                 Background{bio.description ? <span className="font-normal text-slate"> · {bio.description}</span> : null}
               </h2>
               <p className="mt-1 text-sm text-slate">{bio.extract}</p>
-              <a href={bio.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block font-mono text-xs text-field hover:underline">
+              <a href={externalHttpUrl(bio.url)} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block font-mono text-xs text-field hover:underline">
                 Wikipedia ↗
               </a>
             </div>
@@ -79,7 +80,7 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
           <ul className="card divide-y divide-line p-0">
             {news.items.map((n, i) => (
               <li key={`news-${i}`} className="px-4 py-2.5">
-                <a href={n.url} target="_blank" rel="noopener noreferrer" className="text-sm text-ink hover:underline">
+                <a href={externalHttpUrl(n.url)} target="_blank" rel="noopener noreferrer" className="text-sm text-ink hover:underline">
                   {n.title}
                 </a>
                 <div className="mt-0.5 text-xs text-slate">
@@ -111,8 +112,8 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
                 </div>
                 <p className="mt-2 text-xs text-slate">Matt: {axis(ax.id).mattSummary}</p>
                 {al.summary && <p className="mt-2 text-sm text-ink">Them: {al.summary}</p>}
-                {al.sourceUrl && (
-                  <a href={al.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block font-mono text-xs text-field hover:underline">
+                {externalHttpUrl(al.sourceUrl) && (
+                  <a href={externalHttpUrl(al.sourceUrl)} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block font-mono text-xs text-field hover:underline">
                     source ↗
                   </a>
                 )}
@@ -153,7 +154,7 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
                 </div>
               ))}
             </div>
-            <a href={fec.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block font-mono text-xs text-field hover:underline">
+            <a href={externalHttpUrl(fec.sourceUrl)} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block font-mono text-xs text-field hover:underline">
               fec.gov ↗ · cycle {fec.cycle}
             </a>
           </div>
@@ -194,7 +195,7 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
               </div>
             ))}
           </div>
-          <a href={donors.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block font-mono text-xs text-field hover:underline">
+          <a href={externalHttpUrl(donors.sourceUrl)} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block font-mono text-xs text-field hover:underline">
             fec.gov ↗
           </a>
         </section>
@@ -253,7 +254,7 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
               )}
             </div>
           </div>
-          <a href={detail.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block font-mono text-xs text-field hover:underline">
+          <a href={externalHttpUrl(detail.sourceUrl)} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block font-mono text-xs text-field hover:underline">
             fec.gov independent expenditures ↗
           </a>
         </section>
@@ -271,12 +272,12 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
               <h3 className="mt-3 mb-2 text-xs font-semibold uppercase tracking-eyebrow text-slate">Sponsored bills</h3>
               <div className="divide-y divide-line">
                 {stateLeg.sponsored.slice(0, 12).map((b, i) => (
-                  <a key={`${b.identifier}-${i}`} href={b.sourceUrl} target="_blank" rel="noopener noreferrer" className="block py-2 text-sm hover:bg-paper">
+                  <a key={`${b.identifier}-${i}`} href={externalHttpUrl(b.sourceUrl)} target="_blank" rel="noopener noreferrer" className="block py-2 text-sm hover:bg-paper">
                     <span className="font-mono text-xs text-field">{b.identifier}</span> {b.title ?? "(untitled)"}
                   </a>
                 ))}
               </div>
-              <a href={stateLeg.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block font-mono text-xs text-field hover:underline">
+              <a href={externalHttpUrl(stateLeg.sourceUrl)} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block font-mono text-xs text-field hover:underline">
                 openstates.org ↗
               </a>
             </div>
@@ -304,7 +305,7 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
                       <span className="text-ink">
                         <span className="font-mono text-xs text-slate">#{v.rollNumber}</span> {v.legisNum ?? v.question}
                       </span>
-                      <a href={v.sourceUrl} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-field hover:underline">
+                      <a href={externalHttpUrl(v.sourceUrl)} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-field hover:underline">
                         {v.position ?? "—"} ↗
                       </a>
                     </div>
@@ -315,7 +316,7 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
                 <h3 className="mb-2 text-sm font-semibold text-slate">Sponsored legislation</h3>
                 <div className="card divide-y divide-line p-0">
                   {bills.slice(0, 12).map((b) => (
-                    <a key={b.id} href={b.sourceUrl} target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sm hover:bg-paper">
+                    <a key={b.id} href={externalHttpUrl(b.sourceUrl)} target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sm hover:bg-paper">
                       <span className="font-mono text-xs text-field">{b.billType} {b.number}</span> {b.title ?? "(untitled)"}
                     </a>
                   ))}
@@ -349,7 +350,7 @@ export default async function CandidatePage({ params }: { params: Promise<{ slug
                   <span className="font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate">
                     {axis(s.issueId).label} · {s.stance} · {s.sourceType}
                   </span>
-                  <a href={s.sourceUrl} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-field hover:underline">
+                  <a href={externalHttpUrl(s.sourceUrl)} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-field hover:underline">
                     source ↗
                   </a>
                 </div>
