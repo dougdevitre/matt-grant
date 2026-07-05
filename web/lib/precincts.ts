@@ -26,55 +26,66 @@ export type Strategy = "votes" | "gotv";
 export type Scope = "new-map" | "old-map-fallback";
 
 const REVALIDATE = 86400;
+const ARCGIS_PAGE = 2000;
 
+// Walk an ArcGIS FeatureServer query to completion. A single request is bounded by
+// the layer's server-side maxRecordCount (commonly 1000 even when we ask for more)
+// and signals "there's more" via exceededTransferLimit, so we page by resultOffset
+// until a short, non-exceeded page. Offset advances by the rows ACTUALLY returned,
+// not the requested page size — a server cap below ARCGIS_PAGE would otherwise skip
+// every record between what came back and the next requested offset. Exported for
+// unit tests. `base` carries the query params minus the pagination controls.
+export async function fetchArcgisPaged(url: string, base: Record<string, string>): Promise<Record<string, unknown>[]> {
+  const out: Record<string, unknown>[] = [];
+  let offset = 0;
+  for (;;) {
+    const params = new URLSearchParams({ ...base, resultOffset: String(offset), resultRecordCount: String(ARCGIS_PAGE) });
+    const res = await fetch(`${url}?${params}`, { next: { revalidate: REVALIDATE } });
+    if (!res.ok) break;
+    const d = await res.json();
+    const feats = (d.features ?? []) as Record<string, unknown>[];
+    out.push(...feats);
+    if (feats.length === 0) break;
+    offset += feats.length; // advance by rows returned, NOT the requested page size
+    const exceeded = d.exceededTransferLimit || d.properties?.exceededTransferLimit;
+    if (feats.length < ARCGIS_PAGE && !exceeded) break;
+    if (offset > 20000) break; // safety
+  }
+  return out;
+}
+
+// The authoritative "which precincts are in MO-02" set (2025 enacted map). Paginated:
+// a single 2000-row request was silently truncated at the layer's server cap, dropping
+// every precinct past it from both the map and the targeting rows.
 async function fetchNewMapCodes(): Promise<Set<string> | null> {
-  const params = new URLSearchParams({
-    where: NEWMAP_PRECINCTS.where,
-    outFields: "precinct",
-    returnGeometry: "false",
-    resultRecordCount: "2000",
-    f: "json",
-  });
   try {
-    const res = await fetch(`${NEWMAP_PRECINCTS.url}?${params}`, { next: { revalidate: REVALIDATE } });
-    if (!res.ok) return null;
-    const d = (await res.json()) as { features?: { attributes: { precinct?: string } }[] };
-    const codes = (d.features ?? []).map((f) => f.attributes?.precinct).filter(Boolean) as string[];
+    const feats = await fetchArcgisPaged(NEWMAP_PRECINCTS.url, {
+      where: NEWMAP_PRECINCTS.where,
+      outFields: "precinct",
+      returnGeometry: "false",
+      f: "json",
+    });
+    const codes = feats.map((f) => propsOf(f).precinct).filter(Boolean) as string[];
     return codes.length ? new Set(codes) : null;
   } catch {
     return null;
   }
 }
 
-// Paginated fetch of the Aug-2024 layer (handles the layer's record cap).
+// Paginated fetch of the Aug-2024 turnout layer (handles the layer's record cap).
 async function fetchAug2024(geometry: boolean): Promise<Record<string, unknown>[]> {
-  const out: Record<string, unknown>[] = [];
-  const page = 2000;
-  for (let offset = 0; ; offset += page) {
-    const params = new URLSearchParams({
-      where: "1=1",
-      outFields: "precinct,municipality,TOTAL_CHECKINS,RV_COUNT,congressional_district_20",
-      returnGeometry: String(geometry),
-      resultOffset: String(offset),
-      resultRecordCount: String(page),
-      f: geometry ? "geojson" : "json",
-    });
-    if (geometry) {
-      params.set("outSR", "4326");
-      params.set("maxAllowableOffset", "0.0004");
-      params.set("geometryPrecision", "5");
-    }
-    const res = await fetch(`${PRECINCT_SOURCE.url}?${params}`, { next: { revalidate: REVALIDATE } });
-    if (!res.ok) break;
-    const d = await res.json();
-    const feats = (d.features ?? []) as Record<string, unknown>[];
-    out.push(...feats);
-    const exceeded = d.exceededTransferLimit || d.properties?.exceededTransferLimit;
-    if (feats.length < page && !exceeded) break;
-    if (feats.length === 0) break;
-    if (offset > 20000) break; // safety
+  const base: Record<string, string> = {
+    where: "1=1",
+    outFields: "precinct,municipality,TOTAL_CHECKINS,RV_COUNT,congressional_district_20",
+    returnGeometry: String(geometry),
+    f: geometry ? "geojson" : "json",
+  };
+  if (geometry) {
+    base.outSR = "4326";
+    base.maxAllowableOffset = "0.0004";
+    base.geometryPrecision = "5";
   }
-  return out;
+  return fetchArcgisPaged(PRECINCT_SOURCE.url, base);
 }
 
 function propsOf(f: Record<string, unknown>): Record<string, unknown> {

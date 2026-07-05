@@ -23,7 +23,10 @@ export async function optimizeImage(
   if (!RASTER.has(contentType)) return { buffer: input, contentType }; // gif/pdf/other → untouched
   const maxEdge = opts.maxEdge ?? DEFAULT_MAX_EDGE;
   try {
-    const img = sharp(input, { failOn: "none" }).rotate(); // bake + strip EXIF orientation
+    // limitInputPixels caps decode work so a small, highly-compressible file can't
+    // claim ~1GB of memory on decode (a decompression bomb); above it sharp throws
+    // and the catch below stores the original untouched.
+    const img = sharp(input, { failOn: "none", limitInputPixels: 100_000_000 }).rotate(); // bake + strip EXIF orientation
     const meta = await img.metadata();
     const longest = Math.max(meta.width ?? 0, meta.height ?? 0);
     if (longest > maxEdge) {
