@@ -47,15 +47,26 @@ export async function createTask(input: NewTask): Promise<string> {
   return id;
 }
 
-// Move a task to a new lifecycle status.
-export async function setTaskStatus(id: string, status: TaskStatus): Promise<void> {
-  await ddb.send(
-    new UpdateCommand({
-      TableName: TABLE,
-      Key: { PK: PK.tasks, SK: id },
-      UpdateExpression: "SET #s = :s",
-      ExpressionAttributeNames: { "#s": "status" },
-      ExpressionAttributeValues: { ":s": status },
-    }),
-  );
+// Move a task to a new lifecycle status. Returns false if no task has that id.
+export async function setTaskStatus(id: string, status: TaskStatus): Promise<boolean> {
+  try {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: PK.tasks, SK: id },
+        UpdateExpression: "SET #s = :s",
+        ExpressionAttributeNames: { "#s": "status" },
+        ExpressionAttributeValues: { ":s": status },
+        // Update real tasks only. Without this guard an UpdateItem on a mistyped or
+        // replayed id UPSERTS a phantom row holding just PK/SK/status — no title, no
+        // createdAt — which getTasks renders as "undefined" and getOverview counts
+        // into the board tallies. Fail closed instead of fabricating a task.
+        ConditionExpression: "attribute_exists(SK)",
+      }),
+    );
+    return true;
+  } catch (e) {
+    if ((e as { name?: string })?.name === "ConditionalCheckFailedException") return false;
+    throw e;
+  }
 }

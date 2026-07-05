@@ -49,7 +49,12 @@ export async function fetchNews(name: string, maxItems = 6): Promise<NewsFeed | 
       const title = String(it.title ?? "").replace(/\s+-\s+[^-]+$/, "").trim();
       const src = it.source as { "#text"?: unknown } | string | undefined;
       const source = typeof src === "object" && src ? (src["#text"] != null ? String(src["#text"]) : null) : src ? String(src) : null;
-      const date = it.pubDate ? new Date(String(it.pubDate)).toISOString() : null;
+      // Guard the date parse: a single malformed <pubDate> (e.g. "garbage" or just
+      // whitespace) makes new Date(...) Invalid, and .toISOString() throws RangeError
+      // — which, since this map runs outside the parse try/catch, would reject the
+      // whole feed and drop EVERY headline for the candidate, not just the bad item.
+      const parsedDate = it.pubDate ? new Date(String(it.pubDate)) : null;
+      const date = parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate.toISOString() : null;
       return { title, url: String(it.link ?? ""), source, date };
     })
     .filter((i) => i.title && i.url && headlineMatches(name, i.title));

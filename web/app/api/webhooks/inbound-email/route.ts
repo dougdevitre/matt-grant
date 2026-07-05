@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, dbConfigured } from "@/lib/db";
 import { getSecret } from "@/lib/ssm";
 import { rateLimit } from "@/lib/ratelimit";
@@ -61,6 +61,19 @@ async function ingest({ from, subject, text }: InboundEmail) {
 
   // Idempotency: claim a dedupe key so retries don't create duplicates.
   const dedupeKey = crypto.createHash("sha256").update(`${from}|${subject}|${text.slice(0, 500)}`).digest("hex").slice(0, 40);
+  // Release the claim if event creation FAILS after we've claimed it. Otherwise a
+  // transient createEvent/parse error would strand the dedupe row and the provider's
+  // retry would be treated as a "duplicate" — permanently losing a valid email that
+  // was never actually ingested. A null draft is a definitive "unparseable" outcome,
+  // not a failure, so its claim stays put (don't reprocess garbage forever).
+  const releaseDedupe = async () => {
+    if (!dbConfigured) return;
+    try {
+      await ddb.send(new DeleteCommand({ TableName: TABLE, Key: { PK: PK.eventIngest, SK: dedupeKey } }));
+    } catch {
+      /* best-effort: a stranded key is no worse than the pre-fix behavior */
+    }
+  };
   if (dbConfigured) {
     try {
       await ddb.send(
@@ -78,23 +91,34 @@ async function ingest({ from, subject, text }: InboundEmail) {
     }
   }
 
-  const draft = await parseForwardedEmail(content);
+  let draft: Awaited<ReturnType<typeof parseForwardedEmail>>;
+  try {
+    draft = await parseForwardedEmail(content);
+  } catch (e) {
+    await releaseDedupe(); // transient parse failure → let the retry reprocess
+    throw e;
+  }
   if (!draft) return NextResponse.json({ ok: true, status: "unparsed" });
 
-  const id = await createEvent({
-    title: draft.title,
-    type: draft.type,
-    // No date parsed → park it at "now" so it has a sort key; staff fix it in review.
-    start: draft.start || new Date().toISOString(),
-    end: draft.end,
-    location: draft.location,
-    description: draft.description,
-    status: "DRAFT",
-    source: "email",
-    parseConfidence: draft.confidence,
-    createdBy: from || "events@inbound",
-  });
-  return NextResponse.json({ ok: true, status: "draft-created", id, confidence: draft.confidence });
+  try {
+    const id = await createEvent({
+      title: draft.title,
+      type: draft.type,
+      // No date parsed → park it at "now" so it has a sort key; staff fix it in review.
+      start: draft.start || new Date().toISOString(),
+      end: draft.end,
+      location: draft.location,
+      description: draft.description,
+      status: "DRAFT",
+      source: "email",
+      parseConfidence: draft.confidence,
+      createdBy: from || "events@inbound",
+    });
+    return NextResponse.json({ ok: true, status: "draft-created", id, confidence: draft.confidence });
+  } catch (e) {
+    await releaseDedupe(); // event write failed after claim → release so a retry recreates it
+    throw e;
+  }
 }
 
 // AWS SES inbound arrives wrapped in an SNS envelope (signature-verified).

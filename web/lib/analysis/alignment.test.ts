@@ -54,6 +54,27 @@ describe("alignCandidate", () => {
     expect(a0.sourceUrl).toBe("https://new"); // carries the winning statement's citation
   });
 
+  it("breaks a same-date tie by input order (first-listed wins), deterministically", () => {
+    // Two sources captured the same day disagree on the axis. The tie must resolve
+    // to the first-listed statement (stable order), not to sort internals — a
+    // non-antisymmetric comparator here would silently flip the verdict.
+    const first = alignCandidate(cand("x"), [
+      stmt("x", A0, "oppose", "2026-06-01", { sourceUrl: "https://first" }),
+      stmt("x", A0, "support", "2026-06-01", { sourceUrl: "https://second" }),
+    ]).axes.find((a) => a.issueId === A0)!;
+    expect(first.verdict).toBe("differ");
+    expect(first.sourceUrl).toBe("https://first");
+
+    // Reversing the input reverses the winner — proving the result tracks input
+    // order, not an accident of the comparator.
+    const reversed = alignCandidate(cand("x"), [
+      stmt("x", A0, "support", "2026-06-01", { sourceUrl: "https://second" }),
+      stmt("x", A0, "oppose", "2026-06-01", { sourceUrl: "https://first" }),
+    ]).axes.find((a) => a.issueId === A0)!;
+    expect(reversed.verdict).toBe("agree");
+    expect(reversed.sourceUrl).toBe("https://second");
+  });
+
   it("ignores other candidates' statements", () => {
     const r = alignCandidate(cand("x"), [stmt("other", A0, "support", "2026-06-01")]);
     expect(r.axes.find((a) => a.issueId === A0)!.verdict).toBe("unknown");

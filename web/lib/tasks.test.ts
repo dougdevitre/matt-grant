@@ -45,11 +45,20 @@ describe("createTask", () => {
 });
 
 describe("setTaskStatus", () => {
-  it("updates only the status field for the given id", async () => {
-    await setTaskStatus("task_9", "DONE");
+  it("updates only the status field for the given id, guarded to existing tasks", async () => {
+    send.mockResolvedValueOnce({});
+    const ok = await setTaskStatus("task_9", "DONE");
+    expect(ok).toBe(true);
     const cmd = send.mock.calls[0][0];
     expect(cmd).toBeInstanceOf(UpdateCommand);
     expect(cmd.input.Key).toEqual({ PK: "TASK", SK: "task_9" });
     expect(cmd.input.ExpressionAttributeValues).toEqual({ ":s": "DONE" });
+    // Guard: never upsert a phantom task from a non-existent id.
+    expect(cmd.input.ConditionExpression).toBe("attribute_exists(SK)");
+  });
+
+  it("returns false (no throw) when the task does not exist", async () => {
+    send.mockRejectedValueOnce(Object.assign(new Error("conditional"), { name: "ConditionalCheckFailedException" }));
+    expect(await setTaskStatus("ghost", "DONE")).toBe(false);
   });
 });
