@@ -112,6 +112,21 @@ describe("updateEvent (SK move on start change)", () => {
     expect(anyOf("DeleteCommand")).toBe(false);
   });
 
+  it("edits in place via a targeted update that never rewrites signups or notify claims", async () => {
+    withItems(oldRaw);
+    await updateEvent("e1", { title: "New title" });
+    // No full-item Put — a whole-item overwrite is what used to clobber a concurrent
+    // RSVP (permanent signup loss) and reset the at-most-once notify claim.
+    expect(anyOf("PutCommand")).toBe(false);
+    const upd = oneOf("UpdateCommand");
+    expect(upd).toBeTruthy();
+    const fields = Object.values(upd.input.ExpressionAttributeNames as Record<string, string>);
+    for (const owned of ["signups", "notifiedEmailAt", "notifiedSmsAt", "notifyResult", "createdAt"]) {
+      expect(fields).not.toContain(owned); // owned by addSignup/claimNotify — must be untouched
+    }
+    expect(fields).toContain("title"); // the actual edit is still applied
+  });
+
   it("returns false when the event isn't found", async () => {
     withItems();
     expect(await updateEvent("missing", { title: "x" })).toBe(false);

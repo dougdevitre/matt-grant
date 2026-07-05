@@ -229,7 +229,52 @@ export async function listUpcomingEvents(opts?: { limit?: number; publishedOnly?
   }
 }
 
-// Full overwrite update. If `start` changes the SK moves, so we put-then-delete-old.
+// Fields owned by the atomic writers — addSignup (list_append on signups),
+// claimNotify (conditional notified*), setEventNotify (notifyResult) — plus the
+// immutable create-time fields. An in-place edit must NEVER rewrite these, or a
+// full-item overwrite would clobber a concurrent RSVP / notify claim.
+const EVENT_EDIT_SKIP = new Set([
+  "PK", "SK", "signups", "notifiedEmailAt", "notifiedSmsAt", "notifyResult", "createdAt", "createdBy", "airtableRecId",
+]);
+
+// Build a targeted UpdateItem that SET/REMOVEs only the editable fields of a
+// freshly-built event item, leaving the atomically-owned fields untouched. Every
+// field name is aliased so reserved words (status, name, location, end, …) are safe.
+function editEventUpdate(sk: string, item: object) {
+  const names: Record<string, string> = {};
+  const values: Record<string, unknown> = {};
+  const sets: string[] = [];
+  const removes: string[] = [];
+  let i = 0;
+  for (const [k, v] of Object.entries(item as Record<string, unknown>)) {
+    if (EVENT_EDIT_SKIP.has(k)) continue;
+    const nk = `#e${i}`;
+    names[nk] = k;
+    if (v === undefined) {
+      removes.push(nk);
+    } else {
+      const vk = `:e${i}`;
+      sets.push(`${nk} = ${vk}`);
+      values[vk] = v;
+    }
+    i += 1;
+  }
+  const expr = [sets.length ? `SET ${sets.join(", ")}` : "", removes.length ? `REMOVE ${removes.join(", ")}` : ""]
+    .filter(Boolean)
+    .join(" ");
+  return {
+    TableName: TABLE,
+    Key: { PK: PK.events, SK: sk },
+    UpdateExpression: expr,
+    ExpressionAttributeNames: names,
+    ...(Object.keys(values).length ? { ExpressionAttributeValues: values } : {}),
+  };
+}
+
+// Edit an event. The common case (start unchanged) is a TARGETED update that only
+// touches editable fields — it can't clobber a signup or notify claim that lands
+// concurrently. If `start` changes the SK moves, so we re-read the freshest
+// signups/notify state and put-new + delete-old (a narrow, rare move race remains).
 export async function updateEvent(id: string, patch: Partial<EventInput> & { status?: EventStatus }): Promise<boolean> {
   const raw = await findRaw(id);
   if (!raw) return false;
@@ -256,11 +301,23 @@ export async function updateEvent(id: string, patch: Partial<EventInput> & { sta
     createdBy: cur.createdBy,
   };
   const item = buildItem(id, merged, now, cur);
-  await ddb.send(new PutCommand({ TableName: TABLE, Item: item }));
-  if (item.SK !== oldSK) await ddb.send(new DeleteCommand({ TableName: TABLE, Key: { PK: PK.events, SK: oldSK } }));
+  let written = item;
+  if (String(item.SK) === oldSK) {
+    // In-place: write only the editable fields so a concurrent addSignup() /
+    // claimNotify() (which own signups + notified*) survives this edit intact.
+    await ddb.send(new UpdateCommand(editEventUpdate(oldSK, item)));
+  } else {
+    // start changed → SK moves. Re-read the freshest item as the prior so the
+    // relocated row carries any signup/notify that landed since our first read,
+    // then put-new + delete-old.
+    const fresh = await findRaw(id);
+    written = fresh ? buildItem(id, merged, now, rawToRow(fresh)) : item;
+    await ddb.send(new PutCommand({ TableName: TABLE, Item: written }));
+    await ddb.send(new DeleteCommand({ TableName: TABLE, Key: { PK: PK.events, SK: oldSK } }));
+  }
   // Mirror the edit to Airtable (update the existing row, or create + remember if not yet mirrored).
-  const recId = await mirrorEventToAirtable(rawToRow(item), cur.airtableRecId);
-  if (recId && recId !== cur.airtableRecId) await saveAirtableRecId(id, String(item.SK), recId);
+  const recId = await mirrorEventToAirtable(rawToRow(written), cur.airtableRecId);
+  if (recId && recId !== cur.airtableRecId) await saveAirtableRecId(id, String(written.SK), recId);
   return true;
 }
 
