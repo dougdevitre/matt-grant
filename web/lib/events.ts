@@ -205,6 +205,25 @@ export async function listEvents(): Promise<{ connected: boolean; rows: EventRow
   }
 }
 
+// A captain's own upcoming events: appearances they own (event.captain.id === their
+// email) that haven't finished yet, soonest first. Powers the extension's captain-
+// scoped /api/ext/team view. SECURITY: pass the AUTHENTICATED caller's email — this
+// only returns events they own, never the whole calendar. Filters the full read in
+// code (there's no owner index), matching recentOwnedEvents in score-data.ts.
+export async function listCaptainEvents(captainEmail: string | null | undefined, now: Date = new Date()): Promise<EventRow[]> {
+  const me = (captainEmail ?? "").trim().toLowerCase();
+  if (!me) return [];
+  const nowMs = now.getTime();
+  const { rows } = await listEvents();
+  return rows
+    .filter((e) => (e.captain?.id ?? "").trim().toLowerCase() === me && e.status !== "CANCELLED")
+    .filter((e) => {
+      const t = Date.parse(e.start);
+      return !Number.isFinite(t) || t >= nowMs; // upcoming (undated/unparseable kept)
+    })
+    .sort((a, b) => a.start.localeCompare(b.start));
+}
+
 // Upcoming events via a key-range query (SK >= now). publishedOnly for the public page.
 export async function listUpcomingEvents(opts?: { limit?: number; publishedOnly?: boolean }): Promise<EventRow[]> {
   // Airtable is the public source of truth when configured (staff edit it no-code);

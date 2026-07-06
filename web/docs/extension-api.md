@@ -75,6 +75,10 @@ CLERK_AUTHORIZED_PARTIES="https://mattgrantforcongress.org,https://ezvnqn5e5i.us
 | `/api/ext/budget/expenses` | `viewFinanceTotals` | Expense requests (`listExpenses`) |
 | `/api/ext/issues` | `moderateIssues` | Issue-moderation queue (`listSubmissionsForModeration`) |
 | `/api/ext/research/member/{bioguideId}` | `viewResearch` | Legislative research for a member |
+| `/api/ext/me` | `viewOverview` | The signed-in staffer's OWN next step + readiness checklist (`gatherPersonalSignals`) — self-scoped |
+| `/api/ext/team` | `manageVolunteers` | The signed-in captain's OWN team roster, team-health summary, and upcoming owned events — self-scoped |
+
+**Captain-scoped reads (`/api/ext/me`, `/api/ext/team`).** Identity is **server-derived** from the Clerk session (`gate.email`) — there is no id in the path or body, and a captain can only ever read their OWN next step / team. An admin (who leads no team) gets an empty roster + null summary from `/api/ext/team`, never the whole roster. These two are hand-written (GET + OPTIONS) rather than built on the `extRoute` factory because the factory's GET only exposes the capability verdict, not the caller identity these payloads are keyed on.
 
 ## Writes
 

@@ -12,6 +12,7 @@ import { congressEnabled } from "@/lib/integrations/legislative/config";
 import { lastFieldIngest } from "@/lib/integrations/research/ingestField";
 import { checkAirtableHealth } from "@/lib/airtable/health";
 import { extensionConnected } from "@/lib/extension";
+import { extAdoptionSummary } from "@/lib/audit";
 
 export type StatusState = "live" | "setup" | "off";
 export type StatusRow = {
@@ -32,13 +33,14 @@ async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
 }
 
 export async function getDashboardStatus(): Promise<StatusRow[]> {
-  const [sms, optedIn, connections, winredSecret, ingest, airtable] = await Promise.all([
+  const [sms, optedIn, connections, winredSecret, ingest, airtable, extUsage] = await Promise.all([
     safe(() => smsEnabled(), false),
     safe(() => optedInSet(), new Set<string>()),
     safe(() => listConnections(), [] as Awaited<ReturnType<typeof listConnections>>),
     safe(() => getSecret("WINRED_WEBHOOK_SECRET"), undefined),
     safe(() => lastFieldIngest(), null),
     safe(() => checkAirtableHealth(), { state: "setup" as const, detail: "Status check failed." }),
+    safe(() => extAdoptionSummary(), { perActor: [], activeLast7d: 0, totalActions: 0 }),
   ]);
 
   const connected = connections.map((c) => c.platform);
@@ -133,7 +135,7 @@ export async function getDashboardStatus(): Promise<StatusRow[]> {
       label: "Chrome extension",
       state: extensionConnected() ? "live" : "setup",
       detail: extensionConnected()
-        ? "Connected — staff can use the extension against live campaign data."
+        ? `Connected — ${extUsage.activeLast7d} staff active in the last 7 days.`
         : "Not set up. Set EXTENSION_ORIGIN + CLERK_AUTHORIZED_PARTIES (and add the extension origin in Clerk) to let the extension reach the app.",
       actionHref: "/dashboard/extension",
       actionText: "Extension",

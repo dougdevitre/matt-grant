@@ -3,6 +3,7 @@ import { requireCap } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { ExtensionInstallButton } from "@/components/dashboard/ExtensionInstallButton";
+import { ExtensionActivity } from "@/components/dashboard/ExtensionActivity";
 import { EXTENSION, extensionConnected, extensionStoreUrl } from "@/lib/extension";
 
 export const dynamic = "force-dynamic";
@@ -74,6 +75,10 @@ export default async function ExtensionPage() {
           </p>
         </div>
       )}
+
+      {/* Admin-only adoption/usage panel — who has started using the extension,
+          so the campaign can measure uptake and nudge the rest. */}
+      {can(role, "manageTeam") && <ExtensionActivity />}
     </>
   );
 }

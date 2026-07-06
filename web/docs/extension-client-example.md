@@ -74,6 +74,9 @@ export const api = {
   finance:  (t: string) => extFetch("/api/ext/finance", t),
   tasks:    (t: string) => extFetch("/api/ext/tasks", t),
   events:   (t: string) => extFetch("/api/ext/events", t),
+  // Captain-scoped, self-derived from the session (no id/args): the popup "home".
+  me:       (t: string) => extFetch("/api/ext/me", t),   // your next step + readiness checklist
+  team:     (t: string) => extFetch("/api/ext/team", t), // your roster, team summary, owned events
   createTask: (t: string, body: { title: string; detail?: string; priority?: string; dueDate?: string }) =>
     extFetch<{ id: string }>("/api/ext/tasks", t, { method: "POST", body }),
   setTaskStatus: (t: string, id: string, status: "TODO" | "DOING" | "DONE") =>
