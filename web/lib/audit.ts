@@ -1,5 +1,5 @@
 import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { ddb, TABLE, newId, dbConfigured } from "@/lib/db";
+import { ddb, TABLE, newId, dbConfigured, queryAllPages } from "@/lib/db";
 
 // Append-only audit trails. Each kind lives in its own partition; the sort key is
 // `${ISO}#${id}` so a descending query returns newest-first chronologically.
@@ -82,5 +82,83 @@ export async function recordExtAction(e: ExtAuditEntry): Promise<void> {
     );
   } catch {
     /* audit is non-critical */
+  }
+}
+
+// Newest-first read of the extension audit trail — powers the admin "Extension
+// activity" panel on /dashboard/extension. Separate from the role-shaped list()
+// above because ExtAuditEntry has no role/prevRole fields. Best-effort: [] on DB
+// off / error, never throws.
+export async function listExtActions(limit = 25): Promise<ExtAuditEntry[]> {
+  if (!dbConfigured) return [];
+  try {
+    const r = await ddb.send(
+      new QueryCommand({
+        TableName: TABLE,
+        KeyConditionExpression: "PK = :p",
+        ExpressionAttributeValues: { ":p": AUDIT_EXT_PK },
+        ScanIndexForward: false, // newest first
+        Limit: limit,
+      }),
+    );
+    return (r.Items ?? []).map((i) => ({
+      at: String(i.at),
+      actor: String(i.actor),
+      action: String(i.action),
+      target: String(i.target),
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export type ExtActorUsage = { actor: string; count: number; lastAt: string };
+export type ExtAdoptionSummary = { perActor: ExtActorUsage[]; activeLast7d: number; totalActions: number; windowDays: number };
+
+// How far back the adoption panel looks. Bounds the AUDIT#ext read to a key range
+// (the SK is `${iso}#${uuid}`, so an ISO lower bound is a cheap SK condition) — the
+// panel is about *current* adoption, and this keeps the read from growing without
+// limit as the trail accumulates.
+const ADOPTION_WINDOW_DAYS = 90;
+
+// Per-staffer extension adoption within the last ADOPTION_WINDOW_DAYS: groups the
+// recent AUDIT#ext rows by actor so admins can see who's using the extension (and
+// nudge the rest). Bounded by an SK range so the read stays cheap as the trail grows;
+// best-effort empty on DB off / error. `now` is injectable for tests. Sorted
+// most-recently-active first.
+export async function extAdoptionSummary(now: Date = new Date()): Promise<ExtAdoptionSummary> {
+  const empty: ExtAdoptionSummary = { perActor: [], activeLast7d: 0, totalActions: 0, windowDays: ADOPTION_WINDOW_DAYS };
+  if (!dbConfigured) return empty;
+  try {
+    // SK starts with the ISO timestamp, so "SK >= <isoLowerBound>" returns only rows
+    // from the window onward — no full-partition scan.
+    const since = new Date(now.getTime() - ADOPTION_WINDOW_DAYS * 86_400_000).toISOString();
+    const items = await queryAllPages({
+      TableName: TABLE,
+      KeyConditionExpression: "PK = :p AND SK >= :since",
+      ExpressionAttributeValues: { ":p": AUDIT_EXT_PK, ":since": since },
+      ScanIndexForward: false,
+    });
+    const byActor = new Map<string, ExtActorUsage>();
+    for (const i of items) {
+      const actor = String(i.actor ?? "unknown");
+      const at = String(i.at ?? "");
+      const cur = byActor.get(actor);
+      if (cur) {
+        cur.count += 1;
+        if (at > cur.lastAt) cur.lastAt = at;
+      } else {
+        byActor.set(actor, { actor, count: 1, lastAt: at });
+      }
+    }
+    const cutoff = now.getTime() - 7 * 86_400_000;
+    const perActor = [...byActor.values()].sort((a, b) => b.lastAt.localeCompare(a.lastAt));
+    const activeLast7d = perActor.filter((a) => {
+      const t = Date.parse(a.lastAt);
+      return Number.isFinite(t) && t >= cutoff;
+    }).length;
+    return { perActor, activeLast7d, totalActions: items.length, windowDays: ADOPTION_WINDOW_DAYS };
+  } catch {
+    return empty;
   }
 }

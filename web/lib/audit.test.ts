@@ -1,14 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { send } = vi.hoisted(() => ({ send: vi.fn() }));
+const { send, queryAllPages } = vi.hoisted(() => ({ send: vi.fn(), queryAllPages: vi.fn() }));
 vi.mock("@/lib/db", () => ({
   ddb: { send },
   TABLE: "test-table",
   newId: () => "fixed-id",
   dbConfigured: true,
+  queryAllPages: (...args: unknown[]) => queryAllPages(...args),
 }));
 
-import { recordAccessChange, listAccessChanges, recordPreviewSwitch, listPreviewSwitches } from "./audit";
+import { recordAccessChange, listAccessChanges, recordPreviewSwitch, listPreviewSwitches, recordExtAction, listExtActions, extAdoptionSummary } from "./audit";
 
 const entry = {
   at: "2026-06-24T05:00:00.000Z",
@@ -88,5 +89,55 @@ describe("preview switch stream (separate partition)", () => {
     await expect(
       recordPreviewSwitch({ at: "2026-06-24T06:00:00.000Z", actor: "a", target: "a", action: "preview_enter", role: "volunteer" }),
     ).resolves.toBeUndefined();
+  });
+});
+
+
+describe("extension audit trail (AUDIT#ext)", () => {
+  it("recordExtAction writes the ext-shaped row under AUDIT#ext", async () => {
+    const at = "2026-07-01T12:00:00.000Z";
+    await recordExtAction({ at, actor: "cap@x.org", action: "task.create", target: "t1" });
+    const item = send.mock.calls[0][0].input.Item;
+    expect(item.PK).toBe("AUDIT#ext");
+    expect(item.SK).toBe(`${at}#fixed-id`);
+    expect(item.action).toBe("task.create");
+    expect(item.target).toBe("t1");
+  });
+
+  it("listExtActions queries AUDIT#ext newest-first and maps the ext fields", async () => {
+    send.mockResolvedValue({
+      Items: [{ at: "2026-07-01T12:00:00.000Z", actor: "cap@x.org", action: "event.update", target: "e9" }],
+    });
+    const rows = await listExtActions(15);
+    const q = send.mock.calls[0][0].input;
+    expect(q.ScanIndexForward).toBe(false);
+    expect(q.Limit).toBe(15);
+    expect(q.ExpressionAttributeValues).toEqual({ ":p": "AUDIT#ext" });
+    expect(rows).toEqual([{ at: "2026-07-01T12:00:00.000Z", actor: "cap@x.org", action: "event.update", target: "e9" }]);
+  });
+
+  it("extAdoptionSummary groups by actor, counts, and flags 7-day activity", async () => {
+    const now = new Date("2026-07-10T00:00:00.000Z");
+    queryAllPages.mockResolvedValue([
+      { actor: "cap@x.org", at: "2026-07-09T10:00:00.000Z", action: "task.create", target: "t1" }, // within 7d
+      { actor: "cap@x.org", at: "2026-07-08T10:00:00.000Z", action: "task.status", target: "t1" },
+      { actor: "old@x.org", at: "2026-06-01T10:00:00.000Z", action: "issue.status", target: "i1" }, // stale
+    ]);
+    const sum = await extAdoptionSummary(now);
+    // The read is bounded to a key range (last 90d), not a full-partition scan.
+    const q = queryAllPages.mock.calls[0][0];
+    expect(q.KeyConditionExpression).toContain("SK >= :since");
+    expect(q.ExpressionAttributeValues[":since"]).toBe("2026-04-11T00:00:00.000Z"); // now - 90d
+    expect(sum.windowDays).toBe(90);
+    expect(sum.totalActions).toBe(3);
+    expect(sum.activeLast7d).toBe(1); // only cap@x.org acted in the last 7 days
+    expect(sum.perActor[0]).toEqual({ actor: "cap@x.org", count: 2, lastAt: "2026-07-09T10:00:00.000Z" });
+    // sorted most-recently-active first
+    expect(sum.perActor.map((a) => a.actor)).toEqual(["cap@x.org", "old@x.org"]);
+  });
+
+  it("extAdoptionSummary returns empty on a read failure rather than throwing", async () => {
+    queryAllPages.mockRejectedValue(new Error("scan boom"));
+    expect(await extAdoptionSummary(new Date("2026-07-10T00:00:00.000Z"))).toEqual({ perActor: [], activeLast7d: 0, totalActions: 0, windowDays: 90 });
   });
 });
