@@ -13,10 +13,11 @@ const meta: Provenance = { source: "my team", kind: "api", live: true };
 
 // Extension: the SIGNED-IN captain's OWN team at a glance — their claimed volunteers,
 // their team-health summary (the captain scorecard), and their upcoming owned events.
-// Gated on manageVolunteers (captain + admin). Hand-written (not extRoute) because
-// every read is scoped to gate.email: a captain can only ever see their own team, and
-// an admin (who leads no team of their own) gets an empty roster + null summary rather
-// than the whole roster. Identity is server-derived — no id in the path.
+// Gated on manageVolunteers (captain + admin; the volunteer tier holds it too, but
+// leads no team, so gets an empty roster). Hand-written (not extRoute) because every
+// read is scoped to gate.email: a captain only ever sees their own team, and anyone
+// without a team (admin/volunteer) gets an empty roster + null summary rather than the
+// whole roster. Identity is server-derived — no id in the path.
 export async function GET(req: Request): Promise<Response> {
   const { allowed, gate } = await checkCap("manageVolunteers");
   if (!allowed) return withCors(NextResponse.json(fail("forbidden", meta), { status: 403 }), req);
