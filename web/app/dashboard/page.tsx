@@ -6,6 +6,7 @@ import { dollars } from "@/lib/money";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { onboardingDismissed } from "@/lib/onboarding";
+import { extensionConnected } from "@/lib/extension";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { PersonalSummary } from "@/components/dashboard/PersonalSummary";
@@ -198,6 +199,19 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
           <Link href="/dashboard/tasks" className="btn-ghost mt-6 w-full">Open the board</Link>
         </div>
       </div>
+
+      {/* Extension promo — only when the /api/ext/* surface is actually turned on, so
+          we never advertise a tool that can't reach data yet. Captain-first copy;
+          shown to every staff tier (all hold viewOverview). */}
+      {extensionConnected() && (
+        <div className="card mt-6 flex flex-wrap items-center justify-between gap-3 p-6">
+          <div>
+            <p className="eyebrow text-slate">Field tools</p>
+            <p className="mt-1 text-sm text-ink">Work the field from your browser — tasks, events, and your overview in one click with the campaign Chrome extension.</p>
+          </div>
+          <Link href="/dashboard/extension" className="btn-primary">Get the extension</Link>
+        </div>
+      )}
 
       {can(role, "manageSocial") && (
         <div className="card mt-6 flex flex-wrap items-center justify-between gap-3 p-6">

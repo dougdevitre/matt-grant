@@ -75,6 +75,10 @@ CLERK_AUTHORIZED_PARTIES="https://mattgrantforcongress.org,https://ezvnqn5e5i.us
 | `/api/ext/budget/expenses` | `viewFinanceTotals` | Expense requests (`listExpenses`) |
 | `/api/ext/issues` | `moderateIssues` | Issue-moderation queue (`listSubmissionsForModeration`) |
 | `/api/ext/research/member/{bioguideId}` | `viewResearch` | Legislative research for a member |
+| `/api/ext/me` | `viewOverview` | The signed-in staffer's OWN next step + readiness checklist (`gatherPersonalSignals`) — self-scoped |
+| `/api/ext/team` | `manageVolunteers` | The signed-in captain's OWN team roster, team-health summary, and upcoming owned events — self-scoped |
+
+**Captain-scoped reads (`/api/ext/me`, `/api/ext/team`).** Identity is **server-derived** from the Clerk session (`gate.email`) — there is no id in the path or body, and a captain can only ever read their OWN next step / team. An admin (who leads no team) gets an empty roster + null summary from `/api/ext/team`, never the whole roster. These two are hand-written (GET + OPTIONS) rather than built on the `extRoute` factory because the factory's GET only exposes the capability verdict, not the caller identity these payloads are keyed on.
 
 ## Writes
 
@@ -90,6 +94,32 @@ Body is JSON, zod-validated; unknown/invalid → `400`. Missing capability → `
 | `PATCH /api/ext/events/{id}` | `manageEvents` | any subset of the create fields + `status` | Setting `status:"PUBLISHED"` here **does not** send email/SMS; unknown id → `404` |
 | `PATCH /api/ext/issues/{id}` | `moderateIssues` + Airtable *update* toggle | `{ status }` (`Approved`\|`Rejected`\|`Pending`) **or** `{ topic?, details? }` | Status takes precedence over text |
 | `DELETE /api/ext/issues/{id}` | `moderateIssues` + Airtable *delete* toggle | — | Spam removal |
+
+## Install detection (web ↔ extension handshake)
+
+The web app promotes the extension at [`/dashboard/extension`](../app/dashboard/extension/page.tsx)
+and can show an **"Installed ✓"** state instead of the Install button — but only if the
+extension tells it so. Clerk's `syncHost` shares the *session* extension→web; it carries **no**
+"am I installed" signal, so the extension must announce itself with a tiny `postMessage`.
+
+**Contract the `matt-grant-chrome` repo implements.** Add a content script matched to the app
+origin(s) — `https://mattgrantforcongress.org/*` (and the App Runner URL) — that, on load,
+posts this to the page:
+
+```js
+window.postMessage({ source: "mg-extension", installed: true, version: chrome.runtime.getManifest().version }, location.origin);
+```
+
+It must also reply with the same message when it receives the page's probe
+(`{ source: "mg-extension-probe", type: "ping" }`), which the web app posts on mount to catch an
+extension that loaded first.
+
+**Web side (already built).** [`lib/extension-detect.ts`](../lib/extension-detect.ts)
+(`useExtensionInstalled()`) listens for that announce — **same-origin only** — and flips
+[`ExtensionInstallButton`](../components/dashboard/ExtensionInstallButton.tsx) to the installed
+state. It is best-effort and read-only: until the content script above ships, the hook stays in
+`unknown` and the page shows the normal Install call-to-action. This is the **only** signal the
+web app uses for install state — it never blocks or gates on it.
 
 ## Notes & guarantees
 

@@ -194,6 +194,11 @@ export function SiteFooter() {
                   Staff sign-in
                 </Link>
               </li>
+              <li>
+                <Link href={apex("/dashboard/extension")} className={linkClass}>
+                  Captain browser tools
+                </Link>
+              </li>
             </ul>
           </div>
 
