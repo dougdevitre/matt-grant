@@ -309,3 +309,19 @@ Before publishing any campaign communication:
 [ ] For mail: disclaimer is on the mailpiece, not only the envelope
 [ ] For small items: state law checked — exemption confirmed or disclaimer added
 ```
+
+For the full publication sign-off (disclaimer + authorization + platform + AI-disclosure + data + coordination), run [pre-publish-checklist.md](pre-publish-checklist.md).
+
+---
+
+## This campaign's disclaimer (use verbatim)
+
+For every paid communication from this committee, the disclaimer is exactly:
+
+> **Paid for by Matt Grant for Congress.**
+
+Matt Grant for Congress is the authorized candidate committee (FEC C00945394). Do not reword, abbreviate, or substitute a placeholder — this exact string is the required text on all paid communications.
+
+---
+
+> **EDUCATIONAL DISCLAIMER:** This is educational information, not legal advice. Disclaimer and authorization requirements vary by medium and jurisdiction and change over time — consult a campaign finance attorney or your filing agency for guidance specific to your situation.

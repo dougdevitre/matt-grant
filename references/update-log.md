@@ -26,6 +26,45 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-06 -- v1.x -- Campaign-defense artifacts (rapid response, deepfake, RACI/access, self-oppo, pre-publish)
+
+**Changes:**
+- [added] `workflows/rapid-response-sop.md` -- consolidated same-day rapid-response SOP: standing roles/on-call, a verify gate, a respond-vs-ignore triage matrix, draft/approve/publish, and a decision-log template (unifies pieces previously split across crisis-management, social-media-strategy, and press-release-templates)
+- [added] `tactics/impersonation-deepfake-response.md` -- inbound defensive runbook for impersonation and doctored/AI-generated media: evidence capture, provenance verification, per-platform takedown, account-takeover recovery, and identity hardening
+- [added] `tools/team-raci-access-matrix.md` -- one accountable owner per function (RACI) + a tool/account access matrix (CSV/JSON) + a same-day off-boarding revocation checklist and escalation path
+- [added] `tools/self-oppo-tracker.md` -- schema for the candidate's own vulnerabilities (issue/source/likelihood/severity/pre-cleared response/owner) with a priority matrix and validation rules
+- [added] `tools/pre-publish-checklist.md` -- single compliance gate before publishing: disclaimer + verbatim text, paid-vs-organic test, platform authorization, AI-disclosure, PII/donor data, coordination
+- [updated] `tools/disclaimer-generator.md` -- added the required educational-disclaimer footer (was missing) and embedded the verbatim "Paid for by Matt Grant for Congress" as the worked example
+- [added] 5 slash commands (`/rapidresponse`, `/deepfake`, `/accessmatrix`, `/selfoppo`, `/prepublish`) and a new "Crisis & Campaign Defense" command category
+- [updated] registered all five in SKILL.md (workflow/tool/tactics tables), INDEX.md, and the tactics/workflows/tools READMEs
+
+**Verifications Performed:**
+- All relative markdown links in the new/edited files resolve to real paths
+- Mermaid diagrams checked for valid syntax
+- Faithful to CLAUDE.md facts (verbatim disclaimer, committee C00945394); all sample rows are labeled illustrative placeholders; no invented policy, vulnerabilities, or endorsements
+- Guardrail check: all five are defensive/compliance only (ethics-and-guardrails Guardrail 6 permits rapid response; the campaign never impersonates or fabricates media)
+
+**Known Gaps:**
+- No web-dashboard surfaces for these artifacts yet (self-oppo page, access-matrix view) -- deferred follow-up
+- Real names/accounts/vulnerabilities must be filled in by the campaign; placeholders only
+
+**Files Modified:**
+- workflows/rapid-response-sop.md
+- tactics/impersonation-deepfake-response.md
+- tools/team-raci-access-matrix.md
+- tools/self-oppo-tracker.md
+- tools/pre-publish-checklist.md
+- tools/disclaimer-generator.md
+- SKILL.md
+- INDEX.md
+- commands/commands.md
+- tactics/README.md
+- workflows/README.md
+- tools/README.md
+- references/update-log.md
+
+---
+
 ## 2026-07-04 -- v1.x -- "What we missed" audit round 5 (deadline correctness, fail-closed suppression, edge IP, test gaps)
 
 **Changes:**

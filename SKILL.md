@@ -216,6 +216,7 @@ Every non-Missouri state above **also** carries the full 5-file set following th
 | `workflows/compliance-report-prep.md` | User is preparing to file a report — reconciliation, review, common errors |
 | `workflows/voter-targeting.md` | User needs voter file guidance, targeting methodology, canvass operations, or digital targeting |
 | `workflows/opposition-research.md` | User needs to research opponent or prepare for attacks on themselves |
+| `workflows/rapid-response-sop.md` | User faces an incoming attack, bad-faith story, or breaking crisis and needs the same-day procedure to run — verify, respond-vs-ignore triage, roles, approval, and a decision log. Command: `/rapidresponse` |
 | `workflows/coordination-rules.md` | User asks about working with PACs, Super PACs, party committees, or outside groups |
 | `workflows/volunteer-management.md` | User needs to recruit, organize, or manage volunteers; legal boundaries on volunteering |
 | `workflows/team-pairing.md` | User wants to pair captains with volunteers and move volunteers up to supporters, sponsors, and donors — matching matrices, complementary co-captains, and the volunteer→donor ladder |
@@ -237,6 +238,9 @@ Every non-Missouri state above **also** carries the full 5-file set following th
 | `tools/donor-limit-checker.md` | User asks "can this person give me more?" or needs limit-check decision trees |
 | `tools/campaign-tech-stack.md` | User asks about campaign software, CRMs, voter file tools, texting platforms, or tech recommendations |
 | `tools/voter-engagement-tools.md` | User wants to build voter-facing tools: voting plan builder, registration checker, issue quiz, candidate comparison, endorsement card generator, story collector, relational outreach kit, pledge cards, volunteer match quiz, ride-to-polls signup, district dashboard, office explainer, or voter guide. Generates content, copy, logic, and deployment guidance for 15 interactive tools voters actually use and share. |
+| `tools/pre-publish-checklist.md` | User needs a single compliance gate before publishing any communication — disclaimer + verbatim text, paid-vs-organic test, platform authorization, AI-disclosure, PII/donor-data, coordination. Command: `/prepublish` |
+| `tools/team-raci-access-matrix.md` | User needs to assign one accountable owner per campaign function (RACI), map who can access which tool/account, or run a same-day off-boarding revocation checklist. Command: `/accessmatrix` |
+| `tools/self-oppo-tracker.md` | User needs a schema to track the candidate's OWN vulnerabilities — issue, source, likelihood, severity, pre-cleared response, owner. The storable form of `workflows/opposition-research.md` self-research. Command: `/selfoppo` |
 
 **Messaging reference files (Phase 6 — complete):**
 
@@ -282,6 +286,7 @@ Every non-Missouri state above **also** carries the full 5-file set following th
 | `tactics/influence-network-targeting.md` | **FAST ACTION MODULE:** User needs to identify high-profile advocates, well-connected individuals, organizational leaders, or major donors who can legally support the campaign. Generates a 12-category Power Map, scoring matrix, prioritized outreach sequence, and complete outreach packages by pulling from endorsement, surrogate, correspondence, and coalition files. Command: `/powermap` |
 | `tactics/issue-response-engine.md` | **PRIMARY TRIGGER:** User pastes any issue, policy topic, voter question, news headline, or opponent attack and needs a response. Generates 8 response formats simultaneously: door, forum, position statement, social media, empathy-first, surrogate talking points, inoculation language, and bridge phrases. |
 | `tactics/crisis-management.md` | User faces a scandal, attack, bad press, staff problem, or external crisis. Includes the RESPOND framework, apology formula, and inoculation strategy. |
+| `tactics/impersonation-deepfake-response.md` | User faces impersonation (fake candidate/campaign account) or doctored/AI-generated ("deepfake") audio, video, or images. Inbound defensive runbook: capture evidence, verify provenance, per-platform takedown, account recovery, identity hardening. Command: `/deepfake` |
 | `tactics/surrogate-program.md` | User wants to multiply candidate presence. 3-tier surrogate model, recruitment, briefing documents, deployment scheduling, and surrogate-powered tactics. |
 | `tactics/ballot-chase-program.md` | User asks about early vote tracking, absentee ballot chasing, ballot curing, or election day chase operations. The operational heart of GOTV. |
 | `tactics/scheduling-advance.md` | User asks about candidate time management, event logistics, briefing memos, or advance work. Includes optimal weekly time allocation. |

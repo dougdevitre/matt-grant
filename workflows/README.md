@@ -16,6 +16,7 @@ Step-by-step operational guides for every phase of a campaign. Each workflow wal
 - [fundraising-plan.md](fundraising-plan.md) -- Strategic framework for goal-setting, call time, events, and donor cultivation
 - [gotv-plan.md](gotv-plan.md) -- Operational guide for Get Out The Vote in the final days before election
 - [opposition-research.md](opposition-research.md) -- Conducting ethical, legal opposition research on opponents and yourself
+- [rapid-response-sop.md](rapid-response-sop.md) -- Same-day procedure for reacting to an attack or crisis: verify, respond-vs-ignore triage, roles, approval, and a decision log
 - [post-election.md](post-election.md) -- What to do after the polls close: win, lose, or recount
 - [should-i-run.md](should-i-run.md) -- Structured decision framework for evaluating whether to run for office
 - [team-pairing.md](team-pairing.md) -- Matching captains to roles, volunteers to captains, and volunteers up the ladder to supporters, sponsors, and donors
