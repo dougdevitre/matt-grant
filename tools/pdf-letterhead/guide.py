@@ -180,7 +180,56 @@ VOLUNTEER = {
            ]},
 }
 
-GUIDES = {"team-captain": CAPTAIN, "volunteer": VOLUNTEER}
+RAPID_RESPONSE = {
+    "title": "Rapid-Response Guide",
+    "subtitle": "MO-02 Campaign \u2014 how to react to an attack or crisis, same day",
+    "intro": "Attacks arrive fast and at bad hours. Speed comes from preparation, not adrenaline. "
+             "This is the procedure \u2014 verify, decide, respond (or don\u2019t), and write it down. "
+             "Fill in your roles and pre-clear your answers before you need them.",
+    "sections": [
+        {"eyebrow": "The clock", "heading": "Know in 30, decide in an hour, respond in 2\u20134",
+         "body": ["The pieces below exist so nobody invents process during the crisis. Move fast, "
+                  "but never respond to something you haven\u2019t verified."]},
+        {"eyebrow": "Roles", "heading": "Name owners now \u2014 for every level",
+         "bullets": ["First alert / triage \u2014 sees it, runs verify + triage, wakes the right people.",
+                     "Decision-maker \u2014 the respond/ignore call (campaign manager; candidate for the worst).",
+                     "Drafter \u2014 writes it. Approver \u2014 second eyes before anything publishes.",
+                     "Legal \u2014 anything with litigation exposure. Publisher \u2014 posts, nothing else.",
+                     "One spokesperson. Two-person review before release. No staff posts without approval."]},
+        {"eyebrow": "Step 1 \u2014 verify", "heading": "Prove it before you touch it",
+         "bullets": ["Source: a real outlet/person, or an anonymous/new account?",
+                     "Substance: pull the full record \u2014 the whole vote, quote, or clip.",
+                     "Media: is any image/audio/video genuine? If it may be doctored, switch to the "
+                     "deepfake runbook and capture evidence before it\u2019s deleted."]},
+        {"eyebrow": "Step 2 \u2014 triage", "heading": "Not every attack earns a response",
+         "body": ["Score reach, credibility, trajectory, persuadable-voter exposure, and how true it is "
+                  "against you. Low total \u2014 ignore and log; responding amplifies it. High total \u2014 respond."],
+         "bullets": ["Always correct a false claim about when/where/how to vote, immediately.",
+                     "Anything with legal exposure goes to counsel before any public move."]},
+        {"eyebrow": "Step 3 \u2014 respond", "heading": "Correct, then pivot",
+         "bullets": ["Draft tight; correct the record, don\u2019t relitigate it; get back to the four priorities.",
+                     "Two-person approval, always. Publish only the channels that match the attack.",
+                     "Paid communications clear the pre-publish checklist and carry the disclaimer."]},
+        {"eyebrow": "Step 4 \u2014 document", "heading": "One record per activation",
+         "body": ["Log what happened, what you decided, and why (or why not). It ends re-litigation and "
+                  "builds the playbook for next time. Then return to your own message."]},
+    ],
+    "do": ["Verify before you amplify", "Use the triage score, not adrenaline",
+           "Correct the record, then pivot back to your message",
+           "Two-person sign-off on anything public", "Pre-clear answers for your known vulnerabilities"],
+    "dont": ["Respond to a hoax (it legitimizes it)", "Feed a dying story with a loud response",
+             "Post from personal staff accounts or engage trolls",
+             "Make legal claims without counsel"],
+    "qr": {"eyebrow": "Be ready",
+           "intro": "Scan to open your dashboard or send people to get involved.",
+           "actions": [
+               ("Campaign HQ", "https://mattgrantforcongress.org/dashboard", "Open the dashboard"),
+               ("Take Action", "https://mattgrantforcongress.org/act", "Ways to get involved"),
+           ]},
+}
+
+
+GUIDES = {"team-captain": CAPTAIN, "volunteer": VOLUNTEER, "rapid-response": RAPID_RESPONSE}
 
 
 if __name__ == "__main__":
