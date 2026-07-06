@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { MediaLibrary } from "@/components/MediaLibrary";
+import { VideoPlaylist } from "@/components/VideoPlaylist";
 import { ASSETS_CDN, CAMPAIGN } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -28,6 +29,17 @@ export default function MediaPage() {
           className="object-cover"
           priority
         />
+      </div>
+      <div className="mt-12">
+        <p className="eyebrow text-brick">Watch &amp; share</p>
+        <h2 className="mt-2 text-2xl font-semibold sm:text-3xl">Explainer videos.</h2>
+        <p className="mt-4 max-w-prose text-slate">
+          Share the series — short explainer videos on the platform. Press play, then
+          pass the link to a neighbor.
+        </p>
+        <div className="mt-6">
+          <VideoPlaylist />
+        </div>
       </div>
       <div className="mt-10">
         <MediaLibrary />
