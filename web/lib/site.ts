@@ -1,6 +1,8 @@
 // Single source of truth for campaign facts used across the site.
 // Sourced from mattgrantforcongress.org — keep faithful, do not invent.
 
+import { webPhoto } from "./webPhotos";
+
 export const CAMPAIGN = {
   candidate: "Matt Grant",
   office: "U.S. House of Representatives",
@@ -213,3 +215,29 @@ export const PRIORITIES = [
 ] as const;
 
 export const VALUES = ["Families", "Fair justice", "Honesty", "Service", "Opportunity for all"] as const;
+
+// Homepage photo carousel. Each entry references a promoted photo by `name`
+// (see scripts/promote-photo.mjs → lib/webPhotos.json); `caption` is optional
+// display text. Order here is display order. Names that aren't promoted yet are
+// skipped by homeCarouselSlides(), so the section never renders a broken image
+// — and the homepage hides the whole section when no slide resolves. To feature
+// a new photo: promote it, then add { name, caption } here.
+export const HOME_CAROUSEL: readonly { name: string; caption?: string }[] = [
+  // { name: "rally-wildwood", caption: "On the trail in Wildwood" },
+];
+
+export type CarouselSlide = { src1600: string; src800: string; alt: string; caption?: string };
+
+// Resolve HOME_CAROUSEL against the promoted-photo manifest, dropping any entry
+// whose photo hasn't been promoted. Kept here (server-safe, pure) so the page
+// can decide whether to render the section before mounting the client carousel.
+export function homeCarouselSlides(): CarouselSlide[] {
+  return HOME_CAROUSEL.flatMap((entry) => {
+    const photo = webPhoto(entry.name);
+    if (!photo) return [];
+    const src1600 = photo.sizes["1600"] ?? photo.sizes["800"];
+    const src800 = photo.sizes["800"] ?? src1600;
+    if (!src1600) return [];
+    return [{ src1600, src800, alt: photo.alt, caption: entry.caption }];
+  });
+}
