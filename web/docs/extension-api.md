@@ -33,20 +33,27 @@ flowchart LR
 
 ## Turning it on (deployment)
 
-The whole surface is **fail-closed** until two env vars are set on the server (App Runner
-service config, or SSM `/matt-grant/*`). With them blank, cross-origin reads are blocked and
-the app is unaffected.
+The whole surface is **fail-closed** until two env vars are set on the server. With them blank,
+cross-origin reads are blocked and the app is unaffected.
+
+> **Deployment note (AWS Amplify):** both vars are read at **runtime**
+> (`EXTENSION_ORIGIN` in `lib/http/cors.ts`, `CLERK_AUTHORIZED_PARTIES` in `middleware.ts`), and
+> Amplify only exposes env vars to the SSR runtime if `amplify.yml` **materializes them into
+> `.env.production`**. Setting them in the Amplify console is not enough on its own — they must
+> also appear in the `printenv` materialization loop in `amplify.yml` (they now do). Set the
+> values as Amplify environment variables (or SSM `/matt-grant/*`), then redeploy. Full
+> step-by-step + verification: [extension-activation.md](./extension-activation.md).
 
 ```
 EXTENSION_ORIGIN="chrome-extension://abalnefilpmcfbabfaljnophamaegfgj"
-CLERK_AUTHORIZED_PARTIES="https://mattgrantforcongress.org,https://ezvnqn5e5i.us-east-1.awsapprunner.com,chrome-extension://abalnefilpmcfbabfaljnophamaegfgj"
+CLERK_AUTHORIZED_PARTIES="https://mattgrantforcongress.org,https://<branch>.<app-id>.amplifyapp.com,chrome-extension://abalnefilpmcfbabfaljnophamaegfgj"
 ```
 
 - **`EXTENSION_ORIGIN`** — comma-separated allowlist of `chrome-extension://<id>` origins
   permitted to read responses (the CORS gate, [`lib/http/cors.ts`](../lib/http/cors.ts)).
 - **`CLERK_AUTHORIZED_PARTIES`** — the token `azp` allowlist ([`middleware.ts`](../middleware.ts)).
-  Must include **every origin staff load the dashboard from** (custom domain *and* the App
-  Runner URL) plus the extension origin — omitting an app origin logs staff out. Do **not**
+  Must include **every origin staff load the dashboard from** (custom domain *and* the Amplify
+  app URL) plus the extension origin — omitting an app origin logs staff out. Do **not**
   put the Clerk Frontend-API host (`clerk.<domain>`) here; it is not an `azp`.
 - **One-time Clerk Dashboard step:** add `chrome-extension://abalnefilpmcfbabfaljnophamaegfgj`
   to the instance's **allowed origins**, or Clerk rejects the extension's token even with
