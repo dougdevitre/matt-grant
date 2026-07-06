@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Countdown } from "@/components/Countdown";
 import { Reveal } from "@/components/Reveal";
 import { HeroVideo } from "@/components/HeroVideo";
+import { VideoPlaylist } from "@/components/VideoPlaylist";
 import { CtaButton } from "@/components/CtaButton";
 import { CAMPAIGN, PRIORITIES, VALUES, ASSETS_CDN } from "@/lib/site";
 
@@ -119,6 +120,22 @@ export default function HomePage() {
               className="object-contain"
             />
           </div>
+        </div>
+      </section>
+
+      {/* EXPLAINER VIDEOS — the case for change, in plain English */}
+      <section className="container-page py-20 sm:py-24">
+        <div className="max-w-prose">
+          <p className="eyebrow text-brick">Watch &amp; learn</p>
+          <h2 className="mt-3 text-4xl font-semibold sm:text-5xl">The issues, explained.</h2>
+          <p className="mt-4 text-lg text-slate">
+            Short explainer videos that walk through the platform — family courts,
+            term limits, a leaner government, and lower taxes — and make the case for
+            change in plain English. Press play and watch the series.
+          </p>
+        </div>
+        <div className="mt-10">
+          <VideoPlaylist />
         </div>
       </section>
 
