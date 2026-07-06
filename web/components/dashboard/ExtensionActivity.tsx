@@ -31,7 +31,7 @@ export async function ExtensionActivity() {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="eyebrow text-slate">Extension activity · admin</p>
         <p className="font-mono text-xs text-slate">
-          {summary.activeLast7d} active · 7d · {summary.totalActions} total actions
+          {summary.activeLast7d} active · 7d · {summary.totalActions} actions · {summary.windowDays}d
         </p>
       </div>
 

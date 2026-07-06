@@ -40,7 +40,7 @@ export async function getDashboardStatus(): Promise<StatusRow[]> {
     safe(() => getSecret("WINRED_WEBHOOK_SECRET"), undefined),
     safe(() => lastFieldIngest(), null),
     safe(() => checkAirtableHealth(), { state: "setup" as const, detail: "Status check failed." }),
-    safe(() => extAdoptionSummary(), { perActor: [], activeLast7d: 0, totalActions: 0 }),
+    safe(() => extAdoptionSummary(), { perActor: [], activeLast7d: 0, totalActions: 0, windowDays: 90 }),
   ]);
 
   const connected = connections.map((c) => c.platform);

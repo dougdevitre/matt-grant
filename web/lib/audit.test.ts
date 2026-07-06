@@ -124,6 +124,11 @@ describe("extension audit trail (AUDIT#ext)", () => {
       { actor: "old@x.org", at: "2026-06-01T10:00:00.000Z", action: "issue.status", target: "i1" }, // stale
     ]);
     const sum = await extAdoptionSummary(now);
+    // The read is bounded to a key range (last 90d), not a full-partition scan.
+    const q = queryAllPages.mock.calls[0][0];
+    expect(q.KeyConditionExpression).toContain("SK >= :since");
+    expect(q.ExpressionAttributeValues[":since"]).toBe("2026-04-11T00:00:00.000Z"); // now - 90d
+    expect(sum.windowDays).toBe(90);
     expect(sum.totalActions).toBe(3);
     expect(sum.activeLast7d).toBe(1); // only cap@x.org acted in the last 7 days
     expect(sum.perActor[0]).toEqual({ actor: "cap@x.org", count: 2, lastAt: "2026-07-09T10:00:00.000Z" });
@@ -133,6 +138,6 @@ describe("extension audit trail (AUDIT#ext)", () => {
 
   it("extAdoptionSummary returns empty on a read failure rather than throwing", async () => {
     queryAllPages.mockRejectedValue(new Error("scan boom"));
-    expect(await extAdoptionSummary(new Date("2026-07-10T00:00:00.000Z"))).toEqual({ perActor: [], activeLast7d: 0, totalActions: 0 });
+    expect(await extAdoptionSummary(new Date("2026-07-10T00:00:00.000Z"))).toEqual({ perActor: [], activeLast7d: 0, totalActions: 0, windowDays: 90 });
   });
 });

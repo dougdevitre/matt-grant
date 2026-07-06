@@ -50,6 +50,7 @@ const DASHBOARD_ROUTES = [
   "/dashboard/messages",
   "/dashboard/assets",
   "/dashboard/setup",
+  "/dashboard/extension",
   "/dashboard/studio",
   "/dashboard/peace-room",
   "/dashboard/map",

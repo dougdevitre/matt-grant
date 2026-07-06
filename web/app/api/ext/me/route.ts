@@ -21,7 +21,11 @@ export async function GET(req: Request): Promise<Response> {
   const { allowed, gate } = await checkCap("viewOverview");
   if (!allowed) return withCors(NextResponse.json(fail("forbidden", meta), { status: 403 }), req);
   try {
-    const role = (gate.role ?? "volunteer") as Role;
+    // Default an unresolved role to admin — the same convention the dashboard's
+    // PersonalSummary uses (app/dashboard/page.tsx, layout.tsx). checkCap already
+    // gated viewOverview, so this only affects the null-role edge; it just picks the
+    // "leadership" nextStep branch rather than the member one.
+    const role = (gate.role ?? "admin") as Role;
     const signals = await gatherPersonalSignals(gate.email, role);
     const checklist = buildChecklist(signals);
     const data = {

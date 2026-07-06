@@ -113,20 +113,30 @@ export async function listExtActions(limit = 25): Promise<ExtAuditEntry[]> {
 }
 
 export type ExtActorUsage = { actor: string; count: number; lastAt: string };
-export type ExtAdoptionSummary = { perActor: ExtActorUsage[]; activeLast7d: number; totalActions: number };
+export type ExtAdoptionSummary = { perActor: ExtActorUsage[]; activeLast7d: number; totalActions: number; windowDays: number };
 
-// Per-staffer extension adoption: groups the whole AUDIT#ext partition by actor so
-// admins can see who has started using the extension (and nudge the rest). Reads all
-// pages (one small partition today); best-effort empty on DB off / error. `now` is
-// injectable for tests. Sorted most-recently-active first.
+// How far back the adoption panel looks. Bounds the AUDIT#ext read to a key range
+// (the SK is `${iso}#${uuid}`, so an ISO lower bound is a cheap SK condition) — the
+// panel is about *current* adoption, and this keeps the read from growing without
+// limit as the trail accumulates.
+const ADOPTION_WINDOW_DAYS = 90;
+
+// Per-staffer extension adoption within the last ADOPTION_WINDOW_DAYS: groups the
+// recent AUDIT#ext rows by actor so admins can see who's using the extension (and
+// nudge the rest). Bounded by an SK range so the read stays cheap as the trail grows;
+// best-effort empty on DB off / error. `now` is injectable for tests. Sorted
+// most-recently-active first.
 export async function extAdoptionSummary(now: Date = new Date()): Promise<ExtAdoptionSummary> {
-  const empty: ExtAdoptionSummary = { perActor: [], activeLast7d: 0, totalActions: 0 };
+  const empty: ExtAdoptionSummary = { perActor: [], activeLast7d: 0, totalActions: 0, windowDays: ADOPTION_WINDOW_DAYS };
   if (!dbConfigured) return empty;
   try {
+    // SK starts with the ISO timestamp, so "SK >= <isoLowerBound>" returns only rows
+    // from the window onward — no full-partition scan.
+    const since = new Date(now.getTime() - ADOPTION_WINDOW_DAYS * 86_400_000).toISOString();
     const items = await queryAllPages({
       TableName: TABLE,
-      KeyConditionExpression: "PK = :p",
-      ExpressionAttributeValues: { ":p": AUDIT_EXT_PK },
+      KeyConditionExpression: "PK = :p AND SK >= :since",
+      ExpressionAttributeValues: { ":p": AUDIT_EXT_PK, ":since": since },
       ScanIndexForward: false,
     });
     const byActor = new Map<string, ExtActorUsage>();
@@ -147,7 +157,7 @@ export async function extAdoptionSummary(now: Date = new Date()): Promise<ExtAdo
       const t = Date.parse(a.lastAt);
       return Number.isFinite(t) && t >= cutoff;
     }).length;
-    return { perActor, activeLast7d, totalActions: items.length };
+    return { perActor, activeLast7d, totalActions: items.length, windowDays: ADOPTION_WINDOW_DAYS };
   } catch {
     return empty;
   }

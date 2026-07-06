@@ -213,10 +213,19 @@ export async function listEvents(): Promise<{ connected: boolean; rows: EventRow
 export async function listCaptainEvents(captainEmail: string | null | undefined, now: Date = new Date()): Promise<EventRow[]> {
   const me = (captainEmail ?? "").trim().toLowerCase();
   if (!me) return [];
-  const nowMs = now.getTime();
   const { rows } = await listEvents();
+  return filterUpcomingOwned(rows, me, now);
+}
+
+// PURE + exported so the owner/upcoming/cancelled scoping is unit-tested without a DB
+// (mirrors the pure-selector convention in lib/dashboard/personal.ts and
+// lib/volunteers/score-data.ts deriveSignals). Pass the caller's LOWERCASED email.
+// Keeps events they own (captain.id === email), drops CANCELLED, keeps only those
+// that haven't started yet (undated/unparseable kept), soonest first.
+export function filterUpcomingOwned(rows: EventRow[], captainEmailLc: string, now: Date): EventRow[] {
+  const nowMs = now.getTime();
   return rows
-    .filter((e) => (e.captain?.id ?? "").trim().toLowerCase() === me && e.status !== "CANCELLED")
+    .filter((e) => (e.captain?.id ?? "").trim().toLowerCase() === captainEmailLc && e.status !== "CANCELLED")
     .filter((e) => {
       const t = Date.parse(e.start);
       return !Number.isFinite(t) || t >= nowMs; // upcoming (undated/unparseable kept)
