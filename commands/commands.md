@@ -113,6 +113,7 @@ Instant-generation triggers. When a user types any of these commands, generate t
 | `/reportchecklist` | Pre-filing reconciliation checklist with the next deadline |
 | `/calendar [state]` | Filing deadline calendar for the specified jurisdiction |
 | `/treasurermemo` | Monthly treasurer status memo template |
+| `/prepublish` | Pre-publish compliance gate — disclaimer + verbatim text, paid-vs-organic, platform authorization, AI-disclosure, data, and coordination check before publishing (from `tools/pre-publish-checklist.md`) |
 
 ### Voter Engagement Tools
 | Command | Output |
@@ -165,6 +166,14 @@ Instant-generation triggers. When a user types any of these commands, generate t
 | `/electionprotection` | Election protection plan: lawyer checklist, recount rules, poll watcher training, boiler room setup |
 | `/watchers` | Poll watcher program: recruitment, training agenda, credentialing checklist, incident report template |
 | `/recountprep` | Recount preparation: state rules, attorney briefing, observer deployment, fundraising for legal costs |
+
+### Crisis & Campaign Defense
+| Command | Output |
+|---|---|
+| `/rapidresponse` | Same-day rapid-response procedure — verify, respond-vs-ignore triage, roles, approval gate, and decision log (from `workflows/rapid-response-sop.md`) |
+| `/deepfake` | Impersonation/deepfake response runbook — capture evidence, verify provenance, per-platform takedown, account recovery, and identity hardening (from `tactics/impersonation-deepfake-response.md`) |
+| `/selfoppo` | Self-oppo vulnerability tracker schema — issue, source, likelihood, severity, pre-cleared response, owner (from `tools/self-oppo-tracker.md`) |
+| `/accessmatrix` | Team RACI + tool/account access matrix with a same-day off-boarding revocation checklist (from `tools/team-raci-access-matrix.md`) |
 
 ### Print & Field Materials
 | Command | Output |
