@@ -9,6 +9,7 @@ Strategic playbooks and frameworks for specific campaign challenges. Each file p
 - [captain-archetypes.md](captain-archetypes.md) -- Six team-captain leader types by strength and weakness, plus the seven captain roles
 - [coalition-building.md](coalition-building.md) -- Engaging twelve key voter groups to assemble a winning coalition
 - [crisis-management.md](crisis-management.md) -- The RESPOND framework with crisis-specific playbooks and templates
+- [impersonation-deepfake-response.md](impersonation-deepfake-response.md) -- Inbound runbook for impersonation and doctored/AI-generated (deepfake) media: capture, verify provenance, per-platform takedown, account recovery, and identity hardening
 - [election-protection.md](election-protection.md) -- Poll watcher programs, recount prep, provisional ballot tracking, and Election Day operations
 - [guerrilla-campaigning.md](guerrilla-campaigning.md) -- Creative, unconventional tactics for underdogs and small-budget races
 - [influence-network-targeting.md](influence-network-targeting.md) -- Power mapping to identify and engage community influencers

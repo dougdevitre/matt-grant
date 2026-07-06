@@ -67,6 +67,7 @@ Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026
 - [candidate/captain-field-plan.md](candidate/captain-field-plan.md) -- Applies the captain framework to Matt Grant's real MO-02 field program (counts illustrative)
 - [workflows/captain-onboarding-training.md](workflows/captain-onboarding-training.md) -- Onboard a new captain, run weekly captain meetings, coach to each archetype's development needs, and lead captains through developing their own volunteers
 - [workflows/volunteer-management.md](workflows/volunteer-management.md) -- Recruiting, training, and retaining the volunteers your captains lead
+- [tools/team-raci-access-matrix.md](tools/team-raci-access-matrix.md) -- One accountable owner per function (RACI) + a tool/account access matrix with a same-day off-boarding revocation checklist
 
 ## "I need compliance help"
 
@@ -75,6 +76,7 @@ Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026
 - [workflows/compliance-report-prep.md](workflows/compliance-report-prep.md) -- Pre-filing checklist for finance reports
 - [workflows/coordination-rules.md](workflows/coordination-rules.md) -- When outside-group activity becomes illegal
 - [tools/disclaimer-generator.md](tools/disclaimer-generator.md) -- Generate "Paid for by" disclaimers
+- [tools/pre-publish-checklist.md](tools/pre-publish-checklist.md) -- One compliance gate before publishing: disclaimer, authorization, platform, AI-disclosure, data, coordination
 - [tools/filing-deadline-calendar.md](tools/filing-deadline-calendar.md) -- Calendar events for filing deadlines
 
 ## "I'm under attack / facing a crisis"
@@ -82,6 +84,9 @@ Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026
 - [tactics/crisis-management.md](tactics/crisis-management.md) -- The RESPOND framework for campaign crises
 - [tactics/issue-response-engine.md](tactics/issue-response-engine.md) -- Eight response formats for any issue
 - [workflows/opposition-research.md](workflows/opposition-research.md) -- Ethical oppo research on opponents and yourself
+- [workflows/rapid-response-sop.md](workflows/rapid-response-sop.md) -- Same-day procedure to react to an attack: verify, respond-vs-ignore triage, roles, approval, decision log
+- [tactics/impersonation-deepfake-response.md](tactics/impersonation-deepfake-response.md) -- Runbook for impersonation and doctored/AI-generated media: capture, verify, takedown, recovery, hardening
+- [tools/self-oppo-tracker.md](tools/self-oppo-tracker.md) -- Track your own vulnerabilities with a pre-cleared response for each, before they're used
 
 ## "I need to grow my network"
 
