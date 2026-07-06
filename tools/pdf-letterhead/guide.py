@@ -56,9 +56,8 @@ def dd_panel(do, dont, st):
     return t
 
 
-def build_guide(out_path, g):
-    """Render one guide dict to a print-ready, on-brand PDF."""
-    st = styles()
+def guide_story(g, st):
+    """Build the flowable story for one guide (shared by single + combined render)."""
     story = [Paragraph(g["title"], st["title"]), Paragraph(g["subtitle"], st["subtitle"]),
              bl.HRule(color=LINE, thickness=0.9, space_after=12),
              Paragraph(g["intro"], st["intro"])]
@@ -77,7 +76,26 @@ def build_guide(out_path, g):
     if qr:
         story.extend(bl.action_band(st, actions=qr["actions"], intro=qr["intro"],
                                     eyebrow=qr.get("eyebrow", "Take Action")))
+    return story
+
+
+def build_guide(out_path, g):
+    """Render one guide dict to a print-ready, on-brand PDF."""
     doc = bl._new_doc(out_path, g["title"])
+    doc.build(guide_story(g, styles()))
+    print("wrote", out_path)
+
+
+def build_guides(out_path, guides, title="Matt Grant for Congress \u2014 Guides"):
+    """Render many guides into ONE PDF, each starting on a fresh page."""
+    from reportlab.platypus import PageBreak
+    st = styles()
+    story = []
+    for i, g in enumerate(guides):
+        if i:
+            story.append(PageBreak())
+        story.extend(guide_story(g, st))
+    doc = bl._new_doc(out_path, title)
     doc.build(story)
     print("wrote", out_path)
 
@@ -229,16 +247,177 @@ RAPID_RESPONSE = {
 }
 
 
-GUIDES = {"team-captain": CAPTAIN, "volunteer": VOLUNTEER, "rapid-response": RAPID_RESPONSE}
+DEEPFAKE = {
+    "title": "Impersonation & Deepfake Response Guide",
+    "subtitle": "MO-02 Campaign \u2014 fake accounts and doctored or AI-made media",
+    "intro": "If someone impersonates the campaign or spreads doctored or AI-generated (\u201cdeepfake\u201d) "
+             "audio, video, or images: detect fast, prove it\u2019s fake, get it taken down, and correct the "
+             "record without amplifying it. The campaign never fakes media in return.",
+    "sections": [
+        {"eyebrow": "Step 1 \u2014 capture", "heading": "Save the evidence first",
+         "body": ["Fakes vanish the moment they\u2019re reported. Before anything else, preserve it."],
+         "bullets": ["Screenshot the post, handle, profile, URL, timestamp, and follower counts.",
+                     "Save the original file and the direct link in the access-controlled crisis folder.",
+                     "Do this even for an obvious fake \u2014 it\u2019s your proof for takedowns and counsel."]},
+        {"eyebrow": "Step 2 \u2014 verify", "heading": "Prove it\u2019s fake before you say so",
+         "bullets": ["Impersonation: compare the handle and creation date against your verified accounts.",
+                     "Doctored image: reverse-image search for the original; look for warping/lighting tells.",
+                     "Edited clip: post the full, unedited source \u2014 the fastest debunk is the real thing.",
+                     "Deepfake: check for unnatural motion/audio; keep the authentic original to compare."]},
+        {"eyebrow": "Step 3 \u2014 contain", "heading": "Takedown, recovery, preserve",
+         "bullets": ["Report on every platform under impersonation / manipulated-media policies; keep the "
+                     "reference numbers.",
+                     "If an account is hacked: recover it, rotate the password, end all sessions, re-check MFA.",
+                     "Preserve evidence for counsel \u2014 fraudulent-misrepresentation and state deepfake laws "
+                     "may apply."]},
+        {"eyebrow": "Step 4 \u2014 correct", "heading": "Only if it warrants it",
+         "body": ["A fake with no traction that platforms are removing may not need a response \u2014 answering "
+                  "it can hand it the audience it never had. When you do respond, say plainly it\u2019s fake from "
+                  "your verified channels, show the authentic original, and don\u2019t repost the fake."]},
+        {"eyebrow": "Prevent", "heading": "Harden before it happens",
+         "bullets": ["MFA on every social, ad, email, and admin account; a password manager; least privilege.",
+                     "Claim and verify official handles; publish the list so voters can tell real from fake.",
+                     "Assign one owner to monitor for impersonation and manipulated media daily.",
+                     "Keep original source files of real speeches \u2014 the fastest way to debunk an edit."]},
+    ],
+    "do": ["Capture evidence before you report", "Prove it\u2019s fake before you say it\u2019s fake",
+           "Run takedown and correction in parallel", "Harden accounts and verify official handles"],
+    "dont": ["Report before you\u2019ve screenshotted it", "Repost the fake at full resolution",
+             "Amplify a fake with no traction", "Make legal claims without counsel"],
+    "qr": {"eyebrow": "Be ready",
+           "intro": "Scan to open your dashboard or send people to get involved.",
+           "actions": [
+               ("Campaign HQ", "https://mattgrantforcongress.org/dashboard", "Open the dashboard"),
+               ("Take Action", "https://mattgrantforcongress.org/act", "Ways to get involved"),
+           ]},
+}
+
+TEAM_RACI = {
+    "title": "Team RACI & Access Guide",
+    "subtitle": "MO-02 Campaign \u2014 one owner per job, one door per tool",
+    "intro": "Two failures sink teams: nobody owns the decision, and nobody revokes access. Assign one "
+             "accountable owner per function, map who can touch which account, and pull access the day "
+             "someone leaves.",
+    "sections": [
+        {"eyebrow": "Ownership", "heading": "One accountable owner per function",
+         "body": ["Message, budget, field, digital, compliance, data, fundraising, rapid response \u2014 each "
+                  "gets exactly one person answerable for it. Two owners for one thing is the bug this fixes."]},
+        {"eyebrow": "Disputes", "heading": "Escalate one level \u2014 not to the candidate",
+         "body": ["A disagreement goes up exactly one level and resolves there. Only true values-level splits "
+                  "reach the candidate, whose focus is the scarcest resource. Log consequential decisions so "
+                  "they aren\u2019t re-fought."]},
+        {"eyebrow": "Access", "heading": "Least privilege, MFA everywhere",
+         "body": ["Map each person to each account \u2014 email, social, ad accounts, the donation platform, "
+                  "bank, CRM/voter file, password manager, dashboard. Everyone gets the minimum their role "
+                  "needs; MFA is on for every account, no exceptions. Only the treasurer\u2019s designees are "
+                  "bank signers."]},
+        {"eyebrow": "Off-boarding", "heading": "Revoke same-day",
+         "bullets": ["Dashboard revoke ends sessions immediately; remove from Google, social, ad, bank, CRM.",
+                     "Remove from the password manager and rotate any shared credentials they knew.",
+                     "Rotate API keys/tokens they could reach; update the matrix and log it.",
+                     "If a departure is contentious, revoke before the conversation, not after."]},
+    ],
+    "do": ["Give every function one accountable owner", "Keep access to least privilege",
+           "Turn on MFA for every account", "Run the same-day revocation checklist", "Log decisions, not drama"],
+    "dont": ["Leave two people owning one thing", "Escalate every dispute to the candidate",
+             "Let a departed teammate keep any access", "Share bank-signer authority widely"],
+    "qr": {"eyebrow": "Run the team",
+           "intro": "Scan to open your dashboard or send people to get involved.",
+           "actions": [
+               ("Campaign HQ", "https://mattgrantforcongress.org/dashboard", "Open the dashboard"),
+               ("Take Action", "https://mattgrantforcongress.org/act", "Ways to get involved"),
+           ]},
+}
+
+SELF_OPPO = {
+    "title": "Self-Oppo Guide",
+    "subtitle": "MO-02 Campaign \u2014 know your vulnerabilities before they\u2019re used",
+    "intro": "Good campaigns research themselves first. List every line of attack honestly, prepare a "
+             "factual answer for each, and have it ready before the opposition uses it. Handle as "
+             "confidential \u2014 defensive preparation, never material to attack anyone else.",
+    "sections": [
+        {"eyebrow": "First", "heading": "Research yourself, honestly",
+         "body": ["Pull your own public record \u2014 statements, votes, financial and business history, "
+                  "associations. A vulnerability you won\u2019t write down is one you can\u2019t prepare for."]},
+        {"eyebrow": "Log", "heading": "One row per vulnerability",
+         "bullets": ["Capture the issue, where an attacker would find it, and a pre-cleared response.",
+                     "Assign one owner and a review date; keep it access-controlled."]},
+        {"eyebrow": "Prioritize", "heading": "Rate likelihood \u00d7 severity",
+         "body": ["Work the top of the list first: anything high-likelihood or serious/disqualifying gets a "
+                  "pre-cleared answer now. A disqualifying issue is a strategic conversation, early, not just "
+                  "a talking point."]},
+        {"eyebrow": "Ready", "heading": "Pre-clear the answer",
+         "body": ["Every entry gets a factual, defensible response that survives a fact check \u2014 the point "
+                  "is a ready answer, not a list of fears. When an attack lands, the answer already exists; "
+                  "deploy it through the Rapid-Response procedure."]},
+    ],
+    "do": ["Be honest with yourself", "Give every vulnerability a pre-cleared answer",
+           "Work high \u00d7 serious first", "Keep responses factual", "Guard it \u2014 confidential, defensive use"],
+    "dont": ["Skip the uncomfortable entries", "Respond with spin a fact check breaks",
+             "Use private or hacked material", "Leave the worst risks unowned"],
+    "qr": {"eyebrow": "Be ready",
+           "intro": "Scan to open your dashboard or send people to get involved.",
+           "actions": [
+               ("Campaign HQ", "https://mattgrantforcongress.org/dashboard", "Open the dashboard"),
+               ("Take Action", "https://mattgrantforcongress.org/act", "Ways to get involved"),
+           ]},
+}
+
+PRE_PUBLISH = {
+    "title": "Pre-Publish Compliance Guide",
+    "subtitle": "MO-02 Campaign \u2014 clear every communication before it ships",
+    "intro": "One gate every public communication clears before it goes out. Make it a step nobody can "
+             "skip: no publish without a clear. When in doubt, include the disclaimer.",
+    "sections": [
+        {"eyebrow": "Step 1", "heading": "Does it need a disclaimer?",
+         "body": ["Paid ads, boosted posts, paid texts, mail, TV, and radio \u2014 yes. Organic posts, your "
+                  "own site, campaign email, and volunteer peer-to-peer texts \u2014 recommended. When unsure, "
+                  "disclaim."]},
+        {"eyebrow": "Step 2", "heading": "Disclaimer present and verbatim",
+         "bullets": ["The required text, word for word: Paid for by Matt Grant for Congress.",
+                     "Clear and conspicuous for the medium; authorization status correct."]},
+        {"eyebrow": "Step 3", "heading": "Platform, AI, and data",
+         "bullets": ["Paid digital: the ad account is verified/authorized (this takes days).",
+                     "Any AI-generated or altered media is disclosed per platform and state law.",
+                     "No SSNs, bank numbers, or passwords; donor and voter data handled correctly."]},
+        {"eyebrow": "Step 4", "heading": "Facts, positions, coordination, sign-off",
+         "bullets": ["Every claim is sourced and current; stay within documented positions \u2014 invent nothing.",
+                     "No illegal coordination with outside groups.",
+                     "Two-person review before publish; legal clears anything with exposure."]},
+    ],
+    "do": ["Make the clear non-bypassable", "Use the disclaimer verbatim, every time",
+           "Get two-person sign-off", "Escalate coordination and AI edge cases to counsel"],
+    "dont": ["Publish a paid piece without a disclaimer", "Reword the disclaimer text",
+             "Ship stale numbers or invented positions", "Let one person publish alone"],
+    "qr": {"eyebrow": "Publish clean",
+           "intro": "Scan to open your dashboard or send people to get involved.",
+           "actions": [
+               ("Campaign HQ", "https://mattgrantforcongress.org/dashboard", "Open the dashboard"),
+               ("Take Action", "https://mattgrantforcongress.org/act", "Ways to get involved"),
+           ]},
+}
+
+
+GUIDES = {"team-captain": CAPTAIN, "volunteer": VOLUNTEER, "rapid-response": RAPID_RESPONSE, "impersonation-deepfake": DEEPFAKE, "team-raci-access": TEAM_RACI, "self-oppo": SELF_OPPO, "pre-publish": PRE_PUBLISH}
+
+# The five defensive/compliance guides, in reading order (for --combined default).
+DEFENSE_ORDER = ["rapid-response", "impersonation-deepfake", "team-raci-access", "self-oppo", "pre-publish"]
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="Render branded Matt Grant guides to PDF.")
     ap.add_argument("--out-dir", default=".", help="output directory (default: current dir)")
     ap.add_argument("--only", choices=sorted(GUIDES), help="render just one guide")
+    ap.add_argument("--combined", action="store_true",
+                    help="render the five defensive/compliance guides into ONE PDF")
     args = ap.parse_args()
     out_dir = os.path.expanduser(args.out_dir)
     os.makedirs(out_dir, exist_ok=True)
-    items = {args.only: GUIDES[args.only]} if args.only else GUIDES
-    for slug, g in items.items():
-        build_guide(os.path.join(out_dir, f"Matt-Grant-{slug.replace('-', ' ').title().replace(' ', '-')}-Guide.pdf"), g)
+    if args.combined:
+        build_guides(os.path.join(out_dir, "Matt-Grant-Campaign-Defense-Guides.pdf"),
+                     [GUIDES[slug] for slug in DEFENSE_ORDER],
+                     title="Matt Grant for Congress \u2014 Campaign-Defense Guides")
+    else:
+        items = {args.only: GUIDES[args.only]} if args.only else GUIDES
+        for slug, g in items.items():
+            build_guide(os.path.join(out_dir, f"Matt-Grant-{slug.replace('-', ' ').title().replace(' ', '-')}-Guide.pdf"), g)
