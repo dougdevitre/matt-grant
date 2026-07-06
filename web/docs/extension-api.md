@@ -91,6 +91,32 @@ Body is JSON, zod-validated; unknown/invalid → `400`. Missing capability → `
 | `PATCH /api/ext/issues/{id}` | `moderateIssues` + Airtable *update* toggle | `{ status }` (`Approved`\|`Rejected`\|`Pending`) **or** `{ topic?, details? }` | Status takes precedence over text |
 | `DELETE /api/ext/issues/{id}` | `moderateIssues` + Airtable *delete* toggle | — | Spam removal |
 
+## Install detection (web ↔ extension handshake)
+
+The web app promotes the extension at [`/dashboard/extension`](../app/dashboard/extension/page.tsx)
+and can show an **"Installed ✓"** state instead of the Install button — but only if the
+extension tells it so. Clerk's `syncHost` shares the *session* extension→web; it carries **no**
+"am I installed" signal, so the extension must announce itself with a tiny `postMessage`.
+
+**Contract the `matt-grant-chrome` repo implements.** Add a content script matched to the app
+origin(s) — `https://mattgrantforcongress.org/*` (and the App Runner URL) — that, on load,
+posts this to the page:
+
+```js
+window.postMessage({ source: "mg-extension", installed: true, version: chrome.runtime.getManifest().version }, location.origin);
+```
+
+It must also reply with the same message when it receives the page's probe
+(`{ source: "mg-extension-probe", type: "ping" }`), which the web app posts on mount to catch an
+extension that loaded first.
+
+**Web side (already built).** [`lib/extension-detect.ts`](../lib/extension-detect.ts)
+(`useExtensionInstalled()`) listens for that announce — **same-origin only** — and flips
+[`ExtensionInstallButton`](../components/dashboard/ExtensionInstallButton.tsx) to the installed
+state. It is best-effort and read-only: until the content script above ships, the hook stays in
+`unknown` and the page shows the normal Install call-to-action. This is the **only** signal the
+web app uses for install state — it never blocks or gates on it.
+
 ## Notes & guarantees
 
 - **Two-gate for Airtable-backed writes.** Budget and issues require both the Clerk capability

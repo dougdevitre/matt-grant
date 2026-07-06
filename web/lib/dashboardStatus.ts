@@ -11,6 +11,7 @@ import { dbConfigured, TABLE } from "@/lib/db";
 import { congressEnabled } from "@/lib/integrations/legislative/config";
 import { lastFieldIngest } from "@/lib/integrations/research/ingestField";
 import { checkAirtableHealth } from "@/lib/airtable/health";
+import { extensionConnected } from "@/lib/extension";
 
 export type StatusState = "live" | "setup" | "off";
 export type StatusRow = {
@@ -126,6 +127,16 @@ export async function getDashboardStatus(): Promise<StatusRow[]> {
         : "Not set up. Add a Congress.gov API key to pull the opponent's record.",
       actionHref: "/dashboard/research",
       actionText: "Research",
+    },
+    {
+      key: "extension",
+      label: "Chrome extension",
+      state: extensionConnected() ? "live" : "setup",
+      detail: extensionConnected()
+        ? "Connected — staff can use the extension against live campaign data."
+        : "Not set up. Set EXTENSION_ORIGIN + CLERK_AUTHORIZED_PARTIES (and add the extension origin in Clerk) to let the extension reach the app.",
+      actionHref: "/dashboard/extension",
+      actionText: "Extension",
     },
   ];
 }
