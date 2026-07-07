@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { createLiveSession, xfnv1a, DEFAULT_DT_MS, type LiveSession } from "@/lib/games/engine";
+import { createLiveSession, xfnv1a, DEFAULT_DT_MS, EFFECTIVE_DT_MS, type LiveSession } from "@/lib/games/engine";
 import {
   buildRotation,
   rotationConfig,
@@ -123,8 +123,8 @@ export function RotationGame({ content }: { content: GameContent }) {
   const session = sessionRef.current;
   const state = session?.state;
   const secondsLeft = state
-    ? (ROUND_TICKS - state.tick) * (DEFAULT_DT_MS / 1000)
-    : ROUND_TICKS * (DEFAULT_DT_MS / 1000);
+    ? (ROUND_TICKS - state.tick) * (EFFECTIVE_DT_MS / 1000)
+    : ROUND_TICKS * (EFFECTIVE_DT_MS / 1000);
 
   return (
     <div className="space-y-6">

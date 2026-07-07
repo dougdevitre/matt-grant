@@ -1,6 +1,10 @@
 import type { Game, InputEvent, StepContext } from "./types";
 import { makeRng } from "./rng";
-import { DEFAULT_DT_MS } from "./replay";
+import { DEFAULT_DT_MS, GAME_SPEED } from "./replay";
+
+// Cap a single frame's elapsed time so a backgrounded tab (or a long GC pause)
+// can't dump hundreds of queued ticks in one advance() and fast-forward the run.
+const MAX_FRAME_MS = 250;
 
 // Fixed-timestep accumulator for CLIENT rendering only. The sim still advances by
 // whole ticks (so play stays identical to ./replay.ts), but this lets a rAF/interval
@@ -22,6 +26,8 @@ export interface LiveSession<S, I> {
   enqueue(input: I): void;
   /** advance the sim by however many whole ticks `elapsedMs` covers; returns ticks stepped */
   advance(elapsedMs: number): number;
+  /** fractional progress toward the next tick (0..1) — for render interpolation */
+  readonly alpha: number;
   isOver(): boolean;
 }
 
@@ -50,8 +56,13 @@ export function createLiveSession<S, I, C>(
     enqueue(input: I) {
       pending.push(input);
     },
+    get alpha() {
+      return Math.min(1, acc / dtMs);
+    },
     advance(elapsedMs: number): number {
-      acc += elapsedMs;
+      // Clamp then slow: GAME_SPEED shrinks how much wall-clock drains into ticks,
+      // halving on-screen speed while the sim stays byte-identical to replay().
+      acc += Math.min(elapsedMs, MAX_FRAME_MS) * GAME_SPEED;
       let stepped = 0;
       while (acc >= dtMs && !game.isOver(state)) {
         acc -= dtMs;

@@ -1,0 +1,17 @@
+{
+  "src": "~/Downloads/shoot",
+  "category": "events",
+  "photos": [
+    {
+      "file": "DSC_0421.jpg",
+      "name": "rally-wildwood",
+      "caption": "On the trail in Wildwood",
+      "alt": "Matt Grant greeting supporters at a campaign rally"
+    },
+    {
+      "file": "DSC_0588.jpg",
+      "name": "coffee-with-neighbors",
+      "alt": "Matt Grant talking with voters over coffee"
+    }
+  ]
+}

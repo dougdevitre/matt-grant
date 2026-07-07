@@ -10,7 +10,17 @@ import { makeRng } from "./rng";
 // function of its arguments. No wall-clock, no Math.random — randomness flows only
 // from the seeded ctx.rng built here.
 
-export const DEFAULT_DT_MS = 1000 / 30; // 30 Hz fixed timestep
+export const DEFAULT_DT_MS = 1000 / 30; // 30 Hz fixed sim timestep (canonical for replay)
+
+// Global playback-speed scalar for the LIVE client loop only. The sim is tick-based
+// and dt-independent, so scaling how fast wall-clock drains into ticks slows every
+// game's on-screen motion without touching reducers, scoring, or the server replay
+// path (which calls replay() below, never the live loop). 0.5 = half speed.
+export const GAME_SPEED = 0.5;
+
+// Real milliseconds of wall-clock per sim tick under GAME_SPEED — the number the
+// client HUD countdowns should use so they show honest real-time seconds.
+export const EFFECTIVE_DT_MS = DEFAULT_DT_MS / GAME_SPEED;
 
 export interface ReplayResult<S> {
   state: S;
