@@ -15,6 +15,7 @@
     "brand": "node scripts/brand-assets.mjs",
     "cta": "node scripts/cta-images.mjs",
     "sync:pillars": "node scripts/sync-pillars.mjs",
+    "carousel:photos": "node scripts/add-carousel-photos.mjs",
     "print-tracker": "tsx scripts/generate-print-tracker.ts",
     "demographics": "tsx scripts/generate-demographics.ts",
     "test": "vitest run",

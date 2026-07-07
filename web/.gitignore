@@ -9,6 +9,9 @@ next-env.d.ts
 .vercel
 /prisma/dev.db*
 
+# Personal carousel-photo config (copied from carousel-photos.example.json)
+/scripts/carousel-photos.json
+
 # Playwright (a11y harness) output
 /test-results
 /playwright-report

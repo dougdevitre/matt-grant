@@ -15,6 +15,8 @@ export interface ShareCardProps {
 }
 
 const FLAG_LABEL: Record<string, string> = {
+  // Cross-game
+  personal_best: "★ New personal best",
   // Cut & Save
   no_family_harmed: "No families harmed",
   no_borrow: "No borrowing",
