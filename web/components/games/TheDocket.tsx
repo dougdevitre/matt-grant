@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { createLiveSession, DEFAULT_DT_MS, type LiveSession } from "@/lib/games/engine";
+import { createLiveSession, DEFAULT_DT_MS, EFFECTIVE_DT_MS, type LiveSession } from "@/lib/games/engine";
 import { buildTheDocket, docketConfig, parseMaze, type DocketInput, type DocketState } from "@/lib/games/the-docket";
 import type { Dir } from "@/lib/games/the-docket";
 import type { GameContent } from "@/lib/games/content-schema";
@@ -170,7 +170,7 @@ export function TheDocket({ content }: { content: GameContent }) {
   const session = sessionRef.current;
   const state = session?.state;
   const d = dispRef.current;
-  const secondsLeft = state ? (ROUND_TICKS - state.tick) * (DEFAULT_DT_MS / 1000) : ROUND_TICKS * (DEFAULT_DT_MS / 1000);
+  const secondsLeft = state ? (ROUND_TICKS - state.tick) * (EFFECTIVE_DT_MS / 1000) : ROUND_TICKS * (EFFECTIVE_DT_MS / 1000);
 
   return (
     <div className="space-y-6">
@@ -260,7 +260,7 @@ export function TheDocket({ content }: { content: GameContent }) {
           <p className="text-center text-xs text-slate">
             Time {Math.max(0, Math.ceil(secondsLeft))}s —{" "}
             {state.powerTicksLeft > 0
-              ? `⚡ Reform active ${Math.ceil(state.powerTicksLeft * (DEFAULT_DT_MS / 1000))}s — push the system back`
+              ? `⚡ Reform active ${Math.ceil(state.powerTicksLeft * (EFFECTIVE_DT_MS / 1000))}s — push the system back`
               : state.lastEvent === "stage"
                 ? `Stage cleared — a larger assignment begins (stage ${state.stage}/${STAGES})`
                 : state.lastEvent === "caught"
