@@ -14,6 +14,9 @@ import { OrgChartHud } from "./OrgChartHud";
 import { OrgChartBandGauge } from "./OrgChartBandGauge";
 import { EndScreen } from "./EndScreen";
 import { useGameStartTelemetry } from "@/lib/games/telemetry-client";
+import { useSfx } from "@/lib/games/juice/sfx";
+import { MuteButton } from "./juice/MuteButton";
+import { useGameEffects } from "./juice/GameEffects";
 
 // Org Chart — the client view. Drives the shared engine with a rAF loop, records every
 // input, and submits (seed, inputs) to /api/games/score for the same-replay validation.
@@ -45,6 +48,9 @@ export function OrgChart({ content }: { content: GameContent }) {
   const [end, setEnd] = useState<EndData | null>(null);
   const [feedback, setFeedback] = useState<string>("");
   const [, repaint] = useReducer((n: number) => n + 1, 0);
+  const sfx = useSfx();
+  const fx = useGameEffects();
+  const boardRef = useRef<HTMLDivElement | null>(null);
 
   const sessionRef = useRef<LiveSession<OrgChartState, OrgChartInput> | null>(null);
   const gameRef = useRef(buildOrgChart());
@@ -61,11 +67,12 @@ export function OrgChart({ content }: { content: GameContent }) {
     const session = sessionRef.current;
     if (!session) return;
     const local = gameRef.current.score(session.state);
+    sfx.play("gameover");
     // Show the local (validated-on-submit) result immediately; EndScreen submits the
     // replay to /api/games/score for the leaderboard once the player adds initials.
     setEnd({ score: local.total, ceiling: local.ceiling, rank: null, flags: local.flags });
     setPhase("over");
-  }, [stopLoop]);
+  }, [stopLoop, sfx]);
 
   const loop = useCallback(
     (ts: number) => {
@@ -85,14 +92,17 @@ export function OrgChart({ content }: { content: GameContent }) {
   );
 
   const start = useCallback(() => {
+    sfx.unlock();
+    sfx.play("uiClick");
     gameRef.current = buildOrgChart();
     sessionRef.current = createLiveSession(gameRef.current, orgChartConfig, seed);
     lastTsRef.current = 0;
+    fx.clear();
     setFeedback("");
     setEnd(null);
     setPhase("playing");
     rafRef.current = requestAnimationFrame(loop);
-  }, [seed, loop]);
+  }, [seed, loop, sfx, fx]);
 
   const playAgain = useCallback(() => {
     setSeed(newSeed());
@@ -101,25 +111,50 @@ export function OrgChart({ content }: { content: GameContent }) {
 
   useEffect(() => () => stopLoop(), [stopLoop]);
 
+  // Position an effect at the tapped tile, in the board's coordinate space.
+  const effectAt = useCallback(
+    (el: HTMLElement | undefined, text: string, tone: "good" | "bad" | "gold") => {
+      const board = boardRef.current;
+      if (!board || !el) return;
+      const xPct = ((el.offsetLeft + el.offsetWidth / 2) / board.clientWidth) * 100;
+      const bottomPx = board.clientHeight - (el.offsetTop + el.offsetHeight / 2);
+      fx.spawnFloat({ xPct, bottomPx, text, tone });
+      fx.spawnBurst({ xPct, bottomPx, tone, count: 8 });
+    },
+    [fx],
+  );
+
   const act = useCallback(
-    (input: OrgChartInput) => {
+    (input: OrgChartInput, el?: HTMLElement) => {
       const session = sessionRef.current;
       if (!session || phase !== "playing") return;
       if (input.kind === "cut") {
         const block = session.state.board.find((b) => b.id === input.id);
         if (block) {
-          if (block.type === "redundant" || block.type === "bloat") setFeedback("✓ Trimmed bloat");
-          else if (block.type === "protected") setFeedback("✗ That's a family service — service lost");
-          else setFeedback("✗ Critical infrastructure — service lost");
+          if (block.type === "redundant" || block.type === "bloat") {
+            setFeedback("✓ Trimmed bloat");
+            sfx.play("collect");
+            effectAt(el, "＋TRIMMED", "good");
+          } else if (block.type === "protected") {
+            setFeedback("✗ That's a family service — service lost");
+            sfx.play("hit");
+            effectAt(el, "✗ SERVICE", "bad");
+          } else {
+            setFeedback("✗ Critical infrastructure — service lost");
+            sfx.play("hit");
+            effectAt(el, "✗ SERVICE", "bad");
+          }
         }
       } else if (input.kind === "freeze") {
         setFeedback("⏸ Hiring freeze");
+        sfx.play("powerup");
       } else {
         setFeedback("Early retirement — bloat cleared, people spared");
+        sfx.play("collect");
       }
       session.enqueue(input);
     },
-    [phase],
+    [phase, sfx, effectAt],
   );
 
   const session = sessionRef.current;
@@ -138,8 +173,13 @@ export function OrgChart({ content }: { content: GameContent }) {
     <div className="space-y-6">
       {phase === "ready" && (
         <div className="rounded-lg border border-line bg-white p-6 shadow-card">
-          <p className="eyebrow text-slate">{content.eyebrow}</p>
-          <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">{content.title}</h1>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="eyebrow text-slate">{content.eyebrow}</p>
+              <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">{content.title}</h1>
+            </div>
+            <MuteButton />
+          </div>
           <p className="mt-2 max-w-prose text-slate">{content.tagline}</p>
           <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-ink">
             {content.howTo.map((h) => (
@@ -182,9 +222,12 @@ export function OrgChart({ content }: { content: GameContent }) {
             )}
           </div>
 
-          <p className="min-h-[1.5rem] text-sm font-medium text-ink" role="status" aria-live="assertive">
-            {feedback}
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="min-h-[1.5rem] text-sm font-medium text-ink" role="status" aria-live="assertive">
+              {feedback}
+            </p>
+            <MuteButton />
+          </div>
 
           <div className="flex flex-wrap gap-3">
             <button
@@ -204,7 +247,8 @@ export function OrgChart({ content }: { content: GameContent }) {
           </div>
 
           <div
-            className="org-board grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
+            ref={boardRef}
+            className="org-board relative grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
             role="group"
             aria-label="Roles on the org chart — cut bloat, protect people and infrastructure"
           >
@@ -216,7 +260,7 @@ export function OrgChart({ content }: { content: GameContent }) {
               return (
                 <button
                   key={block.id}
-                  onClick={() => act({ kind: "cut", id: block.id })}
+                  onClick={(e) => act({ kind: "cut", id: block.id }, e.currentTarget)}
                   className="org-tile flex items-center justify-between gap-2 rounded-lg border border-line bg-white p-3 text-left text-sm font-semibold text-ink shadow-card transition-transform active:translate-y-px motion-reduce:active:translate-y-0"
                   aria-label={
                     guarded ? `Cut role: ${label}. ${guardWord} — service depends on this.` : `Cut role: ${label}`
@@ -243,6 +287,7 @@ export function OrgChart({ content }: { content: GameContent }) {
             {state.board.length === 0 && (
               <p className="col-span-full py-8 text-center text-sm text-slate">No open roles right now.</p>
             )}
+            {fx.render}
           </div>
 
           <style jsx>{`

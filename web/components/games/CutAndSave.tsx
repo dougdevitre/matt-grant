@@ -15,6 +15,9 @@ import { EndScreen } from "./EndScreen";
 import { useGameStartTelemetry } from "@/lib/games/telemetry-client";
 import { CutAndSaveTaxGauge } from "./CutAndSaveTaxGauge";
 import { CutAndSaveDebtMeter } from "./CutAndSaveDebtMeter";
+import { useSfx } from "@/lib/games/juice/sfx";
+import { MuteButton } from "./juice/MuteButton";
+import { useCountUp } from "./juice/useCountUp";
 
 // Cut & Save — the client view. It DRIVES the shared engine (createLiveSession) with a
 // requestAnimationFrame loop, records every input, and on round-end submits
@@ -50,6 +53,7 @@ export function CutAndSave({ content }: { content: GameContent }) {
   const [end, setEnd] = useState<EndData | null>(null);
   const [feedback, setFeedback] = useState<string>("");
   const [, repaint] = useReducer((n: number) => n + 1, 0);
+  const sfx = useSfx();
 
   // ── Presentation-only juice (no sim coupling) ────────────────────────────────
   // Floating "+$X" deltas anchored to a tile id, auto-expiring.
@@ -97,11 +101,12 @@ export function CutAndSave({ content }: { content: GameContent }) {
     const session = sessionRef.current;
     if (!session) return;
     const local = gameRef.current.score(session.state);
+    sfx.play("gameover");
     // Show the local (validated-on-submit) result immediately; EndScreen submits the
     // replay to /api/games/score for the leaderboard once the player adds initials.
     setEnd({ score: local.total, ceiling: local.ceiling, rank: null, flags: local.flags });
     setPhase("over");
-  }, [stopLoop]);
+  }, [stopLoop, sfx]);
 
   const loop = useCallback(
     (ts: number) => {
@@ -128,6 +133,8 @@ export function CutAndSave({ content }: { content: GameContent }) {
   );
 
   const start = useCallback(() => {
+    sfx.unlock();
+    sfx.play("uiClick");
     gameRef.current = buildCutAndSave();
     sessionRef.current = createLiveSession(gameRef.current, cutSaveConfig, seed);
     lastTsRef.current = 0;
@@ -139,7 +146,7 @@ export function CutAndSave({ content }: { content: GameContent }) {
     setEnd(null);
     setPhase("playing");
     rafRef.current = requestAnimationFrame(loop);
-  }, [seed, loop]);
+  }, [seed, loop, sfx]);
 
   const playAgain = useCallback(() => {
     setSeed(newSeed());
@@ -161,32 +168,42 @@ export function CutAndSave({ content }: { content: GameContent }) {
           if (item.type === "waste") {
             setFeedback(`✓ Waste cut — relief funded`);
             addFloater(item.id, `+$${item.value.toLocaleString("en-US")}`, "good");
+            sfx.play("collect");
           } else if (item.type === "essential") {
             setFeedback(`✗ That funds families — relief lost`);
             addFloater(item.id, "harm", "bad");
+            sfx.play("hit");
           } else {
             setFeedback(`✗ That pays for itself — yield cut`);
             addFloater(item.id, "no gain", "bad");
+            sfx.play("hit");
           }
         }
       } else if (input.kind === "borrow") {
         setFeedback("⚠ Borrowed — debt will compound");
+        sfx.play("uiClick");
       }
       session.enqueue(input);
     },
-    [phase, addFloater, markCutting],
+    [phase, addFloater, markCutting, sfx],
   );
 
   const session = sessionRef.current;
   const state = session?.state;
   const secondsLeft = state ? (ROUND_TICKS - state.tick) * (EFFECTIVE_DT_MS / 1000) : ROUND_TICKS * (EFFECTIVE_DT_MS / 1000);
+  const displayRelief = useCountUp(state?.relief ?? 0, 300);
 
   return (
     <div className="space-y-6">
       {phase === "ready" && (
         <div className="rounded-lg border border-line bg-white p-6 shadow-card">
-          <p className="eyebrow text-slate">{content.eyebrow}</p>
-          <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">{content.title}</h1>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="eyebrow text-slate">{content.eyebrow}</p>
+              <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">{content.title}</h1>
+            </div>
+            <MuteButton />
+          </div>
           <p className="mt-2 max-w-prose text-slate">{content.tagline}</p>
           <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-ink">
             {content.howTo.map((h) => (
@@ -203,7 +220,7 @@ export function CutAndSave({ content }: { content: GameContent }) {
         <>
           <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
             <Hud
-              relief={state.relief}
+              relief={displayRelief}
               taxPct={state.taxPct}
               debt={state.debt}
               streak={state.streak}
@@ -215,9 +232,12 @@ export function CutAndSave({ content }: { content: GameContent }) {
 
           <CutAndSaveDebtMeter debt={state.debt} />
 
-          <p className="min-h-[1.5rem] text-sm font-medium text-ink" role="status" aria-live="assertive">
-            {feedback}
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="min-h-[1.5rem] text-sm font-medium text-ink" role="status" aria-live="assertive">
+              {feedback}
+            </p>
+            <MuteButton />
+          </div>
 
           <div
             className={`cs-board grid grid-cols-2 gap-3 sm:grid-cols-3 ${harmShake ? "is-harm" : ""}`}
