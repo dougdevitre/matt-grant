@@ -7,13 +7,18 @@ import type { Dir } from "@/lib/games/the-docket";
 import type { GameContent } from "@/lib/games/content-schema";
 import { EndScreen } from "./EndScreen";
 import { useGameStartTelemetry } from "@/lib/games/telemetry-client";
+import { useSfx } from "@/lib/games/juice/sfx";
+import { MuteButton } from "./juice/MuteButton";
+import { useShake } from "./juice/useShake";
+import { useCountUp } from "./juice/useCountUp";
+import { StartCountdown } from "./juice/StartCountdown";
 
 // The Docket — Pac-Man-style maze view (PHASE 1: one maze, one ghost). The sim is the
 // shared deterministic engine; this view renders the grid, takes turn inputs (arrows /
 // WASD / on-screen pad), and records them for replay-validated scoring. Display
 // positions ease toward the grid cells so movement reads smooth, not steppy.
 
-type Phase = "ready" | "playing" | "over";
+type Phase = "ready" | "countdown" | "playing" | "over";
 interface EndData { score: number; ceiling: number; flags: string[]; moralInjury: number; stage: number; cleared: boolean }
 
 const ROUND_TICKS = docketConfig.roundTicks;
@@ -76,6 +81,12 @@ export function TheDocket({ content }: { content: GameContent }) {
   const [seed, setSeed] = useState<string>(newSeed);
   const [end, setEnd] = useState<EndData | null>(null);
   const [, repaint] = useReducer((n: number) => n + 1, 0);
+  const [powerFlash, setPowerFlash] = useState(false);
+
+  const sfx = useSfx();
+  const { shaking, shake } = useShake(300);
+  // Sim-counter edges for SFX/juice (compared frame-to-frame; no sim coupling).
+  const evRef = useRef({ score: 0, power: 0, eaten: 0, lives: 0, stage: 1 });
 
   const sessionRef = useRef<LiveSession<DocketState, DocketInput> | null>(null);
   const gameRef = useRef(buildTheDocket());
@@ -100,9 +111,10 @@ export function TheDocket({ content }: { content: GameContent }) {
     if (!session) return;
     const st = session.state;
     const local = gameRef.current.score(st);
+    sfx.play("gameover");
     setEnd({ score: local.total, ceiling: local.ceiling, flags: local.flags, moralInjury: st.moralInjury, stage: st.stage, cleared: st.cleared });
     setPhase("over");
-  }, [stopLoop]);
+  }, [stopLoop, sfx]);
 
   const loop = useCallback(
     (ts: number) => {
@@ -111,10 +123,11 @@ export function TheDocket({ content }: { content: GameContent }) {
       const elapsed = lastTsRef.current ? ts - lastTsRef.current : DEFAULT_DT_MS;
       lastTsRef.current = ts;
       session.advance(elapsed);
-      // Ease display toward the sim's grid cells.
+      // Ease display toward the sim's grid cells. Slower ease (~170ms) matches the
+      // now-slower step cadence so the glide stays even instead of arriving early.
       const st = session.state;
       const d = dispRef.current;
-      const k = Math.min(1, elapsed / 90); // ~90ms to close the gap
+      const k = Math.min(1, elapsed / 170);
       d.px += (st.player.col - d.px) * k;
       d.py += (st.player.row - d.py) * k;
       st.ghosts.forEach((g, i) => {
@@ -123,22 +136,56 @@ export function TheDocket({ content }: { content: GameContent }) {
         gd.x += (g.col - gd.x) * k;
         gd.y += (g.row - gd.y) * k;
       });
+      // Juice + SFX on authoritative edges.
+      const ev = evRef.current;
+      const eatenCount = st.ghosts.reduce((n, g) => n + (g.eaten ? 1 : 0), 0);
+      if (st.score > ev.score) sfx.play("collect"); // pellet / ghost points
+      if (st.powerTicksLeft > 0 && ev.power === 0) {
+        sfx.play("powerup");
+        setPowerFlash(true);
+        setTimeout(() => setPowerFlash(false), 320);
+      }
+      if (eatenCount > ev.eaten) sfx.play("combo", eatenCount);
+      if (st.lives < ev.lives || st.lastEvent === "caught") {
+        if (st.lives < ev.lives) {
+          sfx.play("hit");
+          shake();
+        }
+      }
+      if (st.stage > ev.stage) sfx.play("powerup");
+      ev.score = st.score;
+      ev.power = st.powerTicksLeft;
+      ev.eaten = eatenCount;
+      ev.lives = st.lives;
+      ev.stage = st.stage;
       repaint();
       if (session.isOver()) return finalize();
       rafRef.current = requestAnimationFrame(loop);
     },
-    [finalize],
+    [finalize, sfx, shake],
   );
 
-  const start = useCallback(() => {
+  // Arm the session (so the opening maze renders under the countdown), then hand off
+  // to the countdown, which kicks the loop when it finishes.
+  const beginCountdown = useCallback(() => {
     gameRef.current = buildTheDocket();
     sessionRef.current = createLiveSession(gameRef.current, docketConfig, seed);
     lastTsRef.current = 0;
     dispRef.current = initDisp();
+    const st = sessionRef.current.state;
+    evRef.current = { score: st.score, power: st.powerTicksLeft, eaten: 0, lives: st.lives, stage: st.stage };
     setEnd(null);
+    setPowerFlash(false);
+    sfx.unlock();
+    sfx.play("uiClick");
+    setPhase("countdown");
+  }, [seed, sfx]);
+
+  const beginPlay = useCallback(() => {
+    lastTsRef.current = 0;
     setPhase("playing");
     rafRef.current = requestAnimationFrame(loop);
-  }, [seed, loop]);
+  }, [loop]);
 
   const playAgain = useCallback(() => {
     setSeed(newSeed());
@@ -171,13 +218,19 @@ export function TheDocket({ content }: { content: GameContent }) {
   const state = session?.state;
   const d = dispRef.current;
   const secondsLeft = state ? (ROUND_TICKS - state.tick) * (EFFECTIVE_DT_MS / 1000) : ROUND_TICKS * (EFFECTIVE_DT_MS / 1000);
+  const displayScore = useCountUp(state?.score ?? 0, 350);
 
   return (
     <div className="space-y-6">
       {phase === "ready" && (
         <div className="rounded-lg border border-line bg-white p-6 shadow-card">
-          <p className="eyebrow text-slate">{content.eyebrow}</p>
-          <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">{content.title}</h1>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="eyebrow text-slate">{content.eyebrow}</p>
+              <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">{content.title}</h1>
+            </div>
+            <MuteButton />
+          </div>
           <p className="mt-2 max-w-prose text-slate">{content.tagline}</p>
           <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-ink">
             {content.howTo.map((h) => (
@@ -185,14 +238,17 @@ export function TheDocket({ content }: { content: GameContent }) {
             ))}
           </ul>
           <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-brick">Ten escalating stages · the system is the real boss</p>
-          <button onClick={start} className="btn-brick mt-4">Start</button>
+          <button onClick={beginCountdown} className="btn-brick mt-4">Start</button>
         </div>
       )}
 
-      {phase === "playing" && state && (
+      {(phase === "playing" || phase === "countdown") && state && (
         <>
+          <div className="flex items-center justify-end">
+            <MuteButton />
+          </div>
           <div className="grid grid-cols-2 gap-4 rounded-lg border border-line bg-white p-4 shadow-card sm:grid-cols-4" role="status" aria-live="polite">
-            <div className="flex flex-col"><span className="eyebrow text-slate">Score</span><span className="font-mono text-lg font-bold tabular-nums text-ink">{state.score.toLocaleString("en-US")}</span></div>
+            <div className="flex flex-col"><span className="eyebrow text-slate">Score</span><span className="font-mono text-lg font-bold tabular-nums text-ink">{displayScore.toLocaleString("en-US")}</span></div>
             <div className="flex flex-col"><span className="eyebrow text-slate">Stage</span><span className="font-mono text-lg font-bold tabular-nums text-ink">{state.stage}<span className="text-slate">/{STAGES}</span></span></div>
             <div className="flex flex-col"><span className="eyebrow text-slate">Childhood left</span><span className="font-mono text-lg font-bold tabular-nums text-ink">{state.pellets.size}</span></div>
             <div className="flex flex-col"><span className="eyebrow text-slate">Lives</span><span className="font-mono text-lg font-bold tabular-nums text-ink">{"♥".repeat(Math.max(0, state.lives))}</span></div>
@@ -217,7 +273,7 @@ export function TheDocket({ content }: { content: GameContent }) {
 
           <div className="flex justify-center">
             <div
-              className="relative rounded-md bg-paper shadow-card"
+              className={`relative overflow-hidden rounded-md bg-paper shadow-card ${shaking ? "dk-shake" : ""}`}
               style={{ width: MAZE.width * CELL, height: MAZE.height * CELL }}
               aria-label="The docket maze"
             >
@@ -254,6 +310,12 @@ export function TheDocket({ content }: { content: GameContent }) {
               })}
               {/* player (the advocate) */}
               <span className="absolute grid place-items-center rounded-full bg-ink text-paper" style={{ left: d.px * CELL + 2, top: d.py * CELL + 2, width: CELL - 4, height: CELL - 4, fontSize: 11 }} aria-hidden="true">●</span>
+
+              {/* reform (power) flash */}
+              {powerFlash && <span className="pointer-events-none absolute inset-0 z-10 bg-gold/30" aria-hidden="true" />}
+
+              {/* countdown */}
+              {phase === "countdown" && <StartCountdown onDone={beginPlay} onTick={(i) => sfx.play(i >= 3 ? "powerup" : "uiClick")} />}
             </div>
           </div>
 
@@ -277,6 +339,21 @@ export function TheDocket({ content }: { content: GameContent }) {
             <button onClick={() => turn("down")} className="btn-ghost py-3 text-lg sm:py-2 sm:text-base" aria-label="Move down">↓</button>
             <button onClick={() => turn("right")} className="btn-ghost py-3 text-lg sm:py-2 sm:text-base" aria-label="Move right">→</button>
           </div>
+
+          <style jsx>{`
+            .dk-shake {
+              animation: dk-shake 0.3s ease-in-out;
+            }
+            @keyframes dk-shake {
+              0%, 100% { transform: translate(0, 0); }
+              25% { transform: translate(-3px, 2px); }
+              50% { transform: translate(3px, -2px); }
+              75% { transform: translate(-2px, 1px); }
+            }
+            @media (prefers-reduced-motion: reduce) {
+              .dk-shake { animation: none; }
+            }
+          `}</style>
         </>
       )}
 
