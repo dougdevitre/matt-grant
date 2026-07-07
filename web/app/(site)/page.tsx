@@ -4,10 +4,12 @@ import { Countdown } from "@/components/Countdown";
 import { Reveal } from "@/components/Reveal";
 import { HeroVideo } from "@/components/HeroVideo";
 import { VideoPlaylist } from "@/components/VideoPlaylist";
+import { PhotoCarousel } from "@/components/PhotoCarousel";
 import { CtaButton } from "@/components/CtaButton";
-import { CAMPAIGN, PRIORITIES, VALUES, ASSETS_CDN } from "@/lib/site";
+import { CAMPAIGN, PRIORITIES, VALUES, ASSETS_CDN, VOTER_LOOKUP, homeCarouselSlides } from "@/lib/site";
 
 export default function HomePage() {
+  const carousel = homeCarouselSlides();
   return (
     <>
       {/* HERO — the thesis: conviction + the clock */}
@@ -138,6 +140,40 @@ export default function HomePage() {
           <VideoPlaylist />
         </div>
       </section>
+
+      {/* ON THE TRAIL — photo carousel + vote CTA. Renders only once at least one
+          promoted photo resolves (see HOME_CAROUSEL in lib/site.ts). */}
+      {carousel.length > 0 && (
+        <section className="border-y border-line bg-paper">
+          <div className="container-page py-20 sm:py-24">
+            <div className="max-w-prose">
+              <p className="eyebrow text-brick">On the trail</p>
+              <h2 className="mt-3 text-4xl font-semibold sm:text-5xl">Out in MO-02.</h2>
+              <p className="mt-4 text-lg text-slate">
+                Neighbors, events, and the everyday work of the campaign across the
+                district. This race is decided one conversation at a time — make sure
+                your voice is counted on August 4.
+              </p>
+            </div>
+            <div className="mt-10">
+              <PhotoCarousel slides={carousel} />
+            </div>
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              <a
+                href={VOTER_LOOKUP}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary"
+              >
+                Check your registration &amp; polling place →
+              </a>
+              <span className="text-sm text-slate">
+                Official Missouri Secretary of State voter lookup.
+              </span>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* MEET MATT band */}
       <section className="bg-ink text-paper">
