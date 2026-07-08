@@ -67,12 +67,15 @@ flowchart TD
 
 The request is about texting **team members**. Today that audience is a second-class citizen:
 
-1. **No staff phone roster.** Team members are invited by **email only** (`app/dashboard/team/actions.ts`, `lib/staff.ts` capture no phone). Clerk *can* hold a phone if a user added one (`lib/clerkAudiences.ts` reads `primaryPhoneNumber`), but nothing prompts for or requires it — so coverage is near zero and unreliable.
-2. **No "team" audience in the composer.** `resolveSmsRecipients()` already accepts a `roles` argument and the send action already reads `roleGroups` from the form — but `app/dashboard/sms/page.tsx` **never renders staff-role chips**, so an admin can't actually pick "admins" or "captains" as a blast audience from the console. The capability is latent, not exposed.
-3. **No team quick-pick in the inbox.** The 1:1 new-message picker lists opted-in *volunteers*, not staff.
-4. **Consent still applies to staff.** Even with phones on file, a staffer must be opted in (texted the keyword or checked a consent box) before the campaign may text them. There's no internal opt-in capture in the invite/onboarding flow.
+1. **No staff phone roster.** Team members are invited by **email only** (`app/dashboard/team/actions.ts`, `lib/staff.ts` capture no phone). Clerk *can* hold a phone if a user added one (`lib/clerkAudiences.ts` reads `primaryPhoneNumber`), but nothing prompts for or requires it — so coverage is thin and unreliable. **This is the real blocker** and is addressed in Phase 2.
+2. **Consent still applies to staff.** Even with phones on file, a staffer must be opted in (texted the keyword or checked a consent box) before the campaign may text them. There's no internal opt-in capture in the invite/onboarding flow (Phase 2).
 
-Net: an admin *can* two-way text a teammate today **only if** that teammate happens to have opted in as a supporter and the admin types their number into the inbox by hand. There is no first-class "message my team" path.
+Already-present (so *not* gaps):
+
+- **Broadcast to the team works.** The blast composer already renders **account-role chips** (`components/dashboard/SmsComposer.tsx`, `ROLES`), wired to `roleGroups` and resolved by `resolveSmsRecipients()` — so an admin can pick "Admin"/"Captain" as a blast audience today (opted-in numbers only, counted at send).
+- **1:1 to a teammate works.** The inbox **New message** picker now lists opted-in team members (staff Clerk accounts with a phone) alongside volunteers — see Phase 1 below.
+
+Net: an admin can two-way text a teammate today **provided that teammate has a phone on file in Clerk and is opted in.** The remaining friction is coverage — most staff have neither, which Phase 2 fixes.
 
 ---
 
@@ -83,10 +86,10 @@ Four phases, smallest-useful-first. Phases 0–1 make team texting real from the
 ### Phase 0 — Go-live prerequisite (no code)
 - Complete Twilio Toll-Free Verification and load the three SSM secrets so `smsEnabled()` flips true. Tracked in [`sms-go-live.md`](./sms-go-live.md). **Blocks any real send.**
 
-### Phase 1 — Expose the team as an audience (small, mostly UI)
-- In `app/dashboard/sms/page.tsx`, surface **staff-role chips** (admin / captain) alongside the existing group chips, wired to the `roleGroups` form field the action already parses. Add matching opt-in counts (mirror `smsVolRoleCounts`).
-- In the inbox `NewMessageForm`, add opted-in **staff** to the quick-pick contact list (union of the volunteer list with Clerk staff who have a phone + opt-in).
-- *Outcome:* an admin can broadcast to the team and 1:1 a teammate from the console — for staff who already have a phone on file and are opted in.
+### Phase 1 — Expose the team as an audience ✅ done
+- Broadcast: account-role chips already ship in the composer (nothing to add) — an admin picks "Admin"/"Captain" as a blast audience, opted-in only.
+- Inbox: **done in this change.** `app/dashboard/messages/page.tsx` now unions opted-in team members (staff Clerk accounts with a phone) into the New-message quick-pick, labeled by role, deduped by phone against the volunteer list.
+- *Outcome:* an admin can broadcast to the team and 1:1 a teammate from the console — for any staffer who already has a phone on file and is opted in. (Coverage of that "already has a phone + opt-in" set is what Phase 2 grows.)
 
 ### Phase 2 — Capture staff phone + consent (closes the coverage gap)
 - Add an optional **mobile number** field to the invite/onboarding flow (`team/actions.ts`, `InviteForm`) and store it on the staff record.
