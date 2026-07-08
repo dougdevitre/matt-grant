@@ -4,6 +4,7 @@ import { recordConsent, recordOptOut } from "@/lib/sms/consent";
 import { setVolunteerContactOptOut } from "@/lib/volunteers/optout";
 import { isBlocked } from "@/lib/sms/moderation";
 import { logInbound } from "@/lib/sms/conversations";
+import { resolveCta, welcomeReply } from "@/lib/sms/ctas";
 import { CAMPAIGN } from "@/lib/site";
 
 // Inbound Twilio webhook for the Messaging Service. Verifies the X-Twilio-Signature,
@@ -52,19 +53,29 @@ export async function POST(req: NextRequest) {
   const keyword = bodyText.trim().toUpperCase().replace(/[^A-Z]/g, "");
   const optIn = (process.env.SMS_OPTIN_KEYWORD ?? "MATT").toUpperCase().replace(/[^A-Z]/g, "");
 
-  // Keyword side effects + the reply, exactly as before — then log EVERY inbound
-  // message into the person's thread (after the consent mutation, so a fresh read
-  // reflects STOP/START).
+  // Keyword side effects + the reply — then log EVERY inbound message into the
+  // person's thread (after the consent mutation, so a fresh read reflects
+  // STOP/START). CTA keywords (DONATE/VOLUNTEER/EVENTS/VOTE, lib/sms/ctas.ts) are
+  // resolved last, after the reserved words, so they never shadow STOP/START/HELP.
   let reply: string | undefined;
+  const cta = STOP_WORDS.has(keyword) || START_WORDS.has(keyword) || keyword === optIn || keyword === "HELP"
+    ? null
+    : resolveCta(keyword);
   if (STOP_WORDS.has(keyword)) {
     await recordOptOut(from); // carrier auto-replies to STOP; don't double-send
     await setVolunteerContactOptOut({ phone: from }, true).catch(() => {}); // reflect on the roster
   } else if (START_WORDS.has(keyword) || keyword === optIn) {
     await recordConsent(from, keyword === optIn ? "sms-keyword" : "sms-start");
     await setVolunteerContactOptOut({ phone: from }, false).catch(() => {}); // re-subscribe clears it
-    reply = `You're subscribed to ${CAMPAIGN.candidate} for Congress updates. Msg & data rates may apply. Reply STOP to opt out, HELP for help.`;
+    reply = welcomeReply();
   } else if (keyword === "HELP") {
     reply = `${CAMPAIGN.candidate} for Congress — campaign updates. Reply STOP to opt out. ${CAMPAIGN.email}`;
+  } else if (cta) {
+    // Texting a CTA keyword is an opt-in that drives one action: record consent
+    // (tagged with the CTA source) and reply with that action's trackable link.
+    await recordConsent(from, cta.source);
+    await setVolunteerContactOptOut({ phone: from }, false).catch(() => {});
+    reply = cta.reply;
   }
 
   // Best-effort: never hold the 200 ack on a logging failure.

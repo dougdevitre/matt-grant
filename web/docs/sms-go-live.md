@@ -117,9 +117,12 @@ Reply to the toll-free number from your phone and confirm each transition (check
 | `STOP` | Marked **opted_out**; the volunteer roster reflects it. (Carrier sends its own STOP confirmation — the app doesn't double-reply.) A subsequent `/api/sms/test` to you now returns **409**. |
 | `START` (or `YES`) | Marked **opted_in** again; app replies with the subscribe confirmation. Test send works again. |
 | `HELP` | App replies with the campaign info line (candidate + email + STOP notice). |
-| `MATT` (the opt-in keyword) | Records consent and replies with the subscribe confirmation. |
+| `MATT` (the opt-in keyword) | Records consent and replies with the welcome — now leads with a **Get Involved** link. |
+| A **CTA keyword** — `DONATE`, `VOLUNTEER`, `EVENTS`, `VOTE` | Records consent (tagged `sms-cta-*`) **and** replies with that action's trackable link + disclaimer. Confirm the link carries `utm_campaign=<keyword>`. Copy/keywords live in `lib/sms/ctas.ts`. |
 
 This exercises signature verification, the consent ledger, roster mirroring, and the reply copy in one pass.
+
+> **CTA keywords** turn the number into the "Text DONATE to +1 844-314-7912" pattern for signs, mailers, and the stump speech — each keyword opts the texter in and drives one action. The UTM tag on every link lets you attribute donations/signups back to the keyword and the material that carried it.
 
 ---
 
