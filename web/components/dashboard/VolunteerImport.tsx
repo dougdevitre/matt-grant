@@ -25,9 +25,9 @@ export function VolunteerImport() {
       <form action={action} className="mt-4 space-y-3">
         <p className="text-xs text-slate">
           First row must be a header. Recognized columns: <span className="font-mono">name</span>, <span className="font-mono">email</span>,{" "}
-          <span className="font-mono">phone</span>, <span className="font-mono">city</span>, <span className="font-mono">interests</span>. Each row needs a{" "}
-          <span className="font-semibold">name</span> and an <span className="font-semibold">email or phone</span>. Re-importing a known email/phone updates that
-          person instead of duplicating.
+          <span className="font-mono">phone</span>, <span className="font-mono">city</span>, <span className="font-mono">interests</span>,{" "}
+          <span className="font-mono">sms consent</span>. Each row needs a <span className="font-semibold">name</span> and an{" "}
+          <span className="font-semibold">email or phone</span>. Re-importing a known email/phone updates that person instead of duplicating.
         </p>
         <textarea
           name="csv"
@@ -46,6 +46,14 @@ export function VolunteerImport() {
             {preview.mappedColumns.length > 0 && <span className="text-slate"> · columns: {preview.mappedColumns.join(", ")}</span>}
           </p>
         )}
+
+        <label className="flex items-start gap-2 text-xs text-slate">
+          <input type="checkbox" name="smsAttest" value="1" className="mt-0.5" />
+          <span>
+            I confirm these contacts gave written consent to receive campaign text messages. Only then are rows whose{" "}
+            <span className="font-mono">sms consent</span> column is <span className="font-mono">yes</span> added to the SMS list (TCPA).
+          </span>
+        </label>
 
         <div className="flex items-center gap-3">
           <button type="submit" disabled={pending || preview.valid.length === 0} className="btn-primary disabled:opacity-50">

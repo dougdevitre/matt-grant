@@ -49,7 +49,7 @@ export function parseCsv(text: string): string[][] {
   return rows.filter((r) => r.some((cell) => cell.trim() !== ""));
 }
 
-export type VolunteerImportRow = { name: string; email?: string; phone?: string; city?: string; interests?: string };
+export type VolunteerImportRow = { name: string; email?: string; phone?: string; city?: string; interests?: string; smsConsent?: boolean };
 
 // Header → field, case-insensitive. Common spreadsheet column names are accepted.
 const HEADER_ALIASES: Record<string, keyof VolunteerImportRow> = {
@@ -58,7 +58,15 @@ const HEADER_ALIASES: Record<string, keyof VolunteerImportRow> = {
   phone: "phone", "phone number": "phone", mobile: "phone", cell: "phone", telephone: "phone", "cell phone": "phone",
   city: "city", town: "city", municipality: "city",
   interests: "interests", interest: "interests", notes: "interests", note: "interests", tags: "interests", skills: "interests",
+  // Explicit per-row SMS consent. Parsed default-OFF (see mapVolunteers): only a
+  // literal truthy value opts a row in, and even then the server requires a staff
+  // attestation before writing the consent ledger.
+  "sms consent": "smsConsent", "sms opt-in": "smsConsent", "sms optin": "smsConsent",
+  "opt-in": "smsConsent", "optin": "smsConsent", consent: "smsConsent", sms: "smsConsent",
 };
+
+// A CSV cell counts as consent only if it's explicitly affirmative — never blank/unknown.
+const CONSENT_TRUE = /^(true|yes|y|1)$/i;
 
 export type VolunteerMapResult = { valid: VolunteerImportRow[]; skipped: number; total: number; mappedColumns: (keyof VolunteerImportRow)[] };
 
@@ -85,7 +93,14 @@ export function mapVolunteers(rows: string[][]): VolunteerMapResult {
       skipped++;
       continue;
     }
-    valid.push({ name, email: email || undefined, phone: phone || undefined, city: get("city") || undefined, interests: get("interests") || undefined });
+    valid.push({
+      name,
+      email: email || undefined,
+      phone: phone || undefined,
+      city: get("city") || undefined,
+      interests: get("interests") || undefined,
+      smsConsent: CONSENT_TRUE.test(get("smsConsent")) || undefined,
+    });
   }
   return { valid, skipped, total: body.length, mappedColumns: Object.keys(idx) as (keyof VolunteerImportRow)[] };
 }
