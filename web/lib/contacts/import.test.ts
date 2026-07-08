@@ -35,6 +35,18 @@ describe("mapVolunteers", () => {
     expect(r.valid).toHaveLength(0);
     expect(r.mappedColumns).toEqual([]);
   });
+
+  it("parses an sms-consent column default-OFF (only explicit truthy opts in)", () => {
+    const r = mapVolunteers(parseCsv("name,phone,sms consent\nYes Person,3145550100,yes\nNo Person,3145550101,no\nBlank Person,3145550102,"));
+    expect(r.valid.find((v) => v.name === "Yes Person")?.smsConsent).toBe(true);
+    expect(r.valid.find((v) => v.name === "No Person")?.smsConsent).toBeUndefined();
+    expect(r.valid.find((v) => v.name === "Blank Person")?.smsConsent).toBeUndefined();
+  });
+
+  it("treats a missing consent column as no consent", () => {
+    const r = mapVolunteers(parseCsv("name,phone\nSam Lee,3145550100"));
+    expect(r.valid[0].smsConsent).toBeUndefined();
+  });
 });
 
 describe("toCsv", () => {

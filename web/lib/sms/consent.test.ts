@@ -77,6 +77,24 @@ describe("recordConsent / recordOptOut", () => {
     expect(await recordConsent("bad", "web-form")).toBe(false);
     expect(send).not.toHaveBeenCalled();
   });
+
+  it("binds an explicit consentAt (for backfill) but keeps if_not_exists so a re-run can't clobber", async () => {
+    send.mockResolvedValue({});
+    const original = "2025-01-02T03:04:05.000Z";
+    await recordConsent("555-555-0123", "games-lead-backfill", original);
+    const cmd = send.mock.calls[0][0];
+    // The passed timestamp is bound as :at, and the SET clause only writes it on first
+    // consent (if_not_exists) — so backfilling never overwrites a live opt-in's date.
+    expect(cmd.input.ExpressionAttributeValues[":at"]).toBe(original);
+    expect(cmd.input.UpdateExpression).toContain("consentAt = if_not_exists(consentAt, :at)");
+  });
+
+  it("defaults consentAt to now when omitted (live opt-in)", async () => {
+    send.mockResolvedValue({});
+    await recordConsent("555-555-0123", "web-form");
+    const v = send.mock.calls[0][0].input.ExpressionAttributeValues;
+    expect(v[":at"]).toBe(v[":u"]); // same now-timestamp for consentAt + updatedAt
+  });
 });
 
 describe("optedInSet", () => {

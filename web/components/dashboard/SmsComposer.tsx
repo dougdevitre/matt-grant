@@ -15,11 +15,13 @@ export type SavedSmsOption = { id: string; name: string; role: Role | null; vars
 
 export function SmsComposer({
   groups,
+  volRoles = [],
   saved = [],
   canSend,
   disabled,
 }: {
   groups: SmsAudienceOption[];
+  volRoles?: SmsAudienceOption[];
   saved?: SavedSmsOption[];
   canSend: boolean;
   disabled: boolean;
@@ -28,6 +30,7 @@ export function SmsComposer({
   const [vars, setVars] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<string[]>(["subscribers"]);
   const [roleSel, setRoleSel] = useState<Role[]>([]);
+  const [volRoleSel, setVolRoleSel] = useState<string[]>([]);
   const [testTo, setTestTo] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
   const [res, setRes] = useState<SmsSendState | null>(null);
@@ -36,11 +39,16 @@ export function SmsComposer({
   const tpl = getSmsTemplate(key);
   const body = useMemo(() => withCompliance(tpl?.build(vars) ?? ""), [tpl, vars]);
   const seg = smsSegments(body);
-  const reach = selected.reduce((n, v) => n + (groups.find((g) => g.value === v)?.count ?? 0), 0);
+  // Group + volunteer-role counts are known up front (both are single roster reads on the
+  // server), so fold them into the reach estimate. Clerk account roles stay "counted at send".
+  const groupReach = selected.reduce((n, v) => n + (groups.find((g) => g.value === v)?.count ?? 0), 0);
+  const volReach = volRoleSel.reduce((n, v) => n + (volRoles.find((o) => o.value === v)?.count ?? 0), 0);
+  const reach = groupReach + volReach;
 
   const setVar = (n: string, v: string) => setVars((p) => ({ ...p, [n]: v }));
   const toggle = (v: string) => setSelected((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]));
   const toggleRole = (r: Role) => setRoleSel((cur) => (cur.includes(r) ? cur.filter((x) => x !== r) : [...cur, r]));
+  const toggleVolRole = (v: string) => setVolRoleSel((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]));
 
   // Load a saved SMS template: rides the generic "custom" template — prefill the body + role.
   const loadSaved = (id: string) => {
@@ -57,6 +65,7 @@ export function SmsComposer({
     f.set("templateKey", key);
     selected.forEach((g) => f.append("groups", g));
     roleSel.forEach((r) => f.append("roleGroups", r));
+    volRoleSel.forEach((v) => f.append("volRoles", v));
     f.set("scheduledAt", scheduledAt);
     f.set("testTo", testTo);
     tpl?.fields.forEach((fld) => f.set(fld.name, vars[fld.name] ?? ""));
@@ -156,6 +165,28 @@ export function SmsComposer({
               );
             })}
           </div>
+          {/* By volunteer role/door — opted-in numbers only; counts known up front. */}
+          {volRoles.length > 0 && (
+            <>
+              <label className="mt-3 block text-xs font-semibold text-slate">By volunteer role (opted-in only)</label>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {volRoles.map((o) => {
+                  const on = volRoleSel.includes(o.value);
+                  return (
+                    <button
+                      type="button"
+                      key={o.value}
+                      onClick={() => toggleVolRole(o.value)}
+                      className={`rounded-sm border px-3 py-1.5 text-xs font-semibold transition-colors ${on ? "border-ink bg-ink text-paper" : "border-line bg-white text-ink hover:border-ink"}`}
+                    >
+                      {o.label}
+                      <span className={`ml-1.5 font-mono text-[0.6rem] ${on ? "text-paper/60" : "text-slate"}`}>{o.count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
           <p className="mt-2 font-mono text-xs text-slate">
             ~{reach} recipient{reach === 1 ? "" : "s"} (before de-dupe)
             {roleSel.length > 0 && <span> + opted-in accounts by role (counted at send)</span>}
@@ -201,7 +232,7 @@ export function SmsComposer({
         {canSend ? (
           <button
             type="button"
-            disabled={disabled || pending || !body || selected.length === 0}
+            disabled={disabled || pending || !body || (selected.length === 0 && roleSel.length === 0 && volRoleSel.length === 0)}
             className="btn-primary disabled:opacity-50"
             onClick={() => {
               if (window.confirm(`Send this text to ~${reach} opted-in recipient${reach === 1 ? "" : "s"}?`)) run(sendSmsCampaign);
