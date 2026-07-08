@@ -7,6 +7,8 @@ import { formatEventRange } from "@/lib/events/time";
 import { rateLimit, clientIpFromHeaders } from "@/lib/ratelimit";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { renderEmail, renderText } from "@/lib/email/layout";
+import { toE164 } from "@/lib/sms/send";
+import { recordConsent } from "@/lib/sms/consent";
 import { SITE_URL, CAMPAIGN } from "@/lib/site";
 
 export type RsvpState = { ok: boolean; message: string };
@@ -60,14 +62,23 @@ export async function rsvp(formData: FormData): Promise<RsvpState> {
   }
 
   const email = String(formData.get("email") ?? "").trim() || undefined;
+  const phone = String(formData.get("phone") ?? "").trim() || undefined;
   const ok = await addSignup(id, {
     name,
     email,
-    phone: String(formData.get("phone") ?? "").trim() || undefined,
+    phone,
     role: String(formData.get("role") ?? "").trim() || undefined,
     count: Number(formData.get("count") ?? 1) || 1,
   });
   if (!ok) return { ok: false, message: "Something went wrong — please try again." };
+
+  // Optional SMS opt-in — consent is a side effect of the RSVP, not part of the
+  // event write (mirrors the volunteer intake). Only recorded on an explicit
+  // checkbox + a normalizable number, so the RSVP itself never implies consent.
+  if (formData.get("smsOptIn") && phone) {
+    const e164 = toE164(phone);
+    if (e164) await recordConsent(e164, "event-rsvp").catch(() => {});
+  }
 
   if (email) await sendRsvpConfirmation(event, email);
 

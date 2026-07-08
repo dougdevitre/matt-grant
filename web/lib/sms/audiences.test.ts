@@ -9,7 +9,7 @@ vi.mock("@/lib/queries", () => ({
   getVolunteers: vi.fn(),
 }));
 
-import { resolveSmsRecipients, smsAudienceCounts, smsAudienceLabel } from "./audiences";
+import { resolveSmsRecipients, smsAudienceCounts, smsAudienceLabel, smsVolRoleCounts, parseVolRole } from "./audiences";
 import { optedInSet } from "@/lib/sms/consent";
 import { getVolunteers } from "@/lib/queries";
 
@@ -57,5 +57,59 @@ describe("smsAudienceLabel", () => {
   it("joins group labels", () => {
     expect(smsAudienceLabel(["subscribers", "volunteers"])).toBe("All opted-in + Volunteers");
     expect(smsAudienceLabel([])).toBe("—");
+  });
+  it("appends volunteer-role labels", () => {
+    expect(smsAudienceLabel([], [], ["role:Canvasser", "door:Team Captain"])).toBe("Canvasser + Door: Team Captain");
+  });
+});
+
+describe("parseVolRole", () => {
+  it("accepts taxonomy roles/doors and rejects everything else", () => {
+    expect(parseVolRole("role:Canvasser")).toEqual({ kind: "role", value: "Canvasser" });
+    expect(parseVolRole("door:Team Captain")).toEqual({ kind: "door", value: "Team Captain" });
+    expect(parseVolRole("role:NotARealRole")).toBeNull();
+    expect(parseVolRole("door:Nope")).toBeNull();
+    expect(parseVolRole("Canvasser")).toBeNull(); // no namespace
+  });
+});
+
+describe("volunteer-role targeting + opt-out reconciliation", () => {
+  beforeEach(() => {
+    // 0102 is opted_in in the ledger but flagged optedOut on the roster (e.g. an
+    // email unsubscribe-all) — it must be dropped from volunteer sourcing.
+    mockOpted.mockResolvedValue(new Set(["+13145550100", "+13145550101", "+13145550102"]));
+    mockVols.mockResolvedValue({
+      connected: true,
+      rows: [
+        { phone: "314-555-0100", roles: ["Canvasser", "Phone Banker"], door: "Volunteer", optedOut: false },
+        { phone: "314-555-0101", roles: ["Poll Watcher"], door: "Team Captain", optedOut: false },
+        { phone: "314-555-0102", roles: ["Canvasser"], door: "Volunteer", optedOut: true }, // roster opt-out
+      ],
+    });
+  });
+
+  it("selects opted-in volunteers by role token, excluding roster opt-outs", async () => {
+    expect(await resolveSmsRecipients([], [], ["role:Canvasser"])).toEqual(["+13145550100"]);
+  });
+
+  it("selects by door token", async () => {
+    expect(await resolveSmsRecipients([], [], ["door:Team Captain"])).toEqual(["+13145550101"]);
+  });
+
+  it("the volunteers GROUP also honors the roster opt-out (0102 excluded)", async () => {
+    expect(new Set(await resolveSmsRecipients(["volunteers"]))).toEqual(new Set(["+13145550100", "+13145550101"]));
+  });
+
+  it("de-dupes a volunteer matched by two tokens", async () => {
+    expect(await resolveSmsRecipients([], [], ["role:Canvasser", "role:Phone Banker"])).toEqual(["+13145550100"]);
+  });
+
+  it("smsVolRoleCounts counts opted-in members per token (opt-outs excluded)", async () => {
+    const c = await smsVolRoleCounts();
+    expect(c["role:Canvasser"]).toBe(1); // 0100 only; 0102 opted out
+    expect(c["role:Phone Banker"]).toBe(1);
+    expect(c["role:Poll Watcher"]).toBe(1);
+    expect(c["door:Volunteer"]).toBe(1);
+    expect(c["door:Team Captain"]).toBe(1);
   });
 });

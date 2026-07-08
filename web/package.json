@@ -12,6 +12,7 @@
     "db:seed": "tsx scripts/seed-dynamo.ts",
     "db:clean-seed": "tsx scripts/delete-seed.ts",
     "backfill:roles": "tsx scripts/backfill-clerk-roles.ts",
+    "backfill:sms-consent": "tsx scripts/backfill-sms-consent.ts",
     "brand": "node scripts/brand-assets.mjs",
     "cta": "node scripts/cta-images.mjs",
     "sync:pillars": "node scripts/sync-pillars.mjs",

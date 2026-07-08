@@ -52,13 +52,22 @@ export function RsvpForm({ eventId, full = false, spotsLeft = null }: { eventId:
         </select>
         <input name="count" type="number" min={1} max={20} defaultValue={1} aria-label="How many people" className={input} />
       </div>
+      <label className="mt-3 flex items-start gap-2 text-xs text-slate">
+        <input type="checkbox" name="smsOptIn" value="1" className="mt-0.5" />
+        <span>
+          Text me campaign updates from Matt Grant for Congress (optional). Msg &amp; data rates may apply; reply STOP to opt
+          out.
+        </span>
+      </label>
       <div className="mt-4 flex items-center gap-3">
         <button type="submit" disabled={pending} className="btn-primary disabled:opacity-50">
           {pending ? "Sending…" : "Count me in"}
         </button>
         {state && !state.ok && <span className="text-sm text-brick">{state.message}</span>}
       </div>
-      <p className="mt-3 text-xs text-slate">We&apos;ll only use your contact info to follow up about this event.</p>
+      <p className="mt-3 text-xs text-slate">
+        We&apos;ll use your contact info to follow up about this event. Texts only if you check the box above.
+      </p>
     </form>
   );
 }

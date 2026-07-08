@@ -7,7 +7,7 @@ import { smsEnabled, toE164, sendSms } from "@/lib/sms/send";
 import { isOptedIn } from "@/lib/sms/consent";
 import { getSmsTemplate, withCompliance } from "@/lib/sms/templates";
 import { createSmsCampaign, drainSmsOnce } from "@/lib/sms/campaigns";
-import { resolveSmsRecipients, smsAudienceLabel, isSmsGroup, type SmsGroup } from "@/lib/sms/audiences";
+import { resolveSmsRecipients, smsAudienceLabel, isSmsGroup, parseVolRole, type SmsGroup } from "@/lib/sms/audiences";
 import { asRole, type Role } from "@/lib/rbac";
 
 export type SmsSendState = { ok: boolean; message: string };
@@ -16,10 +16,11 @@ function parse(formData: FormData) {
   const template = getSmsTemplate(String(formData.get("templateKey") ?? ""));
   const groups = formData.getAll("groups").map(String).filter(isSmsGroup) as SmsGroup[];
   const roles = formData.getAll("roleGroups").map(String).map(asRole).filter((r): r is Role => r !== null);
+  const volRoles = formData.getAll("volRoles").map(String).filter((t) => parseVolRole(t) !== null);
   const vars: Record<string, string> = {};
   if (template) for (const f of template.fields) vars[f.name] = String(formData.get(f.name) ?? "").trim();
   const body = template ? withCompliance(template.build(vars)) : "";
-  return { template, groups, roles, body };
+  return { template, groups, roles, volRoles, body };
 }
 
 // Draft + test-to-a-number: captains and admins. The number must already be opted in.
@@ -43,12 +44,12 @@ export async function sendSmsCampaign(formData: FormData): Promise<SmsSendState>
   const g = await staffGate();
   if (!can(g.role, "sendSms")) return { ok: false, message: "Only admins can send to the list." };
   if (!(await smsEnabled())) return { ok: false, message: "Texting isn't configured yet (add Twilio credentials)." };
-  const { template, groups, roles, body } = parse(formData);
+  const { template, groups, roles, volRoles, body } = parse(formData);
   if (!template) return { ok: false, message: "Pick a template first." };
   if (!body) return { ok: false, message: "Write a message first." };
-  if (groups.length === 0 && roles.length === 0) return { ok: false, message: "Pick at least one audience or role." };
+  if (groups.length === 0 && roles.length === 0 && volRoles.length === 0) return { ok: false, message: "Pick at least one audience or role." };
 
-  const recipients = await resolveSmsRecipients(groups, roles);
+  const recipients = await resolveSmsRecipients(groups, roles, volRoles);
   if (recipients.length === 0) return { ok: false, message: "No opted-in recipients for that selection." };
 
   const rawWhen = String(formData.get("scheduledAt") ?? "").trim();
@@ -61,7 +62,7 @@ export async function sendSmsCampaign(formData: FormData): Promise<SmsSendState>
 
   await createSmsCampaign({
     body,
-    audience: smsAudienceLabel(groups, roles),
+    audience: smsAudienceLabel(groups, roles, volRoles),
     recipients,
     createdBy: g.email ?? "system",
     scheduledAt: future ? scheduledAt : undefined,

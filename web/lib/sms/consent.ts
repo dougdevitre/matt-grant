@@ -12,18 +12,22 @@ const SMS_PK = "SMSCONSENT";
 export type SmsConsentStatus = "opted_in" | "opted_out";
 export type SmsConsentRow = { phone: string; status: SmsConsentStatus; source?: string; consentAt?: string; updatedAt?: string };
 
-/** Record explicit opt-in (web checkbox, inbound keyword, START). Re-subscribes an opted-out number. */
-export async function recordConsent(phone: string, source: string): Promise<boolean> {
+/** Record explicit opt-in (web checkbox, inbound keyword, START). Re-subscribes an opted-out number.
+ *  `consentAt` overrides the stored first-consent timestamp — pass the ORIGINAL opt-in time when
+ *  backfilling historical records; omit it for live opt-ins (defaults to now). Either way it's only
+ *  set on first write (if_not_exists), so re-running never clobbers an existing consent date. */
+export async function recordConsent(phone: string, source: string, consentAt?: string): Promise<boolean> {
   const e = toE164(phone);
   if (!dbConfigured || !e) return false;
   const now = new Date().toISOString();
+  const at = consentAt ?? now;
   await ddb.send(
     new UpdateCommand({
       TableName: TABLE,
       Key: { PK: SMS_PK, SK: e },
-      UpdateExpression: "SET #s = :in, #src = if_not_exists(#src, :src), consentAt = if_not_exists(consentAt, :u), updatedAt = :u",
+      UpdateExpression: "SET #s = :in, #src = if_not_exists(#src, :src), consentAt = if_not_exists(consentAt, :at), updatedAt = :u",
       ExpressionAttributeNames: { "#s": "status", "#src": "source" },
-      ExpressionAttributeValues: { ":in": "opted_in", ":src": source, ":u": now },
+      ExpressionAttributeValues: { ":in": "opted_in", ":src": source, ":at": at, ":u": now },
     }),
   );
   return true;
