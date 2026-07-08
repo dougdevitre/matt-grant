@@ -50,6 +50,9 @@ For sending campaign texts (GOTV, volunteer coordination).
   attach the toll-free number to it — the Messaging Service SID is the piece the app needs
   (a raw number alone won't work).
 - **Cost:** pay-as-you-go per text + a small monthly number fee.
+- **Once registration is approved:** the step-by-step for attaching the number, pointing the
+  inbound webhook at the app, and loading the creds is in
+  [`docs/integrations/twilio-setup.md`](./integrations/twilio-setup.md).
 
 ---
 

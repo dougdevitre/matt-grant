@@ -30,7 +30,7 @@ WALGREENS_AFF_ID="xxxxxxxxxx"
 WALGREENS_PUBLISHER_ID=""                       # optional revenue-share id; blank for the campaign
 WALGREENS_ENV="sandbox"                         # "sandbox" | "production"
 
-# --- SMS (Twilio A2P 10DLC) ---
+# --- SMS (Twilio toll-free, opt-in only) ---
 TWILIO_ACCOUNT_SID="ACxxxxxxxx"                 # Twilio Console → Account Info
 TWILIO_AUTH_TOKEN="xxxxxxxx"                     # Twilio Console → Account Info (keep secret)
 TWILIO_MESSAGING_SERVICE_SID="MGxxxxxxxx"        # Messaging → Services → your approved service
