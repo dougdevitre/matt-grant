@@ -4,7 +4,7 @@ import { SmsComposer } from "@/components/dashboard/SmsComposer";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { smsEnabled } from "@/lib/sms/send";
-import { smsAudienceCounts, SMS_GROUP_LABELS } from "@/lib/sms/audiences";
+import { smsAudienceCounts, smsVolRoleCounts, SMS_GROUP_LABELS, VOL_ROLE_OPTIONS } from "@/lib/sms/audiences";
 import { listSmsCampaigns } from "@/lib/sms/campaigns";
 import { listSavedTemplates } from "@/lib/notifications/messageTemplates";
 
@@ -15,11 +15,20 @@ export default async function SmsPage() {
   if (!can(role, "draftSms")) redirect("/dashboard?denied=sms");
   const canSend = can(role, "sendSms");
 
-  const [counts, sent, enabled, saved] = await Promise.all([smsAudienceCounts(), listSmsCampaigns(15), smsEnabled(), listSavedTemplates("sms")]);
+  const [counts, volRoleCounts, sent, enabled, saved] = await Promise.all([
+    smsAudienceCounts(),
+    smsVolRoleCounts(),
+    listSmsCampaigns(15),
+    smsEnabled(),
+    listSavedTemplates("sms"),
+  ]);
   const groups = [
     { value: "subscribers", label: SMS_GROUP_LABELS.subscribers, count: counts.subscribers },
     { value: "volunteers", label: SMS_GROUP_LABELS.volunteers, count: counts.volunteers },
   ];
+  // Only surface volunteer-role chips that actually have opted-in members, so the
+  // section isn't a wall of zeros (all 23 taxonomy tokens).
+  const volRoles = VOL_ROLE_OPTIONS.map((o) => ({ ...o, count: volRoleCounts[o.value] ?? 0 })).filter((o) => o.count > 0);
   const when = (iso: string) =>
     new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
@@ -46,7 +55,7 @@ export default async function SmsPage() {
         </div>
       )}
 
-      <SmsComposer groups={groups} saved={saved} canSend={canSend} disabled={!enabled} />
+      <SmsComposer groups={groups} volRoles={volRoles} saved={saved} canSend={canSend} disabled={!enabled} />
 
       <div className="mt-8">
         <p className="eyebrow text-slate">Recent sends</p>
