@@ -369,6 +369,7 @@ Track a small set of numbers per send so you can tell what's working and catch p
 
 ## Cross-References
 
+- `web/docs/sms-go-live.md` — Operational go-live & testing runbook for the toll-free sender (load Twilio creds, wire the inbound webhook, smoke-test a send, verify STOP/START/HELP).
 - `tools/disclaimer-generator.md` — Full "Paid for by" disclaimer rules across every medium, including SMS/MMS.
 - `tools/expenditure-tracker.md` / `workflows/expenditure-tracking.md` — Record and report texting-vendor costs as FEC disbursements.
 - `federal/digital-advertising.md` — FEC rules for digital and online political communications.
