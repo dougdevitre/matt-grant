@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { rateLimit, clientIp } from "@/lib/ratelimit";
 import { getSecret } from "@/lib/ssm";
+import { toE164 } from "@/lib/sms/send";
+import { recordConsent } from "@/lib/sms/consent";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -86,5 +88,17 @@ export async function POST(req: Request) {
   if (!result.ok) {
     return NextResponse.json({ error: "Could not save your opt-in. Please try again." }, { status: 502 });
   }
+
+  // Record SMS consent in the ledger so a game-lead opt-in is actually textable.
+  // Airtable stores the lead + "SMS Opt-In" flag, but broadcast audiences are built
+  // ONLY from the SMSCONSENT ledger (lib/sms/audiences.ts) — without this write the
+  // consented number was captured but could never be reached. Strictly gated on the
+  // explicit consent (mirrors the route's own zod refine + intake.ts:170); best-effort
+  // so a ledger hiccup can't fail the 200 after the lead is already saved.
+  if (body.smsConsent === true && body.phone) {
+    const e164 = toE164(body.phone);
+    if (e164) await recordConsent(e164, "games-lead").catch(() => {});
+  }
+
   return NextResponse.json({ ok: true });
 }
