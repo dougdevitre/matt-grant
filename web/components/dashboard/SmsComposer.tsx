@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { sendTestSms, sendSmsCampaign, type SmsSendState } from "@/app/dashboard/sms/actions";
-import { SMS_TEMPLATES, getSmsTemplate, withCompliance, smsSegments } from "@/lib/sms/templates";
+import { SMS_TEMPLATES, getSmsTemplate, withCompliance, smsSegments, nonGsmChars } from "@/lib/sms/templates";
 import { ROLES, ROLE_LABELS, type Role } from "@/lib/rbac";
 
 const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-field";
@@ -44,6 +44,16 @@ export function SmsComposer({
   const groupReach = selected.reduce((n, v) => n + (groups.find((g) => g.value === v)?.count ?? 0), 0);
   const volReach = volRoleSel.reduce((n, v) => n + (volRoles.find((o) => o.value === v)?.count ?? 0), 0);
   const reach = groupReach + volReach;
+  const hasRoles = roleSel.length > 0; // account-role reach is tallied at send, not counted here
+
+  // Non-GSM characters (smart quotes, dashes, emoji) force pricier UCS-2 — surface them so
+  // staff can fix before paying ~2x. Only meaningful when the preview is already UCS-2.
+  const offenders = useMemo(() => (seg.encoding === "UCS-2" ? nonGsmChars(body) : []), [seg.encoding, body]);
+
+  // Local "now" (YYYY-MM-DDThh:mm) for the datetime-local min + past-time guard.
+  const nowLocal = useMemo(() => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16), []);
+  const schedInPast = scheduledAt !== "" && scheduledAt < nowLocal;
+  const willSchedule = scheduledAt !== "" && !schedInPast;
 
   const setVar = (n: string, v: string) => setVars((p) => ({ ...p, [n]: v }));
   const toggle = (v: string) => setSelected((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]));
@@ -127,6 +137,12 @@ export function SmsComposer({
             {seg.chars} chars · {seg.segments} segment{seg.segments === 1 ? "" : "s"} · {seg.encoding}
             {seg.segments > 1 ? " · multi-segment texts cost more" : ""}
           </p>
+          {seg.encoding === "UCS-2" && (
+            <p className="mt-1 text-xs text-brick">
+              ⚠ A special character{offenders.length ? ` (${offenders.join(" ")})` : ""} is forcing pricier
+              {" "}UCS-2 encoding — 70 chars per segment instead of 160. Replace smart quotes, dashes, or emoji with plain text to cut the cost.
+            </p>
+          )}
         </div>
 
         {/* Audience — opted-in groups only */}
@@ -188,8 +204,13 @@ export function SmsComposer({
             </>
           )}
           <p className="mt-2 font-mono text-xs text-slate">
-            ~{reach} recipient{reach === 1 ? "" : "s"} (before de-dupe)
-            {roleSel.length > 0 && <span> + opted-in accounts by role (counted at send)</span>}
+            {reach > 0
+              ? `~${reach} recipient${reach === 1 ? "" : "s"} (before de-dupe)`
+              : hasRoles
+                ? "Opted-in accounts in the selected role(s)"
+                : "No audience selected yet"}
+            {hasRoles && reach > 0 && <span> + accounts in the selected role(s)</span>}
+            {hasRoles && <span> · role counts are tallied at send</span>}
           </p>
         </div>
 
@@ -222,10 +243,17 @@ export function SmsComposer({
           <input
             type="datetime-local"
             value={scheduledAt}
+            min={nowLocal}
             onChange={(e) => setScheduledAt(e.target.value)}
             className={`${field} mt-1 max-w-xs`}
             aria-label="Schedule send time"
           />
+          <p className="mt-1 text-xs text-slate">
+            Texts only go out 9am–8pm CT — a time outside that waits for the next window.
+          </p>
+          {schedInPast && (
+            <p className="mt-1 text-xs text-brick">That time is in the past — this will send now, not later.</p>
+          )}
         </div>
 
         {/* Send to list — admins only, confirm first */}
@@ -235,10 +263,17 @@ export function SmsComposer({
             disabled={disabled || pending || !body || (selected.length === 0 && roleSel.length === 0 && volRoleSel.length === 0)}
             className="btn-primary disabled:opacity-50"
             onClick={() => {
-              if (window.confirm(`Send this text to ~${reach} opted-in recipient${reach === 1 ? "" : "s"}?`)) run(sendSmsCampaign);
+              const audience =
+                reach > 0
+                  ? `~${reach} opted-in recipient${reach === 1 ? "" : "s"}${hasRoles ? " plus accounts in the selected role(s)" : ""}`
+                  : hasRoles
+                    ? "all opted-in accounts in the selected role(s)"
+                    : "the selected audience";
+              const when = willSchedule ? ` — scheduled for ${scheduledAt.replace("T", " ")}` : "";
+              if (window.confirm(`Send this text to ${audience}${when}?`)) run(sendSmsCampaign);
             }}
           >
-            {pending ? "Working…" : scheduledAt ? "Schedule text blast" : "Send to list"}
+            {pending ? "Working…" : willSchedule ? "Schedule text blast" : "Send to list"}
           </button>
         ) : (
           <p className="text-xs text-slate">Drafting + tests are open to captains; sending to the list is admins only.</p>

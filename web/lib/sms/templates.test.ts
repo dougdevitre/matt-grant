@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { smsSegments, withCompliance, getSmsTemplate, SMS_COMPLIANCE_SUFFIX } from "./templates";
+import { smsSegments, withCompliance, getSmsTemplate, SMS_COMPLIANCE_SUFFIX, SMS_TEMPLATES, nonGsmChars } from "./templates";
 
 describe("smsSegments", () => {
   it("counts GSM-7 single + multi segment boundaries", () => {
@@ -25,6 +25,36 @@ describe("withCompliance", () => {
     expect(withCompliance("   ")).toBe("");
     expect(SMS_COMPLIANCE_SUFFIX).toContain("Reply STOP to opt out"); // TCPA opt-out
     expect(SMS_COMPLIANCE_SUFFIX).toContain("Paid for by Matt Grant for Congress."); // FEC disclaimer
+  });
+});
+
+describe("GSM-7 cost guard", () => {
+  // A single non-GSM char (em dash, smart quote, emoji) forces the WHOLE message to UCS-2,
+  // halving the per-segment size (70 vs 160) and ~2x-ing cost. The compliance suffix rides on
+  // every text, so it must stay GSM-7 — regression-lock it and the built-in templates.
+  it("the compliance suffix is GSM-7 clean (no em dash / smart quotes)", () => {
+    expect(nonGsmChars(SMS_COMPLIANCE_SUFFIX)).toEqual([]);
+    expect(smsSegments(SMS_COMPLIANCE_SUFFIX).encoding).toBe("GSM-7");
+  });
+
+  it("a typical disclaimered blast stays GSM-7 (single segment, not UCS-2)", () => {
+    const body = withCompliance("Reminder: town hall Sat 10am at Chesterfield. Hope to see you there!");
+    expect(smsSegments(body)).toMatchObject({ encoding: "GSM-7", segments: 1 });
+  });
+
+  it("every built-in template renders GSM-7-clean copy", () => {
+    const sample = {
+      what: "Town hall", when: "Sat 10am", where: "Chesterfield", days: "3",
+      message: "Doors at 6pm", activity: "Canvass", body: "Hello team",
+    };
+    for (const t of SMS_TEMPLATES) {
+      expect(nonGsmChars(withCompliance(t.build(sample))), t.key).toEqual([]);
+    }
+  });
+
+  it("nonGsmChars names the offending characters (and is empty when clean)", () => {
+    expect(nonGsmChars("Plain ascii text.")).toEqual([]);
+    expect(nonGsmChars("Smart ’quote’ and —dash")).toEqual(expect.arrayContaining(["’", "—"]));
   });
 });
 

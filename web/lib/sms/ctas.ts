@@ -92,7 +92,7 @@ export function resolveCta(keyword: string): ResolvedCta | null {
 export function welcomeReply(): string {
   const link = ctaLink("/sign-up", "welcome");
   return (
-    `You're in — welcome to Team ${CAMPAIGN.candidate}! Join the campaign platform: ${link}\n` +
+    `You're in! Welcome to Team ${CAMPAIGN.candidate}. Join the campaign platform: ${link}\n` +
     `Msg & data rates may apply. ${CAMPAIGN.paidForBy} Reply STOP to opt out, HELP for help.`
   );
 }
