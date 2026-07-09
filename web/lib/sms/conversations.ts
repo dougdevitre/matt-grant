@@ -4,6 +4,7 @@ import { sendSms, toE164 } from "@/lib/sms/send";
 import { consentStatus, type SmsConsentStatus } from "@/lib/sms/consent";
 import { withCompliance } from "@/lib/sms/templates";
 import { isBlocked, flagProfanity } from "@/lib/sms/moderation";
+import { CAMPAIGN } from "@/lib/site";
 
 // 1:1 SMS conversations — the two-way inbox. Two item types in the single table:
 //   • Conversation index: PK="SMSCONVO", SK=<E.164> — one row per person, for the
@@ -35,6 +36,7 @@ export type SmsConversation = {
   hasInbound: boolean;
   flaggedCount: number;
   linkedEmail?: string; // set once registered as a Clerk supporter
+  identified?: boolean; // true once we've sent an identified outbound (sender name + STOP) in this thread
   status: "open" | "archived";
   updatedAt: string;
 };
@@ -49,6 +51,7 @@ function toConvo(i: Record<string, unknown>): SmsConversation {
     hasInbound: !!i.hasInbound,
     flaggedCount: Number(i.flaggedCount ?? 0),
     linkedEmail: i.linkedEmail ? String(i.linkedEmail) : undefined,
+    identified: !!i.identified,
     status: i.status === "archived" ? "archived" : "open",
     updatedAt: String(i.updatedAt ?? ""),
   };
@@ -135,9 +138,9 @@ export async function logOutbound(input: { to: string; body: string; sid?: strin
       TableName: TABLE,
       Key: { PK: CONVO_PK, SK: e },
       UpdateExpression:
-        "SET phone = :ph, lastBody = :b, lastDirection = :d, lastAt = :u, updatedAt = :u, unread = :zero, #st = if_not_exists(#st, :open), hasInbound = if_not_exists(hasInbound, :f), flaggedCount = if_not_exists(flaggedCount, :z)",
+        "SET phone = :ph, lastBody = :b, lastDirection = :d, lastAt = :u, updatedAt = :u, unread = :zero, identified = :t, #st = if_not_exists(#st, :open), hasInbound = if_not_exists(hasInbound, :f), flaggedCount = if_not_exists(flaggedCount, :z)",
       ExpressionAttributeNames: { "#st": "status" },
-      ExpressionAttributeValues: { ":ph": e, ":b": input.body.slice(0, SNIPPET), ":d": "out", ":u": now, ":zero": 0, ":open": "open", ":f": false, ":z": 0 },
+      ExpressionAttributeValues: { ":ph": e, ":b": input.body.slice(0, SNIPPET), ":d": "out", ":u": now, ":zero": 0, ":t": true, ":open": "open", ":f": false, ":z": 0 },
     }),
   );
 }
@@ -289,6 +292,14 @@ export function decideCanSend(input: {
 
 export type DirectSendResult = { sent: boolean; reason?: string };
 
+// Identify the campaign on the FIRST outbound of a thread so carriers (and the person)
+// don't see an unlabeled number and flag it as spam — and ensure a one-time opt-out notice.
+// GSM-7 (plain text) so it doesn't inflate the segment count. Later replies stay plain.
+export function identifyReply(text: string): string {
+  const withStop = /reply stop/i.test(text) ? text : `${text} Reply STOP to opt out.`;
+  return `${CAMPAIGN.committee}: ${withStop}`;
+}
+
 /** Send a 1:1 text after the moderation + consent gate, logging the outcome. */
 export async function sendDirectMessage(input: { to: string; body: string; by?: string }): Promise<DirectSendResult> {
   const e = toE164(input.to);
@@ -300,7 +311,14 @@ export async function sendDirectMessage(input: { to: string; body: string; by?: 
   const decision = decideCanSend({ blocked, consentStatus: status, hasInbound: !!convo?.hasInbound });
   if (!decision.allowed) return { sent: false, reason: decision.reason };
 
-  const outBody = decision.firstContact ? withCompliance(text) : text;
+  // Cold first-contact (opted-in, no inbound): full disclaimer, which also identifies us.
+  // First outbound of a person-initiated thread: prepend the sender name + a one-time STOP so
+  // it isn't an "unknown sender". Every later reply is plain (short, GSM-7).
+  const outBody = decision.firstContact
+    ? withCompliance(text)
+    : convo?.identified
+      ? text
+      : identifyReply(text);
   const r = await sendSms({ to: e, body: outBody });
   // Log the attempt either way so a failed send is visible in the thread.
   await logOutbound({ to: e, body: outBody, sid: r.sid, status: r.sent ? "sent" : "failed", by: input.by });

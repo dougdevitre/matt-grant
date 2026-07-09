@@ -40,8 +40,18 @@ export default async function ThreadPage({ params }: { params: Promise<{ phone: 
   const name = vol?.name ?? staff?.firstName ?? staff?.email ?? undefined;
   const decision = decideCanSend({ blocked, consentStatus: status, hasInbound: !!convo?.hasInbound });
 
+  // Person-initiated threads are reply-able even without a broadcast opt-in — say so plainly
+  // instead of a bare "Not opted in" that reads like "can't message." Reserve opted-in/out
+  // language for broadcast eligibility.
   const consentLabel =
-    status === "opted_in" ? "Opted in" : status === "opted_out" ? "Opted out" : "Not opted in";
+    status === "opted_in"
+      ? "Opted in"
+      : status === "opted_out"
+        ? "Opted out"
+        : convo?.hasInbound
+          ? "Texted us first · can reply"
+          : "Not opted in";
+  const consentClass = status === "opted_out" ? "bg-brick/10 text-brick" : convo?.hasInbound || status === "opted_in" ? "bg-field/10 text-field" : "bg-paper";
 
   return (
     <>
@@ -59,7 +69,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ phone: 
                 Team · {ROLE_LABELS[staff.role]}
               </span>
             )}
-            <span className="rounded-sm bg-paper px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow">{consentLabel}</span>
+            <span className={`rounded-sm px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow ${consentClass}`}>{consentLabel}</span>
             {blocked && <span className="rounded-sm bg-brick/10 px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow text-brick">Blocked</span>}
             {convo?.linkedEmail && (
               <span className="rounded-sm bg-field/10 px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow text-field">

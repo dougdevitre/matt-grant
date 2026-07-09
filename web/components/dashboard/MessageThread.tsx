@@ -4,6 +4,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { replyMessage, registerTexter, sendSignupLink, type MsgState } from "@/app/dashboard/messages/actions";
 import type { SmsMessage } from "@/lib/sms/conversations";
+import { smsSegments, nonGsmChars } from "@/lib/sms/templates";
+import { ReplyLinkPicker } from "@/components/dashboard/ReplyLinkPicker";
 
 const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-field";
 
@@ -37,6 +39,13 @@ export function MessageThread({
   const [email, setEmail] = useState(prefillEmail ?? "");
   const [showReg, setShowReg] = useState(false);
   const [pending, start] = useTransition();
+
+  const seg = smsSegments(body);
+  const offenders = seg.encoding === "UCS-2" ? nonGsmChars(body) : [];
+  // Most recent inbound text drives the "suggested links" for the reply.
+  const lastInbound = [...messages].reverse().find((m) => m.direction === "in")?.body;
+  // Append a picked link/snippet to the reply (newline-joined if there's already text).
+  const insertText = (text: string) => setBody((b) => (b.trim() ? `${b}\n${text}` : text));
 
   const textSignupLink = () =>
     start(async () => {
@@ -102,6 +111,20 @@ export function MessageThread({
               placeholder="Write a reply…"
               aria-label="Reply message"
             />
+            {body.trim() && (
+              <>
+                <p className="mt-1 font-mono text-[0.65rem] text-slate">
+                  {seg.chars} chars · {seg.segments} segment{seg.segments === 1 ? "" : "s"} · {seg.encoding}
+                  {seg.segments > 1 ? " · multi-segment texts cost more" : ""}
+                </p>
+                {seg.encoding === "UCS-2" && (
+                  <p className="mt-1 text-xs text-brick">
+                    ⚠ A special character{offenders.length ? ` (${offenders.join(" ")})` : ""} is forcing pricier UCS-2 encoding (70 chars/segment). Replace smart quotes, dashes, or emoji to cut cost.
+                  </p>
+                )}
+              </>
+            )}
+            <ReplyLinkPicker lastInbound={lastInbound} onInsert={insertText} />
             <div className="mt-2 flex items-center gap-3">
               <button onClick={sendReply} disabled={pending || !body.trim()} className="btn-primary disabled:opacity-50">
                 {pending ? "Sending…" : "Send"}
