@@ -6,11 +6,12 @@ import { dismissOnboardingAction } from "@/app/dashboard/actions";
 // First-run "Start here" guide on the dashboard overview. Auto-detects what's
 // already set up, calls out the single next step to do, and can be dismissed
 // (persisted per-user). Shrinks to a confirmation once everything's done.
-export function OnboardingChecklist({ hasData, teamInvited }: { hasData: boolean; teamInvited: number }) {
+export function OnboardingChecklist({ hasData, teamInvited, smsReady }: { hasData: boolean; teamInvited: number; smsReady: boolean }) {
   const steps = [
     { done: hasData, title: "Add your real data", desc: "Log actual donors, expenditures, and volunteers — demo data is loaded for now.", href: "/dashboard/donors", cta: "Open donors" },
     { done: teamInvited > 0, title: "Invite your team", desc: "Give members access to the Peace Room — instantly, no redeploy.", href: "/dashboard/team", cta: "Invite teammates" },
     { done: sesEnabled, title: "Turn on email", desc: "Verify a sender in SES so receipts and broadcasts actually send.", href: "/dashboard/setup", cta: "Check setup" },
+    { done: smsReady, title: "Turn on texting", desc: "Add the Twilio credentials so you can text supporters and your team.", href: "/dashboard/sms/go-live", cta: "SMS setup" },
     { done: congressEnabled, title: "Connect opposition research", desc: "Add a Congress.gov key to pull the opponent's record.", href: "/dashboard/research", cta: "Open research" },
   ];
   const completed = steps.filter((s) => s.done).length;

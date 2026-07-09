@@ -75,6 +75,24 @@ export const SMS_TEMPLATES: SmsTemplateDef[] = [
     build: (v) => tidy(`The August 4 primary is ${v.days ? `${v.days} days away` : "almost here"}. Make your plan to vote — every vote counts.`),
   },
   {
+    key: "team-update",
+    label: "Team update (internal)",
+    description: "A logistics note or alert to the team — pair with an account-role audience (Admin/Captain/Volunteer).",
+    fields: [{ name: "message", label: "Message", placeholder: "Staff meeting moved to 6pm at HQ" }],
+    build: (v) => tidy(`Team: ${v.message || ""}`),
+  },
+  {
+    key: "shift-reminder",
+    label: "Shift reminder (internal)",
+    description: "Remind volunteers of an upcoming canvass or phone-bank shift.",
+    fields: [
+      { name: "activity", label: "Activity", placeholder: "Canvass" },
+      { name: "when", label: "When", placeholder: "Sat 9am" },
+      { name: "where", label: "Where", placeholder: "HQ, 1625 Mason Knoll Rd" },
+    ],
+    build: (v) => tidy(`${v.activity || "Volunteer shift"} reminder: ${v.when || ""}${v.where ? ` at ${v.where}` : ""}. Thanks for showing up!`),
+  },
+  {
     key: "custom",
     label: "Custom message",
     description: "Write your own short message.",

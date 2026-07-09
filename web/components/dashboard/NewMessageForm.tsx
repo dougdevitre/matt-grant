@@ -6,9 +6,9 @@ import { sendNewMessage, type MsgState } from "@/app/dashboard/messages/actions"
 
 const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-field";
 
-// Start a 1:1 conversation. The quick-pick list is opted-in supporters (cold
-// initiation is only allowed to opted-in numbers); a raw number also works if
-// that person has texted us first.
+// Start a 1:1 conversation. The quick-pick list is opted-in supporters and team
+// members (cold initiation is only allowed to opted-in numbers); a raw number also
+// works if that person has texted us first.
 export function NewMessageForm({ contacts, disabled }: { contacts: { name: string; phone: string }[]; disabled: boolean }) {
   const router = useRouter();
   const [to, setTo] = useState("");

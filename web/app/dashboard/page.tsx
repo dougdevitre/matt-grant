@@ -7,6 +7,7 @@ import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { onboardingDismissed } from "@/lib/onboarding";
 import { extensionConnected } from "@/lib/extension";
+import { smsEnabled } from "@/lib/sms/send";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { PersonalSummary } from "@/components/dashboard/PersonalSummary";
@@ -52,7 +53,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
   const doneMiles = o.milestones.filter((m) => m.done).length;
   // Independent reads — fetch in parallel on this hot authenticated path (getOverview
   // above must stay first: it gates the !connected early return).
-  const [staff, dismissed] = await Promise.all([listStaff(), onboardingDismissed(email)]);
+  const [staff, dismissed, smsReady] = await Promise.all([listStaff(), onboardingDismissed(email), smsEnabled()]);
   const teamInvited = staff.filter((s) => s.status === "active").length;
   const showOnboarding = !dismissed;
 
@@ -71,7 +72,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
       <PersonalSummary email={email} role={role ?? "admin"} />
 
       {showOnboarding && (
-        <OnboardingChecklist hasData={o.donorCount > 0 || o.volunteerTotal > 0} teamInvited={teamInvited} />
+        <OnboardingChecklist hasData={o.donorCount > 0 || o.volunteerTotal > 0} teamInvited={teamInvited} smsReady={smsReady} />
       )}
 
       <HowTo

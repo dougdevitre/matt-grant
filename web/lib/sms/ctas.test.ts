@@ -48,10 +48,11 @@ describe("resolveCta", () => {
 });
 
 describe("welcomeReply", () => {
-  it("is no longer a dead end: soft Get Involved CTA + disclaimer + opt-out", () => {
+  it("drives to the campaign platform (/sign-up) with a CTA + disclaimer + opt-out", () => {
     const r = welcomeReply();
-    expect(r).toContain(`${SITE_URL}/join?`);
+    expect(r).toContain(`${SITE_URL}/sign-up?`);
     expect(r).toContain("utm_campaign=welcome");
+    expect(r).toMatch(/Join the campaign platform/i);
     expect(r).toContain(CAMPAIGN.paidForBy);
     expect(r).toMatch(/Reply STOP to opt out/i);
     expect(r).toMatch(/HELP for help/i);

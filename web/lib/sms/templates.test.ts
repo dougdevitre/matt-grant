@@ -34,4 +34,11 @@ describe("templates", () => {
     expect(getSmsTemplate("gotv")!.build({ days: "3" })).toContain("3 days away");
     expect(getSmsTemplate("nope")).toBeUndefined();
   });
+
+  it("internal team templates build logistics copy", () => {
+    expect(getSmsTemplate("team-update")!.build({ message: "Meeting 6pm" })).toBe("Team: Meeting 6pm");
+    expect(getSmsTemplate("shift-reminder")!.build({ activity: "Canvass", when: "Sat 9am", where: "HQ" })).toBe(
+      "Canvass reminder: Sat 9am at HQ. Thanks for showing up!",
+    );
+  });
 });

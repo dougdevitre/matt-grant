@@ -46,6 +46,7 @@ aws ssm put-parameter --region $REGION --type SecureString --overwrite \
   --name /matt-grant/TWILIO_MESSAGING_SERVICE_SID --value "MGxxxxxxxx"   # the MG… SID, not a number
 
 # Optional — inbound keyword that opts a texter in (case-insensitive). Default: MATT.
+# Resolved via getSecret (env-first → SSM), so either this SSM param or an env var works.
 aws ssm put-parameter --region $REGION --type String --overwrite \
   --name /matt-grant/SMS_OPTIN_KEYWORD            --value "MATT"
 ```
@@ -75,6 +76,7 @@ Leave Twilio's **Advanced Opt-Out** on — it auto-replies to STOP/HELP, so the 
 Single test sends go out inline. **Broadcasts** are queued and drained in bounded batches by `/api/cron/sms-drain` (≤30 texts/invocation), which must be on a schedule. Re-run the infra script so the EventBridge rule exists and the app role can read `/matt-grant/*`:
 
 ```bash
+# from the repo ROOT (the script lives at infra/setup-aws.sh, not web/infra)
 BASE_URL=https://YOUR_DOMAIN CRON_SECRET=... infra/setup-aws.sh
 ```
 
@@ -128,7 +130,7 @@ This exercises signature verification, the consent ledger, roster mirroring, and
 
 ## 7. Verify in the dashboard + a live blast
 
-1. Sign in as an **admin** → Dashboard → **SMS**. The "not configured" banner should be **gone**.
+1. Sign in as an **admin** → Dashboard → **SMS** (or the **SMS go-live** page at `/dashboard/sms/go-live`, which shows which of the three Twilio secrets are set and has a one-click test send). The "not configured" banner should be **gone**.
 2. Audience counts (Subscribers / Volunteers) reflect opted-in numbers.
 3. **Send a test blast to a one-person audience** (your opted-in number): compose from a template, confirm the live preview shows the sender name + *Reply STOP to opt out*, and send. Within a cron cycle (and inside 9am–8pm CT) it should arrive and the campaign row should read `1/1 sent`. Outside quiet hours it stays queued until the window opens — that's expected.
 4. Drafting + test sends are open to **captains**; sending to the list is **admins only** (`rbac.ts`).

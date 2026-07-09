@@ -25,7 +25,8 @@ type SmsCampaignItem = {
   recipients: string[]; // E.164 numbers, opted-in at queue time
   cursor: number;
   sentCount: number;
-  skippedCount: number; // opted-out-since or send failed
+  skippedCount: number; // opted-out/blocked since queueing (deliberately not sent)
+  failedCount: number; // Twilio rejected the send (a real failure, distinct from a skip)
   createdBy: string;
   updatedAt?: string;
   finishedAt?: string;
@@ -41,13 +42,15 @@ export type SmsCampaignSummary = {
   total: number;
   sentCount: number;
   skippedCount: number;
+  failedCount: number;
   createdBy: string;
 };
 
 // SET → ADD ordering (DynamoDB rejects ADD-first). Extracted for unit testing,
-// mirroring finalizeUpdateExpression in lib/campaigns.ts.
+// mirroring finalizeUpdateExpression in lib/campaigns.ts. When done, the terminal
+// status value is bound to :sent by the caller (either "sent" or "failed").
 export function finalizeSmsUpdateExpression(done: boolean): string {
-  return "SET updatedAt = :u" + (done ? ", #s = :sent, finishedAt = :u" : "") + " ADD sentCount :sd, skippedCount :pd";
+  return "SET updatedAt = :u" + (done ? ", #s = :sent, finishedAt = :u" : "") + " ADD sentCount :sd, skippedCount :pd, failedCount :fd";
 }
 
 // True when it's OK to send now: 9am–8pm Central (conservative TCPA quiet hours).
@@ -84,6 +87,7 @@ export async function createSmsCampaign(input: {
         cursor: 0,
         sentCount: 0,
         skippedCount: 0,
+        failedCount: 0,
         createdBy: input.createdBy,
       },
     }),
@@ -116,6 +120,7 @@ export async function listSmsCampaigns(limit = 15): Promise<SmsCampaignSummary[]
       total: c.recipients?.length ?? 0,
       sentCount: c.sentCount ?? 0,
       skippedCount: c.skippedCount ?? 0,
+      failedCount: c.failedCount ?? 0,
       createdBy: c.createdBy,
     }));
   } catch {
@@ -189,25 +194,30 @@ export async function drainSmsOnce(
 
   let sentDelta = 0;
   let skippedDelta = 0;
+  let failedDelta = 0;
   for (const phone of recipients.slice(start, end)) {
     if (!(await isOptedIn(phone)) || (await isBlocked(phone))) {
-      skippedDelta++; // opted out or blocked since queueing
+      skippedDelta++; // opted out or blocked since queueing — deliberately not sent
       continue;
     }
     const r = await sendSms({ to: phone, body: active.body });
     if (r.sent) sentDelta++;
-    else skippedDelta++;
+    else failedDelta++; // Twilio rejected it — a real failure, not a skip
   }
 
   const done = end >= recipients.length;
+  // A finished campaign that sent nothing but hit failures is "failed"; otherwise "sent".
+  const totalSent = (active.sentCount ?? 0) + sentDelta;
+  const totalFailed = (active.failedCount ?? 0) + failedDelta;
+  const terminal = totalSent === 0 && totalFailed > 0 ? "failed" : "sent";
   await ddb.send(
     new UpdateCommand({
       TableName: TABLE,
       Key: { PK: SMS_PK, SK: active.SK },
       UpdateExpression: finalizeSmsUpdateExpression(done),
       ...(done ? { ExpressionAttributeNames: { "#s": "status" } } : {}),
-      ExpressionAttributeValues: { ":sd": sentDelta, ":pd": skippedDelta, ":u": now, ...(done ? { ":sent": "sent" } : {}) },
+      ExpressionAttributeValues: { ":sd": sentDelta, ":pd": skippedDelta, ":fd": failedDelta, ":u": now, ...(done ? { ":sent": terminal } : {}) },
     }),
   );
-  return { id: active.id, sent: (active.sentCount ?? 0) + sentDelta, done, cursor: end, total: recipients.length };
+  return { id: active.id, sent: totalSent, done, cursor: end, total: recipients.length };
 }
