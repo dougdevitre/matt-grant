@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { decideCanSend } from "@/lib/sms/conversations";
+import { decideCanSend, identifyReply } from "@/lib/sms/conversations";
+import { nonGsmChars } from "@/lib/sms/templates";
 import { PK } from "@/lib/db";
 
 describe("decideCanSend (1:1 send gate)", () => {
@@ -30,6 +31,21 @@ describe("decideCanSend (1:1 send gate)", () => {
 
   it("refuses an unknown number that never texted us", () => {
     expect(decideCanSend({ blocked: false, consentStatus: "unknown", hasInbound: false }).allowed).toBe(false);
+  });
+});
+
+describe("identifyReply (first-outbound sender ID)", () => {
+  it("prepends the committee name so it isn't an unknown sender", () => {
+    expect(identifyReply("How can I help?")).toBe("Matt Grant for Congress: How can I help? Reply STOP to opt out.");
+  });
+
+  it("adds a one-time STOP notice, but doesn't duplicate one already present", () => {
+    expect(identifyReply("Hi. Reply STOP to opt out.")).toBe("Matt Grant for Congress: Hi. Reply STOP to opt out.");
+    expect((identifyReply("Hi there").match(/reply stop/gi) ?? []).length).toBe(1);
+  });
+
+  it("stays GSM-7 clean (no pricier UCS-2)", () => {
+    expect(nonGsmChars(identifyReply("Thanks for reaching out!"))).toEqual([]);
   });
 });
 
