@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     await setVolunteerContactOptOut({ phone: from }, false).catch(() => {}); // re-subscribe clears it
     reply = welcomeReply();
   } else if (keyword === "HELP") {
-    reply = `${CAMPAIGN.candidate} for Congress — campaign updates. Reply STOP to opt out. ${CAMPAIGN.email}`;
+    reply = `${CAMPAIGN.candidate} for Congress. Campaign updates. Reply STOP to opt out. ${CAMPAIGN.email}`;
   } else if (cta) {
     // Texting a CTA keyword is an opt-in that drives one action: record consent
     // (tagged with the CTA source) and reply with that action's trackable link.
