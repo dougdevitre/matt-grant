@@ -98,10 +98,10 @@ Chosen model: **self-serve** (a staffer opts in on their own — the only TCPA-v
 - **Team & access** page shows a per-teammate **Texts on / No text opt-in** badge (join of `listStaffContacts` ↔ consent ledger) so admins can see who's reachable — read-only, as designed.
 - Works before Twilio go-live: the opt-in is recorded now and takes effect the moment texting flips on.
 
-### Phase 3 — Team-oriented polish (optional)
-- A dedicated **"Team broadcast"** template category (logistics/alerts) distinct from voter-facing copy.
-- Show the teammate's **name + role** (not just phone) on inbox threads for internal conversations.
-- Consider whether internal team alerts warrant a lighter-touch consent model than voter outreach (confirm against TCPA before relying on it — internal staff who provided a number for work coordination may fall under a different basis, but **do not assume; verify with counsel**).
+### Phase 3 — Team-oriented polish ✅ done
+- **Internal broadcast templates** (`lib/sms/templates.ts`): "Team update (internal)" (logistics/alerts) and "Shift reminder (internal)" (canvass/phone-bank), meant to be paired with an account-role audience. They still pass through `withCompliance` — no change to the disclaimer/STOP logic (over-including on an internal text is safe; omitting where required is not).
+- **Name + role on internal threads** (`app/dashboard/messages/[phone]/page.tsx`): a thread whose number belongs to a teammate now shows a **Team · <Role>** badge and uses their name, so an internal conversation reads as "Jordan · Captain" rather than a bare number.
+- **Consent model unchanged.** Internal-alert consent still runs through the same `staff-optin` self-consent — no lighter-touch basis was assumed. Whether staff-coordination texts qualify for a different TCPA basis is a **question for counsel**, not a code change.
 
 ### Explicitly out of scope / guardrails
 - No cold-texting anyone (staff or supporter) who hasn't opted in — the consent gate stays.

@@ -9,6 +9,8 @@ import { consentStatus } from "@/lib/sms/consent";
 import { isBlocked } from "@/lib/sms/moderation";
 import { getThread, getConversation, markRead, decideCanSend } from "@/lib/sms/conversations";
 import { getVolunteers } from "@/lib/queries";
+import { listStaffContacts } from "@/lib/clerkAudiences";
+import { ROLE_LABELS } from "@/lib/rbac";
 import { blockNumberAction, unblockNumberAction } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -21,17 +23,21 @@ export default async function ThreadPage({ params }: { params: Promise<{ phone: 
   const phone = toE164(decodeURIComponent(raw));
   if (!phone) notFound();
 
-  const [messages, status, convo, blocked, vols] = await Promise.all([
+  const [messages, status, convo, blocked, vols, staffContacts] = await Promise.all([
     getThread(phone),
     consentStatus(phone),
     getConversation(phone),
     isBlocked(phone),
     getVolunteers(),
+    listStaffContacts(),
   ]);
   await markRead(phone); // opening the thread clears its unread count
 
   const vol = vols.rows.find((v) => toE164(v.phone) === phone);
-  const name = vol?.name;
+  // If this number belongs to a teammate, surface their role so an internal thread
+  // reads as "Jordan · Captain", not a bare number. Volunteer name wins for the label.
+  const staff = staffContacts.find((s) => s.phone && toE164(s.phone) === phone);
+  const name = vol?.name ?? staff?.firstName ?? staff?.email ?? undefined;
   const decision = decideCanSend({ blocked, consentStatus: status, hasInbound: !!convo?.hasInbound });
 
   const consentLabel =
@@ -48,6 +54,11 @@ export default async function ThreadPage({ params }: { params: Promise<{ phone: 
           <h1 className="font-display text-2xl font-semibold text-ink">{name ?? phone}</h1>
           <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate">
             {name && <span className="font-mono text-xs">{phone}</span>}
+            {staff && (
+              <span className="rounded-sm bg-gold/15 px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow text-gold-ink">
+                Team · {ROLE_LABELS[staff.role]}
+              </span>
+            )}
             <span className="rounded-sm bg-paper px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow">{consentLabel}</span>
             {blocked && <span className="rounded-sm bg-brick/10 px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow text-brick">Blocked</span>}
             {convo?.linkedEmail && (
