@@ -74,10 +74,12 @@ async function putMessage(phone: string, m: SmsMessage): Promise<void> {
   );
 }
 
-/** Persist an inbound text into its thread + bump the conversation. Flags profanity. */
-export async function logInbound(input: { from: string; body: string; sid?: string }): Promise<boolean> {
+/** Persist an inbound text into its thread + bump the conversation. Flags profanity.
+ *  Returns the conversation's NEW unread count (0 on no-op) so the caller can alert
+ *  staff only on the FIRST unread of a thread — throttling a burst to one notification. */
+export async function logInbound(input: { from: string; body: string; sid?: string }): Promise<number> {
   const e = toE164(input.from);
-  if (!dbConfigured || !e) return false;
+  if (!dbConfigured || !e) return 0;
   const body = input.body ?? "";
   const { flagged, terms } = flagProfanity(body);
   const now = new Date().toISOString();
@@ -91,7 +93,7 @@ export async function logInbound(input: { from: string; body: string; sid?: stri
     flaggedTerms: flagged ? terms : undefined,
     createdAt: now,
   });
-  await ddb.send(
+  const res = await ddb.send(
     new UpdateCommand({
       TableName: TABLE,
       Key: { PK: CONVO_PK, SK: e },
@@ -108,9 +110,10 @@ export async function logInbound(input: { from: string; body: string; sid?: stri
         ":one": 1,
         ":fc": flagged ? 1 : 0,
       },
+      ReturnValues: "ALL_NEW",
     }),
   );
-  return true;
+  return Number(res.Attributes?.unread ?? 0);
 }
 
 /** Persist an outbound text into its thread + bump the conversation (clears unread). */
@@ -137,6 +140,38 @@ export async function logOutbound(input: { to: string; body: string; sid?: strin
       ExpressionAttributeValues: { ":ph": e, ":b": input.body.slice(0, SNIPPET), ":d": "out", ":u": now, ":zero": 0, ":open": "open", ":f": false, ":z": 0 },
     }),
   );
+}
+
+/** Reflect a Twilio carrier delivery receipt on the matching 1:1 thread message.
+ *  Finds the outbound message in `to`'s thread by its Twilio SID and sets its status
+ *  (delivered/undelivered/failed/sent). No-op when the SID isn't in a thread (e.g. a
+ *  broadcast or test send) or the DB is off. Best-effort; never throws. */
+export async function updateMessageStatusBySid(to: string, sid: string, status: string): Promise<boolean> {
+  const e = toE164(to);
+  if (!dbConfigured || !e || !sid) return false;
+  try {
+    const r = await ddb.send(
+      new QueryCommand({
+        TableName: TABLE,
+        KeyConditionExpression: "PK = :p",
+        ExpressionAttributeValues: { ":p": PK.smsThread(e) },
+      }),
+    );
+    const hit = (r.Items ?? []).find((i) => i.sid === sid);
+    if (!hit) return false;
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: PK.smsThread(e), SK: String(hit.SK) },
+        UpdateExpression: "SET #st = :s",
+        ExpressionAttributeNames: { "#st": "status" },
+        ExpressionAttributeValues: { ":s": status },
+      }),
+    );
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function listConversations(): Promise<SmsConversation[]> {

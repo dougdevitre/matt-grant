@@ -54,10 +54,18 @@ export default async function MessagesPage() {
   }
   const contacts = [...byPhone.values()];
 
+  // Phone → staff role, so the inbox list can badge team conversations (like the thread page).
+  const roleByPhone = new Map<string, (typeof staffContacts)[number]["role"]>();
+  for (const s of staffContacts) {
+    const e = s.phone ? toE164(s.phone) : null;
+    if (e && !roleByPhone.has(e)) roleByPhone.set(e, s.role);
+  }
+
   // Serializable rows for the client list (multi-select triage lives there).
   const items: InboxItem[] = convos.map((c) => ({
     phone: c.phone,
     name: nameByPhone.get(c.phone),
+    role: roleByPhone.get(c.phone),
     lastBody: c.lastBody,
     lastDirection: c.lastDirection,
     lastAt: c.lastAt,

@@ -5,6 +5,7 @@ import { recordConsent, recordOptOut } from "@/lib/sms/consent";
 import { setVolunteerContactOptOut } from "@/lib/volunteers/optout";
 import { isBlocked } from "@/lib/sms/moderation";
 import { logInbound } from "@/lib/sms/conversations";
+import { notifyStaffInboundText } from "@/lib/notifications/staffNotify";
 import { resolveCta, welcomeReply } from "@/lib/sms/ctas";
 import { CAMPAIGN } from "@/lib/site";
 
@@ -81,9 +82,18 @@ export async function POST(req: NextRequest) {
     reply = cta.reply;
   }
 
+  // A "freeform" text is one that didn't match a reserved word / opt-in keyword / CTA
+  // — i.e. a real message a person wrote that needs a human reply in the Inbox.
+  const handled = STOP_WORDS.has(keyword) || START_WORDS.has(keyword) || keyword === optIn || keyword === "HELP" || !!cta;
+
   // Best-effort: never hold the 200 ack on a logging failure.
   try {
-    await logInbound({ from, body: bodyText, sid: params.MessageSid });
+    const unread = await logInbound({ from, body: bodyText, sid: params.MessageSid });
+    // Alert staff only on the FIRST unread of a freeform thread, so a burst of texts
+    // is one email, not one per message. Fire-and-forget.
+    if (!handled && unread === 1) {
+      await notifyStaffInboundText({ from, bodySnippet: bodyText.slice(0, 140) }).catch(() => {});
+    }
   } catch {
     /* consent already recorded; a logging miss shouldn't trigger Twilio retries */
   }

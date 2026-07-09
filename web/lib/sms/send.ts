@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { getSecret } from "@/lib/ssm";
 import { requestWithRetry } from "@/lib/integrations/http";
+import { SITE_URL } from "@/lib/site";
 
 // Twilio SMS via the campaign's approved Messaging Service. Graceful: if the creds
 // aren't set the app still runs and callers no-op (mirrors lib/email/send.ts's
@@ -52,7 +53,14 @@ export async function sendSms(o: { to: string; body: string }): Promise<{ sent: 
         authorization: `Basic ${Buffer.from(`${c.sid}:${c.token}`).toString("base64")}`,
         "content-type": "application/x-www-form-urlencoded",
       },
-      body: new URLSearchParams({ MessagingServiceSid: c.service, To: to, Body: o.body }).toString(),
+      // StatusCallback lets Twilio post delivery receipts (delivered/undelivered/failed)
+      // to our signed status webhook, which reflects them on the 1:1 thread bubble.
+      body: new URLSearchParams({
+        MessagingServiceSid: c.service,
+        To: to,
+        Body: o.body,
+        StatusCallback: `${SITE_URL}/api/webhooks/twilio/status`,
+      }).toString(),
       timeoutMs: 10000,
       retries: 2,
       label: "twilio",

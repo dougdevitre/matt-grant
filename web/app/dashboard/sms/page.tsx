@@ -73,6 +73,7 @@ export default async function SmsPage() {
                   <span className="text-ink">{c.body.length > 60 ? `${c.body.slice(0, 60)}…` : c.body}</span>{" "}
                   <span className="text-slate">
                     → {c.audience} · {c.sentCount}/{c.total} sent
+                    {c.failedCount ? ` · ${c.failedCount} failed` : ""}
                     {c.skippedCount ? ` · ${c.skippedCount} skipped` : ""} · by {c.createdBy}
                   </span>
                 </span>
