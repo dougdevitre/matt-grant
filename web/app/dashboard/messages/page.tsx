@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
 import { staffGate } from "@/lib/auth";
-import { can, STAFF_ROLES, ROLE_LABELS } from "@/lib/rbac";
+import { can, ROLE_LABELS } from "@/lib/rbac";
 import { PageHeader, HowTo } from "@/components/dashboard/Notice";
 import { smsEnabled, toE164 } from "@/lib/sms/send";
 import { listConversations } from "@/lib/sms/conversations";
 import { listConsent } from "@/lib/sms/consent";
 import { listBlocked } from "@/lib/sms/moderation";
-import { listClerkContactsByRole } from "@/lib/clerkAudiences";
+import { listStaffContacts } from "@/lib/clerkAudiences";
 import { getVolunteers } from "@/lib/queries";
 import { NewMessageForm } from "@/components/dashboard/NewMessageForm";
 import { InboxList, type InboxItem } from "@/components/dashboard/InboxList";
@@ -17,16 +17,16 @@ export default async function MessagesPage() {
   const { role } = await staffGate();
   if (!can(role, "messageIndividuals")) redirect("/dashboard?denied=messageIndividuals");
 
-  const [convos, consent, blocked, vols, enabled, staffByRole] = await Promise.all([
+  const [convos, consent, blocked, vols, enabled, staffContacts] = await Promise.all([
     listConversations(),
     listConsent(),
     listBlocked(),
     getVolunteers(),
     smsEnabled(),
-    // Team members (staff Clerk accounts) with a phone on file, so an admin can
-    // start a 1:1 with a teammate without hand-typing a number. Same three roles
-    // as the blast resolver; [] when Clerk isn't configured.
-    Promise.all(STAFF_ROLES.map((r) => listClerkContactsByRole(r))),
+    // Team members (staff Clerk accounts) with a phone on file, so an admin can start a
+    // 1:1 with a teammate without hand-typing a number. One userbase scan; [] when Clerk
+    // is off. A staffer's number arrives via their own "My text alerts" opt-in.
+    listStaffContacts(),
   ]);
 
   const statusByPhone = new Map(consent.map((c) => [c.phone, c.status]));
@@ -47,12 +47,10 @@ export default async function MessagesPage() {
     const e = toE164(v.phone);
     if (e && canText(e) && !byPhone.has(e)) byPhone.set(e, { name: v.name, phone: e });
   }
-  for (let i = 0; i < STAFF_ROLES.length; i++) {
-    for (const s of staffByRole[i]) {
-      const e = s.phone ? toE164(s.phone) : null;
-      if (!e || byPhone.has(e) || !canText(e)) continue;
-      byPhone.set(e, { name: `${s.firstName ?? s.email ?? e} · ${ROLE_LABELS[STAFF_ROLES[i]]}`, phone: e });
-    }
+  for (const s of staffContacts) {
+    const e = s.phone ? toE164(s.phone) : null;
+    if (!e || byPhone.has(e) || !canText(e)) continue;
+    byPhone.set(e, { name: `${s.firstName ?? s.email ?? e} · ${ROLE_LABELS[s.role]}`, phone: e });
   }
   const contacts = [...byPhone.values()];
 

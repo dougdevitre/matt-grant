@@ -91,10 +91,12 @@ Four phases, smallest-useful-first. Phases 0–1 make team texting real from the
 - Inbox: **done in this change.** `app/dashboard/messages/page.tsx` now unions opted-in team members (staff Clerk accounts with a phone) into the New-message quick-pick, labeled by role, deduped by phone against the volunteer list.
 - *Outcome:* an admin can broadcast to the team and 1:1 a teammate from the console — for any staffer who already has a phone on file and is opted in. (Coverage of that "already has a phone + opt-in" set is what Phase 2 grows.)
 
-### Phase 2 — Capture staff phone + consent (closes the coverage gap)
-- Add an optional **mobile number** field to the invite/onboarding flow (`team/actions.ts`, `InviteForm`) and store it on the staff record.
-- Add an explicit **internal-texting consent** capture (checkbox at onboarding, or a one-time "text START to join team alerts") so staff can be reached compliantly. Record it in the same consent ledger with a distinct source (e.g. `staff-optin`).
-- Surface each teammate's phone/opt-in state on the **Team & access** page so admins can see who's reachable.
+### Phase 2 — Capture staff phone + consent ✅ done
+Chosen model: **self-serve** (a staffer opts in on their own — the only TCPA-valid path; an admin can't consent for a teammate).
+- **My text alerts** panel on Dashboard → **My notifications** (`components/dashboard/TextAlertsPrefs.tsx`): a signed-in staffer enters their own mobile and checks "text me team alerts." The action (`app/dashboard/notifications/actions.ts` → `saveTextAlerts`) stores the number on their Clerk account (`publicMetadata.phone`, via `setClerkPhoneByEmail`) and writes the consent ledger with source **`staff-optin`**; unchecking opts out (mirrors a STOP). Roster opt-out mirrored both directions, matching the inbound webhook.
+- Messaging surfaces read that number: `listStaffContacts()` (one Clerk pass, falls back to `publicMetadata.phone`) feeds the inbox quick-pick, and `listClerkContactsByRole` picks it up for blasts — so a self-opted-in staffer is immediately textable and pickable.
+- **Team & access** page shows a per-teammate **Texts on / No text opt-in** badge (join of `listStaffContacts` ↔ consent ledger) so admins can see who's reachable — read-only, as designed.
+- Works before Twilio go-live: the opt-in is recorded now and takes effect the moment texting flips on.
 
 ### Phase 3 — Team-oriented polish (optional)
 - A dedicated **"Team broadcast"** template category (logistics/alerts) distinct from voter-facing copy.

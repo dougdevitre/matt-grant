@@ -41,6 +41,39 @@ export async function setClerkRoleByEmail(email: string, role: Role): Promise<vo
   }
 }
 
+// Store a staffer's own mobile number in Clerk publicMetadata.phone (from the
+// self-serve "My text alerts" panel). This is metadata only — NOT a verified Clerk
+// phone number, so no verification flow is needed; it's just the reachability record
+// the messaging surfaces read. updateUserMetadata merges top-level keys, so this
+// never disturbs publicMetadata.role. Pass null/"" to clear it. Best-effort; never
+// throws. `phone` should already be E.164 (the action normalizes with toE164).
+export async function setClerkPhoneByEmail(email: string, phone: string | null): Promise<void> {
+  if (!process.env.CLERK_SECRET_KEY || !email) return;
+  try {
+    const { clerkClient } = await import("@clerk/nextjs/server");
+    const client = await clerkClient();
+    const { data } = await client.users.getUserList({ emailAddress: [email], limit: 1 });
+    const user = data[0];
+    if (user) await client.users.updateUserMetadata(user.id, { publicMetadata: { phone: phone || null } });
+  } catch {
+    /* best-effort; the consent ledger is the durable textability record */
+  }
+}
+
+/** The signed-in staffer's own stored mobile (publicMetadata.phone), or null.
+ *  Reads the current request's Clerk user, so it only ever returns "my" number. */
+export async function getMyStoredPhone(): Promise<string | null> {
+  if (!process.env.CLERK_SECRET_KEY) return null;
+  try {
+    const { currentUser } = await import("@clerk/nextjs/server");
+    const u = await currentUser();
+    const p = (u?.publicMetadata as { phone?: unknown } | undefined)?.phone;
+    return typeof p === "string" && p ? p : null;
+  } catch {
+    return null;
+  }
+}
+
 // Revoke a teammate's access in Clerk: demote them to "supporter" (the public
 // floor — no staff/private capabilities) AND revoke their active sessions so the
 // change takes effect immediately, not just on their next sign-in. Best-effort:
