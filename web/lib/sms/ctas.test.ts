@@ -53,6 +53,7 @@ describe("welcomeReply", () => {
     expect(r).toContain(`${SITE_URL}/sign-up?`);
     expect(r).toContain("utm_campaign=welcome");
     expect(r).toMatch(/Join the campaign platform/i);
+    expect(r).toMatch(/Save us as Matt Grant for Congress/i); // cut the "unknown sender" spam flag
     expect(r).toContain(CAMPAIGN.paidForBy);
     expect(r).toMatch(/Reply STOP to opt out/i);
     expect(r).toMatch(/HELP for help/i);

@@ -6,6 +6,23 @@ How to take the campaign's text messaging from **staged/no-op** to **live sendin
 
 ---
 
+## ⚠️ Toll-free ≠ A2P 10DLC — don't chase the 10DLC trust score
+
+The campaign sends from a **toll-free** number (**+1 844-314-7912**). Toll-free and A2P 10DLC are **two separate Twilio programs** — do not confuse them:
+
+| | **Toll-free (what we use)** | **A2P 10DLC** |
+|---|---|---|
+| Applies to | 8xx toll-free numbers | 10-digit **local** numbers |
+| Approval gate | **Toll-Free Verification** (must be **Verified**) | Brand + Campaign registration |
+| Throughput/deliverability | Set by Toll-Free Verification | Set by the TCR **Trust Score** (MPS + daily cap) |
+| Political vetting | **Not required** | **Campaign Verify** (required for 527 committees) |
+
+So the **A2P 10DLC "Trust Score" (e.g. 16/100), the T-Mobile daily-segment cap, Campaign Verify, and the score "appeal" DO NOT apply to our toll-free sends.** If you see a low 10DLC trust score in Trust Hub, it does **not** gate this number — **don't buy Campaign Verify or file a 10DLC appeal for the toll-free program.** A dormant 10DLC brand in the account is harmless; leave it.
+
+**What actually governs toll-free deliverability:** (1) **Toll-Free Verification = Verified**; (2) opted-in-only sending + clear STOP handling (enforced in code); (3) sender identification so it isn't an "unknown sender" (the first 1:1 outbound auto-prepends *"Matt Grant for Congress:"*, and the opt-in flow asks people to **save the number as a contact**); (4) a low spam-report rate. Only revisit the 10DLC path (brand/campaign/Campaign Verify) if the campaign adds a **10-digit local number**.
+
+---
+
 ## How it fails safe
 
 Every SMS path checks `smsEnabled()` first (`lib/sms/send.ts`) — true only when **all three** Twilio secrets are present (account SID, auth token, messaging service SID). With any missing:
