@@ -93,6 +93,6 @@ export function welcomeReply(): string {
   const link = ctaLink("/sign-up", "welcome");
   return (
     `You're in! Welcome to Team ${CAMPAIGN.candidate}. Join the campaign platform: ${link}\n` +
-    `Msg & data rates may apply. ${CAMPAIGN.paidForBy} Reply STOP to opt out, HELP for help.`
+    `Save us as ${CAMPAIGN.committee}. Msg & data rates may apply. ${CAMPAIGN.paidForBy} Reply STOP to opt out, HELP for help.`
   );
 }
