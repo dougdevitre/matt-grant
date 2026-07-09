@@ -50,6 +50,7 @@ function buildSvg(W, H, logo) {
   const pillW = 300, pillH = 128, pillR = 16;
   const numY = pillY + pillH + 96;
   const stepsTop = numY + 96;
+  const saveY = stepsTop + STEPS.length * 92 + 24; // "save us" callout, portrait only (room permitting)
   const footY = H - 150;
 
   return Buffer.from(`<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
@@ -80,6 +81,10 @@ function buildSvg(W, H, logo) {
 
   <!-- how it works -->
   ${STEPS.map(([n, label], i) => stepRow(n, label, Math.round(W * 0.16), stepsTop + i * 92)).join("")}
+
+  <!-- save-our-number tip (portrait has the room; kills the "unknown sender" spam flag) -->
+  ${H >= 1200 ? `<rect x="${cx - 390}" y="${saveY - 42}" width="780" height="70" rx="14" fill="${C.blue}" fill-opacity="0.14"/>
+  <text x="${cx}" y="${saveY + 3}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="${C.white}">Save us as Matt Grant for Congress</text>` : ""}
 
   <!-- footer / compliance -->
   <line x1="80" y1="${footY}" x2="${W - 80}" y2="${footY}" stroke="${C.blue}" stroke-opacity="0.25" stroke-width="2"/>
