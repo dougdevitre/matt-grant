@@ -66,6 +66,7 @@ const ALLOW = new Set<string>([
   "app/api/webhooks/inbound-email/route.ts",
   "app/api/webhooks/ses/route.ts",
   "app/api/webhooks/twilio/route.ts",
+  "app/api/webhooks/twilio/status/route.ts",
   "app/api/webhooks/winred/route.ts",
 ]);
 

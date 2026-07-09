@@ -86,12 +86,13 @@ export function resolveCta(keyword: string): ResolvedCta | null {
   return { source: def.source, reply: ctaReply(def.lead, ctaLink(def.dest, def.canonical)) };
 }
 
-/** The general opt-in welcome (keyword MATT / START). No longer a dead end: leads
- *  with a soft Get Involved CTA and carries the disclaimer + opt-out. */
+/** The general opt-in welcome (keyword MATT / START). Not a dead end: leads with a
+ *  clear CTA to the campaign platform (create an account / join the community) and
+ *  carries the disclaimer + opt-out. */
 export function welcomeReply(): string {
-  const link = ctaLink("/join", "welcome");
+  const link = ctaLink("/sign-up", "welcome");
   return (
-    `You're in — welcome to Team ${CAMPAIGN.candidate}! Get involved: ${link}\n` +
+    `You're in — welcome to Team ${CAMPAIGN.candidate}! Join the campaign platform: ${link}\n` +
     `Msg & data rates may apply. ${CAMPAIGN.paidForBy} Reply STOP to opt out, HELP for help.`
   );
 }

@@ -36,6 +36,12 @@ export const NOTIFICATION_TYPES: NotificationTypeDef[] = [
     desc: "When someone applies to lead a team via /join — review and promote them.",
     roles: ["admin"],
   },
+  {
+    key: "inbound_sms",
+    label: "New inbound text",
+    desc: "When someone texts the campaign number and it needs a reply in the Inbox.",
+    roles: ["admin", "captain"],
+  },
 ];
 
 export type NotificationType = string;

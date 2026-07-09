@@ -9,6 +9,9 @@ import { STAFF_ALLOWLIST, staffGate, clerkEnabled } from "@/lib/auth";
 import { listStaff } from "@/lib/staff";
 import { listPendingInvites } from "@/lib/invites";
 import { listAccessChanges, listPreviewSwitches } from "@/lib/audit";
+import { listStaffContacts } from "@/lib/clerkAudiences";
+import { listConsent } from "@/lib/sms/consent";
+import { toE164 } from "@/lib/sms/send";
 import { can, INVITABLE_ROLES, ROLE_LABELS, ROLE_BADGE, isStaffRole, type Role } from "@/lib/rbac";
 import { revokeStaff, setMemberRole, setCaptainAreaAction } from "./actions";
 import { ConfirmButton } from "@/components/dashboard/ConfirmButton";
@@ -52,6 +55,28 @@ export default async function TeamPage() {
     [...active.map((s) => s.email), ...partners.map((p) => p.email), ...STAFF_ALLOWLIST].map((e) => e.toLowerCase()),
   );
   const orphanPending = pending.filter((p) => !known.has(p.email.toLowerCase()));
+
+  // Text reachability per teammate: their stored mobile (Clerk publicMetadata.phone,
+  // set by their own "My text alerts" opt-in) joined to the SMS consent ledger. Admins
+  // can SEE this but can't opt anyone in — consent is the staffer's own action (TCPA).
+  const [staffContacts, consent] = await Promise.all([
+    clerkEnabled ? listStaffContacts() : Promise.resolve([]),
+    listConsent(),
+  ]);
+  const smsStatusByPhone = new Map(consent.map((c) => [c.phone, c.status]));
+  const textStatusByEmail = new Map<string, { phone: string; optedIn: boolean }>();
+  for (const c of staffContacts) {
+    const e = c.phone ? toE164(c.phone) : null;
+    if (!c.email || !e) continue;
+    textStatusByEmail.set(c.email.toLowerCase(), { phone: e, optedIn: smsStatusByPhone.get(e) === "opted_in" });
+  }
+  const textBadge = (email: string) => {
+    const t = textStatusByEmail.get(email.toLowerCase());
+    if (!t) return null;
+    return t.optedIn
+      ? { label: "Texts on", cls: "bg-field/10 text-field" }
+      : { label: "No text opt-in", cls: "bg-paper text-slate" };
+  };
 
   const roleName = (r?: string) => (r ? (ROLE_LABELS[r as Role] ?? r) : "—");
   const when = (iso: string) =>
@@ -110,6 +135,12 @@ export default async function TeamPage() {
                 </span>
                 {clerkEnabled && <InviteStatusBadge accepted={accepted(s.email)} />}
                 {clerkEnabled && !accepted(s.email) && <ResendInviteButton email={s.email} />}
+                {(() => {
+                  const t = textBadge(s.email);
+                  return t ? (
+                    <span className={`rounded-sm px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow ${t.cls}`}>{t.label}</span>
+                  ) : null;
+                })()}
                 <form action={setMemberRole} className="flex items-center gap-2">
                   <input type="hidden" name="email" value={s.email} />
                   <select

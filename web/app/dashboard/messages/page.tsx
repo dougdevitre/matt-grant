@@ -1,11 +1,12 @@
 import { redirect } from "next/navigation";
 import { staffGate } from "@/lib/auth";
-import { can } from "@/lib/rbac";
+import { can, ROLE_LABELS } from "@/lib/rbac";
 import { PageHeader, HowTo } from "@/components/dashboard/Notice";
 import { smsEnabled, toE164 } from "@/lib/sms/send";
 import { listConversations } from "@/lib/sms/conversations";
 import { listConsent } from "@/lib/sms/consent";
 import { listBlocked } from "@/lib/sms/moderation";
+import { listStaffContacts } from "@/lib/clerkAudiences";
 import { getVolunteers } from "@/lib/queries";
 import { NewMessageForm } from "@/components/dashboard/NewMessageForm";
 import { InboxList, type InboxItem } from "@/components/dashboard/InboxList";
@@ -16,12 +17,16 @@ export default async function MessagesPage() {
   const { role } = await staffGate();
   if (!can(role, "messageIndividuals")) redirect("/dashboard?denied=messageIndividuals");
 
-  const [convos, consent, blocked, vols, enabled] = await Promise.all([
+  const [convos, consent, blocked, vols, enabled, staffContacts] = await Promise.all([
     listConversations(),
     listConsent(),
     listBlocked(),
     getVolunteers(),
     smsEnabled(),
+    // Team members (staff Clerk accounts) with a phone on file, so an admin can start a
+    // 1:1 with a teammate without hand-typing a number. One userbase scan; [] when Clerk
+    // is off. A staffer's number arrives via their own "My text alerts" opt-in.
+    listStaffContacts(),
   ]);
 
   const statusByPhone = new Map(consent.map((c) => [c.phone, c.status]));
@@ -32,15 +37,35 @@ export default async function MessagesPage() {
     if (e && !nameByPhone.has(e)) nameByPhone.set(e, v.name);
   }
   // Quick-pick contacts for a new conversation: opted-in, non-blocked volunteers
-  // (cold initiation is only allowed to opted-in numbers).
-  const contacts = vols.rows
-    .map((v) => ({ name: v.name, phone: toE164(v.phone) }))
-    .filter((c): c is { name: string; phone: string } => !!c.phone && statusByPhone.get(c.phone) === "opted_in" && !blockedSet.has(c.phone));
+  // AND team members (staff Clerk accounts with a phone). Cold initiation is only
+  // allowed to opted-in numbers, so both sources are gated on the consent ledger.
+  // Keyed by phone so a person who is both a volunteer and staff appears once — the
+  // volunteer row (real name) wins over the staff label.
+  const canText = (phone: string) => statusByPhone.get(phone) === "opted_in" && !blockedSet.has(phone);
+  const byPhone = new Map<string, { name: string; phone: string }>();
+  for (const v of vols.rows) {
+    const e = toE164(v.phone);
+    if (e && canText(e) && !byPhone.has(e)) byPhone.set(e, { name: v.name, phone: e });
+  }
+  for (const s of staffContacts) {
+    const e = s.phone ? toE164(s.phone) : null;
+    if (!e || byPhone.has(e) || !canText(e)) continue;
+    byPhone.set(e, { name: `${s.firstName ?? s.email ?? e} · ${ROLE_LABELS[s.role]}`, phone: e });
+  }
+  const contacts = [...byPhone.values()];
+
+  // Phone → staff role, so the inbox list can badge team conversations (like the thread page).
+  const roleByPhone = new Map<string, (typeof staffContacts)[number]["role"]>();
+  for (const s of staffContacts) {
+    const e = s.phone ? toE164(s.phone) : null;
+    if (e && !roleByPhone.has(e)) roleByPhone.set(e, s.role);
+  }
 
   // Serializable rows for the client list (multi-select triage lives there).
   const items: InboxItem[] = convos.map((c) => ({
     phone: c.phone,
     name: nameByPhone.get(c.phone),
+    role: roleByPhone.get(c.phone),
     lastBody: c.lastBody,
     lastDirection: c.lastDirection,
     lastAt: c.lastAt,
@@ -56,7 +81,7 @@ export default async function MessagesPage() {
       <HowTo
         steps={[
           "This is 1:1 texting — separate from broadcast Text blasts. Replies from people land here as threads.",
-          "You can reply to anyone who texted the campaign first, and start new texts to opted-in supporters. Opted-out (STOP) and blocked numbers are refused.",
+          "You can reply to anyone who texted the campaign first, and start new texts to opted-in supporters or team members (the New message picker lists both). Opted-out (STOP) and blocked numbers are refused.",
           "A ⚠ badge flags inappropriate language for your review — it does NOT auto-block. Use Block on a thread to stop an abusive number.",
           "Turn a texter into a community supporter from their thread — text them a self-signup link, or register them by email.",
         ]}

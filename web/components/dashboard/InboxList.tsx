@@ -4,10 +4,12 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { bulkConversationAction, type BulkOp } from "@/app/dashboard/messages/actions";
+import { ROLE_LABELS, type Role } from "@/lib/rbac";
 
 export type InboxItem = {
   phone: string;
   name?: string;
+  role?: Role; // set when the texter is a staff/team member — shown as a badge
   lastBody: string;
   lastDirection: "in" | "out";
   lastAt: string;
@@ -97,6 +99,11 @@ export function InboxList({ items }: { items: InboxItem[] }) {
               <span className="min-w-0">
                 <span className="font-semibold text-ink">{c.name ?? c.phone}</span>
                 {c.name && <span className="ml-2 font-mono text-xs text-slate">{c.phone}</span>}
+                {c.role && (
+                  <span className="ml-2 rounded-sm bg-field/10 px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-field">
+                    Team · {ROLE_LABELS[c.role]}
+                  </span>
+                )}
                 <span className="mt-0.5 block truncate text-slate">
                   {c.lastDirection === "out" ? "↳ " : ""}
                   {c.lastBody || "—"}

@@ -12,6 +12,7 @@ import { listStaff } from "@/lib/staff";
 import { STAFF_ALLOWLIST } from "@/lib/auth";
 import { ROLE_LABELS, type Role } from "@/lib/rbac";
 import { emailsMuting } from "@/lib/notifications/prefs";
+import { SITE_URL } from "@/lib/site";
 
 const esc = (s: string) =>
   String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -173,6 +174,38 @@ export async function notifyAdminsNewDonation(d: { name?: string; amount?: numbe
           <p>The donor was thanked automatically. Details are on the dashboard <strong>Donors</strong> page.</p>`,
       }),
       text: renderText({ title, lines: [amt + (d.recurring ? " (recurring)" : ""), d.name || "", d.email || ""].filter(Boolean) }),
+    });
+  } catch {
+    /* best-effort */
+  }
+}
+
+/**
+ * Inbound text arrived → alert admins + captains so a reply doesn't sit unseen in the
+ * Inbox. Fire-and-forget from the inbound webhook, THROTTLED by the caller to the first
+ * unread of a thread (so a burst of texts is one alert, not one per message). Best-effort.
+ */
+export async function notifyStaffInboundText(m: { from: string; bodySnippet: string; name?: string; role?: Role }): Promise<void> {
+  if (!sesEnabled) return;
+  try {
+    const to = await staffEmails(["admin", "captain"], "inbound_sms");
+    if (!to.length) return;
+    const who = m.name ? `${m.name}${m.role ? ` (${ROLE_LABELS[m.role]})` : ""}` : m.from;
+    const link = `${SITE_URL}/dashboard/messages/${encodeURIComponent(m.from)}`;
+    const title = "New inbound text";
+    await sendEmail({
+      to,
+      subject: `New text from ${who}`.slice(0, 120),
+      html: renderEmail({
+        eyebrow: "Inbox",
+        title,
+        bodyHtml: `<p>Someone texted the campaign number and it's waiting for a reply.</p>
+          <p style="margin:14px 0;padding:12px 16px;background:#F1EFE8;border-radius:4px;"><strong>${esc(who)}</strong><br>
+          <span style="color:#5B6678;">${esc(m.bodySnippet || "(no message body)")}</span></p>
+          <p>Reply from the dashboard <strong>Inbox</strong>.</p>`,
+        button: { label: "Open the conversation", href: link, color: "red" },
+      }),
+      text: renderText({ title, lines: [`From: ${who}`, m.bodySnippet || "", `Reply: ${link}`].filter(Boolean) }),
     });
   } catch {
     /* best-effort */

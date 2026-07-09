@@ -11,6 +11,15 @@ describe("finalizeSmsUpdateExpression", () => {
     expect(done).toContain("finishedAt");
     expect(done.indexOf("SET")).toBeLessThan(done.indexOf("ADD"));
   });
+
+  it("accumulates sent, skipped, and failed counters separately", () => {
+    for (const done of [false, true]) {
+      const e = finalizeSmsUpdateExpression(done);
+      expect(e).toContain("sentCount :sd");
+      expect(e).toContain("skippedCount :pd");
+      expect(e).toContain("failedCount :fd");
+    }
+  });
 });
 
 describe("withinSendWindow (9am–8pm CT)", () => {

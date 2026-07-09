@@ -4,6 +4,7 @@
 // failing lookup (or an unconfigured DB) never breaks the page.
 import { sesEnabled } from "@/lib/email/send";
 import { smsEnabled } from "@/lib/sms/send";
+import { smsReadiness } from "@/lib/sms/health";
 import { optedInSet } from "@/lib/sms/consent";
 import { listConnections } from "@/lib/social/connections";
 import { getSecret } from "@/lib/ssm";
@@ -33,8 +34,9 @@ async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
 }
 
 export async function getDashboardStatus(): Promise<StatusRow[]> {
-  const [sms, optedIn, connections, winredSecret, ingest, airtable, extUsage] = await Promise.all([
+  const [sms, smsReady, optedIn, connections, winredSecret, ingest, airtable, extUsage] = await Promise.all([
     safe(() => smsEnabled(), false),
+    safe(() => smsReadiness(), { state: "setup" as const, secrets: [], presentCount: 0, missing: [] as string[] }),
     safe(() => optedInSet(), new Set<string>()),
     safe(() => listConnections(), [] as Awaited<ReturnType<typeof listConnections>>),
     safe(() => getSecret("WINRED_WEBHOOK_SECRET"), undefined),
@@ -75,7 +77,11 @@ export async function getDashboardStatus(): Promise<StatusRow[]> {
       state: sms ? "live" : "setup",
       detail: sms
         ? `Live — ${optedIn.size} ${optedIn.size === 1 ? "person" : "people"} opted in.`
-        : "Not set up. Add Twilio credentials (account SID, auth token, messaging service) to send texts.",
+        : smsReady.missing.length
+          ? `Not set up. Still needed: ${smsReady.missing.join(", ")}.`
+          : "Not set up. Add Twilio credentials (account SID, auth token, messaging service) to send texts.",
+      actionHref: "/dashboard/sms/go-live",
+      actionText: "SMS setup",
     },
     {
       key: "social",

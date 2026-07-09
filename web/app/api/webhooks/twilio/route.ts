@@ -1,9 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { getSecret } from "@/lib/ssm";
 import { validateTwilioSignature } from "@/lib/sms/send";
 import { recordConsent, recordOptOut } from "@/lib/sms/consent";
 import { setVolunteerContactOptOut } from "@/lib/volunteers/optout";
 import { isBlocked } from "@/lib/sms/moderation";
 import { logInbound } from "@/lib/sms/conversations";
+import { notifyStaffInboundText } from "@/lib/notifications/staffNotify";
 import { resolveCta, welcomeReply } from "@/lib/sms/ctas";
 import { CAMPAIGN } from "@/lib/site";
 
@@ -51,7 +53,9 @@ export async function POST(req: NextRequest) {
   if (await isBlocked(from)) return twiml();
 
   const keyword = bodyText.trim().toUpperCase().replace(/[^A-Z]/g, "");
-  const optIn = (process.env.SMS_OPTIN_KEYWORD ?? "MATT").toUpperCase().replace(/[^A-Z]/g, "");
+  // Resolve the opt-in keyword via getSecret (env-first → SSM /matt-grant/*), so the
+  // runbook's "store it in SSM" step actually takes effect. Defaults to MATT.
+  const optIn = ((await getSecret("SMS_OPTIN_KEYWORD")) ?? "MATT").toUpperCase().replace(/[^A-Z]/g, "");
 
   // Keyword side effects + the reply — then log EVERY inbound message into the
   // person's thread (after the consent mutation, so a fresh read reflects
@@ -78,9 +82,18 @@ export async function POST(req: NextRequest) {
     reply = cta.reply;
   }
 
+  // A "freeform" text is one that didn't match a reserved word / opt-in keyword / CTA
+  // — i.e. a real message a person wrote that needs a human reply in the Inbox.
+  const handled = STOP_WORDS.has(keyword) || START_WORDS.has(keyword) || keyword === optIn || keyword === "HELP" || !!cta;
+
   // Best-effort: never hold the 200 ack on a logging failure.
   try {
-    await logInbound({ from, body: bodyText, sid: params.MessageSid });
+    const unread = await logInbound({ from, body: bodyText, sid: params.MessageSid });
+    // Alert staff only on the FIRST unread of a freeform thread, so a burst of texts
+    // is one email, not one per message. Fire-and-forget.
+    if (!handled && unread === 1) {
+      await notifyStaffInboundText({ from, bodySnippet: bodyText.slice(0, 140) }).catch(() => {});
+    }
   } catch {
     /* consent already recorded; a logging miss shouldn't trigger Twilio retries */
   }
