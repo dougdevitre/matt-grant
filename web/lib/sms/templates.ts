@@ -1,7 +1,9 @@
 // SMS broadcast templates + helpers. Parallels lib/email/broadcasts.ts but much
 // simpler: a short body, no rich text. build() returns the raw body; the composer
 // and the campaign creator wrap it with withCompliance() before counting/sending.
-import { CAMPAIGN } from "@/lib/site";
+import { CAMPAIGN, SITE_URL } from "@/lib/site";
+import { ISSUES } from "@/lib/issues";
+import { ctaLink } from "@/lib/sms/ctas";
 
 export type SmsField = { name: string; label: string; placeholder?: string };
 export type SmsTemplateDef = {
@@ -68,6 +70,26 @@ export function nonGsmChars(text: string): string[] {
 
 const tidy = (s: string) => s.replace(/\s+/g, " ").trim();
 
+/** Whole days from `now` until the primary (CAMPAIGN.electionDate), floored at 0. Lets the GOTV
+ *  template fill the countdown automatically so staff never type (or fat-finger) the number. */
+export function daysUntilElection(now: Date = new Date()): number {
+  const ms = new Date(CAMPAIGN.electionDate).getTime() - now.getTime();
+  return Math.max(0, Math.ceil(ms / 86_400_000));
+}
+
+// Fuzzy-match a typed priority ("family courts", "taxes", "term limits") to a canonical ISSUE,
+// so the issue template can deep-link /issues/<slug> without a select input. null if no match.
+function matchIssue(q: string): (typeof ISSUES)[number] | null {
+  const s = q.trim().toLowerCase();
+  if (!s) return null;
+  const slug = s.replace(/\s+/g, "-");
+  return (
+    ISSUES.find((i) => i.slug === slug || i.slug.includes(slug) || i.title.toLowerCase().includes(s)) ??
+    ISSUES.find((i) => s.split(/\s+/).some((w) => w.length > 3 && i.title.toLowerCase().includes(w))) ??
+    null
+  );
+}
+
 export const SMS_TEMPLATES: SmsTemplateDef[] = [
   {
     key: "reminder",
@@ -83,9 +105,29 @@ export const SMS_TEMPLATES: SmsTemplateDef[] = [
   {
     key: "gotv",
     label: "GOTV reminder",
-    description: "Get-out-the-vote push for the Aug 4 primary.",
-    fields: [{ name: "days", label: "Days until the primary", placeholder: "3" }],
-    build: (v) => tidy(`The August 4 primary is ${v.days ? `${v.days} days away` : "almost here"}. Make your plan to vote. Every vote counts.`),
+    description: "Get-out-the-vote push for the Aug 4 primary — the countdown fills in automatically.",
+    fields: [{ name: "days", label: "Days until the primary (blank = auto)", placeholder: "auto" }],
+    build: (v) => {
+      const raw = v.days?.trim();
+      const n = raw && !Number.isNaN(Number(raw)) ? Number(raw) : daysUntilElection();
+      const phrase = n > 1 ? `${n} days away` : n === 1 ? "tomorrow" : n === 0 ? "today" : "almost here";
+      return tidy(`The August 4 primary is ${phrase}. Make your plan to vote. Every vote counts.`);
+    },
+  },
+  {
+    key: "issue-update",
+    label: "Priority spotlight",
+    description: "Voter-facing update on one of Matt's four priorities, with a link to his plan.",
+    fields: [
+      { name: "priority", label: "Priority", placeholder: "family courts / term limits / smaller government / lower taxes" },
+      { name: "note", label: "Your line (optional)", placeholder: "Big news this week:" },
+    ],
+    build: (v) => {
+      const iss = matchIssue(v.priority || "");
+      if (!iss) return tidy(`See where Matt Grant stands on the issues: ${SITE_URL}/issues`);
+      const lead = v.note?.trim() ? `${v.note.trim()} ` : "";
+      return tidy(`${lead}Matt's plan - ${iss.tagline} ${ctaLink(`/issues/${iss.slug}`, `issue-${iss.slug}`)}`);
+    },
   },
   {
     key: "team-update",
@@ -104,6 +146,16 @@ export const SMS_TEMPLATES: SmsTemplateDef[] = [
       { name: "where", label: "Where", placeholder: "HQ, 1625 Mason Knoll Rd" },
     ],
     build: (v) => tidy(`${v.activity || "Volunteer shift"} reminder: ${v.when || ""}${v.where ? ` at ${v.where}` : ""}. Thanks for showing up!`),
+  },
+  {
+    key: "captain-brief",
+    label: "Captain brief (internal)",
+    description: "A coordination brief for team captains — this week's focus + the ask. Pair with the Captain role audience.",
+    fields: [
+      { name: "focus", label: "This week's focus", placeholder: "Weekend canvass push" },
+      { name: "ask", label: "The ask", placeholder: "Confirm your team's Sat shifts by Thu" },
+    ],
+    build: (v) => tidy(`Captains - ${v.focus || "this week"}.${v.ask ? ` ${v.ask}` : ""}`),
   },
   {
     key: "custom",
