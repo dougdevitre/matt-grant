@@ -17,7 +17,11 @@ export type SmsTemplateDef = {
 // authorized-committee disclaimer — the same standard as every sample in
 // messaging/sms-texting.md — reusing the single source of truth (CAMPAIGN.paidForBy
 // already ends with a period).
-export const SMS_COMPLIANCE_SUFFIX = ` — ${CAMPAIGN.paidForBy} Reply STOP to opt out.`;
+//
+// Keep every character in this suffix GSM-7 (plain hyphen, no em/en dash, smart quotes, or
+// emoji). It rides on EVERY text, so one non-GSM char here forces the whole message to UCS-2
+// — 70 chars/segment instead of 160 — silently ~2x-ing the segment count and cost campaign-wide.
+export const SMS_COMPLIANCE_SUFFIX = ` - ${CAMPAIGN.paidForBy} Reply STOP to opt out.`;
 
 export function withCompliance(body: string): string {
   const b = body.trim();
@@ -53,6 +57,15 @@ export function smsSegments(text: string): SegmentInfo {
   return { chars: u, segments, encoding: "UCS-2" };
 }
 
+/** Distinct characters in `text` that aren't representable in GSM-7 — the ones forcing a
+ *  message to pricier UCS-2 (70 chars/segment vs 160). Empty array = GSM-7 clean. Used by the
+ *  composer to warn "a curly quote / dash / emoji is doubling your cost" and name the culprit. */
+export function nonGsmChars(text: string): string[] {
+  const out = new Set<string>();
+  for (const ch of text) if (!GSM_BASIC.has(ch) && !GSM_EXT.has(ch)) out.add(ch);
+  return [...out];
+}
+
 const tidy = (s: string) => s.replace(/\s+/g, " ").trim();
 
 export const SMS_TEMPLATES: SmsTemplateDef[] = [
@@ -72,7 +85,7 @@ export const SMS_TEMPLATES: SmsTemplateDef[] = [
     label: "GOTV reminder",
     description: "Get-out-the-vote push for the Aug 4 primary.",
     fields: [{ name: "days", label: "Days until the primary", placeholder: "3" }],
-    build: (v) => tidy(`The August 4 primary is ${v.days ? `${v.days} days away` : "almost here"}. Make your plan to vote — every vote counts.`),
+    build: (v) => tidy(`The August 4 primary is ${v.days ? `${v.days} days away` : "almost here"}. Make your plan to vote. Every vote counts.`),
   },
   {
     key: "team-update",
