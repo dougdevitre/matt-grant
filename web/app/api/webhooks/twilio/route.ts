@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { getSecret } from "@/lib/ssm";
 import { validateTwilioSignature } from "@/lib/sms/send";
 import { recordConsent, recordOptOut } from "@/lib/sms/consent";
 import { setVolunteerContactOptOut } from "@/lib/volunteers/optout";
@@ -51,7 +52,9 @@ export async function POST(req: NextRequest) {
   if (await isBlocked(from)) return twiml();
 
   const keyword = bodyText.trim().toUpperCase().replace(/[^A-Z]/g, "");
-  const optIn = (process.env.SMS_OPTIN_KEYWORD ?? "MATT").toUpperCase().replace(/[^A-Z]/g, "");
+  // Resolve the opt-in keyword via getSecret (env-first → SSM /matt-grant/*), so the
+  // runbook's "store it in SSM" step actually takes effect. Defaults to MATT.
+  const optIn = ((await getSecret("SMS_OPTIN_KEYWORD")) ?? "MATT").toUpperCase().replace(/[^A-Z]/g, "");
 
   // Keyword side effects + the reply — then log EVERY inbound message into the
   // person's thread (after the consent mutation, so a fresh read reflects

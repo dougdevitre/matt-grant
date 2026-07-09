@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { SmsComposer } from "@/components/dashboard/SmsComposer";
 import { staffGate } from "@/lib/auth";
@@ -52,6 +53,11 @@ export default async function SmsPage() {
             Add the Twilio credentials (account SID, auth token, messaging service) in SSM. You can still draft here.
             Carrier delivery also needs Toll-Free Verification approved.
           </p>
+          {canSend && (
+            <Link href="/dashboard/sms/go-live" className="mt-2 inline-block font-mono text-xs font-bold text-brick hover:underline">
+              Finish setup →
+            </Link>
+          )}
         </div>
       )}
 

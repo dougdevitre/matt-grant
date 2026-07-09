@@ -11,7 +11,8 @@ Where the campaign stands on **admins sending text messages to team members from
 - **Two-way texting is built and works** — but it is aimed at *supporters/volunteers who text in*, not at *internal team members*.
 - **Broadcast texting is built and works** — admins send, captains draft, all gated on opt-in.
 - **The one real gap:** there is no *team roster with phone numbers + consent*, and the console doesn't expose a "text my team" audience or quick-pick. Staff are invited by **email only** (Clerk), so the campaign has no reliable way to reach staff by text today.
-- **Nothing ships to carriers until Twilio go-live** (Toll-Free Verification + three SSM secrets) is done — see the checklist in [`sms-go-live.md`](./sms-go-live.md).
+- **Nothing ships to carriers until Twilio go-live** (Toll-Free Verification + three SSM secrets) is done — see the checklist in [`sms-go-live.md`](./sms-go-live.md). The console now surfaces this: an admin **SMS go-live** page (`/dashboard/sms/go-live`) shows which of the three Twilio secrets are set (presence only, never values), the external webhook/cron/verification steps, and a one-click test send — plus the SMS row on **Setup & status** links to it and the overview onboarding checklist has a "Turn on texting" step.
+- **No code is missing to send.** The audit confirmed the send path, gate, test route, drain, cron, inbound webhook, consent ledger, and console actions are all complete. Going live is external config only.
 
 ---
 
