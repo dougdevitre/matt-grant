@@ -7,6 +7,7 @@ import { volunteerWelcome, supporterWelcome, contactReceipt } from "@/lib/email/
 import { CAMPAIGN } from "@/lib/site";
 import { toE164 } from "@/lib/sms/send";
 import { recordConsent } from "@/lib/sms/consent";
+import { sendLifecycleText } from "@/lib/sms/lifecycle";
 import { saveProfile, cleanZip, type WayToHelp } from "@/lib/profile";
 import { mirrorVolunteerToAirtable } from "@/lib/volunteers/airtable";
 import { notifyAdminsCaptainApplication, notifyCaptainsNewVolunteer } from "@/lib/notifications/staffNotify";
@@ -309,6 +310,18 @@ async function notify(p: {
   message: string | null;
   welcomeJoiner: boolean;
 }) {
+  // Welcome TEXT — independent of email config, so it runs before the sesEnabled guard.
+  // Self-gates on SMS opt-in (no-op unless they checked SMS consent, whose row is already
+  // recorded upstream), so a fresh joiner who opted in gets a text; everyone else no-ops.
+  // Raw first name (not HTML-escaped) for SMS.
+  if (p.phone && p.welcomeJoiner) {
+    const smsFirst = p.name.split(" ")[0] || "there";
+    await sendLifecycleText({
+      to: p.phone,
+      body: `Thanks for joining Team ${CAMPAIGN.candidate}, ${smsFirst}! We'll text occasional campaign updates and ways to help. Save us as ${CAMPAIGN.committee}.`,
+    }).catch(() => {});
+  }
+
   if (!sesEnabled) return;
   const firstName = esc(p.name.split(" ")[0] || "there");
   if (p.email && p.welcomeJoiner) {

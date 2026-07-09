@@ -21,6 +21,7 @@ vi.mock("@/lib/email/templates", () => ({
   contactReceipt: () => ({ subject: "", html: "", text: "" }),
 }));
 vi.mock("@/lib/site", () => ({ CAMPAIGN: { email: "campaign@x.com" } }));
+vi.mock("@/lib/sms/lifecycle", () => ({ sendLifecycleText: vi.fn().mockResolvedValue({ sent: false }) }));
 vi.mock("@/lib/sms/send", () => ({ toE164: (p: string) => (p ? `+1${p.replace(/\D/g, "")}` : null) }));
 const recordConsent = vi.fn();
 vi.mock("@/lib/sms/consent", () => ({ recordConsent: (...a: unknown[]) => recordConsent(...a) }));

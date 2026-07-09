@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { smsSegments, withCompliance, getSmsTemplate, SMS_COMPLIANCE_SUFFIX, SMS_TEMPLATES, nonGsmChars } from "./templates";
+import { smsSegments, withCompliance, getSmsTemplate, SMS_COMPLIANCE_SUFFIX, SMS_TEMPLATES, nonGsmChars, daysUntilElection } from "./templates";
+import { CAMPAIGN } from "@/lib/site";
 
 describe("smsSegments", () => {
   it("counts GSM-7 single + multi segment boundaries", () => {
@@ -46,6 +47,7 @@ describe("GSM-7 cost guard", () => {
     const sample = {
       what: "Town hall", when: "Sat 10am", where: "Chesterfield", days: "3",
       message: "Doors at 6pm", activity: "Canvass", body: "Hello team",
+      priority: "family courts", note: "Big news:", focus: "Weekend push", ask: "Confirm shifts",
     };
     for (const t of SMS_TEMPLATES) {
       expect(nonGsmChars(withCompliance(t.build(sample))), t.key).toEqual([]);
@@ -70,5 +72,24 @@ describe("templates", () => {
     expect(getSmsTemplate("shift-reminder")!.build({ activity: "Canvass", when: "Sat 9am", where: "HQ" })).toBe(
       "Canvass reminder: Sat 9am at HQ. Thanks for showing up!",
     );
+    expect(getSmsTemplate("captain-brief")!.build({ focus: "Weekend push", ask: "Confirm shifts" })).toBe(
+      "Captains - Weekend push. Confirm shifts",
+    );
+  });
+
+  it("gotv auto-fills the countdown from the election date when days is blank", () => {
+    // 10 days before the primary → "10 days away"; explicit value still wins.
+    const tenDaysBefore = new Date(new Date(CAMPAIGN.electionDate).getTime() - 10 * 86_400_000);
+    expect(daysUntilElection(tenDaysBefore)).toBe(10);
+    expect(getSmsTemplate("gotv")!.build({})).toMatch(/(days away|tomorrow|today|almost here)/);
+    expect(getSmsTemplate("gotv")!.build({ days: "5" })).toContain("5 days away");
+  });
+
+  it("issue-update deep-links a matched priority, or falls back to /issues", () => {
+    const matched = getSmsTemplate("issue-update")!.build({ priority: "family courts" });
+    expect(matched).toContain("/issues/family-courts");
+    expect(matched).toContain("utm_campaign=issue-family-courts");
+    expect(getSmsTemplate("issue-update")!.build({ priority: "taxes" })).toContain("/issues/lower-taxes");
+    expect(getSmsTemplate("issue-update")!.build({ priority: "" })).toContain("/issues");
   });
 });
