@@ -12,6 +12,8 @@ import { cleanDate } from "@/lib/dashboard/due";
 import { createTask, setTaskStatus as writeTaskStatus, type TaskStatus } from "@/lib/tasks";
 import { mirrorVolunteerStatusToAirtable } from "@/lib/volunteers/airtable";
 import { staffRole } from "@/lib/staff";
+import { getVolunteer } from "@/lib/queries";
+import { sendLifecycleText } from "@/lib/sms/lifecycle";
 
 // Hide the "Start here" guide for the signed-in staffer (a per-user UI
 // preference — no capability needed beyond being signed in).
@@ -280,6 +282,20 @@ export async function addTask(formData: FormData) {
   }
   const dueDate = cleanDate(str(formData, "dueDate")); // optional; validated to YYYY-MM-DD
   await createTask({ title, detail, category, priority, dueDate, volunteerId, volunteerName });
+
+  // Text the assignee that they've got a task (self-gates on their SMS opt-in — no-op
+  // otherwise). It logs to the 1:1 inbox, so a question reply lands where staff can see it.
+  if (volunteerId) {
+    const vol = await getVolunteer(volunteerId).catch(() => null);
+    if (vol?.phone) {
+      await sendLifecycleText({
+        to: vol.phone,
+        body: `You've got a new volunteer task: ${title}. Reply here with any questions - thanks for stepping up!`,
+        by: "system",
+      }).catch(() => {});
+    }
+  }
+
   revalidatePath("/dashboard/tasks");
   revalidatePath("/dashboard");
 }

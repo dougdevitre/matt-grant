@@ -60,6 +60,10 @@ const otherLinks: ReplyLink[] = [
   { group: "More", label: "About Matt", campaign: "about", dest: "/about", snippet: "Learn more about Matt:", match: ["who is", "about", "bio", "background"] },
   { group: "More", label: "Media", campaign: "media", dest: "/media", snippet: "Videos and graphics to share:", match: ["video", "media", "watch", "share", "graphic"] },
   { group: "More", label: "Contact", campaign: "contact", dest: "/contact", snippet: "Reach the campaign here:", match: ["contact", "reach", "call", "email address"] },
+  // Donor self-service: receipts + recurring-gift history (requires their login).
+  { group: "Give", label: "My giving", campaign: "my-giving", dest: "/my-giving", snippet: "See your giving history and receipts here:", match: ["receipt", "my donation", "my gift", "recurring", "history", "tax"] },
+  // Captain self-service: their own team + coverage.
+  { group: "More", label: "Team dashboard", campaign: "captain-dashboard", dest: "/dashboard", snippet: "Your captain dashboard:", match: ["my team", "dashboard", "my volunteers", "captain"] },
 ];
 
 export const REPLY_LINKS: ReplyLink[] = [...priorityLinks, ...otherLinks];
