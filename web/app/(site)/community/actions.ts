@@ -12,6 +12,7 @@ import { buildGeoIndex } from "@/lib/volunteers/geo";
 import { notifyCaptainVolunteerInterest } from "@/lib/notifications/staffNotify";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { CAMPAIGN } from "@/lib/site";
+import { getShift, unclaimShiftReminder, updateShift } from "@/lib/coverage/shiftStore";
 
 // Save the supporter's involvement profile from the onboarding card. The email is
 // taken from the authenticated session (never the form), so a supporter can only
@@ -114,4 +115,58 @@ export async function joinSuggestedTeam() {
     }),
   );
   revalidatePath("/community");
+}
+
+// ---------------------------------------------------------------------------
+// Poll-shift self-signup: a volunteer takes (or drops) an open greeter shift on
+// their OWN behalf. Self-scoped like everything above — the assignee identity is
+// derived from the SESSION email (`e:<email>`, the volunteer record key), never
+// from the form, so nobody can sign someone else up. Capacity and same-person
+// checks re-run server-side against current state; the campaign-scale
+// read-modify-write race on the last slot matches the admin board's.
+
+const shiftDay = (d = new Date()) =>
+  d.toLocaleDateString("en-CA", { timeZone: "America/Chicago" }); // YYYY-MM-DD, campaign time
+
+/** Take one open shift. No-op (with a revalidate) on any guard failure. */
+export async function claimShift(formData: FormData) {
+  const { email } = await staffGate();
+  if (!email || !dbConfigured) return;
+  const shiftId = String(formData.get("shiftId") ?? "").trim();
+  if (!shiftId) return;
+
+  const sk = `e:${email.trim().toLowerCase()}`;
+  const r = await ddb.send(new GetCommand({ TableName: TABLE, Key: { PK: PK.volunteers, SK: sk } }));
+  const v = r.Item;
+  if (!v) return; // only an existing volunteer can take a shift
+  const name = (typeof v.name === "string" && v.name.trim()) || email.split("@")[0];
+
+  const shift = await getShift(shiftId);
+  if (!shift) return;
+  if (shift.date < shiftDay()) return; // never join a past shift
+  if (shift.assignees.some((a) => a.id === sk)) return; // already on it — idempotent
+  if (shift.assignees.length >= shift.needed) return; // filled since the page rendered
+
+  await updateShift(shiftId, { assignees: [...shift.assignees, { id: sk, name: name.slice(0, 80) }] }, email);
+  revalidatePath("/community");
+  revalidatePath("/dashboard/coverage/shifts");
+}
+
+/** Drop a shift the volunteer took (their own id only; upcoming shifts only). */
+export async function dropShift(formData: FormData) {
+  const { email } = await staffGate();
+  if (!email || !dbConfigured) return;
+  const shiftId = String(formData.get("shiftId") ?? "").trim();
+  if (!shiftId) return;
+
+  const sk = `e:${email.trim().toLowerCase()}`;
+  const shift = await getShift(shiftId);
+  if (!shift || shift.date < shiftDay()) return;
+  if (!shift.assignees.some((a) => a.id === sk)) return;
+
+  await updateShift(shiftId, { assignees: shift.assignees.filter((a) => a.id !== sk) }, email);
+  // Clear the reminder claim so a replacement (or a re-join) gets a fresh text.
+  await unclaimShiftReminder(shiftId, sk);
+  revalidatePath("/community");
+  revalidatePath("/dashboard/coverage/shifts");
 }

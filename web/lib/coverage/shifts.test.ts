@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { nonGsmChars } from "@/lib/sms/templates";
 import {
   buildShiftMatrix,
+  myUpcomingShifts,
+  openShifts,
   reminderBody,
   remindersFor,
   coverageGrid,
@@ -233,6 +235,30 @@ describe("reminderBody", () => {
 
   it("falls back when the first name is blank", () => {
     expect(reminderBody("", [{ site: "A", window: "W" }], "2026-07-21")).toContain("Hi there,");
+  });
+});
+
+describe("openShifts / myUpcomingShifts", () => {
+  const me = { id: "e:me@x.com", name: "Me" };
+  const other = { id: "e:other@x.com", name: "Other" };
+  const shifts = [
+    rec({ id: "past", date: "2026-07-20" }), // before fromDate — never shown
+    rec({ id: "full", date: "2026-07-22", assignees: [other] }), // needed 1, full
+    rec({ id: "open-late", date: "2026-07-23", window: "Noon–close" }),
+    rec({ id: "open-early", date: "2026-07-23", window: "Open–noon" }),
+    rec({ id: "mine-open", date: "2026-07-25", needed: 2, assignees: [me] }), // open, but I'm on it
+    rec({ id: "mine-past", date: "2026-07-01", assignees: [me] }),
+  ];
+
+  it("lists upcoming under-filled shifts chronologically, excluding the viewer's own", () => {
+    expect(openShifts(shifts, "2026-07-21", me.id).map((s) => s.id)).toEqual(["open-early", "open-late"]);
+    // Without an exclusion, a still-open shift the viewer is on shows up.
+    expect(openShifts(shifts, "2026-07-21").map((s) => s.id)).toEqual(["open-early", "open-late", "mine-open"]);
+  });
+
+  it("lists only the viewer's upcoming shifts", () => {
+    expect(myUpcomingShifts(shifts, me.id, "2026-07-21").map((s) => s.id)).toEqual(["mine-open"]);
+    expect(myUpcomingShifts(shifts, "e:nobody@x.com", "2026-07-21")).toEqual([]);
   });
 });
 

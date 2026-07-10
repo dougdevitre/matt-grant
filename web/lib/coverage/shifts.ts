@@ -351,6 +351,30 @@ export function reminderBody(firstName: string, shifts: Pick<ShiftRecord, "site"
   );
 }
 
+// ---------------------------------------------------------------------------
+// Self-signup (community hub) — pure selectors for the volunteer-facing view.
+
+/** Upcoming shifts still short of their needed greeters (date >= fromDate,
+ *  YYYY-MM-DD string compare), excluding any the viewer is already on.
+ *  Chronological: date, then window, then site. */
+export function openShifts(shifts: ShiftRecord[], fromDate: string, excludeAssigneeId?: string): ShiftRecord[] {
+  return shifts
+    .filter(
+      (s) =>
+        s.date >= fromDate &&
+        s.assignees.length < s.needed &&
+        (!excludeAssigneeId || !s.assignees.some((a) => a.id === excludeAssigneeId)),
+    )
+    .sort((a, b) => a.date.localeCompare(b.date) || byWindow(a, b) || a.site.localeCompare(b.site));
+}
+
+/** The viewer's own upcoming shifts, chronological. */
+export function myUpcomingShifts(shifts: ShiftRecord[], assigneeId: string, fromDate: string): ShiftRecord[] {
+  return shifts
+    .filter((s) => s.date >= fromDate && s.assignees.some((a) => a.id === assigneeId))
+    .sort((a, b) => a.date.localeCompare(b.date) || byWindow(a, b) || a.site.localeCompare(b.site));
+}
+
 export type ShiftPacket = { assigneeId: string; name: string; shifts: ShiftRecord[] };
 
 /** Per-person shift packets for printing (a shift with several assignees appears
