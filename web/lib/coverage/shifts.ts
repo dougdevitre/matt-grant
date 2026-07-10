@@ -292,31 +292,26 @@ export type ReminderTarget = { assignee: ShiftAssignee; shifts: ShiftRecord[] };
 
 /**
  * Who still needs a reminder for `date`: every assignee on that day's shifts
- * who isn't already in the shift's `reminded` set. An id containing "@" is a
- * staff email (captain) — there is no staff phone source in the repo, so those
- * are returned separately for honest reporting, never texted. Volunteers get
- * one target covering ALL their shifts that day (one text per person).
+ * who isn't already in the shift's `reminded` set, one target per person
+ * covering ALL their shifts that day (one text each). Split by id shape: an id
+ * containing "@" is a staff email (captain) — those resolve to a phone via the
+ * staffer's own "My text alerts" number (Clerk), volunteers via the roster.
  */
-export function remindersFor(shifts: ShiftRecord[], date: string): { volunteers: ReminderTarget[]; captains: ShiftAssignee[] } {
+export function remindersFor(shifts: ShiftRecord[], date: string): { volunteers: ReminderTarget[]; captains: ReminderTarget[] } {
   const vols = new Map<string, ReminderTarget>();
-  const caps = new Map<string, ShiftAssignee>();
+  const caps = new Map<string, ReminderTarget>();
   const day = shifts.filter((s) => s.date === date.trim());
   for (const s of day.sort(byWindow)) {
     for (const a of s.assignees) {
       if (s.reminded.includes(a.id)) continue;
-      if (a.id.includes("@")) {
-        caps.set(a.id, a);
-        continue;
-      }
-      const t = vols.get(a.id) ?? { assignee: a, shifts: [] };
+      const bucket = a.id.includes("@") ? caps : vols;
+      const t = bucket.get(a.id) ?? { assignee: a, shifts: [] };
       t.shifts.push(s);
-      vols.set(a.id, t);
+      bucket.set(a.id, t);
     }
   }
-  return {
-    volunteers: [...vols.values()].sort((a, b) => a.assignee.name.localeCompare(b.assignee.name)),
-    captains: [...caps.values()].sort((a, b) => a.name.localeCompare(b.name)),
-  };
+  const byName = (a: ReminderTarget, b: ReminderTarget) => a.assignee.name.localeCompare(b.assignee.name);
+  return { volunteers: [...vols.values()].sort(byName), captains: [...caps.values()].sort(byName) };
 }
 
 // Keep reminder texts in the cheap GSM-7 alphabet: window labels and site names

@@ -193,7 +193,14 @@ describe("remindersFor", () => {
     const r = remindersFor(shifts, "2026-07-22");
     expect(r.volunteers.map((t) => t.assignee.name)).toEqual(["Ann"]); // Bo already reminded on 2, not on this date otherwise
     expect(r.volunteers[0].shifts.map((s) => s.id)).toEqual(["2", "1"]); // Open–noon before Noon–close
-    expect(r.captains.map((c) => c.id)).toEqual(["cap@x.com"]); // email id → no phone source, reported separately
+    // Email id → captain bucket, same target shape (their shifts ride along).
+    expect(r.captains.map((t) => t.assignee.id)).toEqual(["cap@x.com"]);
+    expect(r.captains[0].shifts.map((s) => s.id)).toEqual(["1"]);
+  });
+
+  it("applies the reminded-exclusion to captains too", () => {
+    const r = remindersFor([rec({ id: "9", date: "2026-07-25", assignees: [cap], reminded: [cap.id] })], "2026-07-25");
+    expect(r.captains).toEqual([]);
   });
 
   it("returns empty for a date with no assigned shifts", () => {
