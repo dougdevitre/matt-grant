@@ -30,20 +30,24 @@ beforeEach(() => {
 });
 
 describe("resolveSmsRecipients", () => {
-  it("subscribers = the full opted-in set", async () => {
+  const phones = (r: { phone: string }[]) => r.map((x) => x.phone);
+
+  it("subscribers = the full opted-in set (phone-only, no name)", async () => {
     const r = await resolveSmsRecipients(["subscribers"]);
-    expect(new Set(r)).toEqual(new Set(["+13145550100", "+13145550101"]));
+    expect(new Set(phones(r))).toEqual(new Set(["+13145550100", "+13145550101"]));
+    expect(r.every((x) => x.first === undefined)).toBe(true); // ledger carries no name
   });
 
-  it("volunteers = only volunteer phones that are opted in (normalized)", async () => {
+  it("volunteers = only volunteer phones that are opted in, carrying the first name", async () => {
     const r = await resolveSmsRecipients(["volunteers"]);
-    expect(r).toEqual(["+13145550100"]); // 0999 excluded (not opted in), null skipped
+    expect(r).toEqual([{ phone: "+13145550100", first: "Opted" }]); // 0999 excluded, null skipped
   });
 
-  it("unions + de-dupes across groups", async () => {
+  it("unions + de-dupes across groups; a named source upgrades a nameless subscriber entry", async () => {
     const r = await resolveSmsRecipients(["subscribers", "volunteers"]);
-    expect(new Set(r)).toEqual(new Set(["+13145550100", "+13145550101"]));
+    expect(new Set(phones(r))).toEqual(new Set(["+13145550100", "+13145550101"]));
     expect(r.length).toBe(2); // +13145550100 not duplicated
+    expect(r.find((x) => x.phone === "+13145550100")?.first).toBe("Opted"); // volunteer name wins
   });
 });
 
@@ -89,19 +93,19 @@ describe("volunteer-role targeting + opt-out reconciliation", () => {
   });
 
   it("selects opted-in volunteers by role token, excluding roster opt-outs", async () => {
-    expect(await resolveSmsRecipients([], [], ["role:Canvasser"])).toEqual(["+13145550100"]);
+    expect((await resolveSmsRecipients([], [], ["role:Canvasser"])).map((r) => r.phone)).toEqual(["+13145550100"]);
   });
 
   it("selects by door token", async () => {
-    expect(await resolveSmsRecipients([], [], ["door:Team Captain"])).toEqual(["+13145550101"]);
+    expect((await resolveSmsRecipients([], [], ["door:Team Captain"])).map((r) => r.phone)).toEqual(["+13145550101"]);
   });
 
   it("the volunteers GROUP also honors the roster opt-out (0102 excluded)", async () => {
-    expect(new Set(await resolveSmsRecipients(["volunteers"]))).toEqual(new Set(["+13145550100", "+13145550101"]));
+    expect(new Set((await resolveSmsRecipients(["volunteers"])).map((r) => r.phone))).toEqual(new Set(["+13145550100", "+13145550101"]));
   });
 
   it("de-dupes a volunteer matched by two tokens", async () => {
-    expect(await resolveSmsRecipients([], [], ["role:Canvasser", "role:Phone Banker"])).toEqual(["+13145550100"]);
+    expect((await resolveSmsRecipients([], [], ["role:Canvasser", "role:Phone Banker"])).map((r) => r.phone)).toEqual(["+13145550100"]);
   });
 
   it("smsVolRoleCounts counts opted-in members per token (opt-outs excluded)", async () => {

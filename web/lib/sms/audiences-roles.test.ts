@@ -21,7 +21,12 @@ describe("resolveSmsRecipients — Clerk role targeting", () => {
       { email: null, phone: null }, // no phone → excluded
     ]);
     const out = await resolveSmsRecipients([], ["volunteer"]);
-    expect(out).toEqual(["+13145550001"]);
+    expect(out.map((r) => r.phone)).toEqual(["+13145550001"]);
+  });
+
+  it("carries the Clerk contact's first name for personalization", async () => {
+    listClerkContactsByRole.mockResolvedValue([{ email: null, phone: "+13145550001", firstName: "Jordan" }]);
+    expect(await resolveSmsRecipients([], ["volunteer"])).toEqual([{ phone: "+13145550001", first: "Jordan" }]);
   });
 
   it("excludes blocked numbers even if opted in", async () => {

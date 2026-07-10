@@ -63,18 +63,30 @@ export function smsAudienceLabel(groups: SmsGroup[], roles: Role[] = [], volRole
   return parts.join(" + ") || "—";
 }
 
-// E.164 phones from the chosen groups + Clerk roles + volunteer-role segments, filtered
+// A resolved SMS recipient: the opted-in number plus their first name when a source
+// carries one (volunteer roster / Clerk contact) — so the drain can merge "{first}".
+// The raw subscribers ledger has no name (first stays undefined → "there" at merge).
+export type SmsRecipient = { phone: string; first?: string };
+
+const firstOf = (name?: string | null): string | undefined => {
+  const f = (name ?? "").trim().split(/\s+/)[0];
+  return f || undefined;
+};
+
+// Recipients from the chosen groups + Clerk roles + volunteer-role segments, filtered
 // to opted-in, minus blocked numbers, and de-duplicated. Every source is gated on opt-in
 // BY CONSTRUCTION — a candidate is only texted if its number is in the consent ledger. As
 // defense-in-depth, a volunteer whose roster opt-out flag is set is dropped even if a stale
 // opted_in row lingers (a STOP mirrors to the roster). (The drain re-checks opt-in + block
-// at send.)
-export async function resolveSmsRecipients(groups: SmsGroup[], roles: Role[] = [], volRoles: string[] = []): Promise<string[]> {
+// at send.) Deduped by phone in a Map so a NAMED source (volunteer/role) upgrades a nameless
+// subscriber entry for the same number.
+export async function resolveSmsRecipients(groups: SmsGroup[], roles: Role[] = [], volRoles: string[] = []): Promise<SmsRecipient[]> {
   const [opted, blocked] = await Promise.all([optedInSet(), listBlocked()]);
   const blockedSet = new Set(blocked.map((b) => b.phone));
-  const out = new Set<string>();
-  const add = (e: string) => {
-    if (!blockedSet.has(e)) out.add(e);
+  const byPhone = new Map<string, string | undefined>();
+  const add = (e: string, first?: string) => {
+    if (blockedSet.has(e)) return;
+    byPhone.set(e, first ?? byPhone.get(e)); // keep an existing name; add one if the source has it
   };
   if (groups.includes("subscribers")) for (const p of opted) add(p);
 
@@ -86,7 +98,7 @@ export async function resolveSmsRecipients(groups: SmsGroup[], roles: Role[] = [
       if (v.optedOut) continue; // roster opt-out suppresses even a stale opted_in row
       const e = toE164(v.phone);
       if (!e || !opted.has(e)) continue;
-      if (wantAllVols || volMatches(v, tokens)) add(e);
+      if (wantAllVols || volMatches(v, tokens)) add(e, firstOf(v.name));
     }
   }
 
@@ -96,10 +108,10 @@ export async function resolveSmsRecipients(groups: SmsGroup[], roles: Role[] = [
   for (const contacts of perRole) {
     for (const c of contacts) {
       const e = c.phone ? toE164(c.phone) : null;
-      if (e && opted.has(e)) add(e);
+      if (e && opted.has(e)) add(e, firstOf(c.firstName));
     }
   }
-  return [...out];
+  return [...byPhone].map(([phone, first]) => ({ phone, first }));
 }
 
 // Opted-in counts per group, for the composer's audience toggles. Mirrors the resolver's

@@ -30,7 +30,7 @@ describe("SMS invariant: never emit a non-opted-in or blocked number", () => {
   const BLOCKED = new Set(["+1B"]);
 
   it("holds across subscribers + volunteers + roles combined", async () => {
-    const out = await resolveSmsRecipients(["subscribers", "volunteers"], ["admin", "donor"]);
+    const out = (await resolveSmsRecipients(["subscribers", "volunteers"], ["admin", "donor"])).map((r) => r.phone);
     // Every recipient is opted in AND not blocked — by construction.
     for (const p of out) {
       expect(OPTED.has(p), `${p} must be opted in`).toBe(true);
