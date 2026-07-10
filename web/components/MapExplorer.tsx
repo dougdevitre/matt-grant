@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CATEGORIES, EVENT_COLOR, POIS, PRECINCTS, type Category } from "@/lib/mapData";
+import { SIGN_COLOR } from "@/lib/viz/palette";
 import { useResource } from "@/lib/data/useResource";
 import { legendFor, modeStats, type MapMode, type ModeLegend } from "@/lib/viz/precinctPaint";
 // (turnout gradient now comes through legendFor — no direct palette import needed)
@@ -75,6 +76,8 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
   const [showJefferson, setShowJefferson] = useState(true);
   const [showExtra, setShowExtra] = useState(true);
   const [showEvents, setShowEvents] = useState(true);
+  // Signs default OFF — a new ~200-pin layer shouldn't ambush the existing map.
+  const [showSigns, setShowSigns] = useState(false);
   // Small screens get the map first with the control column behind a toggle;
   // ≥lg both always show (the max-lg classes below are inert there).
   const [showControls, setShowControls] = useState(false);
@@ -92,6 +95,7 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
   const jeffersonRes = useResource<GeoJSON.FeatureCollection>("/api/geo/jefferson");
   const extraRes = useResource<GeoJSON.FeatureCollection>("/api/geo/extra-counties");
   const eventsRes = useResource<GeoJSON.FeatureCollection>("/api/geo/events");
+  const signsRes = useResource<GeoJSON.FeatureCollection>("/api/geo/signs");
 
   // Pass live features to the map; fall back to sample/empty until they arrive.
   const featuresOf = (
@@ -107,6 +111,7 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
   const jefferson = useMemo(() => featuresOf(jeffersonRes, emptyFC), [jeffersonRes]);
   const extra = useMemo(() => featuresOf(extraRes, emptyFC), [extraRes]);
   const events = useMemo(() => featuresOf(eventsRes, emptyFC), [eventsRes]);
+  const signs = useMemo(() => featuresOf(signsRes, emptyFC), [signsRes]);
 
   // Indicators: null while loading, then the live flag / count from meta.
   const pollingLive = poisRes.state === "loading" ? null : Boolean((poisRes.meta as GeoMeta | null)?.pollingLive);
@@ -114,6 +119,7 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
   const jeffCount = jeffersonRes.state === "loading" ? null : ((jeffersonRes.meta as GeoMeta | null)?.count ?? 0);
   const extraCount = extraRes.state === "loading" ? null : ((extraRes.meta as GeoMeta | null)?.count ?? 0);
   const eventCount = eventsRes.state === "loading" ? null : ((eventsRes.meta as GeoMeta | null)?.count ?? 0);
+  const signCount = signsRes.state === "loading" ? null : ((signsRes.meta as GeoMeta | null)?.count ?? 0);
 
   const toggle = (c: Category) =>
     setVisible((v) => (v.includes(c) ? v.filter((x) => x !== c) : [...v, c]));
@@ -150,8 +156,8 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
   // Search index over everything currently plotted; rebuilt only when a layer's
   // data actually changes. Selection reuses the same focus command as deep links.
   const searchIndex = useMemo(
-    () => buildSearchIndex({ precincts, pois, events, jefferson, extra }),
-    [precincts, pois, events, jefferson, extra],
+    () => buildSearchIndex({ precincts, pois, events, jefferson, extra, signs }),
+    [precincts, pois, events, jefferson, extra, signs],
   );
   const results = useMemo(() => searchEntries(searchIndex, query), [searchIndex, query]);
   const jumpTo = (e: SearchEntry) => {
@@ -265,6 +271,18 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
             <input type="checkbox" checked={showEvents} onChange={() => setShowEvents((v) => !v)} />
           </label>
           <p className="mt-1 text-xs text-slate">Appearances with a located address. Green = published, gold = draft; larger dot = higher priority (P1). Click a marker to open the event.</p>
+          <label className="mt-4 flex cursor-pointer items-center justify-between text-sm">
+            <span className="font-semibold text-ink">
+              <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: SIGN_COLOR.verified }} aria-hidden />
+              Signs
+              {signCount ? <span className="ml-2 font-mono text-xs text-slate">{signCount}</span> : null}
+            </span>
+            <input type="checkbox" checked={showSigns} onChange={() => setShowSigns((v) => !v)} />
+          </label>
+          <p className="mt-1 text-xs text-slate">
+            Saved sign placements with coordinates (Field → Signs). Blue = verified (all three
+            compliance gates), amber = pending verification. Off by default.
+          </p>
           <p className="mt-3 border-t border-line pt-3 text-xs text-slate">
             Drag to pan · right-drag to tilt/rotate · scroll to zoom.
           </p>
@@ -366,6 +384,8 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
             showExtra={showExtra}
             events={events}
             showEvents={showEvents}
+            signs={signs}
+            showSigns={showSigns}
             focus={focus}
           />
           {/* On-map legend — collapsed by default; the side panel keeps the full
@@ -389,6 +409,18 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
                     <span className="h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-white" style={{ background: EVENT_COLOR }} aria-hidden />
                     Events
                   </p>
+                )}
+                {showSigns && (
+                  <>
+                    <p className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-white" style={{ background: SIGN_COLOR.verified }} aria-hidden />
+                      Signs — verified
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-white" style={{ background: SIGN_COLOR.pending }} aria-hidden />
+                      Signs — pending
+                    </p>
+                  </>
                 )}
               </div>
             </details>
