@@ -21,6 +21,10 @@ export type ShiftRecord = ShiftInput & {
   createdAt: string;
   updatedAt: string;
   updatedBy: string; // staff email that last touched the row
+  // Assignee ids already sent a reminder text for THIS shift — storage-side
+  // bookkeeping stamped by claimShiftReminder (never client-writable; not part
+  // of ShiftInput/sanitizeShift). Persisted as a DynamoDB string set.
+  reminded: string[];
 };
 
 // Key dates from candidate/poll-coverage-plan.md §2 (verified July 10, 2026):
@@ -132,12 +136,17 @@ export function rawToShift(it: Record<string, unknown>): ShiftRecord | null {
   if (!input) return null;
   const id = typeof it.SK === "string" && it.SK ? it.SK : typeof it.id === "string" ? it.id : "";
   if (!id) return null;
+  // The doc client returns a DynamoDB string set as a JS Set; tolerate arrays too.
+  const rawReminded = it.reminded;
+  const reminded = (rawReminded instanceof Set ? [...rawReminded] : Array.isArray(rawReminded) ? rawReminded : [])
+    .filter((v): v is string => typeof v === "string" && !!v);
   return {
     ...input,
     id,
     createdAt: typeof it.createdAt === "string" ? it.createdAt : "",
     updatedAt: typeof it.updatedAt === "string" ? it.updatedAt : "",
     updatedBy: typeof it.updatedBy === "string" ? it.updatedBy : "",
+    reminded,
   };
 }
 
@@ -272,6 +281,63 @@ export function fillStats(shifts: ShiftRecord[]): FillStats {
     fillPct: total ? Math.round((100 * covered) / total) : 0,
     days,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Reminder texts — pure planning for the "Remind greeters by text" action. The
+// action itself sends via sendLifecycleText (which owns consent/blocks/quiet
+// hours); these helpers only decide WHO gets ONE message and WHAT it says.
+
+export type ReminderTarget = { assignee: ShiftAssignee; shifts: ShiftRecord[] };
+
+/**
+ * Who still needs a reminder for `date`: every assignee on that day's shifts
+ * who isn't already in the shift's `reminded` set. An id containing "@" is a
+ * staff email (captain) — there is no staff phone source in the repo, so those
+ * are returned separately for honest reporting, never texted. Volunteers get
+ * one target covering ALL their shifts that day (one text per person).
+ */
+export function remindersFor(shifts: ShiftRecord[], date: string): { volunteers: ReminderTarget[]; captains: ShiftAssignee[] } {
+  const vols = new Map<string, ReminderTarget>();
+  const caps = new Map<string, ShiftAssignee>();
+  const day = shifts.filter((s) => s.date === date.trim());
+  for (const s of day.sort(byWindow)) {
+    for (const a of s.assignees) {
+      if (s.reminded.includes(a.id)) continue;
+      if (a.id.includes("@")) {
+        caps.set(a.id, a);
+        continue;
+      }
+      const t = vols.get(a.id) ?? { assignee: a, shifts: [] };
+      t.shifts.push(s);
+      vols.set(a.id, t);
+    }
+  }
+  return {
+    volunteers: [...vols.values()].sort((a, b) => a.assignee.name.localeCompare(b.assignee.name)),
+    captains: [...caps.values()].sort((a, b) => a.name.localeCompare(b.name)),
+  };
+}
+
+// Keep reminder texts in the cheap GSM-7 alphabet: window labels and site names
+// may carry en/em dashes or curly quotes, any one of which flips the whole
+// message to UCS-2 and doubles the segment cost.
+const gsm = (s: string) => s.replace(/[–—]/g, "-").replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/·/g, "-");
+
+const fmtReminderDay = (date: string) =>
+  new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" });
+
+/**
+ * One reminder message covering a person's shifts on a date. No compliance
+ * suffix here — sendLifecycleText appends the shared paid-for/STOP line. The
+ * conduct sentence restates the already-verified plan §7 rule, nothing new.
+ */
+export function reminderBody(firstName: string, shifts: Pick<ShiftRecord, "site" | "window">[], date: string): string {
+  const stops = shifts.map((s) => `${s.site} (${s.window})`).join(", then ");
+  return gsm(
+    `Hi ${firstName || "there"}, Matt Grant campaign reminder: you're greeting ${fmtReminderDay(date)} at ${stops}. ` +
+      `Stay 25+ ft from the polling-place door; friendly reminder, then space. Questions? Reply here.`,
+  );
 }
 
 export type ShiftPacket = { assigneeId: string; name: string; shifts: ShiftRecord[] };

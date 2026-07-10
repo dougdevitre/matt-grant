@@ -92,6 +92,54 @@ export async function updateShift(id: string, patch: ShiftPatch, updatedBy: stri
   }
 }
 
+/**
+ * Claim the reminder text for one assignee on one shift — true exactly once
+ * (the claimNotify pattern): ADDs the id to the shift's `reminded` string set
+ * under a NOT contains(...) condition, so a double-click or re-run can never
+ * double-text the same person for the same shift. New assignees added after a
+ * run claim fresh on the next run.
+ */
+export async function claimShiftReminder(id: string, assigneeId: string): Promise<boolean> {
+  if (!dbConfigured || !id || !assigneeId) return false;
+  try {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: PK.pollShifts, SK: id },
+        UpdateExpression: "ADD reminded :aidSet",
+        ConditionExpression: "attribute_exists(SK) AND NOT contains(reminded, :aid)",
+        ExpressionAttributeValues: { ":aidSet": new Set([assigneeId]), ":aid": assigneeId },
+      }),
+    );
+    return true;
+  } catch {
+    return false; // already claimed (or the shift is gone)
+  }
+}
+
+/**
+ * Roll a reminder claim back when the text was NOT actually sent (no phone,
+ * not opted in, quiet hours, transport failure) so the person is retried on a
+ * later run instead of being silently lost to a fixable skip. Best-effort.
+ */
+export async function unclaimShiftReminder(id: string, assigneeId: string): Promise<void> {
+  if (!dbConfigured || !id || !assigneeId) return;
+  try {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: PK.pollShifts, SK: id },
+        UpdateExpression: "DELETE reminded :aidSet",
+        ConditionExpression: "attribute_exists(SK)",
+        ExpressionAttributeValues: { ":aidSet": new Set([assigneeId]) },
+      }),
+    );
+  } catch {
+    // best-effort — worst case the person shows as reminded without a text;
+    // the honest counts in the action result still surface the skip.
+  }
+}
+
 /** Hard delete (a cell generated in error, e.g. a site that dropped off the list). */
 export async function deleteShift(id: string): Promise<void> {
   if (!dbConfigured || !id) return;

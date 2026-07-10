@@ -9,11 +9,23 @@ import {
   DEFAULT_EARLY_WINDOWS,
   DEFAULT_ELECTION_DAY_WINDOWS,
   filterNewShifts,
+  reminderBody,
+  remindersFor,
   sanitizeShift,
   type MatrixSite,
   type ShiftAssignee,
 } from "@/lib/coverage/shifts";
-import { createShifts, deleteShift, getShift, listShifts, updateShift } from "@/lib/coverage/shiftStore";
+import {
+  claimShiftReminder,
+  createShifts,
+  deleteShift,
+  getShift,
+  listShifts,
+  unclaimShiftReminder,
+  updateShift,
+} from "@/lib/coverage/shiftStore";
+import { getVolunteer } from "@/lib/queries";
+import { sendLifecycleText } from "@/lib/sms/lifecycle";
 
 // Server actions for the poll-coverage shift board. Gated on manageTeam — the
 // same capability as the coverage page this board lives beside; every write
@@ -146,6 +158,82 @@ export async function setShiftNotes(formData: FormData): Promise<void> {
   const notes = String(formData.get("notes") ?? "").trim().slice(0, 300);
   await updateShift(id, { notes: notes || undefined }, g.email);
   refresh();
+}
+
+export type ShiftRemindersState = { ok: boolean; message: string };
+
+/**
+ * Text every assigned greeter their shift(s) for one date — one message per
+ * person covering all their windows that day. ALL send policy lives in
+ * sendLifecycleText (configured + opted-in + not-blocked + quiet hours 9am–8pm
+ * CT via respectQuietHours — reminders are staff-initiated, so outside the
+ * window they're skipped, not queued). This action only plans recipients,
+ * claims per-shift-per-assignee dedupe (re-runs text only newly added people),
+ * and reports honest counts. Captains (staff-email assignees) have no phone on
+ * file anywhere in the app, so they're reported as skipped, never guessed.
+ */
+export async function sendShiftRemindersAction(_prev: ShiftRemindersState, formData: FormData): Promise<ShiftRemindersState> {
+  const g = await gate();
+  if (!g) return { ok: false, message: "Not allowed." };
+  const date = String(formData.get("date") ?? "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { ok: false, message: "Pick a date to remind." };
+
+  try {
+    const shifts = await listShifts();
+    const { volunteers, captains } = remindersFor(shifts, date);
+    if (!volunteers.length && !captains.length) {
+      return { ok: false, message: "No unreminded assignees on that date — assign greeters first (or they've all been texted)." };
+    }
+
+    let sent = 0;
+    let alreadyClaimed = 0;
+    const skipReasons = new Map<string, number>();
+    for (const t of volunteers) {
+      // Claim each shift for this person; only claimed shifts go in their text,
+      // so a concurrent/second run can never produce a duplicate mention.
+      const claimed: typeof t.shifts = [];
+      for (const s of t.shifts) {
+        if (await claimShiftReminder(s.id, t.assignee.id)) claimed.push(s);
+      }
+      if (!claimed.length) {
+        alreadyClaimed += 1;
+        continue;
+      }
+      // On any not-sent outcome, roll the claims back so a later run retries
+      // (a quiet-hours click at 8:30am must not permanently mark "reminded").
+      const rollback = async () => {
+        for (const s of claimed) await unclaimShiftReminder(s.id, t.assignee.id);
+      };
+      const vol = await getVolunteer(t.assignee.id).catch(() => null);
+      if (!vol?.phone) {
+        skipReasons.set("no phone on file", (skipReasons.get("no phone on file") ?? 0) + 1);
+        await rollback();
+        continue;
+      }
+      const first = (vol.name || t.assignee.name).trim().split(/\s+/)[0];
+      const r = await sendLifecycleText({
+        to: vol.phone,
+        body: reminderBody(first, claimed, date),
+        by: g.email || "system",
+        respectQuietHours: true,
+      }).catch(() => ({ sent: false as const, reason: "send failed" }));
+      if (r.sent) sent += 1;
+      else {
+        const reason = r.reason ?? "not sent";
+        skipReasons.set(reason, (skipReasons.get(reason) ?? 0) + 1);
+        await rollback();
+      }
+    }
+
+    refresh();
+    const parts = [`Texted ${sent} greeter${sent === 1 ? "" : "s"}`];
+    if (alreadyClaimed) parts.push(`${alreadyClaimed} already reminded`);
+    for (const [reason, n] of skipReasons) parts.push(`${n} skipped (${reason})`);
+    if (captains.length) parts.push(`${captains.length} captain${captains.length === 1 ? "" : "s"} skipped (no phone on file)`);
+    return { ok: true, message: `${parts.join(" · ")}.` };
+  } catch {
+    return { ok: false, message: "Couldn't send reminders. Check the database connection." };
+  }
 }
 
 /** Remove a shift generated in error (hard delete). */
