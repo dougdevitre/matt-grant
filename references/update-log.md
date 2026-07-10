@@ -26,6 +26,27 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-10 -- v1.x -- Captains notified on shift self-signup/drop
+
+**Changes:**
+- [updated] supporter-hub shift self-signup now alerts the right person the moment a
+  volunteer takes or drops a greeter shift: their team captain when they have one, else the
+  campaign inbox (a dropped slot must never go unseen). Resolves the self-signup entry's
+  Known Gap ("no notification to the captain"). Email includes the shift details and a
+  shift-board link; drops are flagged for refilling.
+
+**Verifications Performed:**
+- Notifications are best-effort (never fail the claim/drop write) and reuse the existing
+  staff-notify email path; no new channels or policy.
+
+**Known Gaps:**
+- Email only for now; a captain SMS ping could reuse the lifecycle-text path if wanted.
+
+**Files Modified:**
+- (web app only; no skill docs changed beyond this log)
+
+---
+
 ## 2026-07-10 -- v1.x -- Seamless tier→WinRed clicks + tier-aware thank-you emails
 
 **Changes:**

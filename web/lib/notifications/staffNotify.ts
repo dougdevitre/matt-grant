@@ -12,7 +12,7 @@ import { listStaff } from "@/lib/staff";
 import { STAFF_ALLOWLIST } from "@/lib/auth";
 import { ROLE_LABELS, type Role } from "@/lib/rbac";
 import { emailsMuting } from "@/lib/notifications/prefs";
-import { SITE_URL } from "@/lib/site";
+import { CAMPAIGN, SITE_URL } from "@/lib/site";
 
 const esc = (s: string) =>
   String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -110,6 +110,41 @@ export async function notifyCaptainVolunteerInterest(
           <p>Reach out and get them started. Their full profile is on the dashboard <strong>Volunteers</strong> page.</p>`,
       }),
       text: renderText({ title, lines: [`${v.name || "A volunteer"} — ${v.task}`, v.email || "", "Get them started from the dashboard Volunteers page."].filter(Boolean) }),
+    });
+  } catch {
+    /* best-effort */
+  }
+}
+
+/**
+ * A volunteer took or dropped a poll-coverage greeter shift on the supporter hub.
+ * Routes to their team captain when they have one, else the campaign inbox so a
+ * dropped slot never goes unseen (drops matter most — the shift needs refilling).
+ * Best-effort, like every notify here.
+ */
+export async function notifyCaptainShiftChange(
+  captainEmail: string | null | undefined,
+  c: { name?: string; email?: string; action: "took" | "dropped"; site: string; date: string; window: string },
+): Promise<void> {
+  if (!sesEnabled) return;
+  try {
+    const to = captainEmail || CAMPAIGN.email;
+    const who = c.name || "A volunteer";
+    const shift = `${c.site} — ${c.date}, ${c.window}`;
+    const dropped = c.action === "dropped";
+    const title = dropped ? "A greeter shift just opened back up" : "A greeter shift was just taken";
+    await sendEmail({
+      to,
+      subject: `${who} ${dropped ? "dropped" : "took"} a poll shift: ${c.site}`.slice(0, 120),
+      html: renderEmail({
+        eyebrow: captainEmail ? "Your team" : "Field",
+        title,
+        bodyHtml: `<p><strong>${esc(who)}</strong>${c.email ? ` <span style="color:#5B6678;">(${esc(c.email)})</span>` : ""} ${dropped ? "can no longer make" : "signed up for"} this shift on the supporter hub:</p>
+          <p style="margin:14px 0;padding:12px 16px;background:#F1EFE8;border-radius:4px;"><strong>${esc(shift)}</strong></p>
+          <p>${dropped ? "The slot is open again — refill it from the shift board." : "The board and reminder texts already reflect it — nothing to do unless you want to say thanks."}</p>`,
+        button: { label: "Open the shift board", href: `${SITE_URL}/dashboard/coverage/shifts`, color: dropped ? "red" : "blue" },
+      }),
+      text: renderText({ title, lines: [`${who} ${dropped ? "dropped" : "took"}: ${shift}`, dropped ? "Refill it from the shift board." : "The board already reflects it.", `${SITE_URL}/dashboard/coverage/shifts`] }),
     });
   } catch {
     /* best-effort */
