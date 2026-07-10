@@ -1,0 +1,12 @@
+name,lat,lng,site_type,days_active,in_district,buffer_verified,property_permission,captain_id,assigned_volunteer,precinct,aadt,propensity,visibility,serviceability,voter_contact_value,notes
+"St. Louis County Board of Elections",,,early_vote_site,14,true,false,false,,,,,,,,"725 Northwest Plaza Dr, St. Ann, MO 63074. Election authority HQ + early-vote site. Confirm designation/hours + buffer/permission with 314.615.1833 before deploying. Needs geocoding."
+"North County Rec Complex",,,early_vote_site,14,true,false,false,,,,,,,,"Black Jack, MO. Confirm exact address/hours + buffer/permission with St. Louis Co. BOE (314.615.1833). Needs geocoding."
+"UMSL Millennium Student Center",,,early_vote_site,14,true,false,false,,,,,,,,"Normandy, MO (University of Missouri-St. Louis). Confirm hours/site rules + buffer/permission with St. Louis Co. BOE (314.615.1833). Needs geocoding."
+"Daniel Boone Library",,,early_vote_site,14,true,false,false,,,,,,,,"Ellisville, MO. Confirm designation/hours + buffer/permission with St. Louis Co. BOE (314.615.1833). Needs geocoding."
+"Grand Glaize Library",,,early_vote_site,14,true,false,false,,,,,,,,"Manchester, MO. Confirm designation/hours + buffer/permission with St. Louis Co. BOE (314.615.1833). Needs geocoding."
+"Mid-County Library",,,early_vote_site,14,true,false,false,,,,,,,,"Clayton, MO. Confirm designation/hours + buffer/permission with St. Louis Co. BOE (314.615.1833). Needs geocoding."
+"St. Johns UCC",,,early_vote_site,14,true,false,false,,,,,,,,"Mehlville, MO. Confirm designation/hours + buffer/permission with St. Louis Co. BOE (314.615.1833). Needs geocoding."
+"Jefferson County Clerk (Election Authority)",,,early_vote_clerk_office,14,true,false,false,,,,,,,,"729 Maple St, Suite G17, Hillsboro, MO 63050. Rural counties vote early at the Clerk's office itself — confirm hours + buffer/permission with 636.797.5486. Needs geocoding."
+"Washington County Clerk",,,early_vote_clerk_office,14,true,false,false,,,,,,,,"102 N Missouri St, Potosi, MO 63664. Confirm hours + buffer/permission with 573.436.7704. Needs geocoding."
+"Crawford County Clerk",,,early_vote_clerk_office,14,true,false,false,,,,,,,,"302 W Main St, #AS, Steelville, MO 65565. Confirm hours + buffer/permission with 573.775.2376. Needs geocoding."
+"Gasconade County Clerk (Election Authority)",,,early_vote_clerk_office,14,true,false,false,,,,,,,,"119 E First St, Suite 2, Hermann, MO 65041. Confirm hours + buffer/permission with 573.486.5427. Needs geocoding."

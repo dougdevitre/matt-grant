@@ -26,6 +26,39 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-10 -- v1.x -- Early-vote seed CSV + verification checklist for the Signs tool
+
+**Changes:**
+- [added] `candidate/early-vote-sites-seed.csv` -- an 11-row seed for the Signs page's
+  (`/dashboard/signs`) locations CSV: the 7 St. Louis County early-vote sites plus the 4 rural
+  county Clerk offices (Jefferson, Washington, Crawford, Gasconade — each also their county's
+  early-vote location), pulled from the already-verified list in `absentee-voting-guide.md`. No
+  lat/lng or compliance flags are invented: coordinates are left blank pending geocoding, and
+  `buffer_verified`/`property_permission` are `false` on every row until a human confirms.
+- [added] `candidate/early-vote-site-verification-checklist.md` -- a call script (confirm active
+  designation, hours, buffer/electioneering rules, permission, teardown deadline) plus a
+  site-by-site tracking table with phone numbers, to clear the seed CSV's two hard gates before
+  any sign deploys.
+- [updated] `sign-placement-plan.md` §8.6 and §14 cross-link both new files.
+
+**Verifications Performed:**
+- All 11 addresses/phone numbers reused verbatim from `absentee-voting-guide.md` (verified
+  July 10, 2026 against the county election-authority sites) — no new web research; no new facts
+  invented.
+
+**Known Gaps:**
+- Exact lat/lng for all 11 sites remain unconfirmed (left blank by design).
+- `buffer_verified`/`property_permission` for every row are `false` until a staffer completes the
+  call script per site.
+
+**Files Modified:**
+- candidate/early-vote-sites-seed.csv
+- candidate/early-vote-site-verification-checklist.md
+- candidate/sign-placement-plan.md
+- references/update-log.md
+
+---
+
 ## 2026-07-10 -- v1.x -- Poll-coverage field plan (MO-02 Election-Day/early-vote staffing)
 
 **Changes:**
