@@ -1,7 +1,9 @@
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import { geoRoute } from "@/lib/data/geo";
-import { ARCGIS, arcgisGeojsonUrl, type PoiFeature } from "@/lib/geoSources";
+import { ARCGIS, SCHOOLS, arcgisGeojsonUrl, type PoiFeature } from "@/lib/geoSources";
 import { fetchCd2Geometry } from "@/lib/precincts";
+import { districtClipPolygons, pointInAnyPolygon } from "@/lib/geo/districtClip";
+import { normalizeSchoolFeature } from "@/lib/geo/schoolsFeed";
 import { POIS } from "@/lib/mapData";
 
 // Cache the upstream pull for a day; polling locations rarely change mid-cycle.
@@ -44,16 +46,52 @@ async function livePolling(): Promise<PoiFeature[] | null> {
   }
 }
 
+// DESE statewide public-school points — wired defensively (see lib/geoSources
+// SCHOOLS): the endpoint couldn't be pre-verified from the build sandbox, so any
+// fetch/parse mismatch returns null and the route keeps the curated sample.
+// normalizeSchoolFeature drops every feature it can't confidently read, so a
+// schema mismatch degrades to "no live data" — never to mislabeled pins.
+async function liveSchools(): Promise<PoiFeature[] | null> {
+  try {
+    const res = await fetch(arcgisGeojsonUrl(SCHOOLS.url), {
+      next: { revalidate },
+      headers: { accept: "application/geo+json,application/json" },
+    });
+    if (!res.ok) return null;
+    const fc = (await res.json()) as GeoJSON.FeatureCollection;
+    if (!fc?.features?.length) return null;
+    const schools = fc.features.map(normalizeSchoolFeature).filter((f): f is PoiFeature => f !== null);
+    if (schools.length === 0) return null; // schema mismatch → treat as no live data
+
+    // The feed is STATEWIDE — it must clip to MO-02 (all counties, not just the
+    // STL portion). No clip polygons → cannot clip → no live data (never serve
+    // ~2,000 out-of-district schools).
+    const polys = await districtClipPolygons();
+    if (polys.length === 0) return null;
+    const clipped = schools.filter((f) => pointInAnyPolygon(polys, f.geometry.coordinates));
+    return clipped.length > 0 ? clipped : null;
+  } catch {
+    return null;
+  }
+}
+
 export const GET = geoRoute({
-  source: "St. Louis County polling (clipped) + sample POIs",
+  source: "St. Louis County polling + DESE schools (clipped) + sample POIs",
   // POIs always include the sample non-polling categories, so this fallback is
   // only used if the fetcher itself throws.
   fallback: { type: "FeatureCollection", features: [] },
   cacheControl: "public, s-maxage=86400, stale-while-revalidate=43200",
   fetcher: async () => {
-    // Non-polling categories stay sample for now (schools/public/partners need
-    // MSDIS/OSM joins — see candidate/data-and-map-plan.md).
-    const nonPolling = sampleFeatures().filter((f) => f.properties.category !== "polling");
+    // Public places / partners stay sample (OSM joins deferred — see
+    // candidate/data-and-map-plan.md); schools go live when the DESE feed parses.
+    const nonLiveCategories = sampleFeatures().filter(
+      (f) => f.properties.category !== "polling" && f.properties.category !== "schools",
+    );
+
+    const schoolsLiveFeatures = await liveSchools();
+    const schools = schoolsLiveFeatures ?? sampleFeatures().filter((f) => f.properties.category === "schools");
+    const schoolsLive = !!schoolsLiveFeatures;
+    const nonPolling = [...nonLiveCategories, ...schools];
 
     const live = await livePolling();
     let polling = live ?? sampleFeatures().filter((f) => f.properties.category === "polling");
@@ -89,12 +127,16 @@ export const GET = geoRoute({
     return {
       fc: { type: "FeatureCollection", features: [...nonPolling, ...polling] },
       meta: {
-        live_layers: pollingLive ? ["polling"] : [],
+        live_layers: [...(pollingLive ? ["polling"] : []), ...(schoolsLive ? ["schools"] : [])],
         pollingCount: polling.length,
         pollingLive,
+        schoolsLive,
+        schoolsCount: schools.length,
         districtFiltered,
         countyCount, // before clipping, for reference
-        coverage: "St. Louis County portion of MO-02",
+        coverage: schoolsLive
+          ? "Polling: St. Louis County portion of MO-02 · Schools: full MO-02"
+          : "St. Louis County portion of MO-02",
       },
     };
   },
