@@ -65,11 +65,15 @@ export const SCHOOLS = {
   label: "MO public schools (DESE)",
 };
 
-// Washington / Crawford / Gasconade — added to MO-02 in the 2025 map but with no
-// county ArcGIS feed. Use Census 2020 Voting Districts (TIGERweb) for boundaries.
+// Franklin / Washington / Crawford / Gasconade — MO-02 counties with no county
+// ArcGIS feed. Use Census 2020 Voting Districts (TIGERweb) for boundaries.
+// Franklin was added 2026-07-10: the official voter file codes 78,635 Franklin
+// voters into 2025-map CD-2 (candidate/voter-file-plan.md §5), superseding the
+// earlier GIS-based exclusion.
 export const CENSUS_VTD = {
   url: "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Census2020/MapServer/58/query",
   counties: {
+    "29071": "Franklin",
     "29221": "Washington",
     "29055": "Crawford",
     "29073": "Gasconade",

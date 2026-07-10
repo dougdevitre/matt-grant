@@ -1,10 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { COUNTY_TURNOUT, turnoutFor } from "./countyTurnout";
 
-// The four rural MO-02 counties with no precinct-turnout feed. Keys MUST be the
-// bare county name (no " County" suffix) — that's what /api/geo/jefferson and
+// The five MO-02 counties with no precinct-turnout feed (Franklin added
+// 2026-07-10 per the voter-file census). Keys MUST be the bare county name
+// (no " County" suffix) — that's what /api/geo/jefferson and
 // /api/geo/extra-counties pass to turnoutFor(). See the file header.
-const KNOWN = new Set(["Jefferson", "Washington", "Crawford", "Gasconade"]);
+const KNOWN = new Set(["Franklin", "Jefferson", "Washington", "Crawford", "Gasconade"]);
 
 describe("COUNTY_TURNOUT", () => {
   // Guards any entered data — the map reads turnoutPct as a whole-number percent
