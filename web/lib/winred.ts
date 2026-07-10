@@ -24,9 +24,10 @@ function bool(v: unknown): boolean | undefined {
 
 // WinRed's SMS-consent checkbox may surface as a flat/nested boolean OR inside a
 // custom-fields array (each entry a { name/label/key, value } pair). Parse both shapes
-// defensively — the EXACT field name must be confirmed against a real payload from your
-// account. If nothing matches, this returns undefined and NO donor text is sent (fail-safe):
-// a donation is never treated as SMS consent on its own.
+// defensively. CONFIRMED for this account: the checkbox arrives as top-level `sms_opt_in`
+// (first candidate below; pinned by winred.test.ts). The other candidates stay as a safety net
+// if WinRed's config changes. If nothing matches, this returns undefined and NO donor text is
+// sent (fail-safe): a donation is never treated as SMS consent on its own.
 function pickSmsConsent(d: Json): boolean | undefined {
   const flat = bool(
     pick(
@@ -153,6 +154,8 @@ export function normalizeWinred(payload: Json): NormalizedDonation {
   const first = str(pick(d, "donor.first_name", "first_name", "billing.first_name"));
   const last = str(pick(d, "donor.last_name", "last_name", "billing.last_name"));
   const email = str(pick(d, "donor.email", "email", "billing.email"));
+  // CONFIRMED for this account: the donor phone arrives at `donor.phone` (first candidate;
+  // pinned by winred.test.ts). The rest stay as a safety net across WinRed payload variants.
   const phone = str(pick(d, "donor.phone", "phone", "billing.phone", "phone_number", "donor.phone_number", "billing.phone_number", "mobile", "donor.mobile"));
 
   return {
