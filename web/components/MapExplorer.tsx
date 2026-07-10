@@ -36,6 +36,9 @@ export function MapExplorer() {
   const [showJefferson, setShowJefferson] = useState(true);
   const [showExtra, setShowExtra] = useState(true);
   const [showEvents, setShowEvents] = useState(true);
+  // Small screens get the map first with the control column behind a toggle;
+  // ≥lg both always show (the max-lg classes below are inert there).
+  const [showControls, setShowControls] = useState(false);
 
   // The live layers, each on the shared Resource hook (loading/ready/empty/
   // degraded/error). The {type,features,meta} payload normalizes to data+meta.
@@ -83,7 +86,7 @@ export function MapExplorer() {
   return (
     <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
       {/* Controls */}
-      <div className="space-y-4">
+      <div className={`space-y-4 max-lg:order-2 ${showControls ? "" : "max-lg:hidden"}`}>
         <div className="card p-5">
           <p className="eyebrow text-slate">Layers</p>
           <ul className="mt-4 space-y-1">
@@ -190,20 +193,65 @@ export function MapExplorer() {
       </div>
 
       {/* Map */}
-      <div className="h-[68vh] min-h-[420px] overflow-hidden rounded-lg border border-line shadow-card">
-        <RegionMap3D
-          visible={visible}
-          buildings={buildings}
-          turnout={turnout}
-          pois={pois}
-          precincts={precincts}
-          jefferson={jefferson}
-          showJefferson={showJefferson}
-          extraCounties={extra}
-          showExtra={showExtra}
-          events={events}
-          showEvents={showEvents}
-        />
+      <div className="max-lg:order-1">
+        <button
+          type="button"
+          onClick={() => setShowControls((v) => !v)}
+          className="btn-ghost mb-2 lg:hidden"
+          aria-expanded={showControls}
+        >
+          {showControls ? "Hide layer controls" : "Show layer controls"}
+        </button>
+        <div className="relative h-[68vh] min-h-[420px] overflow-hidden rounded-lg border border-line shadow-card">
+          <RegionMap3D
+            visible={visible}
+            buildings={buildings}
+            turnout={turnout}
+            pois={pois}
+            precincts={precincts}
+            precinctsLive={Boolean(precinctsLive)}
+            jefferson={jefferson}
+            showJefferson={showJefferson}
+            extraCounties={extra}
+            showExtra={showExtra}
+            events={events}
+            showEvents={showEvents}
+          />
+          {/* On-map legend — collapsed by default; the side panel keeps the full
+              annotated version. pointer-events split so the map stays draggable
+              around the collapsed chip. */}
+          <div className="pointer-events-none absolute bottom-6 right-3 z-10 max-w-[13rem]">
+            <details className="pointer-events-auto rounded-md border border-line bg-white/95 shadow-card backdrop-blur-sm">
+              <summary className="cursor-pointer select-none px-3 py-1.5 font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate">
+                Legend
+              </summary>
+              <div className="space-y-2 px-3 pb-3 text-xs text-slate">
+                {turnout && (
+                  <div>
+                    <div className="h-2 w-full rounded-full" style={{ background: TURNOUT_LEGEND_GRADIENT }} aria-hidden />
+                    <div className="mt-0.5 flex justify-between font-mono text-[0.55rem]">
+                      <span>~8%</span>
+                      <span>turnout</span>
+                      <span>~40%</span>
+                    </div>
+                  </div>
+                )}
+                {visible.map((c) => (
+                  <p key={c} className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-white" style={{ background: CATEGORIES[c].color }} aria-hidden />
+                    {CATEGORIES[c].label}
+                  </p>
+                ))}
+                {showEvents && (
+                  <p className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-white" style={{ background: EVENT_COLOR }} aria-hidden />
+                    Events
+                  </p>
+                )}
+              </div>
+            </details>
+          </div>
+        </div>
       </div>
     </div>
   );
