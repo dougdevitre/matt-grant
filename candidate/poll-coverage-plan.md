@@ -93,7 +93,11 @@ the sign plan).
 > captain/volunteer roster, computes the §8 fill metrics, and prints per-greeter shift packets carrying
 > the §7 conduct rules plus an honest unfilled-shifts recruiting page (Phase 1's deliverable). Sites
 > pre-fill from the Signs tool's saved `site` locations, so signs and people target the same places.
-> An unstaffed shift shows **uncovered** — the board never hides a gap.
+> An unstaffed shift shows **uncovered** — the board never hides a gap. The board can also **text
+> each assigned greeter a shift reminder** (one message per person per day): consent-gated (opted-in
+> numbers only, STOP honored), sent only 9am–8pm CT, logged to the campaign inbox, and deduped so a
+> re-run only reaches newly added assignees — captains have no phone on file and are reported as
+> skipped rather than guessed.
 
 ---
 

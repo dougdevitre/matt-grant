@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { nonGsmChars } from "@/lib/sms/templates";
 import {
   buildShiftMatrix,
+  reminderBody,
+  remindersFor,
   coverageGrid,
   datesInRange,
   DEFAULT_EARLY_WINDOWS,
@@ -34,6 +37,7 @@ const rec = (over: Partial<ShiftRecord> = {}): ShiftRecord => ({
   createdAt: "",
   updatedAt: "",
   updatedBy: "admin@x.com",
+  reminded: [],
   ...over,
 });
 
@@ -164,6 +168,53 @@ describe("coverageGrid / fillStats", () => {
   it("handles the empty board", () => {
     expect(coverageGrid([])).toEqual([]);
     expect(fillStats([]).fillPct).toBe(0);
+  });
+});
+
+describe("rawToShift reminded bookkeeping", () => {
+  it("maps a stored Set or array to string[] and defaults to []", () => {
+    expect(rawToShift({ SK: "a", ...input(), reminded: new Set(["v1", "v2"]) })?.reminded).toEqual(["v1", "v2"]);
+    expect(rawToShift({ SK: "a", ...input(), reminded: ["v1", 7, ""] })?.reminded).toEqual(["v1"]);
+    expect(rawToShift({ SK: "a", ...input() })?.reminded).toEqual([]);
+  });
+});
+
+describe("remindersFor", () => {
+  const ann = { id: "v1", name: "Ann" };
+  const bo = { id: "v2", name: "Bo" };
+  const cap = { id: "cap@x.com", name: "Cap" };
+  const shifts = [
+    rec({ id: "1", date: "2026-07-22", window: "Noon–close", assignees: [ann, cap] }),
+    rec({ id: "2", date: "2026-07-22", window: "Open–noon", site: "Other Site", assignees: [ann, bo], reminded: ["v2"] }),
+    rec({ id: "3", date: "2026-07-23", assignees: [bo] }),
+  ];
+
+  it("groups one target per volunteer for the date, windows in day order, excluding already-reminded", () => {
+    const r = remindersFor(shifts, "2026-07-22");
+    expect(r.volunteers.map((t) => t.assignee.name)).toEqual(["Ann"]); // Bo already reminded on 2, not on this date otherwise
+    expect(r.volunteers[0].shifts.map((s) => s.id)).toEqual(["2", "1"]); // Open–noon before Noon–close
+    expect(r.captains.map((c) => c.id)).toEqual(["cap@x.com"]); // email id → no phone source, reported separately
+  });
+
+  it("returns empty for a date with no assigned shifts", () => {
+    expect(remindersFor(shifts, "2026-08-01")).toEqual({ volunteers: [], captains: [] });
+  });
+});
+
+describe("reminderBody", () => {
+  it("covers every shift that day and stays GSM-7 clean despite en-dash labels", () => {
+    const body = reminderBody("Ann", [
+      { site: "Daniel Boone Library", window: "Open–noon" },
+      { site: "Site “B”", window: "6–9 AM" },
+    ], "2026-08-04");
+    expect(body).toContain("Tue, Aug 4");
+    expect(body).toContain("Daniel Boone Library (Open-noon), then Site \"B\" (6-9 AM)");
+    expect(body).toContain("25+ ft");
+    expect(nonGsmChars(body)).toEqual([]);
+  });
+
+  it("falls back when the first name is blank", () => {
+    expect(reminderBody("", [{ site: "A", window: "W" }], "2026-07-21")).toContain("Hi there,");
   });
 });
 

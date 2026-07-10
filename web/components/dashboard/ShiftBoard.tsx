@@ -20,8 +20,10 @@ import {
   assignShift,
   generateShiftsAction,
   removeShift,
+  sendShiftRemindersAction,
   setShiftNeeded,
   setShiftNotes,
+  type ShiftRemindersState,
   type ShiftsGenerateState,
 } from "@/app/dashboard/coverage/actions";
 
@@ -107,6 +109,42 @@ function GenerateCard({ prefillSites, connected }: { prefillSites: string; conne
   );
 }
 
+const REMIND_IDLE: ShiftRemindersState = { ok: false, message: "" };
+
+function ReminderCard({ defaultDate }: { defaultDate: string }) {
+  const [state, action] = useActionState(sendShiftRemindersAction, REMIND_IDLE);
+  return (
+    <div className="card p-4 no-print">
+      <p className="eyebrow text-slate">Remind greeters by text</p>
+      <p className="mt-1 max-w-2xl text-sm text-slate">
+        One text per greeter covering all their shifts on the chosen date. Only opted-in numbers are texted, and
+        sends happen 9am&ndash;8pm CT only (outside that window they&rsquo;re skipped, not queued &mdash; re-run
+        later). Captains have no phone on file and are reported as skipped. A &ldquo;&#10003;&rdquo; on a name means
+        their reminder for that shift went out.
+      </p>
+      <form action={action} className="mt-3 flex flex-wrap items-end gap-3">
+        <label className="grid gap-1 text-[0.65rem] uppercase tracking-eyebrow text-slate">
+          Shift date
+          <input
+            type="date"
+            name="date"
+            defaultValue={defaultDate}
+            className="rounded-sm border border-line bg-white px-2 py-1.5 text-xs text-ink"
+          />
+        </label>
+        <SubmitButton pendingText="Texting…" className="btn-primary px-4 py-2 text-sm">
+          Send reminders
+        </SubmitButton>
+        {state.message && (
+          <p className={`text-sm ${state.ok ? "text-field" : "text-brick"}`} role="status">
+            {state.message}
+          </p>
+        )}
+      </form>
+    </div>
+  );
+}
+
 function ShiftRow({ shift, options }: { shift: ShiftRecord; options: AssigneeOption[] }) {
   const status = shiftStatus(shift);
   const open = options.filter((o) => !shift.assignees.some((a) => a.id === o.id));
@@ -118,7 +156,12 @@ function ShiftRow({ shift, options }: { shift: ShiftRecord; options: AssigneeOpt
       </span>
       <span className="flex min-w-0 flex-wrap items-center gap-1.5">
         {shift.assignees.map((a) => (
-          <form key={a.id} action={assignShift} className="inline-flex">
+          <form
+            key={a.id}
+            action={assignShift}
+            className="inline-flex"
+            title={shift.reminded.includes(a.id) ? "Reminder text sent" : undefined}
+          >
             <input type="hidden" name="id" value={shift.id} />
             <input type="hidden" name="op" value="remove" />
             <input type="hidden" name="assigneeId" value={a.id} />
@@ -127,6 +170,7 @@ function ShiftRow({ shift, options }: { shift: ShiftRecord; options: AssigneeOpt
               aria-label={`Remove ${a.name} from ${shift.window}`}
               className="rounded-sm bg-paper px-2 py-0.5 text-xs text-ink hover:bg-brick/10"
             >
+              {shift.reminded.includes(a.id) ? "✓ " : ""}
               {a.name} ×
             </SubmitButton>
           </form>
@@ -210,6 +254,14 @@ export function ShiftBoard({
   const grid = coverageGrid(initialShifts);
   const stats = fillStats(initialShifts);
   const packets = shiftPackets(initialShifts);
+  // Default reminder date: earliest date that still has an un-reminded assignee
+  // (derived from data, so server and client agree). Falls back to the first day.
+  const defaultRemindDate =
+    initialShifts
+      .filter((s) => s.assignees.some((a) => !s.reminded.includes(a.id)))
+      .map((s) => s.date)
+      .sort()[0] ?? EARLY_VOTE_START;
+  const anyAssigned = initialShifts.some((s) => s.assignees.length > 0);
 
   return (
     <div className="grid gap-6">
@@ -231,6 +283,8 @@ export function ShiftBoard({
             </p>
             <PrintButton className="btn-ghost px-3 py-1.5 text-sm">Print shift packets</PrintButton>
           </div>
+
+          {anyAssigned && <ReminderCard defaultDate={defaultRemindDate} />}
 
           <div className="grid gap-4">
             {grid.map((site) => {
