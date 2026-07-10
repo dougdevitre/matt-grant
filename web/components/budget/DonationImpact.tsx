@@ -7,6 +7,7 @@
 import { useMemo, useState } from "react";
 import type { Item } from "@/lib/budget/types";
 import { formatUSD, maxAffordable, toNumber } from "@/lib/budget/plan";
+import { donateHref } from "@/lib/donorLadder";
 
 const AMOUNTS = [25, 50, 100, 250, 500, 1000];
 
@@ -31,7 +32,9 @@ export default function DonationImpact({
     [items],
   );
 
-  const donateUrl = amount > 0 ? `${donateBase}&amount=${amount}` : donateBase;
+  // Proper URL building (no string concat) + a per-surface source code, so
+  // WinRed preselects the amount and its reports attribute the gift to this picker.
+  const donateUrl = amount > 0 ? donateHref(donateBase, Math.round(amount * 100), "web-impact") : donateBase;
 
   const pick = (a: number) => {
     setAmount(a);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LADDER, ladderTierForCents, nextRung } from "./donorLadder";
+import { donateHref, LADDER, ladderTierForCents, nextRung } from "./donorLadder";
 
 describe("LADDER invariants", () => {
   it("is sorted ascending with unique thresholds and the FEC-max top rungs", () => {
@@ -24,6 +24,32 @@ describe("ladderTierForCents", () => {
     expect(ladderTierForCents(3500_00)?.name).toBe("Primary Champion");
     expect(ladderTierForCents(7000_00)?.name).toBe("Full-Cycle Champion");
     expect(ladderTierForCents(9999_99)?.name).toBe("Full-Cycle Champion");
+  });
+});
+
+describe("donateHref", () => {
+  const BASE = "https://secure.winred.com/x/donate-today?sc=winred-directory&money_bomb=false";
+
+  it("sets amount on a base that already has a query string, without duplicating params", () => {
+    const href = donateHref(BASE, 3500_00);
+    const u = new URL(href);
+    expect(u.searchParams.get("amount")).toBe("3500");
+    expect(u.searchParams.get("sc")).toBe("winred-directory"); // preserved when not overridden
+    expect(u.searchParams.get("money_bomb")).toBe("false");
+    expect(href.match(/amount=/g)).toHaveLength(1);
+  });
+
+  it("overrides sc for per-surface attribution and formats non-whole deltas", () => {
+    const u = new URL(donateHref(BASE, 150_00, "email-next-level"));
+    expect(u.searchParams.get("sc")).toBe("email-next-level");
+    expect(u.searchParams.get("amount")).toBe("150");
+    expect(new URL(donateHref(BASE, 62_50, "web-ladder")).searchParams.get("amount")).toBe("62.50");
+  });
+
+  it("works on a bare base with no query string", () => {
+    const u = new URL(donateHref("https://secure.winred.com/x/donate-today", 25_00, "letter-supporter-levels"));
+    expect(u.searchParams.get("amount")).toBe("25");
+    expect(u.searchParams.get("sc")).toBe("letter-supporter-levels");
   });
 });
 

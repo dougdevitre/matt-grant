@@ -131,6 +131,21 @@ is the committee's thank-you.
 
 **Social/graphic rule:** any tier graphic carries the disclaimer and never shows "buy/price" framing.
 
+**Source-code map (WinRed reports → surface).** Every tier link stamps a WinRed source code
+(`sc` URL parameter) so the treasurer can see which surface drove each gift — attribution labels
+only, never donor data:
+
+| Code | Surface |
+|---|---|
+| `web-ladder` | /donate supporter-levels comparison cards |
+| `web-impact` | /donate "choose an amount" impact picker |
+| `letter-supporter-levels` | The on-letterhead supporter-levels letter's QR code |
+| `email-next-level` | The thank-you email's "give $Δ to reach [next level]" button |
+| `winred-directory` | The default (any link without a specific code) |
+
+The thank-you email's next-level ask preselects **exactly the difference** to the donor's next
+rung — and is **suppressed entirely at the $7,000 cycle max** (never solicit past the limit).
+
 ## 6. See also
 
 - [`../federal/contribution-limits.md`](../federal/contribution-limits.md) — the limits this ladder tops out at (verified 2026-07-03)

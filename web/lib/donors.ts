@@ -20,6 +20,7 @@ type Contribution = {
   receivedAt?: string;
   externalId?: string;
   type?: string; // "refund" for a reversal; absent for an ordinary gift
+  sc?: string; // WinRed source code — which button/letter/email drove the gift
 };
 
 export type ContributionInput = {
@@ -39,6 +40,7 @@ export type ContributionInput = {
   recurring?: boolean;
   receivedAt?: string;
   type?: string; // "refund" tags a reversal entry
+  sc?: string | null; // WinRed source code (attribution; stored on the line item)
 };
 
 // Stamp a donor as thanked (admin-sent thank-you). Keyed by the donor row's SK.
@@ -81,6 +83,7 @@ export async function recordContribution(c: ContributionInput): Promise<boolean>
           receivedAt: now,
           ...(c.externalId ? { externalId: c.externalId } : {}),
           ...(c.type ? { type: c.type } : {}),
+          ...(c.sc ? { sc: c.sc } : {}),
         }]
       : [];
 
