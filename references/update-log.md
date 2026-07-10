@@ -51,7 +51,7 @@ Version history and change tracking for the get-elected skill reference files.
 ## 2026-07-10 -- v1.x -- Sign placement master plan (MO-02 field ops)
 
 **Changes:**
-- [added] `candidate/sign-placement-plan.md` -- MO-02 yard/corridor/polling-place sign master plan for the Aug 4, 2026 primary: phased field ops (foundations → scoring → turf → early-vote deploy → Election Day → teardown), a per-type scoring/allocation model, CSV data schemas, and a full §9 compliance section. Finishes + hardens a campaign-supplied Draft v0.1 (completed the scoring model, added the missing compliance section, resolved the date/boundary open items).
+- [added] `candidate/sign-placement-plan.md` -- MO-02 yard/corridor/polling-place sign master plan for the Aug 4, 2026 primary: phased field ops (foundations → scoring → turf → early-vote deploy → Election Day → teardown), a per-type scoring/allocation model, CSV data schemas, and a full §9 compliance section. Finishes + hardens a campaign-supplied Draft v0.1 (completed the scoring model, added the missing compliance section; verified the 2026 dates and the district COMPOSITION — the final precinct-list confirmation remains an open §3 item that gates geocoding).
 - [updated] registered in SKILL.md (candidate reference table) and INDEX.md ("print & produce" cluster)
 
 **Verifications Performed:**
