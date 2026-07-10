@@ -262,7 +262,10 @@ site_score = voter_contact_value          # relative worth of reaching deciding 
 
 This model is implemented in the campaign web app (`web/lib/signs/placement.ts` — unit-tested,
 pure). **The easiest way to run it is the dashboard page: Dashboard → Field → Signs
-(`/dashboard/signs`)** — paste the locations CSV (and optionally the captains CSV) to get the
+(`/dashboard/signs`)** — paste the locations CSV (starting from
+[`early-vote-sites-seed.csv`](./early-vote-sites-seed.csv) if you don't have one yet — see its
+companion [`early-vote-site-verification-checklist.md`](./early-vote-site-verification-checklist.md)
+before flipping any of its gates) and optionally the captains CSV to get the
 ranked deploy list, the dropped-with-reasons audit table, per-captain turf packets with
 inventory/span flags, and the `placement_output.csv` download, all in the browser (nothing is
 uploaded). For scripts, the same pipeline is exposed as an endpoint:
@@ -429,3 +432,7 @@ reconciled ✓ · permission/incident logs archived ✓.
 - [`captain-field-plan.md`](./captain-field-plan.md) — captain zones + the operative 2025 MO-02 map.
 - [`data-and-map-plan.md`](./data-and-map-plan.md) — district composition, geocoding, targeting data.
 - [`absentee-voting-guide.md`](./absentee-voting-guide.md) — verified 2026 dates + early-vote sites.
+- [`early-vote-sites-seed.csv`](./early-vote-sites-seed.csv) — an 11-site seed for the Signs page's
+  locations CSV, sourced from `absentee-voting-guide.md`'s verified site list.
+- [`early-vote-site-verification-checklist.md`](./early-vote-site-verification-checklist.md) — the
+  call script + tracker for clearing the seed CSV's `buffer_verified`/`property_permission` gates.
