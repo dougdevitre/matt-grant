@@ -140,7 +140,7 @@ export function TargetTable({ rows, highlight }: { rows: PrecinctRow[]; highligh
           <table className="w-full text-sm">
             <thead className="border-b border-line bg-paper text-left text-slate">
               <tr>
-                {["#", "Precinct", "Municipality", "Reg.", "Turnout", metricLabel, "Tier", "Play"].map((h) => (
+                {["#", "Precinct", "Municipality", "Reg.", "Turnout", metricLabel, "Tier", "Play", "Map"].map((h) => (
                   <th key={h} className="whitespace-nowrap px-4 py-3 font-mono text-[0.65rem] uppercase tracking-eyebrow">{h}</th>
                 ))}
               </tr>
@@ -166,6 +166,16 @@ export function TargetTable({ rows, highlight }: { rows: PrecinctRow[]; highligh
                     <span className={`rounded-sm px-2 py-0.5 font-mono text-[0.65rem] font-bold ${tierColor[r.tier]}`}>{r.tier}</span>
                   </td>
                   <td className={`px-4 py-2.5 font-mono text-[0.7rem] uppercase tracking-eyebrow ${playColor[r.play]}`}>{r.play}</td>
+                  <td className="px-4 py-2.5">
+                    {/* Back-link to the 3D map, zoomed + pulsed on this precinct */}
+                    <a
+                      href={`/dashboard/map?precinct=${encodeURIComponent(r.name)}`}
+                      className="font-mono text-[0.7rem] font-bold text-field hover:underline"
+                      aria-label={`Show ${r.name} on the 3D map`}
+                    >
+                      Map →
+                    </a>
+                  </td>
                 </tr>
                 );
               })}

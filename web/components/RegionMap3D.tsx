@@ -6,6 +6,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { CATEGORIES, EVENT_COLOR, MAP_CENTER, MAP_ZOOM, type Category } from "@/lib/mapData";
 import { BRAND, TURNOUT_RAMP, MAP_FALLBACK, MAP_LINE, MAP_BUILDINGS, POI_FALLBACK, EVENT_DRAFT, GOLD_INK } from "@/lib/viz/palette";
 import { bboxOfFeatureCollections, DISTRICT_FALLBACK_BOUNDS, type Bounds } from "@/lib/viz/mapView";
+import { colorExpr, heightExpr, modeStats, type MapMode } from "@/lib/viz/precinctPaint";
 
 const EVENT_TYPE_LABEL: Record<string, string> = {
   rally: "Rally", "town-hall": "Town hall", fundraiser: "Fundraiser", canvass: "Canvass",
@@ -44,10 +45,16 @@ function buttonControl(title: string, label: string, onClick: () => void): mapli
   };
 }
 
+// A one-shot camera command from the host (deep link / search): fit these bounds
+// and pulse the precinct with this featureId. `token` distinguishes commands —
+// next/dynamic doesn't forward refs, so an imperative "go here" arrives as a prop.
+export type MapFocus = { bounds: Bounds; featureId?: string; token: number };
+
 type Props = {
   visible: Category[];
   buildings: boolean;
   turnout: boolean;
+  mode: MapMode;
   pois: GeoJSON.FeatureCollection;
   precincts: GeoJSON.FeatureCollection;
   precinctsLive: boolean;
@@ -57,9 +64,10 @@ type Props = {
   showExtra: boolean;
   events: GeoJSON.FeatureCollection;
   showEvents: boolean;
+  focus?: MapFocus | null;
 };
 
-export default function RegionMap3D({ visible, buildings, turnout, pois, precincts, precinctsLive, jefferson, showJefferson, extraCounties, showExtra, events, showEvents }: Props) {
+export default function RegionMap3D({ visible, buildings, turnout, mode, pois, precincts, precinctsLive, jefferson, showJefferson, extraCounties, showExtra, events, showEvents, focus }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const ready = useRef(false);
@@ -79,6 +87,38 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
   // pushes, so a camera the operator has moved is left alone.
   const didFit = useRef(false);
   const homeBounds = useRef<Bounds>(DISTRICT_FALLBACK_BOUNDS);
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
+  // Focus commands can land before the style finishes loading — stash and replay.
+  const focusRef = useRef<MapFocus | null | undefined>(focus);
+  focusRef.current = focus;
+  const doneFocusToken = useRef(0);
+  const pulseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function applyPrecinctPaint() {
+    const m = map.current;
+    if (!m || !ready.current || !m.getLayer("precinct-extrude")) return;
+    const stats = modeStats(precinctsRef.current.features);
+    m.setPaintProperty("precinct-extrude", "fill-extrusion-color", colorExpr(modeRef.current, stats));
+    m.setPaintProperty("precinct-extrude", "fill-extrusion-height", heightExpr(modeRef.current, stats));
+  }
+
+  function applyFocus() {
+    const m = map.current;
+    const f = focusRef.current;
+    if (!m || !ready.current || !f || f.token === doneFocusToken.current) return;
+    doneFocusToken.current = f.token;
+    m.fitBounds(f.bounds, { padding: 80, pitch: HOME_PITCH, bearing: HOME_BEARING, duration: 900, maxZoom: 13.5 });
+    if (f.featureId) {
+      const id = f.featureId;
+      m.setFeatureState({ source: "precincts", id }, { hover: true });
+      if (pulseTimer.current) clearTimeout(pulseTimer.current);
+      pulseTimer.current = setTimeout(() => {
+        // Map may have been torn down while the pulse was pending.
+        if (map.current?.getSource("precincts")) map.current.setFeatureState({ source: "precincts", id }, { hover: false });
+      }, 2500);
+    }
+  }
 
   function fitDistrict() {
     const m = map.current;
@@ -135,23 +175,20 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         /* basemap schema differs — skip buildings */
       }
 
-      // Precinct turnout columns: real MO-02 Nov-2024 turnout (clamped for the
-      // height/color ramp; raw value shown in the popup). Height + shade = turnout.
-      // Ramp tuned to PRIMARY turnout (~8–40%) so precinct variation reads clearly.
-      const t: maplibregl.ExpressionSpecification = ["coalesce", ["get", "turnout"], 0];
+      // Precinct columns. Color + height come from lib/viz/precinctPaint per the
+      // current mode (turnout %, target tier, or GOTV upside) — the initial paint
+      // below and every later mode switch use the same tested expression builders.
       // promoteId lets hover feature-state key off the precinct name (GeoJSON
       // features from the route carry no numeric ids).
+      const initialStats = modeStats(precinctsRef.current.features);
       m.addSource("precincts", { type: "geojson", data: precinctsRef.current, promoteId: "name" });
       m.addLayer({
         id: "precinct-extrude",
         source: "precincts",
         type: "fill-extrusion",
         paint: {
-          "fill-extrusion-color": [
-            "interpolate", ["linear"], t,
-            8, TURNOUT_RAMP[0], 18, TURNOUT_RAMP[1], 28, TURNOUT_RAMP[2], 40, TURNOUT_RAMP[3],
-          ],
-          "fill-extrusion-height": ["*", t, 130],
+          "fill-extrusion-color": colorExpr(modeRef.current, initialStats),
+          "fill-extrusion-height": heightExpr(modeRef.current, initialStats),
           "fill-extrusion-base": 0,
           "fill-extrusion-opacity": ["case", ["boolean", ["feature-state", "hover"], false], 0.85, 0.6],
         },
@@ -303,12 +340,13 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         const f = e.features?.[0];
         if (!f) return;
         hoverPopup.remove();
-        const pr = f.properties as { name: string; municipality?: string; turnout?: number; registered?: number };
+        const pr = f.properties as { name: string; municipality?: string; turnout?: number; registered?: number; tier?: string; play?: string };
         const lines = [
           `<strong>${pr.name}</strong>`,
           pr.municipality ? pr.municipality : "",
           pr.turnout != null ? `Primary turnout (Aug '24): <strong>${pr.turnout}%</strong>` : "Turnout: n/a",
           pr.registered ? `Registered: ${pr.registered.toLocaleString()}` : "",
+          pr.tier ? `Target tier <strong>${pr.tier}</strong>${pr.play ? ` · ${pr.play}` : ""}` : "",
           `<a href="/dashboard/targets?precinct=${encodeURIComponent(pr.name ?? "")}" style="display:inline-block;margin-top:6px;color:${BRAND.brick};font-weight:700;text-decoration:none">Target this precinct →</a>`,
         ].filter(Boolean);
         new maplibregl.Popup({ closeButton: false, offset: 12 })
@@ -364,13 +402,15 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
       ready.current = true;
       // Apply initial prop-driven visibility.
       syncVisibility();
-      // Live precincts may have arrived while the style was still loading — the
-      // sources were seeded from refs above, but the one-time district fit still
-      // needs to run.
+      // Live precincts (or a focus deep link) may have arrived while the style
+      // was still loading — the sources were seeded from refs above, but the
+      // one-time district fit / pending focus still need to run.
       maybeFitOnLive();
+      applyFocus();
     });
 
     return () => {
+      if (pulseTimer.current) clearTimeout(pulseTimer.current);
       m.remove();
       map.current = null;
       ready.current = false;
@@ -404,13 +444,21 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
 
   // Push live precinct turnout when it arrives; the first LIVE payload also
   // triggers the one-time district fit (sample fallback keeps the default frame).
+  // Repaint too — tier/GOTV scale stops derive from the data (modeStats).
   useEffect(() => {
     const m = map.current;
     if (!m || !ready.current) return;
     (m.getSource("precincts") as maplibregl.GeoJSONSource | undefined)?.setData(precincts);
+    applyPrecinctPaint();
     maybeFitOnLive();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [precincts, precinctsLive]);
+
+  // Mode switch = a paint swap on the one precinct layer (init-once preserved).
+  useEffect(applyPrecinctPaint, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // One-shot focus command (deep link from Targets, or a search selection).
+  useEffect(applyFocus, [focus]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Jefferson data + visibility.
   useEffect(() => {
