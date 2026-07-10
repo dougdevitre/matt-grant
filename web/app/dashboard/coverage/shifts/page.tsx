@@ -55,6 +55,7 @@ export default async function PollShiftsPage() {
           "Assign a greeter to each window from the roster (captains first, then volunteers with their availability as a hint). A shift shows covered only when it has as many people as it needs — an unstaffed site stays honestly uncovered (plan §4).",
           "Use \"need\" to raise a busy site's headcount, and notes for site quirks (posted buffer line, parking, entrance).",
           "Print shift packets: one page per greeter with their full schedule plus the §7 conduct rules (25-ft buffer, greeting ≠ poll watching, report-don't-confront), and an unfilled-shifts page for recruiting.",
+          "Volunteers can also take open shifts themselves on the supporter hub (/community) — self-signups appear here instantly, and \"Can't make it\" drops free the slot again.",
           "The strategy, phases, and the compliance rules live in candidate/poll-coverage-plan.md — every greeter reads §7 before their first shift.",
         ]}
       />
