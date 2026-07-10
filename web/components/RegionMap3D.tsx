@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { CATEGORIES, EVENT_COLOR, MAP_CENTER, MAP_ZOOM, type Category } from "@/lib/mapData";
-import { BRAND, TURNOUT_RAMP, MAP_FALLBACK, MAP_LINE, MAP_BUILDINGS, POI_FALLBACK, EVENT_DRAFT, GOLD_INK } from "@/lib/viz/palette";
+import { BRAND, TURNOUT_RAMP, MAP_FALLBACK, MAP_LINE, MAP_BUILDINGS, POI_FALLBACK, EVENT_DRAFT, GOLD_INK, SIGN_COLOR } from "@/lib/viz/palette";
 import { bboxOfFeatureCollections, DISTRICT_FALLBACK_BOUNDS, type Bounds } from "@/lib/viz/mapView";
 import { colorExpr, heightExpr, modeStats, type MapMode } from "@/lib/viz/precinctPaint";
 
@@ -64,10 +64,12 @@ type Props = {
   showExtra: boolean;
   events: GeoJSON.FeatureCollection;
   showEvents: boolean;
+  signs: GeoJSON.FeatureCollection;
+  showSigns: boolean;
   focus?: MapFocus | null;
 };
 
-export default function RegionMap3D({ visible, buildings, turnout, mode, pois, precincts, precinctsLive, jefferson, showJefferson, extraCounties, showExtra, events, showEvents, focus }: Props) {
+export default function RegionMap3D({ visible, buildings, turnout, mode, pois, precincts, precinctsLive, jefferson, showJefferson, extraCounties, showExtra, events, showEvents, signs, showSigns, focus }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const ready = useRef(false);
@@ -83,6 +85,8 @@ export default function RegionMap3D({ visible, buildings, turnout, mode, pois, p
   extraRef.current = extraCounties;
   const eventsRef = useRef(events);
   eventsRef.current = events;
+  const signsRef = useRef(signs);
+  signsRef.current = signs;
   // Auto-fit fires once, when live precincts first arrive — never on later data
   // pushes, so a camera the operator has moved is left alone.
   const didFit = useRef(false);
@@ -399,6 +403,43 @@ export default function RegionMap3D({ visible, buildings, turnout, mode, pois, p
           .addTo(m);
       });
 
+      // Signs layer — saved placements from the Signs tool (Field → Signs).
+      // Blue = verified (all three compliance gates), amber = pending.
+      m.addSource("signs", { type: "geojson", data: signsRef.current });
+      m.addLayer({
+        id: "sign-circles",
+        source: "signs",
+        type: "circle",
+        layout: { visibility: showSigns ? "visible" : "none" },
+        paint: {
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 4, 13, 8],
+          "circle-color": ["case", ["==", ["get", "verified"], true], SIGN_COLOR.verified, SIGN_COLOR.pending],
+          "circle-stroke-width": 2,
+          "circle-stroke-color": "#ffffff",
+          "circle-opacity": 0.9,
+        },
+      });
+      m.on("mouseenter", "sign-circles", () => (m.getCanvas().style.cursor = "pointer"));
+      m.on("mouseleave", "sign-circles", () => (m.getCanvas().style.cursor = ""));
+      m.on("click", "sign-circles", (e) => {
+        const f = e.features?.[0];
+        if (!f) return;
+        const p = f.properties as { name: string; type: string; verified: boolean; captainId?: string; notes?: string };
+        const lines = [
+          `<strong>${p.name}</strong>`,
+          p.verified
+            ? `<span style="color:${SIGN_COLOR.verified};font-weight:700">verified</span> · ${p.type}`
+            : `<span style="color:${GOLD_INK};font-weight:700">pending verification</span> · ${p.type}`,
+          p.captainId ? `Captain: ${p.captainId}` : "",
+          p.notes ? p.notes : "",
+          `<a href="/dashboard/signs" style="display:inline-block;margin-top:6px;color:${BRAND.brick};font-weight:700;text-decoration:none">Open sign tool →</a>`,
+        ].filter(Boolean);
+        new maplibregl.Popup({ closeButton: false, offset: 12 })
+          .setLngLat((f.geometry as GeoJSON.Point).coordinates as [number, number])
+          .setHTML(lines.join("<br/>"))
+          .addTo(m);
+      });
+
       ready.current = true;
       // Apply initial prop-driven visibility.
       syncVisibility();
@@ -499,6 +540,18 @@ export default function RegionMap3D({ visible, buildings, turnout, mode, pois, p
     if (!m || !ready.current) return;
     if (m.getLayer("event-circles")) m.setLayoutProperty("event-circles", "visibility", showEvents ? "visible" : "none");
   }, [showEvents]);
+
+  // Signs data + visibility.
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !ready.current) return;
+    (m.getSource("signs") as maplibregl.GeoJSONSource | undefined)?.setData(signs);
+  }, [signs]);
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !ready.current) return;
+    if (m.getLayer("sign-circles")) m.setLayoutProperty("sign-circles", "visibility", showSigns ? "visible" : "none");
+  }, [showSigns]);
 
   return <div ref={container} className="h-full w-full" />;
 }

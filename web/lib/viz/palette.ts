@@ -67,6 +67,12 @@ export const GOLD_INK = "#9a6f1a";
 // gold / slate) so a tier reads identically in the table and on the map.
 export const TIER_COLOR = { A: BRAND.brick, B: "#E0A53B", C: BRAND.slate } as const;
 
+// Sign placements on the field map: verified (all three compliance gates true →
+// deployable) vs pending verification. Accent blue because green = published
+// events and brick = partners/Tier A are both taken; amber matches EVENT_DRAFT's
+// "not yet" semantics.
+export const SIGN_COLOR = { verified: BRAND.accent, pending: "#E0A53B" } as const;
+
 // Diverging pair for change-around-zero (demographic charts, a future county
 // under-15-change choropleth): decline (brick) ↔ growth (accent blue), neutral
 // gray at the zero midpoint.
