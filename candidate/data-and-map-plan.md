@@ -62,17 +62,20 @@ Two consequences for this app:
 > 2026 and blocked (sos.mo.gov / county sites return 403 to this environment), so **no values were
 > entered** — the shading mechanism is fully wired and activates as soon as verified numbers land.
 >
-> **Schools layer candidates (July 10, 2026 — unverified, do not wire as-is):** two published
-> sources exist for live MO public-school point locations, either of which could replace the
-> sample schools POIs following the polling-layer pattern in `web/app/api/geo/pois/route.ts`:
-> DESE's **`https://gis.mo.gov/arcgis/rest/services/DESE/Missouri_Public_Schools/MapServer`** and
-> the MSDIS Open Data item **"MO Public Schools"** (`data-msdis.opendata.arcgis.com`, an
-> ArcGIS-Online-hosted FeatureServer; contact info updated nightly, locations annually). Neither
-> endpoint's query interface or field names could be verified from this environment (all ArcGIS
-> and state-GIS domains 403 here — even the polling FeatureServer the app already uses in
-> production is blocked from the sandbox), so the schools layer stays **sample** until someone
-> with an ordinary browser confirms one endpoint's GeoJSON query + field names and wires it with
-> a source/date comment in `web/lib/geoSources.ts`.
+> **Schools layer (updated July 10, 2026 — wired defensively):** DESE's
+> **`https://gis.mo.gov/arcgis/rest/services/DESE/Missouri_Public_Schools/MapServer`** is now
+> wired into `web/app/api/geo/pois/route.ts` (`SCHOOLS` in `web/lib/geoSources.ts`) with a
+> fail-safe design, because the endpoint's query interface and field names could not be
+> pre-verified from the build sandbox (all ArcGIS/state-GIS domains are blocked there, including
+> feeds the app already uses fine in production). The normalizer only accepts point features
+> whose name resolves from a candidate field list, and the statewide feed must clip to the MO-02
+> boundary polygons (St. Louis County precincts + Jefferson + rural VTDs) — any fetch, schema, or
+> clip failure keeps the curated **sample** schools with an honest "sample" badge; the layer
+> badges **"live"** only when real DESE data actually parses in production. If it stays on
+> "sample" after deploy, open the endpoint in a browser, check the field names against
+> `web/lib/geo/schoolsFeed.ts`, and extend the candidate lists. Alternate source if DESE's server
+> won't serve GeoJSON: the MSDIS Open Data item **"MO Public Schools"**
+> (`data-msdis.opendata.arcgis.com`, ArcGIS-Online-hosted; locations updated annually).
 
 2. **Rural counties** — add one geo-proxy per county (pattern in `lib/geoSources.ts`). Jefferson has
    ArcGIS precinct polygons; Washington/Crawford/Gasconade have no ArcGIS feed → use Census VTD

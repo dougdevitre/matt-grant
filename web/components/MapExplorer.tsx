@@ -66,7 +66,7 @@ const sampleFC: GeoJSON.FeatureCollection = {
 const emptyFC: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
 
 // Geo-layer meta carries route-specific keys on top of the base Provenance.
-type GeoMeta = { live?: boolean; count?: number; pollingLive?: boolean };
+type GeoMeta = { live?: boolean; count?: number; pollingLive?: boolean; live_layers?: string[] };
 
 export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = {}) {
   const [visible, setVisible] = useState<Category[]>(ALL);
@@ -114,6 +114,10 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
   const signs = useMemo(() => featuresOf(signsRes, emptyFC), [signsRes]);
 
   // Indicators: null while loading, then the live flag / count from meta.
+  // Per-category POI live/sample badges come from the route's live_layers list,
+  // so a newly-lived-up category (e.g. schools) badges truthfully with no UI edit.
+  const liveLayers = poisRes.state === "loading" ? null : ((poisRes.meta as GeoMeta | null)?.live_layers ?? []);
+  const categoryLive = (c: Category) => Boolean(liveLayers?.includes(c));
   const pollingLive = poisRes.state === "loading" ? null : Boolean((poisRes.meta as GeoMeta | null)?.pollingLive);
   const precinctsLive = precinctsRes.state === "loading" ? null : Boolean((precinctsRes.meta as GeoMeta | null)?.live);
   const jeffCount = jeffersonRes.state === "loading" ? null : ((jeffersonRes.meta as GeoMeta | null)?.count ?? 0);
@@ -184,15 +188,16 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
                   <span className="flex-1">
                     <span className="text-sm font-semibold text-ink">{CATEGORIES[c].label}</span>
                     <span className="ml-2 font-mono text-xs text-slate">{count(c)}</span>
-                    {c === "polling" && pollingLive && (
+                    {categoryLive(c) ? (
                       <span className="ml-2 rounded-sm bg-field/15 px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-field">
                         live
                       </span>
-                    )}
-                    {c !== "polling" && (
-                      <span className="ml-2 rounded-sm bg-line px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-slate">
-                        sample
-                      </span>
+                    ) : (
+                      liveLayers !== null && (
+                        <span className="ml-2 rounded-sm bg-line px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-slate">
+                          sample
+                        </span>
+                      )
                     )}
                   </span>
                 </label>
@@ -291,13 +296,15 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
         <div className="card border-gold/40 bg-gold/5 p-5 text-xs text-slate">
           <p className="font-semibold text-ink">
             Live: polling {pollingLive === null ? "…" : pollingLive ? "✓" : "✕"} · precinct turnout{" "}
-            {precinctsLive === null ? "…" : precinctsLive ? "✓" : "✕"} (St. Louis County GIS).
+            {precinctsLive === null ? "…" : precinctsLive ? "✓" : "✕"} · schools{" "}
+            {liveLayers === null ? "…" : categoryLive("schools") ? "✓" : "✕"}.
           </p>
           <p className="mt-1">
-            <strong>Coverage = St. Louis County portion of MO-02</strong> (polling clipped to the district).
-            MO-02 also spans other counties not in this feed — see{" "}
-            <span className="font-mono">candidate/data-and-map-plan.md</span>. Schools, public places, and
-            partners are still sample.
+            <strong>Polling &amp; turnout cover the St. Louis County portion of MO-02</strong> (clipped to
+            the district); live schools (DESE), when ✓, cover the full district. MO-02 also spans
+            counties with no precinct feed — see{" "}
+            <span className="font-mono">candidate/data-and-map-plan.md</span>. Public places and
+            partners are still sample{liveLayers !== null && !categoryLive("schools") ? "; schools are sample until the DESE feed connects" : ""}.
           </p>
         </div>
       </div>

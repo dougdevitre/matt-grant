@@ -52,6 +52,19 @@ export const JEFFERSON = {
   label: "Jefferson County (boundaries)",
 };
 
+// MO public schools — DESE's statewide point layer on the state GIS server
+// (documented in candidate/data-and-map-plan.md; discovered July 10, 2026 via the
+// MSDIS "MO Public Schools" listing). WIRED DEFENSIVELY: the endpoint's query
+// interface and field names could not be pre-verified from the build sandbox
+// (state-GIS domains are blocked there), so the pois route treats any fetch/parse
+// mismatch as "no live data" and serves the curated sample instead — the schools
+// layer only badges "live" when this feed actually returns parseable point
+// features in production.
+export const SCHOOLS = {
+  url: "https://gis.mo.gov/arcgis/rest/services/DESE/Missouri_Public_Schools/MapServer/0/query",
+  label: "MO public schools (DESE)",
+};
+
 // Washington / Crawford / Gasconade — added to MO-02 in the 2025 map but with no
 // county ArcGIS feed. Use Census 2020 Voting Districts (TIGERweb) for boundaries.
 export const CENSUS_VTD = {
