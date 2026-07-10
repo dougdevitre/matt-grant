@@ -22,7 +22,7 @@ export default async function SignsPage() {
   // immediately, no client fetch needed. Same shape getVolunteers()/listActiveCaptains() already
   // powers on the coverage page. [] on any DB hiccup — never blocks the paste-based workflow.
   const captains = await listActiveCaptains();
-  const initialCaptains: CaptainInput[] = captains.map((c) => ({ id: c.email, name: c.name }));
+  const initialCaptains: CaptainInput[] = captains.map((c) => ({ id: c.email, name: c.name, contact: c.email }));
 
   // Saved placements — the durable home for verified locations. [] when DB off.
   const initialSaved = await listSignPlacements();
