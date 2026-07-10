@@ -1,5 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { finalizeSmsUpdateExpression, withinSendWindow, drainSmsOnce } from "./campaigns";
+import { finalizeSmsUpdateExpression, withinSendWindow, drainSmsOnce, personalizeBody } from "./campaigns";
+
+describe("personalizeBody (first-name merge)", () => {
+  it("replaces the {first} token per recipient, falling back to 'there'", () => {
+    expect(personalizeBody("Hi {first}, vote Aug 4.", "Jordan")).toBe("Hi Jordan, vote Aug 4.");
+    expect(personalizeBody("Hi {first}, vote Aug 4.")).toBe("Hi there, vote Aug 4.");
+  });
+  it("leaves a body without the token untouched (non-personalized campaigns)", () => {
+    expect(personalizeBody("Vote Aug 4.", "Jordan")).toBe("Vote Aug 4.");
+  });
+});
 
 describe("finalizeSmsUpdateExpression", () => {
   it("orders SET before ADD (DynamoDB rejects ADD-first) and only sets status when done", () => {

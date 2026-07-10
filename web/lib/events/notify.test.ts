@@ -27,7 +27,7 @@ describe("publishEventNotifications", () => {
   it("queues email + SMS when claimed and recipients exist", async () => {
     vi.mocked(claimNotify).mockResolvedValue(true);
     vi.mocked(resolveRecipients).mockResolvedValue({ recipients: [{ email: "a@x.org" }], internal: 0 } as any);
-    vi.mocked(resolveSmsRecipients).mockResolvedValue(["+15550000000"]);
+    vi.mocked(resolveSmsRecipients).mockResolvedValue([{ phone: "+15550000000" }]);
 
     const r = await publishEventNotifications(ev, "me");
 

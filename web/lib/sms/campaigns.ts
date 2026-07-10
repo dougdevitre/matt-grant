@@ -19,10 +19,12 @@ type SmsCampaignItem = {
   id: string;
   createdAt: string;
   scheduledAt?: string;
-  body: string; // final text, compliance suffix already appended
+  body: string; // final text, compliance suffix already appended; may contain a {first} merge token
   audience: string;
   status: SmsCampaignStatus;
-  recipients: string[]; // E.164 numbers, opted-in at queue time
+  // Opted-in-at-queue recipients. New rows store objects {phone, first?}; legacy rows are plain
+  // E.164 strings — both are normalized at drain, so old campaigns keep sending unchanged.
+  recipients: Array<string | { phone: string; first?: string }>;
   cursor: number;
   sentCount: number;
   skippedCount: number; // opted-out/blocked since queueing (deliberately not sent)
@@ -53,6 +55,12 @@ export function finalizeSmsUpdateExpression(done: boolean): string {
   return "SET updatedAt = :u" + (done ? ", #s = :sent, finishedAt = :u" : "") + " ADD sentCount :sd, skippedCount :pd, failedCount :fd";
 }
 
+// Merge a recipient's first name into a body that carries the {first} token; a body without
+// the token is returned unchanged (non-personalized campaigns are a no-op). Missing name → "there".
+export function personalizeBody(body: string, first?: string): string {
+  return body.includes("{first}") ? body.replace(/\{first\}/g, first || "there") : body;
+}
+
 // True when it's OK to send now: 9am–8pm Central (conservative TCPA quiet hours).
 export function withinSendWindow(now: Date = new Date()): boolean {
   const h = Number(
@@ -64,7 +72,7 @@ export function withinSendWindow(now: Date = new Date()): boolean {
 export async function createSmsCampaign(input: {
   body: string;
   audience: string;
-  recipients: string[];
+  recipients: Array<string | { phone: string; first?: string }>;
   createdBy: string;
   scheduledAt?: string;
 }): Promise<string> {
@@ -195,12 +203,15 @@ export async function drainSmsOnce(
   let sentDelta = 0;
   let skippedDelta = 0;
   let failedDelta = 0;
-  for (const phone of recipients.slice(start, end)) {
+  for (const rec of recipients.slice(start, end)) {
+    // Normalize legacy string recipients + new {phone, first?} objects the same way.
+    const phone = typeof rec === "string" ? rec : rec.phone;
+    const first = typeof rec === "string" ? undefined : rec.first;
     if (!(await isOptedIn(phone)) || (await isBlocked(phone))) {
       skippedDelta++; // opted out or blocked since queueing — deliberately not sent
       continue;
     }
-    const r = await sendSms({ to: phone, body: active.body });
+    const r = await sendSms({ to: phone, body: personalizeBody(active.body, first) });
     if (r.sent) sentDelta++;
     else failedDelta++; // Twilio rejected it — a real failure, not a skip
   }
