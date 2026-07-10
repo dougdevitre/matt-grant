@@ -74,13 +74,23 @@ Gasconade all serve as their county's early-voting location) — the "site" and 
 
 ## 4. After the call
 
-1. Update the row in `early-vote-sites-seed.csv`: flip `buffer_verified` and/or
-   `property_permission` to `true` only for what was actually confirmed; add the
-   geocoded lat/lng once known.
-2. Paste the updated CSV into **Dashboard → Field → Signs** (`/dashboard/signs`) to see
-   it move from the dropped table into the ranked deploy list.
-3. A site that can't get permission, or has no confirmable buffer clearance, stays
-   `false` — do not deploy there. That's the audit trail working as intended.
+The Signs page now persists locations, so the seed CSV is pasted **once** and verification
+happens inline — no CSV re-editing per call.
+
+1. **One-time setup:** paste `early-vote-sites-seed.csv` into **Dashboard → Field → Signs**
+   (`/dashboard/signs`) and click **"Save new locations"**. The sites land in the
+   **Saved locations** table (saving is duplicate-proof — re-pasting later is ignored).
+2. **After each call:** in the Saved locations table, flip the site's `buffer` and/or
+   `permission` gate chips to ✓ only for what was actually confirmed, assign the servicing
+   captain, and record the call outcome in the notes. A confirmed site moves from the
+   dropped/audit table into the ranked deploy list immediately.
+3. Add the geocoded lat/lng before the site is deployed (edit the seed row and re-save it as a
+   new location, or capture coordinates when the sign goes in) — sites without coordinates rank
+   but don't plot on the maps.
+4. A site that can't get permission, or has no confirmable buffer clearance, stays ✗ — do not
+   deploy there. That's the audit trail working as intended.
+5. Keep the tracking table in §3 up to date too — it's the phone-call record (who confirmed
+   what, when); the Signs page holds the operational state.
 
 ---
 

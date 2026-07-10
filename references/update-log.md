@@ -26,6 +26,41 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-10 -- v1.x -- Doc sync: sign persistence + field-map features (post-merge pass)
+
+**Changes:**
+- [updated] `candidate/sign-placement-plan.md` §8.6 -- corrected the now-stale "nothing is
+  uploaded" claim (scoring stays in-browser; rows upload only on "Save new locations") and
+  replaced the re-edit-the-CSV verification instruction with the shipped inline workflow: saved
+  placements persist durably, gates flip in the Saved-locations table (admin/captain via the
+  `manageSigns` permission), and saved signs plot on the 3D field map (blue verified / amber
+  pending). Scores/tiers are never stored -- always recomputed.
+- [updated] `candidate/early-vote-site-verification-checklist.md` §4 -- the after-call workflow
+  now uses the persistent Saved-locations table (paste the seed CSV once, save, flip gates per
+  call) instead of re-editing and re-pasting the CSV; the §3 phone-call tracking table remains
+  the call record.
+- [updated] `candidate/data-and-map-plan.md` -- added a "map features shipped July 10, 2026"
+  note (controls, search, column modes, Map↔Targets links, Signs layer) so the doc's picture of
+  the live map stays accurate; data gaps unchanged.
+- (companion app-copy fixes in the same PR: Signs page HowTo upload claim, map page HowTo gains
+  the search + Signs-layer steps)
+
+**Verifications Performed:**
+- All statements describe features merged to main July 10, 2026 (PRs #330-#337); no new facts,
+  law, or data introduced. Cross-links in the touched docs resolve.
+
+**Known Gaps:**
+- Rural-county turnout values and the live schools endpoint remain blocked on manual retrieval
+  (documented with exact instructions in `candidate/data-and-map-plan.md`).
+
+**Files Modified:**
+- candidate/sign-placement-plan.md
+- candidate/early-vote-site-verification-checklist.md
+- candidate/data-and-map-plan.md
+- references/update-log.md
+
+---
+
 ## 2026-07-10 -- v1.x -- Early-vote seed CSV + verification checklist for the Signs tool
 
 **Changes:**

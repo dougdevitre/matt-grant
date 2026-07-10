@@ -32,10 +32,12 @@ import {
 } from "@/lib/signs/placement";
 
 // Browser front-end for the sign-placement scorer (candidate/sign-placement-plan.md §8).
-// Everything runs client-side: lib/signs/placement.ts and the CSV helpers are pure, so pasting
+// SCORING runs client-side: lib/signs/placement.ts and the CSV helpers are pure, so pasting
 // a CSV gives a live ranked preview with no upload — the same pipeline as the
 // /api/dashboard/signs/placement route, so the download here matches the route's byte-for-byte
 // (minus BOM). Mirrors DonorImport (textarea + live preview) and TargetTable (table + Blob download).
+// PERSISTENCE is opt-in: "Save new locations" uploads the current unsaved rows to DynamoDB
+// (lib/signs/store.ts) and the Saved-locations table below edits them via server actions.
 
 // MapLibre touches window/WebGL — load client-only, same as MapExplorer's RegionMap3D import.
 const SignsMap = dynamic(() => import("@/components/dashboard/SignsMap"), {
