@@ -207,6 +207,12 @@ const CAP_SETS: Record<Role, Set<Capability>> = {
   partner: new Set(MATRIX.partner),
 };
 
+// The complete runtime capability list. Admin is granted every capability BY DESIGN, so this
+// is MATRIX.admin — exported for the rbac.test anti-drift assertion: the test's own ALL_CAPS
+// enumeration must stay set-equal to this, so adding a capability to the matrix without adding
+// it to the test's isolation walls fails loudly instead of drifting silently.
+export const ALL_CAPABILITIES: readonly Capability[] = MATRIX.admin;
+
 /** True if the role may perform the capability. Unknown/blank role → denied. */
 export function can(role: Role | null | undefined, capability: Capability): boolean {
   if (!role) return false;

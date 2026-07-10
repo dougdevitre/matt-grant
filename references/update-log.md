@@ -50,6 +50,29 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-10 -- v1.x -- Compliance freshness sweep (~4 weeks to the Aug 4 primary) + doc link fix
+
+**Changes:**
+- [updated] `candidate/absentee-voting-guide.md` -- the **July 8 voter-registration deadline has passed**; reframed the "confirm you're registered" step and the deadline table row so readers aren't told to hit a closed deadline (kept the live items: by-mail application by Jul 22, no-excuse in-person Jul 21-Aug 3, Election Day Aug 4). Re-stamped the verification block "Re-checked July 10, 2026."
+- [updated] `states/missouri/contribution-limits.md` -- strengthened the staleness warning into an **UNDER RE-VERIFICATION** notice naming three contested items (the exact current CPI-adjusted per-person limit / uniformity across offices; corporate-union treatment after federal litigation; the CPI-adjustment interval stated as "biennial"), pointed to MEC + NCSL 2025-2026 + Ballotpedia to reconcile, and clarified this STATE-office file does **not** govern the federal MO-02 race (FEC-only, $3,500/election). Did **not** assert corrected numbers that couldn't be authoritatively confirmed (Amendment 2 limits are CPI-adjusted and in active litigation).
+- [updated] `web/docs/social-go-live.md` -- fixed a broken relative link: `./google-youtube-setup.md` -> `../../docs/google-youtube-setup.md` (the file lives at top-level `docs/`).
+
+**Verifications Performed:**
+- FEC individual->candidate limit **$3,500 per election** (primary + general separate) confirmed current for 2025-2026 against the FEC published chart; `federal/contribution-limits.md` + `tools/donor-limit-checker.md` (stamped 2026-07-03) are accurate -> left unchanged.
+- MO 2026 primary dates (registration Jul 8; mail-app Jul 22; in-person Jul 21-Aug 3; Election Day Aug 4) re-confirmed via SOS / news sources.
+- MO state limits: web search (MEC, Ballotpedia, NCSL) showed the Amendment 2 base of $2,600 (Art. VIII §23.3(1)), CPI adjustment, and unconstitutional corporate/union provisions in flux -> flagged rather than rewritten (gov sites were not machine-fetchable; needs authoritative MEC confirmation).
+
+**Known Gaps:**
+- `states/missouri/contribution-limits.md` still shows the April-2026 figures in its body; they are now marked under-re-verification pending an authoritative MEC/NCSL check. A follow-up should reconcile the exact current numbers.
+
+**Files Modified:**
+- candidate/absentee-voting-guide.md
+- states/missouri/contribution-limits.md
+- web/docs/social-go-live.md
+- references/update-log.md
+
+---
+
 ## 2026-07-06 -- v1.x -- Campaign-defense artifacts (rapid response, deepfake, RACI/access, self-oppo, pre-publish)
 
 **Changes:**

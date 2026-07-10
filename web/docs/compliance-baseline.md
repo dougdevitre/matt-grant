@@ -76,7 +76,7 @@ CAN-SPAM strictly governs *commercial* email; purely political email is largely 
 ## 6. Voter information & electioneering (MO / St. Louis County) — *verified 2026-06-18*
 
 - Any voting info the site publishes (date, polling place, registration deadline, ID rules, deadlines) must be **accurate and current** — incorrect voter info is the highest-reputational-risk content on the site.
-- Electioneering literature/signs are permitted **only on election day** and are **prohibited within 25 feet of a polling place** (RSMo § 115.637).
+- Electioneering (literature/signs/advocacy) is **prohibited on election day within 25 feet of the polling place's outer door, and inside the building** (RSMo § 115.637). *Corrected 2026-07-10* — the earlier wording ("permitted only on election day") was wrong two ways: the statute's buffer is an **Election-Day polling-place** rule, it does not ban campaign signs on other days (private-property signs are lawful with permission), and there is currently **no statutory electioneering buffer during the no-excuse in-person absentee window** (a 2023 bill, HB 783, proposed adding one; not enacted). At early-vote sites the property owner / election authority controls the premises — follow posted rules; the campaign voluntarily applies the 25-ft discipline there anyway (see `candidate/sign-placement-plan.md` §9 and `candidate/poll-coverage-plan.md` §7).
 - Primary date: **August 4, 2026** (consistent across the app).
 - Source: [Missouri Revised Statutes ch. 115](https://law.justia.com/codes/missouri/title-ix/chapter-115/)
 - Source: [St. Louis County Board of Elections](https://stlouiscountymo.gov/st-louis-county-government/board-of-elections/)
