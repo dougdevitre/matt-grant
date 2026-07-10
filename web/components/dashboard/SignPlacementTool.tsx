@@ -1,10 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { parseCsv } from "@/lib/data/csv";
 import { toCsv } from "@/lib/contacts/import";
 import { useResource } from "@/lib/data/useResource";
+import { SubmitButton } from "@/components/dashboard/SubmitButton";
+import { dedupeKey, type SignPlacementRecord } from "@/lib/signs/persistence";
+import {
+  removeSignPlacement,
+  saveSignPlacementsAction,
+  setSignCaptain,
+  setSignGate,
+  setSignNotes,
+  type SignsSaveState,
+} from "@/app/dashboard/signs/actions";
 import {
   hardFilter,
   normalizeTraffic,
@@ -52,12 +62,25 @@ export type SignPlacementToolProps = {
   // Real, active captain roster (email as id), loaded server-side. [] when none — the paste
   // workflow keeps working either way.
   initialCaptains?: CaptainInput[];
+  // Saved placements, loaded server-side. IMPORTANT: consumed directly (never copied
+  // into useState) — the row forms revalidate /dashboard/signs, the server re-renders,
+  // and this prop refreshing is what updates the saved table + scoring. Seeding state
+  // from it would silently freeze the table after edits.
+  initialSaved?: SignPlacementRecord[];
+  // Whether the signed-in staffer holds manageSigns (write forms render only then;
+  // every action re-checks server-side regardless).
+  canManage?: boolean;
+  // dbConfigured — save/verify need a database; the paste workflow never does.
+  connected?: boolean;
 };
 
-export function SignPlacementTool({ initialCaptains = [] }: SignPlacementToolProps) {
+const SAVE_IDLE: SignsSaveState = { ok: true, message: "" };
+
+export function SignPlacementTool({ initialCaptains = [], initialSaved = [], canManage = false, connected = false }: SignPlacementToolProps) {
   const [locText, setLocText] = useState("");
   const [capText, setCapText] = useState("");
   const [useRealRoster, setUseRealRoster] = useState(true);
+  const [saveState, saveAction] = useActionState(saveSignPlacementsAction, SAVE_IDLE);
 
   // Live St. Louis County Election-Day polling places (the same public feed MapExplorer uses) —
   // lazy: it's 196 rows + an external fetch, so it loads only when staff click the button, unlike
@@ -74,10 +97,11 @@ export function SignPlacementTool({ initialCaptains = [] }: SignPlacementToolPro
   }, [poisRes.data, useLivePolling]);
 
   // Parse + score live. parseCsv never throws (returns empty on garbage), and every scoring
-  // function is pure, so this is safe to run per keystroke via useMemo. Locations = pasted CSV
-  // rows concatenated with live-loaded polling rows (if toggled on); captains = the real roster
-  // (if toggled on) merged with pasted captain rows, manual entries winning on id collision — so
-  // a captain not yet in the system, or a sign_inventory override, can still be pasted in.
+  // function is pure, so this is safe to run per keystroke via useMemo. Locations = SAVED rows
+  // (the durable source of truth) plus pasted/live rows that aren't already saved — saved wins
+  // on a dedupe collision, so the saved-table forms are the one edit path after saving.
+  // Captains = the real roster (if toggled on) merged with pasted captain rows, manual entries
+  // winning on id collision.
   const result = useMemo(() => {
     const trimmed = locText.trim();
     let pastedLocations: PlacementInput[] = [];
@@ -88,9 +112,11 @@ export function SignPlacementTool({ initialCaptains = [] }: SignPlacementToolPro
       }
       pastedLocations = items.map(rowToPlacement);
     }
-    if (pastedLocations.length === 0 && livePlacements.length === 0) return null;
+    const savedKeys = new Set(initialSaved.map(dedupeKey));
+    const unsaved = [...pastedLocations, ...livePlacements].filter((r) => !savedKeys.has(dedupeKey(r)));
+    if (unsaved.length === 0 && initialSaved.length === 0) return null;
 
-    const normalized = normalizeTraffic([...pastedLocations, ...livePlacements]);
+    const normalized = normalizeTraffic([...initialSaved, ...unsaved]);
     const { kept, dropped } = hardFilter(normalized);
     const scored = scorePlacements(kept);
     // Deploy order (same as the CSV): sites first — early-vote funded off the top — then corridors.
@@ -112,10 +138,12 @@ export function SignPlacementTool({ initialCaptains = [] }: SignPlacementToolPro
       scored,
       dropped,
       allocation,
+      unsaved,
       pastedCount: pastedLocations.length,
       liveCount: livePlacements.length,
+      savedCount: initialSaved.length,
     } as const;
-  }, [locText, capText, livePlacements, useRealRoster, initialCaptains]);
+  }, [locText, capText, livePlacements, useRealRoster, initialCaptains, initialSaved]);
 
   // GeoJSON for the map — only rows with valid lat/lng plot; a CSV with no coordinates just
   // shows an empty map rather than erroring (the tables above still work either way).
@@ -246,15 +274,35 @@ export function SignPlacementTool({ initialCaptains = [] }: SignPlacementToolPro
             <span className="rounded-sm bg-gold/15 px-3 py-1.5 font-mono text-xs font-bold text-gold-ink">
               {result.scored.filter((p) => p.tier === "A").length} tier A
             </span>
-            {result.liveCount > 0 && (
+            {(result.liveCount > 0 || result.savedCount > 0) && (
               <span className="rounded-sm bg-line px-3 py-1.5 font-mono text-xs text-slate">
-                {result.pastedCount} pasted · {result.liveCount} live
+                {result.savedCount} saved · {result.pastedCount} pasted · {result.liveCount} live
               </span>
             )}
             <button type="button" onClick={download} className="btn-ghost ml-auto" disabled={result.scored.length === 0 && result.dropped.length === 0}>
               Download placement_output.csv
             </button>
           </div>
+
+          {/* Persist the rows that aren't saved yet. The client filter above already
+              deduped against saved keys; the action re-checks server-side, so a
+              double-click or stale tab can never double-insert. */}
+          {canManage && (
+            <form action={saveAction} className="flex flex-wrap items-center gap-3">
+              <input type="hidden" name="rows" value={JSON.stringify(result.unsaved)} />
+              <SubmitButton
+                pendingText="Saving…"
+                className="btn-ghost"
+                disabled={!connected || result.unsaved.length === 0}
+              >
+                Save {result.unsaved.length} new location{result.unsaved.length === 1 ? "" : "s"}
+              </SubmitButton>
+              {!connected && <span className="text-xs text-slate">Connect the database to save.</span>}
+              {saveState.message && (
+                <span className={`text-xs ${saveState.ok ? "text-field" : "text-brick"}`}>{saveState.message}</span>
+              )}
+            </form>
+          )}
 
           {/* Map — plots every scored/dropped row that has lat/lng; click a pin for details */}
           {mapData && (mapData.placements.features.length > 0 || mapData.dropped.features.length > 0) && (
@@ -374,6 +422,121 @@ export function SignPlacementTool({ initialCaptains = [] }: SignPlacementToolPro
             </div>
           )}
         </>
+      )}
+
+      {/* Saved locations — the durable verification workbench. Rows come straight
+          from the initialSaved server prop; each mini-form revalidates the page so
+          a gate flip re-scores everything above with no manual refresh. */}
+      {initialSaved.length > 0 && (
+        <div className="card overflow-hidden p-0">
+          <p className="border-b border-line bg-paper px-4 py-3 font-mono text-[0.65rem] uppercase tracking-eyebrow text-slate">
+            Saved locations — {initialSaved.length} · flip each gate only after the election authority / property owner confirms
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-b border-line bg-paper text-left text-slate">
+                <tr>
+                  {["Name", "Type", "Gates", "Captain", "Notes", ""].map((h, i) => (
+                    <th key={`${h}-${i}`} className="whitespace-nowrap px-4 py-3 font-mono text-[0.65rem] uppercase tracking-eyebrow">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {initialSaved.map((r) => (
+                  <tr key={r.id} className="align-top hover:bg-paper">
+                    <td className="px-4 py-2.5 font-semibold text-ink">
+                      {r.name}
+                      {r.precinct && <span className="block font-mono text-[0.65rem] font-normal text-slate">{r.precinct}</span>}
+                    </td>
+                    <td className="px-4 py-2.5 text-slate">{r.type}</td>
+                    <td className="px-4 py-2.5">
+                      <div className="flex flex-wrap gap-1.5">
+                        {(
+                          [
+                            ["inDistrict", "district", r.inDistrict],
+                            ["bufferVerified", "buffer", r.bufferVerified],
+                            ["propertyPermission", "permission", r.propertyPermission],
+                          ] as const
+                        ).map(([gate, label, on]) =>
+                          canManage && connected ? (
+                            <form key={gate} action={setSignGate}>
+                              <input type="hidden" name="id" value={r.id} />
+                              <input type="hidden" name="gate" value={gate} />
+                              <input type="hidden" name="value" value={String(!on)} />
+                              <SubmitButton
+                                pendingText="…"
+                                className={`rounded-sm px-2 py-0.5 font-mono text-[0.65rem] font-bold ${on ? "bg-field/10 text-field" : "bg-brick/10 text-brick"}`}
+                              >
+                                {label} {on ? "✓" : "✗"}
+                              </SubmitButton>
+                            </form>
+                          ) : (
+                            <span key={gate} className={`rounded-sm px-2 py-0.5 font-mono text-[0.65rem] font-bold ${on ? "bg-field/10 text-field" : "bg-brick/10 text-brick"}`}>
+                              {label} {on ? "✓" : "✗"}
+                            </span>
+                          ),
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      {canManage && connected ? (
+                        <form action={setSignCaptain} className="flex items-center gap-1.5">
+                          <input type="hidden" name="id" value={r.id} />
+                          <select
+                            name="captainId"
+                            defaultValue={r.captainId ?? ""}
+                            aria-label={`Captain for ${r.name}`}
+                            className="max-w-[11rem] rounded-sm border border-line bg-white px-2 py-1 text-xs text-ink"
+                          >
+                            <option value="">— none —</option>
+                            {initialCaptains.map((c) => (
+                              <option key={c.id} value={c.id}>{c.name || c.id}</option>
+                            ))}
+                          </select>
+                          <SubmitButton pendingText="…" className="btn-ghost px-2 py-1 text-xs">Set</SubmitButton>
+                        </form>
+                      ) : (
+                        <span className="font-mono text-xs text-slate">{r.captainId || "—"}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      {canManage && connected ? (
+                        <form action={setSignNotes} className="flex items-center gap-1.5">
+                          <input type="hidden" name="id" value={r.id} />
+                          <input
+                            type="text"
+                            name="notes"
+                            defaultValue={r.notes ?? ""}
+                            aria-label={`Notes for ${r.name}`}
+                            className="w-44 rounded-sm border border-line bg-white px-2 py-1 text-xs text-ink"
+                          />
+                          <SubmitButton pendingText="…" className="btn-ghost px-2 py-1 text-xs">Save</SubmitButton>
+                        </form>
+                      ) : (
+                        <span className="text-xs text-slate">{r.notes || "—"}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      {canManage && connected && (
+                        <form
+                          action={removeSignPlacement}
+                          onSubmit={(e) => {
+                            if (!window.confirm(`Remove "${r.name}" from saved locations?`)) e.preventDefault();
+                          }}
+                        >
+                          <input type="hidden" name="id" value={r.id} />
+                          <SubmitButton pendingText="…" className="font-mono text-[0.7rem] font-bold text-brick hover:underline">
+                            Remove
+                          </SubmitButton>
+                        </form>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
     </div>
   );
