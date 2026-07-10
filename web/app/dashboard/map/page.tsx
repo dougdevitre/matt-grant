@@ -6,8 +6,9 @@ import { requireCap } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export default async function MapPage() {
+export default async function MapPage({ searchParams }: { searchParams: Promise<{ precinct?: string }> }) {
   await requireCap("viewMap");
+  const { precinct } = await searchParams;
   return (
     <>
       <PageHeader kicker="Region" title="3D field map">
@@ -21,13 +22,14 @@ export default async function MapPage() {
       <HowTo
         steps={[
           "Drag to pan, scroll to zoom, and tilt to read the 3D precinct columns — taller columns are higher Aug-2024 primary turnout.",
-          "Click a precinct or polling place to see its underlying numbers.",
+          "Switch the column mode to Target tier (A/B/C — the same ranking as the Targets page) or GOTV upside (registered voters who sat out the last primary) to read strategy, not just history.",
+          "Click a precinct or polling place to see its underlying numbers, including its target tier and play.",
           "Use the district-coverage panel below to see which data layers are loaded.",
           "Remember this feed is the St. Louis County portion of MO-02 only; the rural counties are not yet included.",
-          "Ready to act on it? Click “Turn this into a target list →” to rank precincts on the Targets page.",
+          "Ready to act on it? Click “Turn this into a target list →” to rank precincts on the Targets page — and each Targets row links back here, zoomed to its precinct.",
         ]}
       />
-      <MapExplorer />
+      <MapExplorer initialPrecinct={precinct} />
       <DistrictCoverage />
     </>
   );

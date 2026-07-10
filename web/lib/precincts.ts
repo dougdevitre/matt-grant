@@ -171,3 +171,23 @@ export function scoreRows(rows: PrecinctRow[], strategy: Strategy): { scored: Sc
     totals: { expected: rows.reduce((s, r) => s + r.expected, 0), registered: rows.reduce((s, r) => s + r.registered, 0) },
   };
 }
+
+/**
+ * Stamp scoreRows output onto GeoJSON features (joined by the unique precinct
+ * `name` already on each feature's properties), so the map's tier/GOTV modes read
+ * the EXACT ranking the Targets page shows. Features with no scored match (e.g. a
+ * name mismatch) pass through untouched — they paint as "unscored" neutrals, never
+ * a wrong tier.
+ */
+export function attachScores(features: GeoJSON.Feature[], scored: ScoredRow[]): GeoJSON.Feature[] {
+  const byName = new Map(scored.map((r) => [r.name, r]));
+  return features.map((f) => {
+    const name = (f.properties as { name?: unknown } | null)?.name;
+    const s = name != null ? byName.get(String(name)) : undefined;
+    if (!s) return f;
+    return {
+      ...f,
+      properties: { ...f.properties, tier: s.tier, play: s.play, rank: s.rank, cumPct: s.cumPct },
+    };
+  });
+}
