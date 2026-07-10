@@ -180,6 +180,8 @@ Instant-generation triggers. When a user types any of these commands, generate t
 |---|---|
 | `/print-at-library` | Step-by-step guide to print campaign materials (and make signs, banners, swag, video) at the St. Louis County Library, with what-to-print picks and the responsible-use rules — sourced from `candidate/library-print-and-produce-guide.md` |
 | `/printtracker` | Print production tracker — every letter-sized printable mapped to the template that produces it, its disclaimer/solicitation/internal flags, and production status, sourced from `tools/print-tracker.md` |
+| `/signplan` | MO-02 sign placement master plan — phased field ops, the scoring/allocation model + scorer tool, CSV schemas, and the §9 compliance rules (25-ft poll buffer, right-of-way ban, permission, per-municipality removal), sourced from `candidate/sign-placement-plan.md` |
+| `/pollcoverage` | Election-Day & early-vote poll-coverage plan — greeter staffing at early-vote sites and precinct polls, coverage prioritization, and the at-the-poll conduct rules (greeter vs. credentialed watcher), sourced from `candidate/poll-coverage-plan.md` |
 
 ### Post-Election
 | Command | Output |

@@ -38,9 +38,18 @@ calendar. **Re-verify with your election authority before relying on any date** 
 
 | Date | Milestone | Coverage implication |
 |---|---|---|
+| ~June 23 → Jul 20, 2026 | **Excuse-based** in-person absentee (open now, at election-authority offices) | Deliberately light-touch: see the scope note below |
 | **Mon, July 21, 2026** | No-excuse in-person absentee **opens** | Early-vote-site coverage window begins (Phase 2) |
 | **Mon, Aug 3, 2026 (5:00 PM)** | No-excuse in-person absentee **closes** | Last early-vote coverage day |
 | **Tue, Aug 4, 2026** | **Election Day**, polls **6:00 AM – 7:00 PM** | Full precinct-poll coverage (Phase 3) |
+
+> **Scope note — the already-open excuse-based window (≈Jun 23–Jul 20).** Voters with a statutory
+> excuse are already voting in person at the handful of election-authority offices (BOE St. Ann +
+> the four rural County Clerk offices). This plan deliberately does **not** staff standing greeters
+> there: the volume is a trickle compared to the no-excuse window, volunteer-hours are the scarce
+> resource, and daily presence at a government office lobby earns little. Instead, Phase 0 site
+> visits double as light coverage (confirm signage/site rules while you're there), and full
+> coverage begins when volume does — July 21.
 
 > The July 8 voter-registration deadline has passed — coverage effort is turnout of already-registered
 > voters, not registration. Early-vote / library site **designations and hours** are set by the local
@@ -143,11 +152,18 @@ flowchart TD
   literature, no wearing/holding candidate material — **within 25 feet of the outer door nearest the
   polling place, and never inside the building** (**RSMo 115.637**). Some sites mark a wider line;
   obey the posted distance and the election judge on site.
+- **Early-vote window nuance (verified July 10, 2026):** the statutory 25-ft buffer is an
+  **Election-Day polling-place** rule; there is currently **no statutory electioneering buffer during
+  the no-excuse absentee window** (HB 783's proposal to add one was not enacted). At an early-vote
+  site, the **property owner / election authority's premises rules govern** — and this campaign
+  **voluntarily applies the same 25-ft discipline there anyway.** Posted site rules always win.
 - **Greeting ≠ poll watching.** This plan covers *greeters/volunteers outside the buffer*. Official
   **poll watchers / challengers** are a distinct, credentialed role governed by Missouri law and the
   parties/election authority — do **not** improvise it. Route that to
-  `../tactics/election-protection.md` and confirm credentialing/appointment with the election
-  authority in advance.
+  `../tactics/election-protection.md` for the general program, but be aware that guide is the
+  **nonpartisan generic playbook** — **Missouri-specific credentialing (who appoints, deadlines,
+  forms) is not documented in this repo.** Arrange watcher/challenger appointments through the
+  county party committee and confirm with the election authority **well before** July 21.
 - **Don't obstruct or intimidate.** Never block entrances, follow voters, film voters, or challenge
   anyone's right to vote. Voter intimidation is illegal. A greeter's job is a friendly reminder, then
   space.

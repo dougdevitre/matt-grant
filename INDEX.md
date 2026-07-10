@@ -100,6 +100,8 @@ Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026
 - [tactics/ballot-chase-program.md](tactics/ballot-chase-program.md) -- Systematic ballot tracking and chasing
 - [tactics/election-protection.md](tactics/election-protection.md) -- Poll watchers, recounts, and provisional ballots
 - [workflows/gotv-plan.md](workflows/gotv-plan.md) -- Final-push GOTV operations
+- [candidate/poll-coverage-plan.md](candidate/poll-coverage-plan.md) -- Election-Day & early-vote field-coverage plan: greeters at early-vote sites and precinct polls, coverage prioritization + shift staffing, and the at-the-poll compliance rules (25-ft buffer, greeter vs. credentialed poll-watcher). Companion to the sign plan; defers poll-watching law to tactics/election-protection.md. Counts illustrative
+- [candidate/sign-placement-plan.md](candidate/sign-placement-plan.md) -- Where every sign goes for the Aug 4 primary: scored/allocated placements for early-vote sites, corridors, and precinct polls, with the MO compliance rules (also listed under "print & produce")
 - [tactics/scheduling-advance.md](tactics/scheduling-advance.md) -- Candidate time management and advance work
 
 ## "The election is over"
@@ -110,7 +112,6 @@ Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026
 
 - [candidate/library-print-and-produce-guide.md](candidate/library-print-and-produce-guide.md) -- Supporter guide: print flyers/signs/banners and make swag & video at the St. Louis County Library — what to print, how, and how to use it responsibly (MO sign & electioneering law)
 - [candidate/sign-placement-plan.md](candidate/sign-placement-plan.md) -- Master plan for placing yard/corridor/polling-place signs in MO-02 for the Aug 4, 2026 primary: phased field ops, a scoring/allocation model, data schemas, and the MO sign-placement/electioneering compliance rules (25-ft poll buffer, right-of-way ban, permission, per-municipality removal). Counts/weights are illustrative
-- [candidate/poll-coverage-plan.md](candidate/poll-coverage-plan.md) -- Election-Day & early-vote field-coverage plan: greeters at early-vote sites and precinct polls, coverage prioritization + shift staffing, and the at-the-poll compliance rules (25-ft buffer, greeter vs. credentialed poll-watcher). Companion to the sign plan; defers poll-watching law to tactics/election-protection.md. Counts illustrative
 - [candidate/walgreens-print-plan.md](candidate/walgreens-print-plan.md) -- Same-day Walgreens photo prints of campaign assets via the native Photo Prints API
 - [tools/disclaimer-generator.md](tools/disclaimer-generator.md) -- Generate the required "Paid for by" disclaimer for any printed piece
 - [tools/print-tracker.md](tools/print-tracker.md) -- Letter-sized print tracker: every printable item mapped to the template that produces it, its compliance flags, and production status (also a staff view at `/dashboard/print`)
