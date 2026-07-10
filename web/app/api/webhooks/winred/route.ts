@@ -93,6 +93,7 @@ export async function POST(req: NextRequest) {
     await recordContribution({
       email: rec.email,
       name: rec.name,
+      phone: rec.phone,
       city: rec.city,
       state: rec.state,
       zip: rec.zip,
@@ -123,6 +124,23 @@ export async function POST(req: NextRequest) {
     await notifyAdminsNewDonation({ name: rec.name, amount: rec.amount, email: rec.email, city: rec.city, recurring: rec.recurring });
   }
 
+  // Opt-in SMS receipt — ONLY when the donor checked the SMS-consent box on the WinRed form
+  // (rec.smsConsent). A donation alone is NOT SMS consent under TCPA, so we gate strictly on the
+  // explicit flag: record that consent in the ledger, then send. sendLifecycleText itself re-checks
+  // the recorded opt-in, so it no-ops if consent wasn't recorded — defense in depth. Best-effort;
+  // never fails the webhook. (Independent of SES so a texting-only receipt still works.)
+  if (!isRefund && rec.phone && rec.smsConsent === true) {
+    try {
+      const { recordConsent } = await import("@/lib/sms/consent");
+      const { sendLifecycleText } = await import("@/lib/sms/lifecycle");
+      const { donationThankYouSms } = await import("@/lib/sms/templates");
+      await recordConsent(rec.phone, "winred");
+      await sendLifecycleText({ to: rec.phone, body: donationThankYouSms(rec.firstName, rec.amount), by: "winred" });
+    } catch {
+      /* the gift is recorded; the SMS receipt is non-critical */
+    }
+  }
+
   // On a new gift, promote a public supporter to the `donor` role so they get the
   // private "my giving" portal. Guarded (never downgrades staff/partner) and
   // best-effort — refunds and not-yet-signed-up givers are skipped.
@@ -149,5 +167,6 @@ export async function POST(req: NextRequest) {
     refund: isRefund,
     amount: rec.amount,
     emailed: !isRefund && sesEnabled && !!rec.email,
+    textConsent: !isRefund && !!rec.phone && rec.smsConsent === true,
   });
 }
