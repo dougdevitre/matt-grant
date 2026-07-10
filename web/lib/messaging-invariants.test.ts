@@ -39,6 +39,13 @@ describe("SMS invariant: never emit a non-opted-in or blocked number", () => {
     // +1B (blocked), +1C (volunteer, not opted), +1D-style role nums (not opted) are all excluded.
     expect(out).toEqual(["+1A"]);
   });
+
+  it("a captain scope never leaks the full opt-in list or account roles", async () => {
+    // Even with subscribers + admin/donor roles requested, a captain-scoped send drops all of
+    // them server-side and reaches only their own team — here no volunteer matches, so it's empty.
+    const out = (await resolveSmsRecipients(["subscribers", "volunteers"], ["admin", "donor"], [], { captainEmail: "nobody@x.com" })).map((r) => r.phone);
+    expect(out).toEqual([]); // +1A (subscriber/role) dropped; the lone volunteer has no matching captainEmail
+  });
 });
 
 describe("Email invariant: `internal` (bypass topic opt-outs) only for all-staff sends", () => {

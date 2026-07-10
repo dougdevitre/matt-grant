@@ -31,6 +31,7 @@ const ALL_CAPS: Capability[] = [
   "viewFinanceTotals",
   "draftEmailCampaign",
   "draftSms",
+  "sendTeamSms",
   "messageIndividuals",
   "manageEvents",
   "editFinance",
@@ -68,6 +69,7 @@ const GRANTS: Record<Role, Capability[]> = {
     "viewFinanceTotals",
     "draftEmailCampaign",
     "draftSms",
+    "sendTeamSms",
     "messageIndividuals",
     "manageEvents",
     ...PEACE_CAPS,
@@ -113,15 +115,19 @@ describe("rbac capability matrix", () => {
     expect(can("volunteer", "manageTeam")).toBe(false);
   });
 
-  it("only admin can send SMS; captains may draft, volunteers/external cannot", () => {
+  it("only admin sends to the full list; captains draft + send to their OWN team; volunteers/external cannot", () => {
     expect(can("admin", "draftSms")).toBe(true);
     expect(can("admin", "sendSms")).toBe(true);
+    expect(can("admin", "sendTeamSms")).toBe(true);
     expect(can("captain", "draftSms")).toBe(true);
-    expect(can("captain", "sendSms")).toBe(false);
+    expect(can("captain", "sendSms")).toBe(false); // captains never reach the full list
+    expect(can("captain", "sendTeamSms")).toBe(true); // but may text their own team
     expect(can("volunteer", "draftSms")).toBe(false);
     expect(can("volunteer", "sendSms")).toBe(false);
+    expect(can("volunteer", "sendTeamSms")).toBe(false);
     expect(can("supporter", "draftSms")).toBe(false);
     expect(can("partner", "sendSms")).toBe(false);
+    expect(can("partner", "sendTeamSms")).toBe(false);
   });
 
   it("the social command center is admin-only", () => {

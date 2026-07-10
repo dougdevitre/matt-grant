@@ -44,19 +44,30 @@ export async function sendTestSms(formData: FormData): Promise<SmsSendState> {
   return r.sent ? { ok: true, message: `Test sent to ${to}.` } : { ok: false, message: `Couldn't send: ${r.error ?? "unknown error"}.` };
 }
 
-// Send to the selected opted-in audience: admins only. Queues, then drains the
+// Send to the selected opted-in audience. Admins send to the full list; captains
+// send to their OWN opted-in team only (sendTeamSms) — scope is enforced in the
+// resolver, so a captain can never widen past their roster. Queues, then drains the
 // first batch inline (unless it's quiet hours, when the cron picks it up).
 export async function sendSmsCampaign(formData: FormData): Promise<SmsSendState> {
   const g = await staffGate();
-  if (!can(g.role, "sendSms")) return { ok: false, message: "Only admins can send to the list." };
+  const isAdmin = can(g.role, "sendSms");
+  const isCaptain = !isAdmin && can(g.role, "sendTeamSms");
+  if (!isAdmin && !isCaptain) return { ok: false, message: "You don't have permission to send SMS broadcasts." };
+  if (isCaptain && !g.email) return { ok: false, message: "Your account has no email on file — can't scope the send to your team." };
   if (!(await smsEnabled())) return { ok: false, message: "Texting isn't configured yet (add Twilio credentials)." };
   const { template, groups, roles, volRoles, body } = parse(formData);
   if (!template) return { ok: false, message: "Pick a template first." };
   if (!body) return { ok: false, message: "Write a message first." };
-  if (groups.length === 0 && roles.length === 0 && volRoles.length === 0) return { ok: false, message: "Pick at least one audience or role." };
+  // A captain always targets their own team (optionally sub-filtered by volunteer role);
+  // an admin must pick at least one audience/role.
+  if (isAdmin && groups.length === 0 && roles.length === 0 && volRoles.length === 0)
+    return { ok: false, message: "Pick at least one audience or role." };
 
-  const recipients = await resolveSmsRecipients(groups, roles, volRoles);
-  if (recipients.length === 0) return { ok: false, message: "No opted-in recipients for that selection." };
+  // Captain scope drops subscribers/account-roles server-side, so a tampered form can't widen it.
+  const opts = isCaptain ? { captainEmail: g.email ?? undefined } : {};
+  const recipients = await resolveSmsRecipients(groups, roles, volRoles, opts);
+  if (recipients.length === 0)
+    return { ok: false, message: isCaptain ? "No opted-in volunteers on your team for that selection." : "No opted-in recipients for that selection." };
 
   const rawWhen = String(formData.get("scheduledAt") ?? "").trim();
   let scheduledAt: string | undefined;
@@ -66,9 +77,12 @@ export async function sendSmsCampaign(formData: FormData): Promise<SmsSendState>
   }
   const future = !!scheduledAt && scheduledAt > new Date().toISOString();
 
+  const audience = isCaptain
+    ? `My team${volRoles.length ? ` · ${smsAudienceLabel([], [], volRoles)}` : ""}`
+    : smsAudienceLabel(groups, roles, volRoles);
   await createSmsCampaign({
     body,
-    audience: smsAudienceLabel(groups, roles, volRoles),
+    audience,
     recipients,
     createdBy: g.email ?? "system",
     scheduledAt: future ? scheduledAt : undefined,
