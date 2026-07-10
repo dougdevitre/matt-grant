@@ -45,6 +45,7 @@ const ALL_CAPS: Capability[] = [
   "viewCompliance",
   "sendEmailCampaign",
   "sendSms",
+  "viewVoterFile",
   "manageSocial",
   "manageTeam",
   "viewDonorPortal",

@@ -80,6 +80,12 @@ flowchart LR
   Phase 0 custody (this doc), Phase 1 ingest, Phase 2 dashboard, Phase 3 feed
   Targets/map/signs, Phase 4 walk/mail/call generators, Phase 5 canvass-ID learning loop
   and ballot chase.
+- **Phase 2 shipped 2026-07-10:** `/dashboard/voters` (admin-only `viewVoterFile`
+  capability) — district scoreboard + county mix from the rollups, sortable precinct
+  table (persuade/mobilize/bank universes), per-precinct drill-down with segment/T/age/
+  street filters, and RSMo-stamped walk/mail/call CSV exports (formula-injection-guarded;
+  call lists carry an empty phone column by design). Shows the ingest runbook until the
+  live load runs.
 
 ## 4. Scoring — a transparent scorecard, honestly labeled
 
