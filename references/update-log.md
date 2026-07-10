@@ -29,6 +29,10 @@ Version history and change tracking for the get-elected skill reference files.
 ## 2026-07-10 -- v1.x -- Captain shift reminders via their own text-alerts number
 
 **Changes:**
+- [fixed] shift-reminder recipient split: volunteer roster ids are `e:<email>` for email
+  signups (never a raw email), so the previous "contains @" check misrouted email-keyed
+  volunteers into the captain bucket and silently skipped them; the split now recognizes the
+  roster's `e:`/`p:`/uuid id shapes (regression-tested with realistic ids).
 - [updated] `candidate/poll-coverage-plan.md` §4 shipped note -- shift reminders now also
   reach captains, using the phone from each staffer's own "My text alerts" opt-in (the number
   already surfaced on the Team page's reachability column). Resolves the prior entry's Known

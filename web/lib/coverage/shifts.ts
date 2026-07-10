@@ -291,11 +291,27 @@ export function fillStats(shifts: ShiftRecord[]): FillStats {
 export type ReminderTarget = { assignee: ShiftAssignee; shifts: ShiftRecord[] };
 
 /**
+ * Is this assignee id a STAFF email (captain) rather than a volunteer record id?
+ * Captain options are built with id = the raw staff email (listActiveCaptains).
+ * Volunteer ids are the roster's DynamoDB SK, which is NEVER a raw email — it's
+ * `e:<email>` (email signup, the common case), `p:<digits>` (phone-only), or a
+ * uuid (see lib/volunteers/intake.ts dedupeKey). A bare `includes("@")` check
+ * therefore misroutes every email-keyed volunteer into the captain bucket:
+ *   "cap@x.com"      → true  (captain)
+ *   "e:ann@x.com"    → false (volunteer, email-keyed)
+ *   "p:3145550100"   → false (volunteer, phone-keyed)
+ *   "8f2c…-uuid"     → false (volunteer)
+ */
+export function isStaffEmailId(id: string): boolean {
+  return id.includes("@") && !id.startsWith("e:") && !id.startsWith("p:");
+}
+
+/**
  * Who still needs a reminder for `date`: every assignee on that day's shifts
  * who isn't already in the shift's `reminded` set, one target per person
- * covering ALL their shifts that day (one text each). Split by id shape: an id
- * containing "@" is a staff email (captain) — those resolve to a phone via the
- * staffer's own "My text alerts" number (Clerk), volunteers via the roster.
+ * covering ALL their shifts that day (one text each). Split by isStaffEmailId:
+ * captains resolve to a phone via the staffer's own "My text alerts" number
+ * (Clerk), volunteers via the roster record their id keys.
  */
 export function remindersFor(shifts: ShiftRecord[], date: string): { volunteers: ReminderTarget[]; captains: ReminderTarget[] } {
   const vols = new Map<string, ReminderTarget>();
@@ -304,7 +320,7 @@ export function remindersFor(shifts: ShiftRecord[], date: string): { volunteers:
   for (const s of day.sort(byWindow)) {
     for (const a of s.assignees) {
       if (s.reminded.includes(a.id)) continue;
-      const bucket = a.id.includes("@") ? caps : vols;
+      const bucket = isStaffEmailId(a.id) ? caps : vols;
       const t = bucket.get(a.id) ?? { assignee: a, shifts: [] };
       t.shifts.push(s);
       bucket.set(a.id, t);
