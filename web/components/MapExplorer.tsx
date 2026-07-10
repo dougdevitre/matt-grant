@@ -1,10 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CATEGORIES, EVENT_COLOR, POIS, PRECINCTS, type Category } from "@/lib/mapData";
 import { useResource } from "@/lib/data/useResource";
-import { TURNOUT_LEGEND_GRADIENT } from "@/lib/viz/palette";
+import { legendFor, modeStats, type MapMode, type ModeLegend } from "@/lib/viz/precinctPaint";
+// (turnout gradient now comes through legendFor — no direct palette import needed)
+import { bboxOfFeatureCollections } from "@/lib/viz/mapView";
+import type { MapFocus } from "@/components/RegionMap3D";
 
 // MapLibre touches window/WebGL — load client-only.
 const RegionMap3D = dynamic(() => import("@/components/RegionMap3D"), {
@@ -15,6 +18,40 @@ const RegionMap3D = dynamic(() => import("@/components/RegionMap3D"), {
 });
 
 const ALL: Category[] = ["schools", "public", "partners", "polling"];
+
+const MODES: { key: MapMode; label: string }[] = [
+  { key: "turnout", label: "Turnout" },
+  { key: "tier", label: "Target tier" },
+  { key: "gotv", label: "GOTV upside" },
+];
+
+// Shared legend block — rendered in both the side panel and the on-map overlay,
+// always from the same legendFor() spec as the paint expressions.
+function LegendBlock({ legend }: { legend: ModeLegend }) {
+  if (legend.kind === "swatches") {
+    return (
+      <div>
+        {legend.entries.map((e) => (
+          <p key={e.label} className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 shrink-0 rounded-sm ring-1 ring-white" style={{ background: e.color }} aria-hidden />
+            <span className="text-[0.65rem]">{e.label}</span>
+          </p>
+        ))}
+        <p className="mt-1 text-[0.6rem] text-slate">{legend.note}</p>
+      </div>
+    );
+  }
+  return (
+    <div>
+      <div className="h-2 w-full rounded-full" style={{ background: legend.gradient }} aria-hidden />
+      <div className="mt-0.5 flex justify-between font-mono text-[0.55rem]">
+        <span>{legend.minLabel}</span>
+        <span>{legend.maxLabel}</span>
+      </div>
+      <p className="mt-1 text-[0.6rem] text-slate">{legend.note}</p>
+    </div>
+  );
+}
 
 const sampleFC: GeoJSON.FeatureCollection = {
   type: "FeatureCollection",
@@ -29,16 +66,20 @@ const emptyFC: GeoJSON.FeatureCollection = { type: "FeatureCollection", features
 // Geo-layer meta carries route-specific keys on top of the base Provenance.
 type GeoMeta = { live?: boolean; count?: number; pollingLive?: boolean };
 
-export function MapExplorer() {
+export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = {}) {
   const [visible, setVisible] = useState<Category[]>(ALL);
   const [buildings, setBuildings] = useState(true);
   const [turnout, setTurnout] = useState(true);
+  const [mode, setMode] = useState<MapMode>("turnout");
   const [showJefferson, setShowJefferson] = useState(true);
   const [showExtra, setShowExtra] = useState(true);
   const [showEvents, setShowEvents] = useState(true);
   // Small screens get the map first with the control column behind a toggle;
   // ≥lg both always show (the max-lg classes below are inert there).
   const [showControls, setShowControls] = useState(false);
+  const [focus, setFocus] = useState<MapFocus | null>(null);
+  const focusToken = useRef(0);
+  const didDeepLink = useRef(false);
 
   // The live layers, each on the shared Resource hook (loading/ready/empty/
   // degraded/error). The {type,features,meta} payload normalizes to data+meta.
@@ -83,6 +124,25 @@ export function MapExplorer() {
   }, [pois]);
   const count = (c: Category) => counts[c] ?? 0;
 
+  // Tier/GOTV need the scored LIVE feed — sample precincts carry no tier/expected.
+  const modesAvailable = Boolean(precinctsLive);
+  const activeMode: MapMode = modesAvailable ? mode : "turnout";
+  const legend = useMemo(() => legendFor(activeMode, modeStats(precincts.features)), [activeMode, precincts]);
+
+  // ?precinct= deep link (from the Targets table): once live precincts arrive,
+  // resolve the name to its feature and issue a one-shot focus command.
+  useEffect(() => {
+    if (!initialPrecinct || didDeepLink.current || !precinctsLive) return;
+    const feat = precincts.features.find(
+      (f) => (f.properties as { name?: string } | null)?.name === initialPrecinct,
+    );
+    if (!feat) return;
+    const bounds = bboxOfFeatureCollections([{ type: "FeatureCollection", features: [feat] }]);
+    if (!bounds) return;
+    didDeepLink.current = true;
+    setFocus({ bounds, featureId: initialPrecinct, token: ++focusToken.current });
+  }, [initialPrecinct, precinctsLive, precincts]);
+
   return (
     <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
       {/* Controls */}
@@ -122,27 +182,42 @@ export function MapExplorer() {
           <p className="eyebrow text-slate">3D blend</p>
           <label className="mt-3 flex cursor-pointer items-center justify-between text-sm">
             <span className="font-semibold text-ink">
-              Turnout columns
+              Precinct columns
               {precinctsLive && (
                 <span className="ml-2 rounded-sm bg-field/15 px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-field">live</span>
               )}
             </span>
             <input type="checkbox" checked={turnout} onChange={() => setTurnout((v) => !v)} />
           </label>
-          <p className="mt-1 text-xs text-slate">
-            {precinctsLive
-              ? "Real MO-02 primary turnout (Aug 2024) — the Aug 4 electorate. Height + shade = turnout %."
-              : "Height + shade = precinct turnout (loading live data…)."}
-          </p>
           {turnout && (
-            <div className="mt-3">
-              <div className="h-2 w-full rounded-full" style={{ background: TURNOUT_LEGEND_GRADIENT }} aria-hidden />
-              <div className="mt-1 flex justify-between font-mono text-[0.6rem] text-slate">
-                <span>~8% low</span>
-                <span>~40% high</span>
+            <>
+              <div className="mt-2 flex rounded-sm border border-line p-0.5" role="group" aria-label="Color and height mode">
+                {MODES.map((m) => {
+                  const disabled = m.key !== "turnout" && !modesAvailable;
+                  return (
+                    <button
+                      key={m.key}
+                      type="button"
+                      onClick={() => setMode(m.key)}
+                      disabled={disabled}
+                      aria-pressed={activeMode === m.key}
+                      className={`flex-1 rounded-sm px-1.5 py-1 font-mono text-[0.6rem] uppercase tracking-eyebrow transition-colors ${
+                        activeMode === m.key ? "bg-field text-white" : disabled ? "text-line" : "text-slate hover:bg-paper"
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  );
+                })}
               </div>
-              <p className="mt-1 text-[0.6rem] text-slate">Taller &amp; darker blue = higher turnout. Click a column for its numbers.</p>
-            </div>
+              {!modesAvailable && (
+                <p className="mt-1 text-[0.6rem] text-slate">Tier / GOTV modes need the live scored feed (loading…).</p>
+              )}
+              <div className="mt-3">
+                <LegendBlock legend={legend} />
+                <p className="mt-1 text-[0.6rem] text-slate">Click a column for its numbers.</p>
+              </div>
+            </>
           )}
           <label className="mt-4 flex cursor-pointer items-center justify-between text-sm">
             <span className="font-semibold text-ink">3D buildings</span>
@@ -207,6 +282,7 @@ export function MapExplorer() {
             visible={visible}
             buildings={buildings}
             turnout={turnout}
+            mode={activeMode}
             pois={pois}
             precincts={precincts}
             precinctsLive={Boolean(precinctsLive)}
@@ -216,6 +292,7 @@ export function MapExplorer() {
             showExtra={showExtra}
             events={events}
             showEvents={showEvents}
+            focus={focus}
           />
           {/* On-map legend — collapsed by default; the side panel keeps the full
               annotated version. pointer-events split so the map stays draggable
@@ -226,16 +303,7 @@ export function MapExplorer() {
                 Legend
               </summary>
               <div className="space-y-2 px-3 pb-3 text-xs text-slate">
-                {turnout && (
-                  <div>
-                    <div className="h-2 w-full rounded-full" style={{ background: TURNOUT_LEGEND_GRADIENT }} aria-hidden />
-                    <div className="mt-0.5 flex justify-between font-mono text-[0.55rem]">
-                      <span>~8%</span>
-                      <span>turnout</span>
-                      <span>~40%</span>
-                    </div>
-                  </div>
-                )}
+                {turnout && <LegendBlock legend={legend} />}
                 {visible.map((c) => (
                   <p key={c} className="flex items-center gap-2">
                     <span className="h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-white" style={{ background: CATEGORIES[c].color }} aria-hidden />

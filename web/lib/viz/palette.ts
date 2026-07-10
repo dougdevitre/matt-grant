@@ -63,6 +63,10 @@ export const EVENT_DRAFT = "#E0A53B";
 // `gold-ink` Tailwind token should absorb those (backlog Tier 2).
 export const GOLD_INK = "#9a6f1a";
 
+// Target-tier colors (A/B/C) — mirror the TargetTable badge semantics (brick /
+// gold / slate) so a tier reads identically in the table and on the map.
+export const TIER_COLOR = { A: BRAND.brick, B: "#E0A53B", C: BRAND.slate } as const;
+
 // Diverging pair for change-around-zero (demographic charts, a future county
 // under-15-change choropleth): decline (brick) ↔ growth (accent blue), neutral
 // gray at the zero midpoint.

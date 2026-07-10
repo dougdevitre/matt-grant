@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { fetchArcgisPaged } from "./precincts";
+import { attachScores, fetchArcgisPaged, scoreRows, type PrecinctRow } from "./precincts";
 
 // ArcGIS FeatureServers cap a single query at their server-side maxRecordCount
 // (commonly 1000) and flag more rows via exceededTransferLimit. fetchArcgisPaged
@@ -53,5 +53,43 @@ describe("fetchArcgisPaged", () => {
     const out = await fetchArcgisPaged("https://arcgis.test/query", {});
     expect(out).toHaveLength(2000); // first page kept; stops at the failed page
     expect(calls).toBe(2);
+  });
+});
+
+describe("attachScores", () => {
+  const row = (name: string, registered: number, turnout: number): PrecinctRow => ({
+    name,
+    municipality: "",
+    registered,
+    turnout,
+    expected: Math.round(registered * (turnout / 100)),
+    gotv: Math.round(registered * (1 - turnout / 100)),
+  });
+  const feat = (name?: string): GeoJSON.Feature => ({
+    type: "Feature",
+    properties: name != null ? { name, turnout: 20 } : {},
+    geometry: { type: "Point", coordinates: [0, 0] },
+  });
+
+  it("stamps tier/play/rank/cumPct onto features by precinct name", () => {
+    // Four equal precincts → cumulative shares 25/50/75/100 → tiers A/B/C/C
+    // (cumulative-share tiering; a 2-row fixture would band everything C).
+    const rows = ["P1", "P2", "P3", "P4"].map((n) => row(n, 1000, 30));
+    const { scored } = scoreRows(rows, "votes");
+    const [f1, f2] = attachScores([feat("P1"), feat("P2")], scored);
+    const p1 = f1.properties as { tier?: string; rank?: number; play?: string; cumPct?: number };
+    expect(p1.tier).toBe("A"); // first 25% of expected ballots → top tier
+    expect(p1.rank).toBe(1);
+    expect(p1.play).toBeTruthy();
+    expect(p1.cumPct).toBe(25);
+    expect((f2.properties as { tier?: string }).tier).toBe("B"); // cumulative 50%
+    expect((f1.properties as { turnout?: number }).turnout).toBe(20); // existing props preserved
+  });
+
+  it("leaves unmatched / nameless features untouched (they paint as unscored, never a wrong tier)", () => {
+    const { scored } = scoreRows([row("P1", 4000, 30)], "votes");
+    const [unmatched, nameless] = attachScores([feat("NOPE"), feat()], scored);
+    expect((unmatched.properties as { tier?: string }).tier).toBeUndefined();
+    expect((nameless.properties as { tier?: string }).tier).toBeUndefined();
   });
 });
