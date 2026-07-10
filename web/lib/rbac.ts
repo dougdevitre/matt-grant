@@ -106,6 +106,7 @@ export type Capability =
   | "viewCompliance"
   | "sendEmailCampaign"
   | "sendSms" // send SMS broadcasts to the list (admin only)
+  | "viewVoterFile" // the voter database (RSMo 115.157 data — admin only; captains get turf packets, never raw access)
   | "manageSocial" // social command center: schedule/publish + profile optimizer
   | "manageTeam"
   // donor (the one private surface a donor can reach — their OWN giving only)
@@ -144,6 +145,7 @@ const MATRIX: Record<Role, Capability[]> = {
     "viewCompliance",
     "sendEmailCampaign",
     "sendSms",
+    "viewVoterFile",
     "manageSocial",
     "manageTeam",
     "viewDonorPortal",

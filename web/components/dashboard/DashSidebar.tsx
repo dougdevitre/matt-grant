@@ -30,6 +30,7 @@ const GROUPS: Group[] = [
       { href: "/dashboard/targets", label: "Targets", icon: "targets", cap: "viewTargets" },
       { href: "/dashboard/signs", label: "Signs", icon: "targets", cap: "viewTargets" },
       { href: "/dashboard/field-assignments", label: "Turf & lists", icon: "targets", cap: "viewTargets" },
+      { href: "/dashboard/voters", label: "Voter database", icon: "research", cap: "viewVoterFile" },
       { href: "/dashboard/volunteers", label: "Volunteers", icon: "volunteers", cap: "manageVolunteers" },
       { href: "/dashboard/playbook", label: "Captain playbook", icon: "tasks", cap: "manageVolunteers" },
       { href: "/dashboard/scorecard", label: "Captain scorecard", icon: "overview", cap: "manageVolunteers" },
