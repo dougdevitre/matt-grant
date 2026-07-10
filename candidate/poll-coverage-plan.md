@@ -61,8 +61,10 @@ calendar. **Re-verify with your election authority before relying on any date** 
 ## 3. The district (staff all of it)
 
 MO-02 under the **2025 enacted map** (operative for Aug 4, 2026) is the **St. Louis County portion of
-the district plus Jefferson, Washington, Crawford, and Gasconade counties** — **St. Charles, Franklin,
-and Warren are not in MO-02**. *(Source: `data-and-map-plan.md`, `captain-field-plan.md`.)* This is a
+the district plus Franklin, Jefferson, Washington, Crawford, and Gasconade counties** — **St. Charles
+and Warren are not in MO-02**. *(Franklin corrected 2026-07-10: the official voter file codes 78,635
+Franklin voters into CD-2 — the district's second-largest county; see `voter-file-plan.md` §5. Add the
+Franklin County Clerk's office, 400 E Locust Rm 201, Union, to the early-vote coverage list.)* *(Source: `data-and-map-plan.md`, `captain-field-plan.md`.)* This is a
 **multi-county** race: budget greeters and captains for the four rural counties (coverage there is at
 each **County Clerk's office** for early voting), not only the STL County suburbs.
 

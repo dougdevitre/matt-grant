@@ -9,7 +9,7 @@ every step so your ballot **counts**.
 > **STALENESS WARNING:** Dates, deadlines, notary requirements, and early-voting
 > sites below reflect Missouri law (RSMo Ch. 115) and the election authorities for
 > MO-02 (2025 enacted map): the **St. Louis County portion of the district plus
-> Jefferson, Washington, Crawford, and Gasconade counties** (St. Charles is NOT in
+> Franklin, Jefferson, Washington, Crawford, and Gasconade counties** (St. Charles is NOT in
 > MO-02). Election rules and site lists change — **always confirm current
 > deadlines, hours, and locations with your county election authority** (contacts at
 > the bottom of this guide) or the Missouri Secretary of State at https://www.sos.mo.gov
@@ -88,7 +88,7 @@ The simplest path for most people.
 - St. Johns UCC — Mehlville
 
 **Outside St. Louis County?** Early and absentee voting in the district's rural
-counties happens at each **County Clerk's office** (Jefferson, Washington, Crawford,
+counties happens at each **County Clerk's office** (Franklin, Jefferson, Washington, Crawford,
 and Gasconade — full contacts at the bottom of this guide). Call ahead to confirm
 early-voting hours, or look up your election authority at sos.mo.gov.
 
@@ -196,12 +196,16 @@ month.**
 ## ☎️ Your election authority
 
 Find the one for **your** county — MO-02 (2025 map) spans the St. Louis County
-portion of the district plus Jefferson, Washington, Crawford, and Gasconade counties.
+portion of the district plus Franklin, Jefferson, Washington, Crawford, and Gasconade counties.
 
 **St. Louis County Board of Elections**
 725 Northwest Plaza Dr, St. Ann, MO 63074
 📞 314.615.1833 / RelayMO 711 · ✉️ boecabsentee@stlouiscountymo.gov
 🌐 stlouiscountymovotes.gov
+
+**Franklin County Clerk (Election Authority)** *(added 2026-07-10 — Franklin is in MO-02 per the official voter file)*
+400 E Locust, Room 201, Union, MO 63084
+📞 636.583.6355 · 🌐 franklinmo.org (verified 2026-07-10)
 
 **Jefferson County Clerk (Election Authority)**
 729 Maple St, Suite G17, Hillsboro, MO 63050 (mail: P.O. Box 100, Hillsboro, MO 63050)
@@ -235,8 +239,8 @@ Every vote for **Matt Grant** starts with a plan. Make yours today.
 ---
 
 *This is educational voting information based on Missouri law and the MO-02
-county election authorities (St. Louis, Jefferson, Washington, Crawford, and
-Gasconade counties). Rules can change — always confirm with your election
+county election authorities (St. Louis, Franklin, Jefferson, Washington, Crawford,
+and Gasconade counties). Rules can change — always confirm with your election
 authority. The voting process applies to all voters regardless of candidate
 preference.*
 

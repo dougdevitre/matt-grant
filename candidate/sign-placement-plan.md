@@ -60,7 +60,7 @@ confirm the operative specifics with the election authority.
 
 - [ ] **District boundary confirmed for the operative Aug 4, 2026 map.** MO-02 was **redrawn in 2025**;
       the new map spans the **St. Louis County portion plus Jefferson, Washington, Crawford, and
-      Gasconade counties**. **St. Charles, Franklin, and Warren are *not* in MO-02** under this map.
+      Gasconade counties — **and Franklin** (corrected 2026-07-10: the official voter file codes 78,635 Franklin voters into CD-2, the second-largest county; `voter-file-plan.md` §5)**. **St. Charles and Warren are *not* in MO-02** under this map.
       *(Source: `candidate/data-and-map-plan.md`; `candidate/captain-field-plan.md`.)* Confirm the
       final **precinct list** before geocoding any location — a sign outside the district is wasted.
 - [ ] **This is a multi-county district, not just St. Louis County.** Budget sign inventory and
