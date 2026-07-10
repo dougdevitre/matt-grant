@@ -9,7 +9,7 @@ vi.mock("@/lib/queries", () => ({
   getVolunteers: vi.fn(),
 }));
 
-import { resolveSmsRecipients, smsAudienceCounts, smsAudienceLabel, smsVolRoleCounts, parseVolRole } from "./audiences";
+import { resolveSmsRecipients, smsAudienceCounts, smsAudienceLabel, smsVolRoleCounts, smsCaptainTeamCount, parseVolRole } from "./audiences";
 import { optedInSet } from "@/lib/sms/consent";
 import { getVolunteers } from "@/lib/queries";
 
@@ -115,5 +115,53 @@ describe("volunteer-role targeting + opt-out reconciliation", () => {
     expect(c["role:Poll Watcher"]).toBe(1);
     expect(c["door:Volunteer"]).toBe(1);
     expect(c["door:Team Captain"]).toBe(1);
+  });
+});
+
+describe("captain scope — resolveSmsRecipients(opts.captainEmail) + smsCaptainTeamCount", () => {
+  beforeEach(() => {
+    mockOpted.mockResolvedValue(new Set(["+13145550100", "+13145550101", "+13145550103"]));
+    mockVols.mockResolvedValue({
+      connected: true,
+      rows: [
+        { phone: "314-555-0100", name: "My Canvasser", roles: ["Canvasser"], door: "Volunteer", captainEmail: "cap@x.com", optedOut: false },
+        { phone: "314-555-0101", name: "My Poller", roles: ["Poll Watcher"], door: "Volunteer", captainEmail: "CAP@X.com", optedOut: false }, // case-insensitive
+        { phone: "314-555-0103", name: "Other Team", roles: ["Canvasser"], door: "Volunteer", captainEmail: "other@x.com", optedOut: false },
+      ],
+    });
+  });
+
+  it("with no tokens, sends to the captain's WHOLE opted-in team only", async () => {
+    const out = await resolveSmsRecipients([], [], [], { captainEmail: "cap@x.com" });
+    expect(new Set(out.map((r) => r.phone))).toEqual(new Set(["+13145550100", "+13145550101"])); // 0103 (other team) excluded
+    expect(out.find((r) => r.phone === "+13145550100")?.first).toBe("My"); // carries first name for {first}
+  });
+
+  it("ignores a subscribers group + Clerk roles passed alongside a captain scope", async () => {
+    // Even with subscribers requested, a captain never reaches the full opt-in ledger.
+    const out = await resolveSmsRecipients(["subscribers", "volunteers"], ["admin"], [], { captainEmail: "cap@x.com" });
+    expect(new Set(out.map((r) => r.phone))).toEqual(new Set(["+13145550100", "+13145550101"]));
+  });
+
+  it("still sub-filters the team by a volunteer-role token", async () => {
+    const out = await resolveSmsRecipients([], [], ["role:Canvasser"], { captainEmail: "cap@x.com" });
+    expect(out.map((r) => r.phone)).toEqual(["+13145550100"]); // only my Canvasser; 0103 is another captain's
+  });
+
+  it("unset opts is identical to a normal volunteers-group send (no regression)", async () => {
+    const scoped = await resolveSmsRecipients(["volunteers"], [], [], {});
+    const plain = await resolveSmsRecipients(["volunteers"]);
+    expect(scoped).toEqual(plain);
+  });
+
+  it("smsCaptainTeamCount counts only the captain's opted-in team", async () => {
+    expect(await smsCaptainTeamCount("cap@x.com")).toBe(2); // 0100 + 0101; 0103 is another team
+    expect(await smsCaptainTeamCount("")).toBe(0);
+  });
+
+  it("smsVolRoleCounts(captainEmail) scopes chip counts to the captain's team", async () => {
+    const c = await smsVolRoleCounts("cap@x.com");
+    expect(c["role:Canvasser"]).toBe(1); // only my Canvasser, not the other team's
+    expect(c["role:Poll Watcher"]).toBe(1);
   });
 });

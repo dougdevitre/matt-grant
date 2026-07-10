@@ -5,20 +5,27 @@ import { SmsComposer } from "@/components/dashboard/SmsComposer";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { smsEnabled } from "@/lib/sms/send";
-import { smsAudienceCounts, smsVolRoleCounts, SMS_GROUP_LABELS, VOL_ROLE_OPTIONS } from "@/lib/sms/audiences";
+import { smsAudienceCounts, smsVolRoleCounts, smsCaptainTeamCount, SMS_GROUP_LABELS, VOL_ROLE_OPTIONS } from "@/lib/sms/audiences";
 import { listSmsCampaigns } from "@/lib/sms/campaigns";
 import { listSavedTemplates } from "@/lib/notifications/messageTemplates";
 
 export const dynamic = "force-dynamic";
 
 export default async function SmsPage() {
-  const { role } = await staffGate();
+  const { role, email } = await staffGate();
   if (!can(role, "draftSms")) redirect("/dashboard?denied=sms");
-  const canSend = can(role, "sendSms");
+  // Admins send to the full list; captains send to their OWN opted-in team (sendTeamSms).
+  const isAdmin = can(role, "sendSms");
+  const isCaptain = !isAdmin && can(role, "sendTeamSms");
+  const canSend = isAdmin || isCaptain;
+  const scope = isCaptain ? "captain" : "admin";
+  const captainEmail = isCaptain ? email ?? undefined : undefined;
 
-  const [counts, volRoleCounts, sent, enabled, saved] = await Promise.all([
+  const [counts, volRoleCounts, teamCount, sent, enabled, saved] = await Promise.all([
     smsAudienceCounts(),
-    smsVolRoleCounts(),
+    // Captain: chip counts scoped to their team so the reach shown matches what actually sends.
+    smsVolRoleCounts(captainEmail),
+    isCaptain ? smsCaptainTeamCount(captainEmail) : Promise.resolve(0),
     listSmsCampaigns(15),
     smsEnabled(),
     listSavedTemplates("sms"),
@@ -42,7 +49,7 @@ export default async function SmsPage() {
           "Texts only go to numbers that have opted in (texted the keyword or checked the web consent box). The audience counts show how many that is.",
           "Every text includes the sender's name and “Reply STOP to opt out.” STOP is honored automatically, and the send respects quiet hours (9am–8pm CT).",
           "Always send a test to your own opted-in number first.",
-          "Drafting + tests are open to captains; sending to the list is admins only.",
+          "Admins send to the full opted-in list; captains send to their own opted-in team.",
         ]}
       />
 
@@ -53,7 +60,7 @@ export default async function SmsPage() {
             Add the Twilio credentials (account SID, auth token, messaging service) in SSM. You can still draft here.
             Carrier delivery also needs Toll-Free Verification approved.
           </p>
-          {canSend && (
+          {isAdmin && (
             <Link href="/dashboard/sms/go-live" className="mt-2 inline-block font-mono text-xs font-bold text-brick hover:underline">
               Finish setup →
             </Link>
@@ -61,7 +68,7 @@ export default async function SmsPage() {
         </div>
       )}
 
-      <SmsComposer groups={groups} volRoles={volRoles} saved={saved} canSend={canSend} disabled={!enabled} />
+      <SmsComposer groups={groups} volRoles={volRoles} saved={saved} canSend={canSend} disabled={!enabled} scope={scope} teamCount={teamCount} />
 
       <div className="mt-8">
         <p className="eyebrow text-slate">Recent sends</p>
