@@ -122,8 +122,11 @@ because the party field is sparse — they grow as canvass IDs replace the proxy
 **Action required across the field program:** the earlier district descriptions
 ("Franklin is NOT in MO-02") are contradicted by the official coding — captain zones, sign
 turf, poll coverage, and the map's boundary layers all need a **Franklin County extension**
-(and Franklin's county clerk joins the early-vote/authority contact lists). Doc-by-doc
-reconciliation is queued; this table is the authoritative census until refreshed.
+(and Franklin's county clerk joins the early-vote/authority contact lists). **Applied
+2026-07-10:** the district docs (data-and-map-plan, captain-field-plan, sign-placement-plan,
+poll-coverage-plan, absentee-voting-guide incl. the Franklin County Clerk contact, and the
+map's county registry + VTD boundary layer) now carry the six-county district; this table
+is the authoritative census until refreshed.
 
 ## 6. Channel rules at a glance
 

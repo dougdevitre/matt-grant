@@ -27,7 +27,7 @@ MO-02 under the **new 2025 map in effect for August 4, 2026** spans five distinc
 | **Crawford County** | Rural | Census VTD boundaries + SOS county-level data only |
 | **Gasconade County** | Rural | Census VTD boundaries + SOS county-level data only |
 
-> St. Charles, Warren, and Franklin counties are **not** in MO-02 under this map. The race is a **small, high-information summer primary** — a few intense precincts decide it ([strategic-plan.md §1](strategic-plan.md)), so captain coverage is weighted to where the [win number](strategic-plan.md#2-target-vote-math-illustrative-planning-framework) actually lives, not spread evenly.
+> St. Charles and Warren are **not** in MO-02 under this map. **Franklin IS** (corrected 2026-07-10 — 78,635 registered voters, the district's second-largest county per the official voter file, `voter-file-plan.md` §5): captain zones need a Franklin extension. The race is a **small, high-information summer primary** — a few intense precincts decide it ([strategic-plan.md §1](strategic-plan.md)), so captain coverage is weighted to where the [win number](strategic-plan.md#2-target-vote-math-illustrative-planning-framework) actually lives, not spread evenly.
 
 **Coverage principle (counts illustrative):** assign at least one **Regional Coordinator** per area, then staff captains by role beneath them. Weight the densest captain coverage to St. Louis County (western/central) where turnout data is strongest, with dedicated rural-county captains so the added counties are not neglected.
 

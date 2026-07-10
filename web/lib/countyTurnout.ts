@@ -1,5 +1,6 @@
 // County-level turnout for MO-02 counties that have NO precinct-turnout feed
-// (Jefferson, Washington, Crawford, Gasconade). The SOS statewide returns PDF
+// (Franklin, Jefferson, Washington, Crawford, Gasconade — Franklin added
+// 2026-07-10 per the voter-file census, candidate/voter-file-plan.md §5). The SOS statewide returns PDF
 // does not contain county turnout, so these must be read from the SOS Election
 // Night Reporting per-county view and entered here BY HAND, with the source URL.
 //

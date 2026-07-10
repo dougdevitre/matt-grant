@@ -26,6 +26,38 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-10 -- v1.x -- Franklin County reconciliation (six-county MO-02)
+
+**Changes:**
+- [updated] the voter-file census (78,635 Franklin voters coded into 2025-map CD-2 -- the
+  district's SECOND-LARGEST county) supersedes the earlier GIS-based exclusion; corrected
+  everywhere the five-county district was asserted: `candidate/data-and-map-plan.md` (map
+  table + rural-county list), `candidate/captain-field-plan.md` (captain zones need a
+  Franklin extension), `candidate/sign-placement-plan.md`, `candidate/poll-coverage-plan.md`
+  §3 (Franklin clerk added to early-vote coverage), `candidate/absentee-voting-guide.md`
+  (county lists + a verified Franklin County Clerk contact block: 400 E Locust Rm 201,
+  Union MO 63084, 636-583-6355, franklinmo.org).
+- [updated] map/app: `web/lib/geoSources.ts` CENSUS_VTD gains Franklin (FIPS 29071) so the
+  /api/geo/extra-counties boundary layer, the coverage-map county join, and the map search
+  pick up Franklin automatically; `web/lib/countySources.ts` registry corrected + Franklin
+  entry; `web/lib/countyTurnout.ts` (+ test) now expects five hand-fillable counties.
+
+**Verifications Performed:**
+- Franklin membership: the official voter file codes all 78,635 Franklin rows `25 CN 2`
+  (full-file parse 2026-07-10, 0 failures). Franklin County Clerk contact verified
+  2026-07-10 against franklinmo.org (clerk + absentee pages).
+
+**Known Gaps:**
+- Strategic-plan vote math and captain-zone assignments still assume the five-county
+  weighting -- the Franklin extension of those plans is a strategy decision for the
+  campaign manager, now unblocked by real numbers.
+
+**Files Modified:**
+- candidate/{data-and-map-plan,captain-field-plan,sign-placement-plan,poll-coverage-plan,absentee-voting-guide,voter-file-plan}.md
+- web/lib/{geoSources,countySources,countyTurnout}.ts + countyTurnout.test.ts
+
+---
+
 ## 2026-07-10 -- v1.x -- Voter file Phase 1: ingest engine + full-district census
 
 **Changes:**

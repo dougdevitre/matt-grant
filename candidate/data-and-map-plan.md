@@ -40,7 +40,7 @@ for the Aug 4 2026 primary. A citizen ballot initiative could still suspend it.
 | Era | MO-02 counties beyond St. Louis Co. | Notes |
 |---|---|---|
 | **OLD 2022 map** (used 2024) | St. Charles Co. (+ part of Warren) | What our St. Louis Co. 2024 precinct tags reflect (western county) |
-| **NEW 2025 map** (Aug 4 2026) | **Jefferson, Washington, Crawford, Gasconade** | St. Charles & Warren moved to MO-03; **Franklin is NOT in MO-02** |
+| **NEW 2025 map** (Aug 4 2026) | **Franklin, Jefferson, Washington, Crawford, Gasconade** | St. Charles & Warren moved to MO-03. **Franklin IS in MO-02** — corrected 2026-07-10: the official voter file codes 78,635 Franklin voters (13.6% of the district, second-largest county) into CD-2 (`voter-file-plan.md` §5), superseding this doc's earlier GIS-based exclusion |
 
 Two consequences for this app:
 
@@ -85,7 +85,7 @@ Two consequences for this app:
 > (`data-msdis.opendata.arcgis.com`, ArcGIS-Online-hosted; locations updated annually).
 
 2. **Rural counties** — add one geo-proxy per county (pattern in `lib/geoSources.ts`). Jefferson has
-   ArcGIS precinct polygons; Washington/Crawford/Gasconade have no ArcGIS feed → use Census VTD
+   ArcGIS precinct polygons; Franklin/Washington/Crawford/Gasconade have no ArcGIS feed → use Census VTD
    boundaries + SOS county-level turnout/registration. None publish precinct-level turnout, so
    whole-district turnout columns are not feasible from live feeds — only St. Louis County does.
 
