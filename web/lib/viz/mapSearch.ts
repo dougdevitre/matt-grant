@@ -8,7 +8,7 @@ import { bboxOfFeatureCollections, type Bounds } from "@/lib/viz/mapView";
 export type SearchEntry = {
   label: string;
   sublabel?: string;
-  kind: "municipality" | "precinct" | "polling place" | "school" | "public place" | "partner" | "event" | "county";
+  kind: "municipality" | "precinct" | "polling place" | "sign" | "school" | "public place" | "partner" | "event" | "county";
   bounds: Bounds;
   featureId?: string; // precinct name — lets the map pulse the column on arrival
 };
@@ -18,6 +18,7 @@ const KIND_PRIORITY: Record<SearchEntry["kind"], number> = {
   municipality: 0,
   precinct: 1,
   "polling place": 2,
+  sign: 2,
   event: 3,
   county: 4,
   school: 5,
@@ -38,6 +39,7 @@ type Layers = {
   events: GeoJSON.FeatureCollection;
   jefferson: GeoJSON.FeatureCollection;
   extra: GeoJSON.FeatureCollection;
+  signs?: GeoJSON.FeatureCollection; // saved sign placements (staff-only layer)
 };
 
 const boundsOf = (features: GeoJSON.Feature[]): Bounds | null =>
@@ -77,6 +79,14 @@ export function buildSearchIndex(layers: Layers): SearchEntry[] {
     const b = boundsOf([f]);
     if (!b || !p.title) continue;
     out.push({ label: String(p.title), sublabel: p.locationName || undefined, kind: "event", bounds: b });
+  }
+
+  // Saved sign placements (present only when the staff-only layer is loaded).
+  for (const f of layers.signs?.features ?? []) {
+    const p = (f.properties ?? {}) as { name?: string; verified?: boolean };
+    const b = boundsOf([f]);
+    if (!b || !p.name) continue;
+    out.push({ label: String(p.name), sublabel: p.verified ? "sign · verified" : "sign · pending", kind: "sign", bounds: b });
   }
 
   // Counties — one entry per county across the boundary layers.
