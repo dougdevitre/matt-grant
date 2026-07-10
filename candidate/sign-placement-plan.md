@@ -267,8 +267,9 @@ pure). **The easiest way to run it is the dashboard page: Dashboard → Field �
 companion [`early-vote-site-verification-checklist.md`](./early-vote-site-verification-checklist.md)
 before flipping any of its gates) and optionally the captains CSV to get the
 ranked deploy list, the dropped-with-reasons audit table, per-captain turf packets with
-inventory/span flags, and the `placement_output.csv` download, all in the browser (nothing is
-uploaded). For scripts, the same pipeline is exposed as an endpoint:
+inventory/span flags, and the `placement_output.csv` download. Scoring runs in the browser;
+rows are uploaded only when a staffer clicks **"Save new locations"** (see the persistence
+paragraph below). For scripts, the same pipeline is exposed as an endpoint:
 
 ```bash
 # From a machine with a signed-in dashboard session cookie:
@@ -292,9 +293,22 @@ Election-Day polling places"** button pulls the county's real, MO-02-clipped GIS
 sites straight into the scorer. That feed is Election-Day-only — it carries **no early-vote or
 satellite-site designation at all** — and it can't confirm the 25-ft electioneering buffer or
 property permission, so every live-loaded row lands in the dropped/audit table until a staffer
-verifies it on-site and re-adds it with `buffer_verified`/`property_permission` set true. Early-vote
-site selection still requires a manual call to the St. Louis County BOE and the rural county
-clerks — no feed automates that step.
+verifies it and flips its gates in the saved-locations workflow below. Early-vote site selection
+still requires a manual call to the St. Louis County BOE and the rural county clerks — no feed
+automates that step.
+
+**Placements persist — verification happens inline, not by re-editing CSVs.** Clicking
+**"Save N new locations"** stores the current rows durably (admins and captains hold the
+`manageSigns` write permission; all staff can view and score). Saving is duplicate-proof: a
+re-pasted CSV or a double-click never double-inserts, and after saving, the **Saved locations**
+table is the one edit path — flip the in-district / buffer / permission gates per site as each
+election authority or property owner confirms (per the
+[verification checklist](./early-vote-site-verification-checklist.md)), assign a servicing
+captain, and keep notes. A gate flip immediately moves the site between the audit table and the
+ranked deploy list. Saved placements with coordinates also plot on the campaign's 3D field map
+(Dashboard → Region → 3D field map, "Signs" toggle — off by default): blue = all three gates
+verified (deployable), amber = pending verification. Scores and tiers are never stored — they are
+always recomputed from the inputs, so the ranking can't silently go stale.
 
 ---
 

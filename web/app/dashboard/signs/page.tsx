@@ -33,7 +33,7 @@ export default async function SignsPage() {
 
       <HowTo
         steps={[
-          "Paste your locations CSV (schema in the hint — it's the plan's polling_sites.csv, §7 of candidate/sign-placement-plan.md). Scoring runs in your browser; nothing is uploaded.",
+          "Paste your locations CSV (schema in the hint — it's the plan's polling_sites.csv, §7 of candidate/sign-placement-plan.md). Scoring runs in your browser; rows are only uploaded if you click \"Save new locations\".",
           "Keep the hard-gate columns honest: in_district, buffer_verified, and property_permission must be real — a false on any drops the row into the audit table below, never onto a lawn.",
           "Traffic can be the raw MoDOT aadt count (auto-normalized across your paste) or a pre-normalized aadt_norm. Missing factors default to neutral values.",
           "Optionally paste the captains CSV to get per-captain turf packets with inventory and span-of-control flags — or leave the real active-captain roster toggled on to use it as-is.",
