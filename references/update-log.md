@@ -51,6 +51,34 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-10 -- v1.x -- Supporter-levels donor letter (on-letterhead PDF)
+
+**Changes:**
+- [added] `tools/pdf-letterhead/donor_ladder_letter.py` -- a ready-to-send, on-letterhead
+  one-pager outlining the supporter levels ($25→$7,000) for donor prospects: the tier table,
+  the fine-print block (limits, designation, not-tax-deductible, best-efforts, prohibited
+  sources), signature, and the Give Now QR band. Content mirrors
+  `candidate/donor-value-ladder.md` and `web/lib/donorLadder.ts` -- edit together.
+- [added] `brand_letter.py` gains a reusable on-brand `table` block (panel header, hairline
+  rules) so any letter can carry structured content.
+- [updated] `candidate/letters/print-tracker.csv` -- new Correspondence row (disclaimer +
+  solicitation tax line required).
+
+**Verifications Performed:**
+- Letter copy restates only the value-ladder doc's verified facts (2026-07-10); the
+  letterhead footer renders the paid-for-by disclaimer on every page; PDF built and reviewed.
+
+**Known Gaps:**
+- Recipient block is a placeholder -- personalize per send (or extend to a build_many mail
+  merge like the community mailing).
+
+**Files Modified:**
+- tools/pdf-letterhead/donor_ladder_letter.py
+- tools/pdf-letterhead/brand_letter.py
+- candidate/letters/print-tracker.csv
+
+---
+
 ## 2026-07-10 -- v1.x -- Donor value ladder (recognition tiers + FEC compliance)
 
 **Changes:**
