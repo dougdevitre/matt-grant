@@ -150,4 +150,30 @@ describe("normalizeWinred", () => {
     });
     expect(r.smsConsent).toBe(true);
   });
+
+  // CONFIRMED account mapping (from the operator): the live WinRed webhook carries the
+  // phone at `donor.phone` and the SMS-consent checkbox at top-level `sms_opt_in`. This pins
+  // that exact shape so a future refactor of the candidate lists can't silently break the
+  // donor thank-you text (which is gated on both fields).
+  it("parses the CONFIRMED live shape: donor.phone + sms_opt_in", () => {
+    const checked = normalizeWinred({
+      id: "wr_live_1",
+      amount: 25,
+      donor: { first_name: "Dana", last_name: "Reed", email: "dana@example.com", phone: "314-555-0142" },
+      sms_opt_in: true,
+    });
+    expect(checked.phone).toBe("314-555-0142");
+    expect(checked.firstName).toBe("Dana");
+    expect(checked.smsConsent).toBe(true); // → records consent + sends the thank-you text
+
+    // Box left unchecked → no consent, so no donor text goes out.
+    const unchecked = normalizeWinred({
+      id: "wr_live_2",
+      amount: 25,
+      donor: { first_name: "Dana", email: "dana@example.com", phone: "314-555-0142" },
+      sms_opt_in: false,
+    });
+    expect(unchecked.phone).toBe("314-555-0142");
+    expect(unchecked.smsConsent).toBe(false);
+  });
 });
