@@ -11,6 +11,7 @@
     "db:create-table": "tsx scripts/create-table.ts",
     "db:seed": "tsx scripts/seed-dynamo.ts",
     "db:clean-seed": "tsx scripts/delete-seed.ts",
+    "ingest:voters": "tsx scripts/ingest-voters.ts",
     "backfill:roles": "tsx scripts/backfill-clerk-roles.ts",
     "backfill:sms-consent": "tsx scripts/backfill-sms-consent.ts",
     "brand": "node scripts/brand-assets.mjs",
@@ -59,6 +60,7 @@
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.9",
+    "xlsx": "^0.18.5"
   }
 }

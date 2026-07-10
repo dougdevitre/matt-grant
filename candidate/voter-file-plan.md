@@ -20,9 +20,9 @@ signs, phones, and GOTV from one scored database operated from the admin dashboa
 
 | Fact | Value |
 |---|---|
-| Rows | **577,366** — one row per registered voter (verified: no duplicate Voter IDs) |
-| Scope | 2025-map CD-2 (every sampled row coded `25 CN 2`; the 2020-map column shows the old CN 1/2/3 mix) |
-| Counties present | St. Louis (dominant), Jefferson, Washington, Crawford, Gasconade, **and Franklin** (~5-6% of rows) — see §5 reconciliation |
+| Rows | **577,366** — one row per registered voter (verified: no duplicate Voter IDs; full-file parse had 0 failures) |
+| Scope | 2025-map CD-2 (**all 577,366 rows** coded `25 CN 2`; the 2020-map column shows the old CN 1/2/3 mix) |
+| Counties present | Six — St. Louis 70.2%, **Franklin 13.6%**, Jefferson 8.8%, Crawford 2.9%, Washington 2.7%, Gasconade 1.9% — see §5 census |
 | Identity | Voter ID, first/middle/last/suffix |
 | Address | Fully parsed residential (house/street/unit/city/zip) + mailing when different |
 | Age | **Birth YEAR only** |
@@ -98,14 +98,32 @@ flowchart LR
   **MONITOR** (opposition — no contact budget). Ballot-chase tiers activate when the
   early-vote feed arrives (`tactics/ballot-chase-program.md`).
 
-## 5. District reconciliation (open finding)
+## 5. District reconciliation — RESOLVED by the Phase 1 census (2026-07-10)
 
-The file's official coding places **Franklin County voters in 2025-map CD-2** (~5-6% of
-rows), while this repo's earlier district descriptions said Franklin was out. The ingest
-produces a per-county census from the file itself; the campaign's district docs will be
-reconciled to the official coding once the count is confirmed — field plans (captain zones,
-sign turf, poll coverage) may need a Franklin extension. _Resolution pending the Phase 1
-report._
+The full-file dry run (all 577,366 rows, 0 unparseable) settles it — the official voter
+registration system codes **six counties into 2025-map CD-2, including Franklin as the
+second-largest**:
+
+| County | Registered voters | Share |
+|---|---|---|
+| St. Louis (portion) | 405,222 | 70.2% |
+| **Franklin** | **78,635** | **13.6%** |
+| Jefferson | 50,653 | 8.8% |
+| Crawford | 16,506 | 2.9% |
+| Washington | 15,666 | 2.7% |
+| Gasconade | 10,684 | 1.9% |
+
+District-wide: 91.3% Active · party field filled 11.7% (proxy confirmed necessary) ·
+new registrants since Nov 2024: 21,514 (3.7%) · T histogram (0→5):
+50,208 / 55,944 / 25,375 / 33,953 / 283,776 / 128,110 · Segments: PERSUADE 393,044 (68.1%),
+PROSPECT 111,086, MONITOR 60,656, BANK 10,029, MOBILIZE 2,551 (BANK/MOBILIZE are small
+because the party field is sparse — they grow as canvass IDs replace the proxy).
+
+**Action required across the field program:** the earlier district descriptions
+("Franklin is NOT in MO-02") are contradicted by the official coding — captain zones, sign
+turf, poll coverage, and the map's boundary layers all need a **Franklin County extension**
+(and Franklin's county clerk joins the early-vote/authority contact lists). Doc-by-doc
+reconciliation is queued; this table is the authoritative census until refreshed.
 
 ## 6. Channel rules at a glance
 
