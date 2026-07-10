@@ -8,8 +8,10 @@ practical, open-it-when-you're-working guide. For the one-time Twilio/credential
 > doubt, check with a campaign attorney or your Twilio account before sending.
 
 The campaign texts from a toll-free number, **+1 844-314-7912** (a Twilio Messaging Service). Every
-number we text has explicitly opted in, every broadcast carries the FEC disclaimer + STOP, and sends
-only go out during quiet hours (9am–8pm Central). The dashboard enforces all of this for you.
+number we text has explicitly opted in, every broadcast carries the FEC disclaimer + STOP, and
+broadcasts + staff-initiated texts only go out during quiet hours (9am–8pm Central) — automated
+confirmations of a person's own action (keyword reply, signup welcome, donation thank-you) send
+immediately. The dashboard enforces all of this for you.
 
 ---
 
@@ -140,8 +142,12 @@ are three ways in:
 
 - **Opt-in gate.** Every send is intersected with the consent ledger. A number with no `opted_in`
   record is never texted, and the queue re-checks at send in case someone texts STOP in between.
-- **Quiet hours.** Texts go out only **9am–8pm Central**. Anything queued or scheduled outside that
-  waits for the next window. (Deliberately tighter than the legal 8am–9pm.)
+- **Quiet hours.** Broadcasts and staff-initiated one-off texts (e.g. a task assignment) go out only
+  **9am–8pm Central** — a queued/scheduled blast waits for the next window, and a task text sent at
+  night is skipped. (Deliberately tighter than the legal 8am–9pm.) The one deliberate exception:
+  **automated confirmations of the person's own action** — the keyword auto-reply, a signup
+  welcome, a donation thank-you — send immediately, because the person is actively engaged at that
+  moment.
 - **The disclaimer rides on every broadcast:** `- Paid for by Matt Grant for Congress. Reply STOP to
   opt out.` — you don't add it; the system appends it.
 - **Keep copy GSM-7.** Plain hyphens/quotes, no em dashes or emoji. One stray special character
