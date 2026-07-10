@@ -99,6 +99,7 @@ export type Capability =
   | "manageEvents" // event calendar: create/edit/publish appearances (publish fires email+SMS)
   | "moderateIssues" // issue board: read all submissions, approve/reject/edit, delete spam
   | "manageInfluencers" // influencer worklist: edit outreach pipeline (stage/outcome/next action/etc.)
+  | "manageSigns" // sign placements: save locations, flip verification gates, assign captains (field compliance)
   // admin only
   | "editFinance"
   | "viewDonorDetail" // full donor list incl. PII / editing
@@ -137,6 +138,7 @@ const MATRIX: Record<Role, Capability[]> = {
     "manageEvents",
     "moderateIssues",
     "manageInfluencers",
+    "manageSigns",
     "editFinance",
     "viewDonorDetail",
     "viewCompliance",
@@ -167,6 +169,7 @@ const MATRIX: Record<Role, Capability[]> = {
     "manageEvents",
     "moderateIssues",
     "manageInfluencers",
+    "manageSigns",
     "viewPeaceRoom",
     "contributePeaceRoom",
     "viewCommunity",
