@@ -48,6 +48,28 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-10 -- v1.x -- Coverage page draws real region geometry
+
+**Changes:**
+- [updated] `candidate/data-and-map-plan.md` -- noted the shipped coverage-page map: Geo
+  Hierarchy region names join to the existing boundary feeds (STL precincts by
+  name/municipality, Jefferson precincts, rural VTDs, counties) and fill by coverage status
+  (gap / covered / overlap).
+
+**Verifications Performed:**
+- No new data sources -- the map reuses the three already-wired geometry routes. St. Louis
+  County is explicitly labeled "MO-02 portion" (no whole-county polygon exists in any wired
+  feed); unmatched region names are listed, never guessed.
+
+**Known Gaps:**
+- Township-level region names have no matching property in any current feed and will list as
+  unmatched until a boundary source is wired.
+
+**Files Modified:**
+- candidate/data-and-map-plan.md
+
+---
+
 ## 2026-07-10 -- v1.x -- Doc sync: sign persistence + field-map features (post-merge pass)
 
 **Changes:**

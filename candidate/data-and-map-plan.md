@@ -15,6 +15,13 @@ loadable as GeoJSON. Sample data ships in `web/lib/mapData.ts`; this is how to m
 > Signs page's saved placements — blue = verified, amber = pending. The data gaps below (rural
 > county turnout, live schools) are unchanged and still gate what the map can honestly show.
 
+> **Coverage page geometry shipped July 10, 2026:** the Team coverage page
+> (`/dashboard/coverage`) now draws its regions on a real map — Geo Hierarchy region names join
+> to the existing boundary feeds (STL precincts by name/municipality, Jefferson precincts, rural
+> VTDs, counties) and fill brick = gap / green = covered / gold = overlap. St. Louis County has
+> no whole-county polygon in any wired feed, so it renders as the **MO-02 portion** (labeled as
+> such); regions whose names match no boundary are listed under the map rather than guessed at.
+
 ## 0. District coverage — MO-02 ≠ St. Louis County (important)
 
 St. Louis County is split across **MO-01, MO-02, and MO-03**, and MO-02 reaches **beyond the
