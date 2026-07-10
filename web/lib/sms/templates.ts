@@ -35,7 +35,11 @@ export function withCompliance(body: string): string {
 // or emoji) so it stays a single segment after the compliance suffix even with a name + amount.
 // The lifecycle sender adds the sender ID + STOP language, so this is just the thank-you line.
 export function donationThankYouSms(first?: string, amountDollars?: number): string {
-  const who = (first ?? "").trim();
+  const raw = (first ?? "").trim();
+  // Drop a donor-supplied name that isn't GSM-7 (e.g. "François", an emoji, a curly quote):
+  // a single non-GSM char would tip the whole text to UCS-2 (70 chars/segment, ~2x cost). The
+  // greeting still reads fine without it. (Length: names stay short enough to keep 1 segment.)
+  const who = raw && nonGsmChars(raw).length === 0 ? raw : "";
   const amt = amountDollars && amountDollars > 0 ? ` $${Math.round(amountDollars)}` : "";
   return `Thanks${who ? `, ${who}` : ""} for your${amt} gift to Matt Grant for Congress! It fuels our MO-02 campaign.`;
 }

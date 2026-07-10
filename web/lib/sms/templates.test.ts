@@ -108,5 +108,10 @@ describe("templates", () => {
     expect(smsSegments(withCompliance(donationThankYouSms("Jonathan", 3300))).segments).toBe(1);
     // A zero/absent amount omits the "$" clause
     expect(donationThankYouSms("Sam", 0)).not.toContain("$");
+    // A non-GSM donor name is DROPPED so it can't tip the text to pricey UCS-2.
+    const francois = donationThankYouSms("François", 50); // ç is not GSM-7 basic
+    expect(francois).not.toContain("François");
+    expect(nonGsmChars(withCompliance(francois))).toEqual([]);
+    expect(smsSegments(withCompliance(francois)).encoding).toBe("GSM-7");
   });
 });

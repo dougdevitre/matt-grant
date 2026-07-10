@@ -9,8 +9,12 @@ import { VOLUNTEER_ROLES, JOIN_DOORS, isVolunteerRole, isJoinDoor } from "@/lib/
 // Resolve SMS broadcast recipients. Unlike email, the audience is gated on
 // recorded opt-in: every candidate number is intersected with optedInSet(), so
 // the result is opted-in BY CONSTRUCTION (the drain re-checks at send too, in
-// case someone texts STOP between queueing and sending). Donors carry no phone,
-// so they're not a source — volunteers are the only contact store with numbers.
+// case someone texts STOP between queueing and sending). Volunteers are the only
+// NAMED contact store with numbers. Donors have no named source here, but a donor
+// who checks the WinRed SMS-consent box enters the shared opt-in ledger (consent
+// source "winred") and is therefore reachable via the "subscribers" (All opted-in)
+// group — intended: that checkbox is a broad campaign-SMS opt-in, so they're a
+// first-class opted-in subscriber, same as a keyword/web opt-in.
 export const SMS_GROUPS = ["subscribers", "volunteers"] as const;
 export type SmsGroup = (typeof SMS_GROUPS)[number];
 
