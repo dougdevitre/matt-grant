@@ -19,16 +19,25 @@ export function SmsComposer({
   saved = [],
   canSend,
   disabled,
+  scope = "admin",
+  teamCount = 0,
 }: {
   groups: SmsAudienceOption[];
   volRoles?: SmsAudienceOption[];
   saved?: SavedSmsOption[];
   canSend: boolean;
   disabled: boolean;
+  // "captain" scopes the whole send to the signed-in captain's own opted-in team:
+  // the full-list group + account-role pickers are hidden and the send targets the team
+  // (optionally sub-filtered by the volunteer-role chips). "admin" is the full-list composer.
+  scope?: "admin" | "captain";
+  teamCount?: number;
 }) {
+  const isCaptain = scope === "captain";
   const [key, setKey] = useState(SMS_TEMPLATES[0]?.key ?? "");
   const [vars, setVars] = useState<Record<string, string>>({});
-  const [selected, setSelected] = useState<string[]>(["subscribers"]);
+  // A captain targets their team implicitly (no group chip); an admin defaults to All opted-in.
+  const [selected, setSelected] = useState<string[]>(isCaptain ? [] : ["subscribers"]);
   const [roleSel, setRoleSel] = useState<Role[]>([]);
   const [volRoleSel, setVolRoleSel] = useState<string[]>([]);
   const [testTo, setTestTo] = useState("");
@@ -50,8 +59,10 @@ export function SmsComposer({
   // server), so fold them into the reach estimate. Clerk account roles stay "counted at send".
   const groupReach = selected.reduce((n, v) => n + (groups.find((g) => g.value === v)?.count ?? 0), 0);
   const volReach = volRoleSel.reduce((n, v) => n + (volRoles.find((o) => o.value === v)?.count ?? 0), 0);
-  const reach = groupReach + volReach;
-  const hasRoles = roleSel.length > 0; // account-role reach is tallied at send, not counted here
+  // Captain scope: whole team by default, or the sum of the selected volunteer-role chips (both
+  // already team-scoped counts). Admin scope: groups + volunteer-role selections.
+  const reach = isCaptain ? (volRoleSel.length > 0 ? volReach : teamCount) : groupReach + volReach;
+  const hasRoles = !isCaptain && roleSel.length > 0; // account-role reach is tallied at send, not counted here
 
   // Non-GSM characters (smart quotes, dashes, emoji) force pricier UCS-2 — surface them so
   // staff can fix before paying ~2x. Only meaningful when the preview is already UCS-2.
@@ -163,40 +174,54 @@ export function SmsComposer({
 
         {/* Audience — opted-in groups only */}
         <div>
-          <label className="text-xs font-semibold text-slate">Send to (opted-in only)</label>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {groups.map((g) => {
-              const on = selected.includes(g.value);
-              return (
-                <button
-                  type="button"
-                  key={g.value}
-                  onClick={() => toggle(g.value)}
-                  className={`rounded-sm border px-3 py-1.5 text-xs font-semibold transition-colors ${on ? "border-ink bg-ink text-paper" : "border-line bg-white text-ink hover:border-ink"}`}
-                >
-                  {g.label}
-                  <span className={`ml-1.5 font-mono text-[0.6rem] ${on ? "text-paper/60" : "text-slate"}`}>{g.count}</span>
-                </button>
-              );
-            })}
-          </div>
-          {/* By Clerk account role — opted-in numbers only, resolved at send time. */}
-          <label className="mt-3 block text-xs font-semibold text-slate">By account role (opted-in only)</label>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {ROLES.map((r) => {
-              const on = roleSel.includes(r);
-              return (
-                <button
-                  type="button"
-                  key={r}
-                  onClick={() => toggleRole(r)}
-                  className={`rounded-sm border px-3 py-1.5 text-xs font-semibold transition-colors ${on ? "border-ink bg-ink text-paper" : "border-line bg-white text-ink hover:border-ink"}`}
-                >
-                  {ROLE_LABELS[r]}
-                </button>
-              );
-            })}
-          </div>
+          {isCaptain ? (
+            /* Captain scope: the send targets their OWN opted-in team; the full-list group +
+               account-role pickers are hidden. Optionally sub-filter by volunteer role below. */
+            <div className="rounded-sm border border-field/40 bg-field/10 px-3 py-2 text-sm text-ink">
+              <span className="font-semibold">Texting your team only</span>{" "}
+              <span className="text-slate">
+                — {teamCount} opted-in volunteer{teamCount === 1 ? "" : "s"} on your team
+                {volRoles.length > 0 ? ". Narrow it by role below (optional)." : "."}
+              </span>
+            </div>
+          ) : (
+            <>
+              <label className="text-xs font-semibold text-slate">Send to (opted-in only)</label>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {groups.map((g) => {
+                  const on = selected.includes(g.value);
+                  return (
+                    <button
+                      type="button"
+                      key={g.value}
+                      onClick={() => toggle(g.value)}
+                      className={`rounded-sm border px-3 py-1.5 text-xs font-semibold transition-colors ${on ? "border-ink bg-ink text-paper" : "border-line bg-white text-ink hover:border-ink"}`}
+                    >
+                      {g.label}
+                      <span className={`ml-1.5 font-mono text-[0.6rem] ${on ? "text-paper/60" : "text-slate"}`}>{g.count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {/* By Clerk account role — opted-in numbers only, resolved at send time. */}
+              <label className="mt-3 block text-xs font-semibold text-slate">By account role (opted-in only)</label>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {ROLES.map((r) => {
+                  const on = roleSel.includes(r);
+                  return (
+                    <button
+                      type="button"
+                      key={r}
+                      onClick={() => toggleRole(r)}
+                      className={`rounded-sm border px-3 py-1.5 text-xs font-semibold transition-colors ${on ? "border-ink bg-ink text-paper" : "border-line bg-white text-ink hover:border-ink"}`}
+                    >
+                      {ROLE_LABELS[r]}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
           {/* By volunteer role/door — opted-in numbers only; counts known up front. */}
           {volRoles.length > 0 && (
             <>
@@ -224,7 +249,9 @@ export function SmsComposer({
               ? `~${reach} recipient${reach === 1 ? "" : "s"} (before de-dupe)`
               : hasRoles
                 ? "Opted-in accounts in the selected role(s)"
-                : "No audience selected yet"}
+                : isCaptain
+                  ? "No opted-in volunteers on your team yet"
+                  : "No audience selected yet"}
             {hasRoles && reach > 0 && <span> + accounts in the selected role(s)</span>}
             {hasRoles && <span> · role counts are tallied at send</span>}
           </p>
@@ -272,15 +299,19 @@ export function SmsComposer({
           )}
         </div>
 
-        {/* Send to list — admins only, confirm first */}
+        {/* Send — admins send to the full list; captains send to their own team; confirm first */}
         {canSend ? (
           <button
             type="button"
-            disabled={disabled || pending || !body || (selected.length === 0 && roleSel.length === 0 && volRoleSel.length === 0)}
+            // A captain always targets their team (no selection required); an admin must pick an audience.
+            disabled={disabled || pending || !body || (!isCaptain && selected.length === 0 && roleSel.length === 0 && volRoleSel.length === 0)}
             className="btn-primary disabled:opacity-50"
             onClick={() => {
-              const audience =
-                reach > 0
+              const audience = isCaptain
+                ? volRoleSel.length > 0
+                  ? `your team in the selected role(s) (~${reach})`
+                  : `your team (${teamCount} opted-in)`
+                : reach > 0
                   ? `~${reach} opted-in recipient${reach === 1 ? "" : "s"}${hasRoles ? " plus accounts in the selected role(s)" : ""}`
                   : hasRoles
                     ? "all opted-in accounts in the selected role(s)"
@@ -289,7 +320,7 @@ export function SmsComposer({
               if (window.confirm(`Send this text to ${audience}${when}?`)) run(sendSmsCampaign);
             }}
           >
-            {pending ? "Working…" : willSchedule ? "Schedule text blast" : "Send to list"}
+            {pending ? "Working…" : willSchedule ? "Schedule text blast" : isCaptain ? "Send to my team" : "Send to list"}
           </button>
         ) : (
           <p className="text-xs text-slate">Drafting + tests are open to captains; sending to the list is admins only.</p>

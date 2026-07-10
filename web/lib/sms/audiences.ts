@@ -73,6 +73,14 @@ const firstOf = (name?: string | null): string | undefined => {
   return f || undefined;
 };
 
+const lc = (s?: string | null): string => (s ?? "").trim().toLowerCase();
+
+// Scope a send to a single caller. When `captainEmail` is set (a captain-scoped
+// send, see rbac `sendTeamSms`), the resolver reaches ONLY that captain's own
+// opted-in team — the full opt-in ledger and Clerk account-role cohorts are
+// dropped server-side, so the scope can't be widened by a tampered form.
+export type SmsResolveOpts = { captainEmail?: string };
+
 // Recipients from the chosen groups + Clerk roles + volunteer-role segments, filtered
 // to opted-in, minus blocked numbers, and de-duplicated. Every source is gated on opt-in
 // BY CONSTRUCTION — a candidate is only texted if its number is in the consent ledger. As
@@ -80,7 +88,13 @@ const firstOf = (name?: string | null): string | undefined => {
 // opted_in row lingers (a STOP mirrors to the roster). (The drain re-checks opt-in + block
 // at send.) Deduped by phone in a Map so a NAMED source (volunteer/role) upgrades a nameless
 // subscriber entry for the same number.
-export async function resolveSmsRecipients(groups: SmsGroup[], roles: Role[] = [], volRoles: string[] = []): Promise<SmsRecipient[]> {
+export async function resolveSmsRecipients(
+  groups: SmsGroup[],
+  roles: Role[] = [],
+  volRoles: string[] = [],
+  opts: SmsResolveOpts = {},
+): Promise<SmsRecipient[]> {
+  const captainScope = lc(opts.captainEmail); // "" when unscoped (admin/full-list send)
   const [opted, blocked] = await Promise.all([optedInSet(), listBlocked()]);
   const blockedSet = new Set(blocked.map((b) => b.phone));
   const byPhone = new Map<string, string | undefined>();
@@ -88,30 +102,58 @@ export async function resolveSmsRecipients(groups: SmsGroup[], roles: Role[] = [
     if (blockedSet.has(e)) return;
     byPhone.set(e, first ?? byPhone.get(e)); // keep an existing name; add one if the source has it
   };
-  if (groups.includes("subscribers")) for (const p of opted) add(p);
+  // A captain-scoped send never reaches the full opt-in ledger — only their own team below.
+  if (!captainScope && groups.includes("subscribers")) for (const p of opted) add(p);
 
-  // One roster read serves both the "volunteers" group and any volunteer-role segments.
+  // One roster read serves the "volunteers" group, any volunteer-role segments, AND the
+  // captain-team scope. Under a captain scope, "my whole team" is the default (no group chip),
+  // while volunteer-role tokens still sub-filter within that team.
   const tokens = volRoles.map(parseVolRole).filter((t): t is VolRoleToken => t !== null);
-  const wantAllVols = groups.includes("volunteers");
+  const wantAllVols = groups.includes("volunteers") || (!!captainScope && tokens.length === 0);
   if (wantAllVols || tokens.length > 0) {
     for (const v of (await getVolunteers()).rows) {
       if (v.optedOut) continue; // roster opt-out suppresses even a stale opted_in row
+      if (captainScope && lc(v.captainEmail) !== captainScope) continue; // scope: only my team
       const e = toE164(v.phone);
       if (!e || !opted.has(e)) continue;
       if (wantAllVols || volMatches(v, tokens)) add(e, firstOf(v.name));
     }
   }
 
+  // Clerk account-role cohorts are a full-list source — never reached under a captain scope.
   // Each role scan pages the full Clerk userbase (no server-side metadata filter), so
   // fan them out in parallel rather than one role at a time.
-  const perRole = await Promise.all(roles.map((role) => listClerkContactsByRole(role)));
-  for (const contacts of perRole) {
-    for (const c of contacts) {
-      const e = c.phone ? toE164(c.phone) : null;
-      if (e && opted.has(e)) add(e, firstOf(c.firstName));
+  if (!captainScope) {
+    const perRole = await Promise.all(roles.map((role) => listClerkContactsByRole(role)));
+    for (const contacts of perRole) {
+      for (const c of contacts) {
+        const e = c.phone ? toE164(c.phone) : null;
+        if (e && opted.has(e)) add(e, firstOf(c.firstName));
+      }
     }
   }
   return [...byPhone].map(([phone, first]) => ({ phone, first }));
+}
+
+// Opted-in count of a captain's OWN team, for the composer's "Texting your team only — N"
+// banner. Same filter as the resolver under captain scope (opted-in ∩ not-blocked ∩
+// not-opted-out ∩ captainEmail match) so the shown count matches what actually sends.
+export async function smsCaptainTeamCount(captainEmail: string | null | undefined): Promise<number> {
+  const me = lc(captainEmail);
+  if (!me) return 0;
+  try {
+    const [opted, blocked] = await Promise.all([optedInSet(), listBlocked()]);
+    const blockedSet = new Set(blocked.map((b) => b.phone));
+    let n = 0;
+    for (const v of (await getVolunteers()).rows) {
+      if (v.optedOut || lc(v.captainEmail) !== me) continue;
+      const e = toE164(v.phone);
+      if (e && opted.has(e) && !blockedSet.has(e)) n++;
+    }
+    return n;
+  } catch {
+    return 0; // no DB → 0
+  }
 }
 
 // Opted-in counts per group, for the composer's audience toggles. Mirrors the resolver's
@@ -133,7 +175,10 @@ export async function smsAudienceCounts(): Promise<Record<SmsGroup, number>> {
 
 // Opted-in count per volunteer-role token, for the composer chips. Same filter as the
 // resolver (opted-in ∩ not-blocked ∩ not-opted-out) so count and send can't diverge.
-export async function smsVolRoleCounts(): Promise<Record<string, number>> {
+// Pass `captainEmail` to scope the counts to that captain's OWN team (for the captain
+// composer), matching the resolver's captain scope so the chip counts don't overstate.
+export async function smsVolRoleCounts(captainEmail?: string): Promise<Record<string, number>> {
+  const me = lc(captainEmail);
   const counts: Record<string, number> = {};
   for (const o of VOL_ROLE_OPTIONS) counts[o.value] = 0;
   try {
@@ -141,6 +186,7 @@ export async function smsVolRoleCounts(): Promise<Record<string, number>> {
     const blockedSet = new Set(blocked.map((b) => b.phone));
     for (const v of (await getVolunteers()).rows) {
       if (v.optedOut) continue;
+      if (me && lc(v.captainEmail) !== me) continue; // captain scope: only my team
       const e = toE164(v.phone);
       if (!e || !opted.has(e) || blockedSet.has(e)) continue;
       for (const r of v.roles ?? []) {
