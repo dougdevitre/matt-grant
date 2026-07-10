@@ -9,7 +9,7 @@ import { getMyVolunteerProfile } from "@/lib/volunteers/self";
 import { listActiveCaptains, suggestCaptain } from "@/lib/volunteers/captains";
 import { listRegions } from "@/lib/volunteers/regions";
 import { buildGeoIndex } from "@/lib/volunteers/geo";
-import { notifyCaptainVolunteerInterest } from "@/lib/notifications/staffNotify";
+import { notifyCaptainShiftChange, notifyCaptainVolunteerInterest } from "@/lib/notifications/staffNotify";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { CAMPAIGN } from "@/lib/site";
 import { getShift, unclaimShiftReminder, updateShift } from "@/lib/coverage/shiftStore";
@@ -148,6 +148,16 @@ export async function claimShift(formData: FormData) {
   if (shift.assignees.length >= shift.needed) return; // filled since the page rendered
 
   await updateShift(shiftId, { assignees: [...shift.assignees, { id: sk, name: name.slice(0, 80) }] }, email);
+  // Tell the right person (their captain, else the campaign inbox) — best-effort.
+  const captainEmail = typeof v.captainEmail === "string" ? v.captainEmail : null;
+  await notifyCaptainShiftChange(captainEmail, {
+    name,
+    email,
+    action: "took",
+    site: shift.site,
+    date: shift.date,
+    window: shift.window,
+  }).catch(() => {});
   revalidatePath("/community");
   revalidatePath("/dashboard/coverage/shifts");
 }
@@ -167,6 +177,20 @@ export async function dropShift(formData: FormData) {
   await updateShift(shiftId, { assignees: shift.assignees.filter((a) => a.id !== sk) }, email);
   // Clear the reminder claim so a replacement (or a re-join) gets a fresh text.
   await unclaimShiftReminder(shiftId, sk);
+  // A dropped slot must not go unseen — alert their captain (else the campaign
+  // inbox) so someone refills it. Best-effort.
+  const vr = await ddb
+    .send(new GetCommand({ TableName: TABLE, Key: { PK: PK.volunteers, SK: sk } }))
+    .catch(() => null);
+  const vrow = vr?.Item;
+  await notifyCaptainShiftChange(typeof vrow?.captainEmail === "string" ? vrow.captainEmail : null, {
+    name: typeof vrow?.name === "string" ? vrow.name : undefined,
+    email,
+    action: "dropped",
+    site: shift.site,
+    date: shift.date,
+    window: shift.window,
+  }).catch(() => {});
   revalidatePath("/community");
   revalidatePath("/dashboard/coverage/shifts");
 }
