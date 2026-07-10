@@ -34,6 +34,15 @@ export const TURNOUT_LEGEND_GRADIENT =
 // Flat fallbacks for boundary-only layers (no turnout feed).
 export const MAP_FALLBACK = { jefferson: "#5b7d6f", extra: "#7c6f8e" } as const;
 
+// Boundary outlines for the county layers — darker takes on their MAP_FALLBACK fills.
+export const MAP_LINE = { jefferson: "#3f5a4f", extra: "#5a4f6e" } as const;
+
+// Basemap 3D building extrusions — a neutral cool gray, quieter than any data layer.
+export const MAP_BUILDINGS = "#cbd2dc";
+
+// POI circle color when a feature carries an unknown category.
+export const POI_FALLBACK = "#888888";
+
 // Map POI categories (categorical) — brand-derived + one amber for "public".
 export const MAP_CATEGORY = {
   schools: BRAND.field, // #16365C

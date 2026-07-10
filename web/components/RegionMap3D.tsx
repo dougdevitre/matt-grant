@@ -4,7 +4,8 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { CATEGORIES, EVENT_COLOR, MAP_CENTER, MAP_ZOOM, type Category } from "@/lib/mapData";
-import { TURNOUT_RAMP, MAP_FALLBACK, EVENT_DRAFT, GOLD_INK } from "@/lib/viz/palette";
+import { BRAND, TURNOUT_RAMP, MAP_FALLBACK, MAP_LINE, MAP_BUILDINGS, POI_FALLBACK, EVENT_DRAFT, GOLD_INK } from "@/lib/viz/palette";
+import { bboxOfFeatureCollections, DISTRICT_FALLBACK_BOUNDS, type Bounds } from "@/lib/viz/mapView";
 
 const EVENT_TYPE_LABEL: Record<string, string> = {
   rally: "Rally", "town-hall": "Town hall", fundraiser: "Fundraiser", canvass: "Canvass",
@@ -15,12 +16,41 @@ const EVENT_TYPE_LABEL: Record<string, string> = {
 // OpenFreeMap "liberty"/"bright" or a MapTiler key if you want a different look.
 const STYLE_URL = "https://tiles.openfreemap.org/styles/positron";
 
+// The home camera angle — shared by init, the auto-fit, and the reset button.
+const HOME_PITCH = 50;
+const HOME_BEARING = -17;
+
+// Minimal custom map button (maplibre ships no generic button control). Same
+// chrome as the built-in controls via the maplibregl-ctrl classes.
+function buttonControl(title: string, label: string, onClick: () => void): maplibregl.IControl {
+  let el: HTMLDivElement | null = null;
+  return {
+    onAdd() {
+      el = document.createElement("div");
+      el.className = "maplibregl-ctrl maplibregl-ctrl-group";
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.title = title;
+      btn.setAttribute("aria-label", title);
+      btn.textContent = label;
+      btn.addEventListener("click", onClick);
+      el.appendChild(btn);
+      return el;
+    },
+    onRemove() {
+      el?.remove();
+      el = null;
+    },
+  };
+}
+
 type Props = {
   visible: Category[];
   buildings: boolean;
   turnout: boolean;
   pois: GeoJSON.FeatureCollection;
   precincts: GeoJSON.FeatureCollection;
+  precinctsLive: boolean;
   jefferson: GeoJSON.FeatureCollection;
   showJefferson: boolean;
   extraCounties: GeoJSON.FeatureCollection;
@@ -29,7 +59,7 @@ type Props = {
   showEvents: boolean;
 };
 
-export default function RegionMap3D({ visible, buildings, turnout, pois, precincts, jefferson, showJefferson, extraCounties, showExtra, events, showEvents }: Props) {
+export default function RegionMap3D({ visible, buildings, turnout, pois, precincts, precinctsLive, jefferson, showJefferson, extraCounties, showExtra, events, showEvents }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const ready = useRef(false);
@@ -37,12 +67,33 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
   poisRef.current = pois;
   const precinctsRef = useRef(precincts);
   precinctsRef.current = precincts;
+  const precinctsLiveRef = useRef(precinctsLive);
+  precinctsLiveRef.current = precinctsLive;
   const jeffersonRef = useRef(jefferson);
   jeffersonRef.current = jefferson;
   const extraRef = useRef(extraCounties);
   extraRef.current = extraCounties;
   const eventsRef = useRef(events);
   eventsRef.current = events;
+  // Auto-fit fires once, when live precincts first arrive — never on later data
+  // pushes, so a camera the operator has moved is left alone.
+  const didFit = useRef(false);
+  const homeBounds = useRef<Bounds>(DISTRICT_FALLBACK_BOUNDS);
+
+  function fitDistrict() {
+    const m = map.current;
+    if (!m) return;
+    const b = bboxOfFeatureCollections([precinctsRef.current, jeffersonRef.current, extraRef.current]);
+    if (b) homeBounds.current = b;
+    m.fitBounds(homeBounds.current, { padding: 40, pitch: HOME_PITCH, bearing: HOME_BEARING, duration: 800 });
+  }
+
+  function maybeFitOnLive() {
+    if (didFit.current || !ready.current || !precinctsLiveRef.current) return;
+    if ((precinctsRef.current?.features.length ?? 0) === 0) return;
+    didFit.current = true;
+    fitDistrict();
+  }
 
   // Init once.
   useEffect(() => {
@@ -52,12 +103,15 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
       style: STYLE_URL,
       center: MAP_CENTER,
       zoom: MAP_ZOOM,
-      pitch: 50,
-      bearing: -17,
+      pitch: HOME_PITCH,
+      bearing: HOME_BEARING,
       attributionControl: { compact: true },
     });
     map.current = m;
     m.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
+    m.addControl(new maplibregl.FullscreenControl(), "top-right");
+    m.addControl(buttonControl("Reset view to the district", "⌂", fitDistrict), "top-right");
+    m.addControl(new maplibregl.ScaleControl({ unit: "imperial" }), "bottom-left");
 
     m.on("load", () => {
       // 3D buildings from the basemap's vector source (if present).
@@ -70,7 +124,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
             type: "fill-extrusion",
             minzoom: 12,
             paint: {
-              "fill-extrusion-color": "#cbd2dc",
+              "fill-extrusion-color": MAP_BUILDINGS,
               "fill-extrusion-height": ["coalesce", ["get", "render_height"], 8],
               "fill-extrusion-base": ["coalesce", ["get", "render_min_height"], 0],
               "fill-extrusion-opacity": 0.8,
@@ -85,7 +139,9 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
       // height/color ramp; raw value shown in the popup). Height + shade = turnout.
       // Ramp tuned to PRIMARY turnout (~8–40%) so precinct variation reads clearly.
       const t: maplibregl.ExpressionSpecification = ["coalesce", ["get", "turnout"], 0];
-      m.addSource("precincts", { type: "geojson", data: precinctsRef.current });
+      // promoteId lets hover feature-state key off the precinct name (GeoJSON
+      // features from the route carry no numeric ids).
+      m.addSource("precincts", { type: "geojson", data: precinctsRef.current, promoteId: "name" });
       m.addLayer({
         id: "precinct-extrude",
         source: "precincts",
@@ -97,7 +153,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
           ],
           "fill-extrusion-height": ["*", t, 130],
           "fill-extrusion-base": 0,
-          "fill-extrusion-opacity": 0.6,
+          "fill-extrusion-opacity": ["case", ["boolean", ["feature-state", "hover"], false], 0.85, 0.6],
         },
       });
 
@@ -125,7 +181,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         source: "jefferson",
         type: "line",
         layout: { visibility: showJefferson ? "visible" : "none" },
-        paint: { "line-color": "#3f5a4f", "line-width": 1, "line-opacity": 0.6 },
+        paint: { "line-color": MAP_LINE.jefferson, "line-width": 1, "line-opacity": 0.6 },
       });
       m.on("click", "jefferson-fill", (e) => {
         const f = e.features?.[0];
@@ -157,7 +213,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
         source: "extra",
         type: "line",
         layout: { visibility: showExtra ? "visible" : "none" },
-        paint: { "line-color": "#5a4f6e", "line-width": 1, "line-opacity": 0.55 },
+        paint: { "line-color": MAP_LINE.extra, "line-width": 1, "line-opacity": 0.55 },
       });
       m.on("click", "extra-fill", (e) => {
         const f = e.features?.[0];
@@ -186,7 +242,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
             "partners", CATEGORIES.partners.color,
             "public", CATEGORIES.public.color,
             "polling", CATEGORIES.polling.color,
-            "#888888",
+            POI_FALLBACK,
           ],
           "circle-stroke-width": 2,
           "circle-stroke-color": "#ffffff",
@@ -210,18 +266,50 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
           )
           .addTo(m);
       });
-      m.on("mouseenter", "precinct-extrude", () => (m.getCanvas().style.cursor = "pointer"));
-      m.on("mouseleave", "precinct-extrude", () => (m.getCanvas().style.cursor = ""));
+      // Hover: highlight the column (feature-state drives the opacity expression
+      // above) + a light name/turnout popup. Touch devices never fire mousemove,
+      // so the click popup below stays the mobile path.
+      let hoveredPrecinct: string | number | undefined;
+      const clearPrecinctHover = () => {
+        if (hoveredPrecinct !== undefined) {
+          m.setFeatureState({ source: "precincts", id: hoveredPrecinct }, { hover: false });
+          hoveredPrecinct = undefined;
+        }
+      };
+      const hoverPopup = new maplibregl.Popup({ closeButton: false, offset: 10, closeOnClick: false });
+      m.on("mousemove", "precinct-extrude", (e) => {
+        const f = e.features?.[0];
+        if (!f) return;
+        m.getCanvas().style.cursor = "pointer";
+        if (f.id !== hoveredPrecinct) {
+          clearPrecinctHover();
+          if (f.id !== undefined) {
+            hoveredPrecinct = f.id;
+            m.setFeatureState({ source: "precincts", id: hoveredPrecinct }, { hover: true });
+          }
+        }
+        const pr = f.properties as { name?: string; turnout?: number };
+        hoverPopup
+          .setLngLat(e.lngLat)
+          .setHTML(`<strong>${pr.name ?? ""}</strong>${pr.turnout != null ? ` · ${pr.turnout}%` : ""}`)
+          .addTo(m);
+      });
+      m.on("mouseleave", "precinct-extrude", () => {
+        m.getCanvas().style.cursor = "";
+        clearPrecinctHover();
+        hoverPopup.remove();
+      });
       m.on("click", "precinct-extrude", (e) => {
         const f = e.features?.[0];
         if (!f) return;
+        hoverPopup.remove();
         const pr = f.properties as { name: string; municipality?: string; turnout?: number; registered?: number };
         const lines = [
           `<strong>${pr.name}</strong>`,
           pr.municipality ? pr.municipality : "",
           pr.turnout != null ? `Primary turnout (Aug '24): <strong>${pr.turnout}%</strong>` : "Turnout: n/a",
           pr.registered ? `Registered: ${pr.registered.toLocaleString()}` : "",
-          `<a href="/dashboard/targets?precinct=${encodeURIComponent(pr.name ?? "")}" style="display:inline-block;margin-top:6px;color:#B5343B;font-weight:700;text-decoration:none">Target this precinct →</a>`,
+          `<a href="/dashboard/targets?precinct=${encodeURIComponent(pr.name ?? "")}" style="display:inline-block;margin-top:6px;color:${BRAND.brick};font-weight:700;text-decoration:none">Target this precinct →</a>`,
         ].filter(Boolean);
         new maplibregl.Popup({ closeButton: false, offset: 12 })
           .setLngLat(e.lngLat)
@@ -265,7 +353,7 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
           `<span style="color:${EVENT_COLOR}">${EVENT_TYPE_LABEL[p.type] ?? "Event"}</span>${p.priority ? ` · <strong>P${p.priority}</strong>` : ""}${p.status !== "PUBLISHED" ? ` · <span style="color:${GOLD_INK}">${p.status.toLowerCase()}</span>` : ""}`,
           when,
           p.locationName ? p.locationName : "",
-          `<a href="/dashboard/events/${encodeURIComponent(p.id)}" style="display:inline-block;margin-top:6px;color:#B5343B;font-weight:700;text-decoration:none">Open event →</a>`,
+          `<a href="/dashboard/events/${encodeURIComponent(p.id)}" style="display:inline-block;margin-top:6px;color:${BRAND.brick};font-weight:700;text-decoration:none">Open event →</a>`,
         ].filter(Boolean);
         new maplibregl.Popup({ closeButton: false, offset: 12 })
           .setLngLat((f.geometry as GeoJSON.Point).coordinates as [number, number])
@@ -276,6 +364,10 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
       ready.current = true;
       // Apply initial prop-driven visibility.
       syncVisibility();
+      // Live precincts may have arrived while the style was still loading — the
+      // sources were seeded from refs above, but the one-time district fit still
+      // needs to run.
+      maybeFitOnLive();
     });
 
     return () => {
@@ -310,12 +402,15 @@ export default function RegionMap3D({ visible, buildings, turnout, pois, precinc
     (m.getSource("pois") as maplibregl.GeoJSONSource | undefined)?.setData(pois);
   }, [pois]);
 
-  // Push live precinct turnout when it arrives.
+  // Push live precinct turnout when it arrives; the first LIVE payload also
+  // triggers the one-time district fit (sample fallback keeps the default frame).
   useEffect(() => {
     const m = map.current;
     if (!m || !ready.current) return;
     (m.getSource("precincts") as maplibregl.GeoJSONSource | undefined)?.setData(precincts);
-  }, [precincts]);
+    maybeFitOnLive();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [precincts, precinctsLive]);
 
   // Jefferson data + visibility.
   useEffect(() => {
