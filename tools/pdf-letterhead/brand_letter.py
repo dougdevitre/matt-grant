@@ -364,6 +364,32 @@ def make_list(items, st, numbered):
     )
 
 
+def make_table(header, rows, st, col_fracs=None):
+    """On-brand hairline table: panel header row, LINE rules, paper zebra —
+    for structured letter content (e.g. the donor value ladder). `col_fracs`
+    are fractions of CONTENT_W; defaults to equal columns."""
+    ncols = len(header)
+    fracs = col_fracs or [1.0 / ncols] * ncols
+    widths = [CONTENT_W * f for f in fracs]
+    head = [Paragraph(f"<b>{h}</b>", st["li"]) for h in header]
+    body = [[Paragraph(cell, st["li"]) for cell in r] for r in rows]
+    t = Table([head] + body, colWidths=widths, repeatRows=1)
+    style = [
+        ("BACKGROUND", (0, 0), (-1, 0), PANEL),
+        ("LINEBELOW", (0, 0), (-1, 0), 0.9, INK),
+        ("GRID", (0, 1), (-1, -1), 0.5, LINE),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]
+    for i in range(1, len(rows) + 1, 2):
+        style.append(("BACKGROUND", (0, i), (-1, i), PAPER))
+    t.setStyle(TableStyle(style))
+    return KeepTogether([t]) if len(rows) <= 4 else t
+
+
 def letter_story(content, st):
     """Build the flowables for one letter. Every block is optional, so the same
     function renders a full letter or a simpler one-pager (e.g. an enclosure
@@ -395,6 +421,9 @@ def letter_story(content, st):
                 story.append(make_list(blk[1], st, numbered=True))
             elif kind == "ul":
                 story.append(make_list(blk[1], st, numbered=False))
+            elif kind == "table":
+                # ("table", header_row, rows, col_width_fractions?) — see make_table.
+                story.append(make_table(blk[1], blk[2], st, blk[3] if len(blk) > 3 else None))
 
     for p in content.get("closing", []):
         story.append(Paragraph(p, st["body"]))
