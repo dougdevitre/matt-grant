@@ -86,6 +86,15 @@ then match against volunteer capacity per captain; a site with **no assignable v
 and drops in priority — don't promise coverage you can't staff (the same serviceability discipline as
 the sign plan).
 
+> **Shipped July 10, 2026 — the shift board.** Dashboard → Field → **Poll shifts**
+> (`/dashboard/coverage/shifts`) runs this model live: it generates the site × day × window schedule
+> (early-vote windows Jul 21–Aug 3, Election-Day peak windows on Aug 4; window labels are editable —
+> real site hours still come from each election authority), assigns greeters per shift from the
+> captain/volunteer roster, computes the §8 fill metrics, and prints per-greeter shift packets carrying
+> the §7 conduct rules plus an honest unfilled-shifts recruiting page (Phase 1's deliverable). Sites
+> pre-fill from the Signs tool's saved `site` locations, so signs and people target the same places.
+> An unstaffed shift shows **uncovered** — the board never hides a gap.
+
 ---
 
 ## 5. Phase overview

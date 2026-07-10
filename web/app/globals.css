@@ -104,15 +104,23 @@
   }
 }
 
-/* Print: isolate the supporter action plan so it prints clean (no nav/footer). */
+/* Print: isolate the printable container so it prints clean (no nav/footer). */
 @media print {
   body { background: #fff !important; }
   .no-print { display: none !important; }
-  /* hide everything, then reveal only the printable plan */
+  /* hide everything, then reveal only the printable content */
   body * { visibility: hidden; }
   .printable, .printable * { visibility: visible; }
   .printable {
     position: absolute; left: 0; top: 0; width: 100%;
     border: 0 !important; box-shadow: none !important; padding: 0 !important;
   }
+  /* Multi-sheet documents (e.g. sign turf packets): one .print-page per sheet. */
+  .print-page { page-break-after: always; break-inside: avoid; }
+  .print-page:last-child { page-break-after: auto; }
+  .print-only { display: block !important; }
 }
+
+/* Print-only content (e.g. the turf-packet sheets): rendered in the DOM so
+   window.print() can reach it, but never shown on screen. */
+.print-only { display: none; }
