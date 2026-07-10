@@ -53,7 +53,11 @@ export async function sendSmsCampaign(formData: FormData): Promise<SmsSendState>
   const isAdmin = can(g.role, "sendSms");
   const isCaptain = !isAdmin && can(g.role, "sendTeamSms");
   if (!isAdmin && !isCaptain) return { ok: false, message: "You don't have permission to send SMS broadcasts." };
-  if (isCaptain && !g.email) return { ok: false, message: "Your account has no email on file — can't scope the send to your team." };
+  // Trim to match how the resolver scopes (lc(email) === trim+lower). A whitespace-only
+  // email would otherwise pass a raw `!g.email` guard but trim to "" in the resolver →
+  // captainScope falsy → an unscoped full-list send. Reject it here so guard and scope agree.
+  const captainEmail = (g.email ?? "").trim();
+  if (isCaptain && !captainEmail) return { ok: false, message: "Your account has no email on file — can't scope the send to your team." };
   if (!(await smsEnabled())) return { ok: false, message: "Texting isn't configured yet (add Twilio credentials)." };
   const { template, groups, roles, volRoles, body } = parse(formData);
   if (!template) return { ok: false, message: "Pick a template first." };
@@ -64,7 +68,7 @@ export async function sendSmsCampaign(formData: FormData): Promise<SmsSendState>
     return { ok: false, message: "Pick at least one audience or role." };
 
   // Captain scope drops subscribers/account-roles server-side, so a tampered form can't widen it.
-  const opts = isCaptain ? { captainEmail: g.email ?? undefined } : {};
+  const opts = isCaptain ? { captainEmail } : {};
   const recipients = await resolveSmsRecipients(groups, roles, volRoles, opts);
   if (recipients.length === 0)
     return { ok: false, message: isCaptain ? "No opted-in volunteers on your team for that selection." : "No opted-in recipients for that selection." };
