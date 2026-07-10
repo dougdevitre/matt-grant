@@ -26,6 +26,42 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-10 -- v1.x -- Donor value ladder (recognition tiers + FEC compliance)
+
+**Changes:**
+- [added] `candidate/donor-value-ladder.md` -- the $25→$7,000 donor recognition ladder
+  (stickers → yard sign → tee → schwag kit + field briefing → reception with Matt → MO-02
+  Founders Club → private roundtable at the $3,500/election max → $7,000 full-cycle level),
+  with §3 FEC compliance gates: the full contribution counts against limits (premiums never
+  netted), $7,000 requires general-election designation with the 60-day refund/redesignation
+  rule, premiums are committee fundraising expenditures (campaign paraphernalia, not personal
+  use), guaranteed-not-chance (no raffles under state gambling law), candidate access never
+  tied to official action, prohibited-source/best-efforts/disclaimer rules unchanged; plus
+  fulfillment ops (budget Items catalog, captain delivery, expenditure logging) and ready
+  copy blocks.
+- [added] registered in SKILL.md (candidate table), INDEX.md ("I need to raise money"), and
+  commands/commands.md (`/donorladder`).
+- (companion web change in the same PR: /donate page supporter-levels section + tier line in
+  the donation thank-you email, driven by a shared `web/lib/donorLadder.ts`)
+
+**Verifications Performed:**
+- 2025-2026 limits verified 2026-07-10 against FEC.gov ($3,500/election; primary + general
+  separate → $7,000 cycle), consistent with `federal/contribution-limits.md` (2026-07-03).
+- Premium/personal-use framing verified against FEC.gov making-disbursements/personal-use
+  guidance (campaign paraphernalia permissible; personal-use ban targets personal benefit).
+
+**Known Gaps:**
+- Event tiers name no dates/venues (committee schedules and announces); premium unit costs
+  must be budgeted from the live Items catalog before the ladder is published.
+
+**Files Modified:**
+- candidate/donor-value-ladder.md
+- SKILL.md
+- INDEX.md
+- commands/commands.md
+
+---
+
 ## 2026-07-10 -- v1.x -- Volunteer self-signup for poll shifts (supporter hub)
 
 **Changes:**

@@ -1,0 +1,37 @@
+import { describe, expect, it } from "vitest";
+import { LADDER, ladderTierForCents, nextRung } from "./donorLadder";
+
+describe("LADDER invariants", () => {
+  it("is sorted ascending with unique thresholds and the FEC-max top rungs", () => {
+    for (let i = 1; i < LADDER.length; i++) {
+      expect(LADDER[i].amountCents).toBeGreaterThan(LADDER[i - 1].amountCents);
+    }
+    // Top rungs must match the verified 2025-26 limits ($3,500/election; $7,000 cycle).
+    expect(LADDER.at(-2)?.amountCents).toBe(3500_00);
+    expect(LADDER.at(-1)?.amountCents).toBe(7000_00);
+    expect(LADDER.at(-2)?.note).toMatch(/per-election maximum/);
+    expect(LADDER.at(-1)?.note).toMatch(/general/);
+  });
+});
+
+describe("ladderTierForCents", () => {
+  it("returns the highest rung reached, null below the first", () => {
+    expect(ladderTierForCents(0)).toBeNull();
+    expect(ladderTierForCents(24_99)).toBeNull();
+    expect(ladderTierForCents(25_00)?.name).toBe("Front Porch Friend");
+    expect(ladderTierForCents(49_99)?.name).toBe("Front Porch Friend");
+    expect(ladderTierForCents(250_00)?.name).toBe("Precinct Partner");
+    expect(ladderTierForCents(3500_00)?.name).toBe("Primary Champion");
+    expect(ladderTierForCents(7000_00)?.name).toBe("Full-Cycle Champion");
+    expect(ladderTierForCents(9999_99)?.name).toBe("Full-Cycle Champion");
+  });
+});
+
+describe("nextRung", () => {
+  it("returns the next threshold, null at/above the top", () => {
+    expect(nextRung(0)?.amountCents).toBe(25_00);
+    expect(nextRung(25_00)?.amountCents).toBe(50_00);
+    expect(nextRung(6999_99)?.amountCents).toBe(7000_00);
+    expect(nextRung(7000_00)).toBeNull();
+  });
+});

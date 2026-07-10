@@ -42,6 +42,7 @@ Instant-generation triggers. When a user types any of these commands, generate t
 | `/matchemail` | Matching gift fundraising email |
 | `/milestonemail [metric]` | Milestone celebration email ("We just hit 500 donors!") |
 | `/recurringask` | Email asking supporters to set up monthly recurring donations |
+| `/donorladder` | Donor recognition value ladder — the $25→$7,000 tier table (schwag, signage, time with Matt), FEC compliance gates (full amount counts, $3,500/election + $7,000 designation, premiums as committee fundraising expenses, no raffles), and ready copy blocks, sourced from `candidate/donor-value-ladder.md` |
 
 ### Messaging & Content
 | Command | Output |

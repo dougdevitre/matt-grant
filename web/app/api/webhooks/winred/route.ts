@@ -5,6 +5,8 @@ import { recordContribution } from "@/lib/donors";
 import { normalizeWinred, extractWinredToken, classifyWinredEvent } from "@/lib/winred";
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { donationThankYou } from "@/lib/email/templates";
+import { donorSummaryForEmail } from "@/lib/donorStatus";
+import { ladderTierForCents } from "@/lib/donorLadder";
 import { notifyAdminsNewDonation } from "@/lib/notifications/staffNotify";
 import { getSecret } from "@/lib/ssm";
 
@@ -120,7 +122,12 @@ export async function POST(req: NextRequest) {
   // Best-effort: never fail the webhook if email is down/unconfigured.
   if (recordedNew && !isRefund && sesEnabled && rec.email) {
     try {
-      const tpl = donationThankYou(rec.firstName ?? "Friend", rec.amount);
+      // Donor value ladder: recognition keys on the donor's cycle-to-date total
+      // (this gift is already recorded above), so the email names the highest
+      // level reached — or none, below the first rung. Best-effort.
+      const summary = await donorSummaryForEmail(rec.email).catch(() => null);
+      const tier = ladderTierForCents(summary?.totalCents ?? 0);
+      const tpl = donationThankYou(rec.firstName ?? "Friend", rec.amount, tier?.name);
       await sendEmail({ to: rec.email, subject: tpl.subject, html: tpl.html, text: tpl.text });
     } catch {
       /* recorded already; receipt is non-critical */
