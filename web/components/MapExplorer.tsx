@@ -7,6 +7,7 @@ import { useResource } from "@/lib/data/useResource";
 import { legendFor, modeStats, type MapMode, type ModeLegend } from "@/lib/viz/precinctPaint";
 // (turnout gradient now comes through legendFor — no direct palette import needed)
 import { bboxOfFeatureCollections } from "@/lib/viz/mapView";
+import { buildSearchIndex, searchEntries, type SearchEntry } from "@/lib/viz/mapSearch";
 import type { MapFocus } from "@/components/RegionMap3D";
 
 // MapLibre touches window/WebGL — load client-only.
@@ -80,6 +81,9 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
   const [focus, setFocus] = useState<MapFocus | null>(null);
   const focusToken = useRef(0);
   const didDeepLink = useRef(false);
+  // Search / jump-to combobox state.
+  const [query, setQuery] = useState("");
+  const [activeIdx, setActiveIdx] = useState(0);
 
   // The live layers, each on the shared Resource hook (loading/ready/empty/
   // degraded/error). The {type,features,meta} payload normalizes to data+meta.
@@ -142,6 +146,19 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
     didDeepLink.current = true;
     setFocus({ bounds, featureId: initialPrecinct, token: ++focusToken.current });
   }, [initialPrecinct, precinctsLive, precincts]);
+
+  // Search index over everything currently plotted; rebuilt only when a layer's
+  // data actually changes. Selection reuses the same focus command as deep links.
+  const searchIndex = useMemo(
+    () => buildSearchIndex({ precincts, pois, events, jefferson, extra }),
+    [precincts, pois, events, jefferson, extra],
+  );
+  const results = useMemo(() => searchEntries(searchIndex, query), [searchIndex, query]);
+  const jumpTo = (e: SearchEntry) => {
+    setFocus({ bounds: e.bounds, featureId: e.featureId, token: ++focusToken.current });
+    setQuery("");
+    setActiveIdx(0);
+  };
 
   return (
     <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
@@ -269,14 +286,71 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
 
       {/* Map */}
       <div className="max-lg:order-1">
-        <button
-          type="button"
-          onClick={() => setShowControls((v) => !v)}
-          className="btn-ghost mb-2 lg:hidden"
-          aria-expanded={showControls}
-        >
-          {showControls ? "Hide layer controls" : "Show layer controls"}
-        </button>
+        <div className="mb-2 flex items-start gap-2">
+          {/* Jump-to search — pure client-side index over the plotted layers
+              (precincts, municipalities, POIs, events, counties); no geocoder. */}
+          <div className="relative flex-1">
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setActiveIdx(0);
+              }}
+              onKeyDown={(e) => {
+                if (!results.length) return;
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  setActiveIdx((i) => Math.min(i + 1, results.length - 1));
+                } else if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  setActiveIdx((i) => Math.max(i - 1, 0));
+                } else if (e.key === "Enter") {
+                  e.preventDefault();
+                  jumpTo(results[activeIdx] ?? results[0]);
+                } else if (e.key === "Escape") {
+                  setQuery("");
+                }
+              }}
+              placeholder="Jump to a precinct, municipality, polling place, event…"
+              aria-label="Search the map"
+              role="combobox"
+              aria-expanded={results.length > 0}
+              aria-controls="map-search-results"
+              className="w-full rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-field"
+            />
+            {results.length > 0 && (
+              <ul
+                id="map-search-results"
+                role="listbox"
+                className="absolute z-20 mt-1 w-full overflow-hidden rounded-md border border-line bg-white shadow-card"
+              >
+                {results.map((r, i) => (
+                  <li key={`${r.kind}-${r.label}`} role="option" aria-selected={i === activeIdx}>
+                    <button
+                      type="button"
+                      onClick={() => jumpTo(r)}
+                      onMouseEnter={() => setActiveIdx(i)}
+                      className={`flex w-full items-baseline gap-2 px-3 py-2 text-left text-sm ${i === activeIdx ? "bg-paper" : ""}`}
+                    >
+                      <span className="font-semibold text-ink">{r.label}</span>
+                      {r.sublabel && <span className="truncate text-xs text-slate">{r.sublabel}</span>}
+                      <span className="ml-auto shrink-0 font-mono text-[0.55rem] uppercase tracking-eyebrow text-slate">{r.kind}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowControls((v) => !v)}
+            className="btn-ghost lg:hidden"
+            aria-expanded={showControls}
+          >
+            {showControls ? "Hide layer controls" : "Show layer controls"}
+          </button>
+        </div>
         <div className="relative h-[68vh] min-h-[420px] overflow-hidden rounded-lg border border-line shadow-card">
           <RegionMap3D
             visible={visible}
