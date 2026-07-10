@@ -180,12 +180,16 @@ describe("rawToShift reminded bookkeeping", () => {
 });
 
 describe("remindersFor", () => {
-  const ann = { id: "v1", name: "Ann" };
-  const bo = { id: "v2", name: "Bo" };
+  // Realistic roster ids: the volunteer SK is `e:<email>` for email signups (the
+  // common case), `p:<digits>` phone-only, or a uuid — never a raw email. The
+  // original suite used bare "v1" ids and missed that `includes("@")` misrouted
+  // every email-keyed volunteer into the captain bucket (never texted).
+  const ann = { id: "e:ann@x.com", name: "Ann" };
+  const bo = { id: "p:3145550100", name: "Bo" };
   const cap = { id: "cap@x.com", name: "Cap" };
   const shifts = [
     rec({ id: "1", date: "2026-07-22", window: "Noon–close", assignees: [ann, cap] }),
-    rec({ id: "2", date: "2026-07-22", window: "Open–noon", site: "Other Site", assignees: [ann, bo], reminded: ["v2"] }),
+    rec({ id: "2", date: "2026-07-22", window: "Open–noon", site: "Other Site", assignees: [ann, bo], reminded: [bo.id] }),
     rec({ id: "3", date: "2026-07-23", assignees: [bo] }),
   ];
 
@@ -193,7 +197,21 @@ describe("remindersFor", () => {
     const r = remindersFor(shifts, "2026-07-22");
     expect(r.volunteers.map((t) => t.assignee.name)).toEqual(["Ann"]); // Bo already reminded on 2, not on this date otherwise
     expect(r.volunteers[0].shifts.map((s) => s.id)).toEqual(["2", "1"]); // Open–noon before Noon–close
-    expect(r.captains.map((c) => c.id)).toEqual(["cap@x.com"]); // email id → no phone source, reported separately
+    // Email id → captain bucket, same target shape (their shifts ride along).
+    expect(r.captains.map((t) => t.assignee.id)).toEqual(["cap@x.com"]);
+    expect(r.captains[0].shifts.map((s) => s.id)).toEqual(["1"]);
+  });
+
+  it("routes ids by shape: raw email = captain; e:/p:/uuid = volunteer", () => {
+    const uuid = { id: "8f2c1c1e-0000-4000-8000-000000000000", name: "Cy" };
+    const r = remindersFor([rec({ id: "7", date: "2026-07-30", assignees: [ann, bo, cap, uuid] })], "2026-07-30");
+    expect(r.volunteers.map((t) => t.assignee.id).sort()).toEqual([uuid.id, ann.id, bo.id].sort());
+    expect(r.captains.map((t) => t.assignee.id)).toEqual([cap.id]);
+  });
+
+  it("applies the reminded-exclusion to captains too", () => {
+    const r = remindersFor([rec({ id: "9", date: "2026-07-25", assignees: [cap], reminded: [cap.id] })], "2026-07-25");
+    expect(r.captains).toEqual([]);
   });
 
   it("returns empty for a date with no assigned shifts", () => {

@@ -68,6 +68,15 @@ const ROUTES = process.env.A11Y_BASE_URL ? PUBLIC_ROUTES : [...PUBLIC_ROUTES, ..
 
 for (const path of ROUTES) {
   test(`a11y: ${path}`, async ({ page }) => {
+    // Sample colors at REST, never mid-transition. Verified failure mode: the map
+    // mode-switch buttons flip disabled (text-line, axe-exempt via the disabled
+    // attribute) → enabled (text-slate, passes AA) when the scored feed loads;
+    // when that flip lands during axe's analysis, `transition-colors` makes the
+    // enabled markup still COMPUTE the old text-line color (#E4E2DA on white =
+    // 1.29:1) — a "serious" violation on markup that passes at rest. globals.css
+    // collapses all transitions under prefers-reduced-motion, so emulating it
+    // makes state flips atomic (and exercises the app's reduced-motion path).
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(path, { waitUntil: "domcontentloaded" });
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])

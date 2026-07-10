@@ -26,6 +26,32 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-10 -- v1.x -- Captain shift reminders via their own text-alerts number
+
+**Changes:**
+- [fixed] shift-reminder recipient split: volunteer roster ids are `e:<email>` for email
+  signups (never a raw email), so the previous "contains @" check misrouted email-keyed
+  volunteers into the captain bucket and silently skipped them; the split now recognizes the
+  roster's `e:`/`p:`/uuid id shapes (regression-tested with realistic ids).
+- [updated] `candidate/poll-coverage-plan.md` §4 shipped note -- shift reminders now also
+  reach captains, using the phone from each staffer's own "My text alerts" opt-in (the number
+  already surfaced on the Team page's reachability column). Resolves the prior entry's Known
+  Gap ("captains have no phone stored"). No new PII storage; consent, blocks, and quiet hours
+  still enforced by the shared lifecycle-SMS helper.
+
+**Verifications Performed:**
+- No new SMS policy or storage introduced; captain numbers come only from the staffer's own
+  self-service opt-in, never admin-entered.
+
+**Known Gaps:**
+- A captain who hasn't opted into text alerts is skipped (reported honestly in the send
+  result) until they opt in under My notifications.
+
+**Files Modified:**
+- candidate/poll-coverage-plan.md
+
+---
+
 ## 2026-07-10 -- v1.x -- Shift reminder texts (shift board → consent-gated SMS)
 
 **Changes:**

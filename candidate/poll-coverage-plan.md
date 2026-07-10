@@ -96,8 +96,9 @@ the sign plan).
 > An unstaffed shift shows **uncovered** — the board never hides a gap. The board can also **text
 > each assigned greeter a shift reminder** (one message per person per day): consent-gated (opted-in
 > numbers only, STOP honored), sent only 9am–8pm CT, logged to the campaign inbox, and deduped so a
-> re-run only reaches newly added assignees — captains have no phone on file and are reported as
-> skipped rather than guessed.
+> re-run only reaches newly added assignees. Captains are texted at the number from their own
+> "My text alerts" opt-in (self-service — never entered by an admin); a captain without one is
+> reported as skipped rather than guessed.
 
 ---
 
