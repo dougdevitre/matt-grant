@@ -8,6 +8,7 @@ import {
   distanceMeters,
   rowToPlacement,
   rowToCaptain,
+  poiToPlacement,
   placementRows,
   PLACEMENT_OUTPUT_HEADERS,
   type PlacementInput,
@@ -253,5 +254,38 @@ describe("CSV adapters", () => {
     expect([...PLACEMENT_OUTPUT_HEADERS]).toEqual([
       "rank", "name", "lat", "lng", "type", "tier", "captain_id", "assigned_volunteer", "score", "precinct", "aadt", "notes",
     ]);
+  });
+
+  it("poiToPlacement maps a live polling-place feature safe-by-default (buffer/permission unverified)", () => {
+    const feature: GeoJSON.Feature = {
+      type: "Feature",
+      properties: { name: "Daniel Boone Library", category: "polling", note: "300 Clarkson Rd, 63017" },
+      geometry: { type: "Point", coordinates: [-90.5673, 38.6031] },
+    };
+    expect(poiToPlacement(feature)).toEqual({
+      name: "Daniel Boone Library",
+      lat: 38.6031,
+      lng: -90.5673,
+      type: "site",
+      notes: "300 Clarkson Rd, 63017",
+      inDistrict: true,
+      bufferVerified: false,
+      propertyPermission: false,
+      daysActive: 1,
+    });
+  });
+
+  it("poiToPlacement falls back to a generic name and drops geometry when not a Point", () => {
+    const feature: GeoJSON.Feature = {
+      type: "Feature",
+      properties: {},
+      geometry: { type: "Polygon", coordinates: [[[0, 0]]] },
+    };
+    const placement = poiToPlacement(feature);
+    expect(placement.name).toBe("Polling place");
+    expect(placement.lat).toBeUndefined();
+    expect(placement.lng).toBeUndefined();
+    expect(placement.bufferVerified).toBe(false);
+    expect(placement.propertyPermission).toBe(false);
   });
 });

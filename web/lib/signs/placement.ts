@@ -260,6 +260,32 @@ export function rowToPlacement(row: Record<string, string>): PlacementInput {
   };
 }
 
+/**
+ * Map a live `/api/geo/pois` GeoJSON Point feature (category "polling" — the county's real
+ * Election-Day polling places, already clipped to MO-02) to a PlacementInput. `daysActive: 1`
+ * because this feed is Election-Day-only — it carries no early-vote/satellite-site flag, so
+ * claiming otherwise would be invented. `inDistrict: true` because the route already clips to
+ * MO-02 (turf point-in-polygon against the CD2 geometry) before this ever sees a feature.
+ * `bufferVerified`/`propertyPermission` stay `false` — a GIS feed can't know either compliance
+ * fact — so every live-loaded row lands in the dropped/audit table until a human confirms
+ * on-site, matching the tool's existing safe-default philosophy (never silently deployable).
+ */
+export function poiToPlacement(f: GeoJSON.Feature): PlacementInput {
+  const p = (f.properties ?? {}) as { name?: string; note?: string };
+  const coords = f.geometry?.type === "Point" ? (f.geometry.coordinates as [number, number]) : undefined;
+  return {
+    name: p.name || "Polling place",
+    lat: coords?.[1],
+    lng: coords?.[0],
+    type: "site",
+    notes: p.note,
+    inDistrict: true,
+    bufferVerified: false,
+    propertyPermission: false,
+    daysActive: 1,
+  };
+}
+
 // Matches the plan's §7 placement_output.csv, with `tier` (A/B/C priority band) in place of the
 // draft's leftover `phase` letter — the plan documents this mapping.
 export const PLACEMENT_OUTPUT_HEADERS = [

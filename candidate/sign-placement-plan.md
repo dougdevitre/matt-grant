@@ -282,6 +282,17 @@ curl -X POST https://YOUR_DOMAIN/api/dashboard/signs/placement \
   alongside the locations and the page renders each captain's packet with over-inventory /
   over-span flags and a "needs host" list (`allocateToCaptains`).
 
+**Two live sources are wired in, and both are honest about their limits.** The page auto-loads
+the real, active captain roster (from the volunteer/staff system) so turf packets work with zero
+CSV typing — a pasted captain row with the same `id` still overrides it. A **"Load live
+Election-Day polling places"** button pulls the county's real, MO-02-clipped GIS feed of polling
+sites straight into the scorer. That feed is Election-Day-only — it carries **no early-vote or
+satellite-site designation at all** — and it can't confirm the 25-ft electioneering buffer or
+property permission, so every live-loaded row lands in the dropped/audit table until a staffer
+verifies it on-site and re-adds it with `buffer_verified`/`property_permission` set true. Early-vote
+site selection still requires a manual call to the St. Louis County BOE and the rural county
+clerks — no feed automates that step.
+
 ---
 
 ## 9. Compliance — read before placing a single sign
