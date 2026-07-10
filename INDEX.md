@@ -100,6 +100,8 @@ Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026
 - [tactics/ballot-chase-program.md](tactics/ballot-chase-program.md) -- Systematic ballot tracking and chasing
 - [tactics/election-protection.md](tactics/election-protection.md) -- Poll watchers, recounts, and provisional ballots
 - [workflows/gotv-plan.md](workflows/gotv-plan.md) -- Final-push GOTV operations
+- [candidate/poll-coverage-plan.md](candidate/poll-coverage-plan.md) -- Election-Day & early-vote field-coverage plan: greeters at early-vote sites and precinct polls, coverage prioritization + shift staffing, and the at-the-poll compliance rules (25-ft buffer, greeter vs. credentialed poll-watcher). Companion to the sign plan; defers poll-watching law to tactics/election-protection.md. Counts illustrative
+- [candidate/sign-placement-plan.md](candidate/sign-placement-plan.md) -- Where every sign goes for the Aug 4 primary: scored/allocated placements for early-vote sites, corridors, and precinct polls, with the MO compliance rules (also listed under "print & produce")
 - [tactics/scheduling-advance.md](tactics/scheduling-advance.md) -- Candidate time management and advance work
 
 ## "The election is over"

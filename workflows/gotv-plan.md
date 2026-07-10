@@ -102,6 +102,11 @@ In states with early voting or no-excuse absentee voting, GOTV starts weeks befo
 - [ ] Establish communication channels with all field teams (group text, radio, or app)
 
 ### Polling Location Coverage
+
+> **Matt Grant / MO-02:** this section is generic — the campaign's concrete coverage plan (which
+> sites, shift staffing, and Missouri's specific 25-ft rule under RSMo 115.637) is
+> [`../candidate/poll-coverage-plan.md`](../candidate/poll-coverage-plan.md).
+
 - [ ] Assign volunteers to each polling location in your district (if permitted by law)
 - [ ] Determine legal boundaries for campaign activity near polls (varies by jurisdiction, typically 25-150 feet)
 - [ ] Volunteers at polls should greet friendly voters (from your list) and remind them of your candidate
