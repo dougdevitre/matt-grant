@@ -1,6 +1,8 @@
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { SignPlacementTool } from "@/components/dashboard/SignPlacementTool";
 import { requireCap } from "@/lib/auth";
+import { listActiveCaptains } from "@/lib/volunteers/captains";
+import type { CaptainInput } from "@/lib/signs/placement";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +11,12 @@ export const dynamic = "force-dynamic";
 // dropped-with-reasons audit trail + optional per-captain turf packets, all client-side.
 export default async function SignsPage() {
   await requireCap("viewTargets");
+
+  // The real, active captain roster (email as id) — loaded server-side so the tool has it
+  // immediately, no client fetch needed. Same shape getVolunteers()/listActiveCaptains() already
+  // powers on the coverage page. [] on any DB hiccup — never blocks the paste-based workflow.
+  const captains = await listActiveCaptains();
+  const initialCaptains: CaptainInput[] = captains.map((c) => ({ id: c.email, name: c.name }));
 
   return (
     <>
@@ -19,7 +27,8 @@ export default async function SignsPage() {
           "Paste your locations CSV (schema in the hint — it's the plan's polling_sites.csv, §7 of candidate/sign-placement-plan.md). Scoring runs in your browser; nothing is uploaded.",
           "Keep the hard-gate columns honest: in_district, buffer_verified, and property_permission must be real — a false on any drops the row into the audit table below, never onto a lawn.",
           "Traffic can be the raw MoDOT aadt count (auto-normalized across your paste) or a pre-normalized aadt_norm. Missing factors default to neutral values.",
-          "Optionally paste the captains CSV to get per-captain turf packets with inventory and span-of-control flags.",
+          "Optionally paste the captains CSV to get per-captain turf packets with inventory and span-of-control flags — or leave the real active-captain roster toggled on to use it as-is.",
+          "\"Load live Election-Day polling places\" pulls the county's real MO-02 polling sites in, but they land straight in the dropped/audit table — the feed can't confirm buffer or property permission, so a human still has to verify each one before it counts as deployable.",
           "Sites rank first (early-vote locations are funded off the top), then corridors/residential. Download placement_output.csv when the list looks right.",
           "Scripts can POST the same CSV to /api/dashboard/signs/placement for the identical output.",
         ]}
@@ -32,7 +41,7 @@ export default async function SignsPage() {
         per-municipality removal deadlines). This page only ranks; the gates and the law come first.
       </p>
 
-      <SignPlacementTool />
+      <SignPlacementTool initialCaptains={initialCaptains} />
     </>
   );
 }
