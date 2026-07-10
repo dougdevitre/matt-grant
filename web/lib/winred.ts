@@ -91,6 +91,10 @@ export type NormalizedDonation = {
   occupation?: string;
   recurring: boolean;
   donatedAt?: string;
+  // WinRed source code (the `sc` URL parameter our tier buttons/letters/emails
+  // stamp) — attribution only: which surface drove the gift. Absent on payloads
+  // that don't carry it.
+  sc?: string;
 };
 
 // Token extraction for webhook auth. WinRed's webhook config has NO header or
@@ -172,6 +176,7 @@ export function normalizeWinred(payload: Json): NormalizedDonation {
     zip: str(pick(d, "donor.zip", "billing.zip", "zip")),
     employer: str(pick(d, "donor.employer", "employer")),
     occupation: str(pick(d, "donor.occupation", "occupation")),
+    sc: str(pick(d, "sc", "source_code", "utm_source", "revv_source", "donation.source_code")),
     recurring: Boolean(pick(d, "recurring", "is_recurring")),
     donatedAt: str(pick(d, "created_at", "donation.created_at", "timestamp")),
   };

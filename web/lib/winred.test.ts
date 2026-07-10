@@ -77,6 +77,13 @@ describe("normalizeWinred", () => {
     });
   });
 
+  it("captures the WinRed source code from any known alias, absent when none", () => {
+    expect(normalizeWinred({ amount: 25, email: "a@b.co", sc: "web-ladder" }).sc).toBe("web-ladder");
+    expect(normalizeWinred({ amount: 25, email: "a@b.co", source_code: "letter-supporter-levels" }).sc).toBe("letter-supporter-levels");
+    expect(normalizeWinred({ amount: 25, email: "a@b.co", utm_source: "email-next-level" }).sc).toBe("email-next-level");
+    expect(normalizeWinred({ amount: 25, email: "a@b.co" }).sc).toBeUndefined();
+  });
+
   it("reads an explicitly cents-named field as integer cents", () => {
     expect(normalizeWinred({ amount_cents: 3500, email: "a@b.co" }).amount).toBe(35);
     expect(normalizeWinred({ amount_in_cents: 5000, email: "a@b.co" }).amount).toBe(50);

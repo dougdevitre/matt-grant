@@ -1,4 +1,4 @@
-import { LADDER } from "@/lib/donorLadder";
+import { donateHref, LADDER } from "@/lib/donorLadder";
 
 // Supporter levels on /donate as a COMPARISON module — one card per level in a
 // responsive grid, "Everything in [previous], plus:" so the stacking reads at a
@@ -55,7 +55,7 @@ export function DonorLadder({ donateBase }: { donateBase: string }) {
               </ul>
 
               <a
-                href={`${donateBase}&amount=${rung.amountCents / 100}`}
+                href={donateHref(donateBase, rung.amountCents, "web-ladder")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`${top ? "btn-primary" : "btn-ghost"} mt-4 w-full px-3 py-2 text-center text-sm`}
