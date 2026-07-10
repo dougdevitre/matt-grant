@@ -121,4 +121,33 @@ describe("normalizeWinred", () => {
     expect(r.email).toBeUndefined();
     expect(r.recurring).toBe(false);
   });
+
+  it("parses a donor phone across the common field-name variants", () => {
+    expect(normalizeWinred({ amount: 5, donor: { phone: "314-555-0100", email: "a@b.co" } }).phone).toBe("314-555-0100");
+    expect(normalizeWinred({ amount: 5, phone_number: "3145550100", email: "a@b.co" }).phone).toBe("3145550100");
+    expect(normalizeWinred({ data: { total_amount: 5, billing: { phone: "+13145550100", email: "a@b.co" } } }).phone).toBe("+13145550100");
+    expect(normalizeWinred({ amount: 5, email: "a@b.co" }).phone).toBeUndefined(); // absent → undefined
+  });
+
+  it("reads the SMS-consent flag ONLY when explicitly truthy (donation is not consent by itself)", () => {
+    // Truthy encodings → true
+    expect(normalizeWinred({ amount: 5, sms_opt_in: true, email: "a@b.co" }).smsConsent).toBe(true);
+    expect(normalizeWinred({ amount: 5, sms_consent: "yes", email: "a@b.co" }).smsConsent).toBe(true);
+    expect(normalizeWinred({ amount: 5, text_opt_in: "1", email: "a@b.co" }).smsConsent).toBe(true);
+    // Falsy / absent → not consent
+    expect(normalizeWinred({ amount: 5, sms_opt_in: false, email: "a@b.co" }).smsConsent).toBe(false);
+    expect(normalizeWinred({ amount: 5, email: "a@b.co" }).smsConsent).toBeUndefined(); // no field → no text
+  });
+
+  it("finds the SMS-consent flag inside a custom-fields array (name mentions sms/text)", () => {
+    const r = normalizeWinred({
+      amount: 5,
+      email: "a@b.co",
+      custom_fields: [
+        { name: "Employer", value: "Acme" },
+        { name: "Text message updates", value: "true" },
+      ],
+    });
+    expect(r.smsConsent).toBe(true);
+  });
 });

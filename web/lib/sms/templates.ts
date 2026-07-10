@@ -30,6 +30,16 @@ export function withCompliance(body: string): string {
   return b ? `${b}${SMS_COMPLIANCE_SUFFIX}` : "";
 }
 
+// Transactional SMS receipt for a WinRed gift, sent (opt-in only) alongside the email
+// thank-you. Kept factual to the campaign and GSM-7 (plain hyphen/no em dash, no curly quotes
+// or emoji) so it stays a single segment after the compliance suffix even with a name + amount.
+// The lifecycle sender adds the sender ID + STOP language, so this is just the thank-you line.
+export function donationThankYouSms(first?: string, amountDollars?: number): string {
+  const who = (first ?? "").trim();
+  const amt = amountDollars && amountDollars > 0 ? ` $${Math.round(amountDollars)}` : "";
+  return `Thanks${who ? `, ${who}` : ""} for your${amt} gift to Matt Grant for Congress! It fuels our MO-02 campaign.`;
+}
+
 // GSM-7 charset (basic + the 9 extended chars that cost 2 septets). Used to pick
 // the encoding and count segments the way carriers bill them.
 const GSM_BASIC = new Set(
