@@ -6,6 +6,8 @@ import { parseCsv } from "@/lib/data/csv";
 import { toCsv } from "@/lib/contacts/import";
 import { useResource } from "@/lib/data/useResource";
 import { SubmitButton } from "@/components/dashboard/SubmitButton";
+import { PrintButton } from "@/components/dashboard/PrintButton";
+import { SignPacketSheets } from "@/components/dashboard/SignPacketSheets";
 import { dedupeKey, type SignPlacementRecord } from "@/lib/signs/persistence";
 import {
   removeSignPlacement,
@@ -382,9 +384,14 @@ export function SignPlacementTool({ initialCaptains = [], initialSaved = [], can
           {/* Turf packets */}
           {result.allocation && (
             <div className="card overflow-hidden p-0">
-              <p className="border-b border-line bg-paper px-4 py-3 font-mono text-[0.65rem] uppercase tracking-eyebrow text-slate">
-                Turf packets — {result.allocation.totals.assigned} assigned · {result.allocation.totals.needsHost} need a host
-              </p>
+              <div className="flex items-center justify-between gap-3 border-b border-line bg-paper px-4 py-2">
+                <p className="font-mono text-[0.65rem] uppercase tracking-eyebrow text-slate">
+                  Turf packets — {result.allocation.totals.assigned} assigned · {result.allocation.totals.needsHost} need a host
+                </p>
+                {/* Prints the SignPacketSheets below — one page per captain with their FULL
+                    ranked list + gate marks + a blank placed column, plus a needs-host page. */}
+                <PrintButton className="btn-ghost px-3 py-1 text-xs">Print turf packets</PrintButton>
+              </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="border-b border-line bg-paper text-left text-slate">
@@ -423,6 +430,9 @@ export function SignPlacementTool({ initialCaptains = [], initialSaved = [], can
               )}
             </div>
           )}
+
+          {/* Print-only: the actual turf-packet sheets (never visible on screen). */}
+          {result.allocation && <SignPacketSheets allocation={result.allocation} />}
         </>
       )}
 
