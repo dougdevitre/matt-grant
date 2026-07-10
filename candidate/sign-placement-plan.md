@@ -310,6 +310,14 @@ ranked deploy list. Saved placements with coordinates also plot on the campaign'
 verified (deployable), amber = pending verification. Scores and tiers are never stored — they are
 always recomputed from the inputs, so the ranking can't silently go stale.
 
+**Hand captains paper.** The turf-packets card has a **"Print turf packets"** button: one sheet
+per captain with their full ranked location list, per-gate ✓/✗ marks, notes, a blank
+*Placed (initials / date)* column for field marking, inventory/span warnings, and a §9 compliance
+reminder on every page — plus a final needs-host sheet. The captains CSV's `contact` column (or
+the roster captain's email) prints as the packet's contact line. Internal ops document — no
+public disclaimer required (nothing on it is a public communication; the signs themselves carry
+the §9.5 disclaimer).
+
 ---
 
 ## 9. Compliance — read before placing a single sign
