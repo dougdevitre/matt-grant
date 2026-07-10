@@ -133,9 +133,10 @@ describe("allocateToCaptains", () => {
   ]);
 
   it("groups by captain, sorts packets by load, routes captain-less rows to needsHost", () => {
-    const alloc = allocateToCaptains(scored, [{ id: "C1", name: "Cap One", signInventory: 10 }, { id: "C2" }]);
+    const alloc = allocateToCaptains(scored, [{ id: "C1", name: "Cap One", contact: "cap1@x.com", signInventory: 10 }, { id: "C2" }]);
     expect(alloc.packets[0].captainId).toBe("C1"); // most loaded first
     expect(alloc.packets[0].count).toBe(2);
+    expect(alloc.packets[0].contact).toBe("cap1@x.com"); // carried onto the packet for the printed sheet
     expect(alloc.packets[0].placements.map((p) => p.name)).toEqual(["a", "b"]); // sorted by rank
     expect(alloc.needsHost.map((p) => p.name)).toEqual(["orphan"]);
     expect(alloc.totals).toEqual({ placed: 4, assigned: 3, needsHost: 1 });
@@ -238,14 +239,16 @@ describe("CSV adapters", () => {
   });
 
   it("rowToCaptain maps the plan's captains.csv columns (inventory numeric, blanks undefined)", () => {
-    expect(rowToCaptain({ id: "C01", name: "Maria Lopez", sign_inventory: "250" })).toEqual({
+    expect(rowToCaptain({ id: "C01", name: "Maria Lopez", contact: "maria@example.com", sign_inventory: "250" })).toEqual({
       id: "C01",
       name: "Maria Lopez",
+      contact: "maria@example.com",
       signInventory: 250,
     });
-    expect(rowToCaptain({ id: " C02 ", name: "", sign_inventory: "" })).toEqual({
+    expect(rowToCaptain({ id: " C02 ", name: "", contact: "  ", sign_inventory: "" })).toEqual({
       id: "C02",
       name: undefined,
+      contact: undefined,
       signInventory: undefined,
     });
   });

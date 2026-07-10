@@ -40,10 +40,11 @@ export type PlacementInput = {
 export type DroppedPlacement = { row: PlacementInput; reasons: string[] };
 export type ScoredPlacement = PlacementInput & { score: number; rank: number; tier: PlacementTier };
 
-export type CaptainInput = { id: string; name?: string; signInventory?: number };
+export type CaptainInput = { id: string; name?: string; signInventory?: number; contact?: string };
 export type CaptainPacket = {
   captainId: string;
   name?: string;
+  contact?: string; // phone/email line for the printed turf packet
   count: number;
   signInventory?: number;
   overCapacity: boolean; // count exceeds the captain's on-hand inventory
@@ -195,6 +196,7 @@ export function allocateToCaptains(
     return {
       captainId,
       name: c?.name,
+      contact: c?.contact,
       count,
       signInventory: c?.signInventory,
       overCapacity: typeof c?.signInventory === "number" ? count > c.signInventory : false,
@@ -231,6 +233,7 @@ export function rowToCaptain(row: Record<string, string>): CaptainInput {
   return {
     id: (row.id ?? "").trim(),
     name: row.name || undefined,
+    contact: (row.contact ?? "").trim() || undefined,
     signInventory: opt(row.sign_inventory),
   };
 }
