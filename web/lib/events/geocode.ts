@@ -38,7 +38,14 @@ export async function geocodeAddress(loc: { address?: string; city?: string; cou
   if (!oneLine) return null;
   try {
     const url = `${GEOCODER}?address=${encodeURIComponent(oneLine)}&benchmark=Public_AR_Current&format=json`;
-    const res = await fetch(url, { headers: { accept: "application/json" }, next: { revalidate: 86400 } });
+    // Hard timeout: Node fetch never times out on its own, and this now runs in
+    // read paths (Airtable event lists), not just saves — a hung geocoder must
+    // degrade to "unplotted", never stall a page render or a build prerender.
+    const res = await fetch(url, {
+      headers: { accept: "application/json" },
+      next: { revalidate: 86400 },
+      signal: AbortSignal.timeout(10_000),
+    });
     if (!res.ok) return null;
     return parseCensusGeocode(await res.json());
   } catch {
