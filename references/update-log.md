@@ -26,6 +26,28 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-10 -- v1.x -- Poll-coverage field plan (MO-02 Election-Day/early-vote staffing)
+
+**Changes:**
+- [added] `candidate/poll-coverage-plan.md` -- Election-Day & early-vote **field-coverage** plan: greeter coverage at designated early-vote sites and priority precinct polls, coverage prioritization (reusing the sign plan's site scoring), shift-staffing math, phased ops (foundations → assign/brief → early-vote coverage → Election Day → close-out), a mermaid flow, roles/metrics/risks, and a §7 compliance section. The companion to `sign-placement-plan.md` (where people go vs. where signs go); explicitly **defers ballot-integrity / credentialed poll-watching law** to `tactics/election-protection.md` rather than duplicate or invent it.
+- [updated] registered in SKILL.md (candidate reference table) and INDEX.md ("print & produce" cluster, beside the sign plan).
+
+**Verifications Performed:**
+- Reused already-verified facts: the 25-ft electioneering buffer (RSMo 115.637; HB 783's 100-ft proposal not enacted) from `library-print-and-produce-guide.md`; the operative 2025 MO-02 map (STL County portion + Jefferson/Washington/Crawford/Gasconade; excludes St. Charles/Franklin/Warren) from `data-and-map-plan.md`; the 2026 dates from `absentee-voting-guide.md`.
+- All internal cross-links resolve; mermaid syntax checked (quoted labels).
+
+**Known Gaps:**
+- Site designations/hours, precinct rankings, and greeter/captain capacity are campaign-supplied placeholders; all staffing counts are illustrative.
+- Poll-watcher/challenger credentialing is intentionally out of scope — must be arranged with the election authority (pointer only).
+
+**Files Modified:**
+- candidate/poll-coverage-plan.md
+- SKILL.md
+- INDEX.md
+- references/update-log.md
+
+---
+
 ## 2026-07-10 -- v1.x -- Sign placement master plan (MO-02 field ops)
 
 **Changes:**
