@@ -106,7 +106,13 @@ export function supporterWelcome(firstName = "there"): Email {
   };
 }
 
-export function donationThankYou(firstName = "Friend", amount?: number, tierName?: string): Email {
+// Next-level upsell for the thank-you receipt. `href` should come from
+// donateHref(CAMPAIGN.donateUrl, deltaCents, "email-next-level") so one click
+// lands on WinRed with EXACTLY the difference preselected. The caller passes
+// nothing when the donor is at the top rung — never solicit past the cycle max.
+export type NextLevel = { name: string; deltaCents: number; href: string };
+
+export function donationThankYou(firstName = "Friend", amount?: number, tierName?: string, next?: NextLevel): Email {
   const amt = amount ? `$${amount}` : "your gift";
   const title = `Thank you, ${firstName}.`;
   // Donor value ladder (candidate/donor-value-ladder.md §5): recognition framing
@@ -114,6 +120,16 @@ export function donationThankYou(firstName = "Friend", amount?: number, tierName
   const tierHtml = tierName
     ? `<p>Your giving this cycle makes you part of the <strong>${tierName}</strong> — as a thank-you, the campaign will follow up on your supporter-level items and invitations. Just reply with sizing or delivery notes.</p>`
     : "";
+  const nextDollars = next ? `$${(next.deltaCents / 100).toLocaleString("en-US")}` : "";
+  const nextHtml = next
+    ? `<p>You're <strong>${nextDollars}</strong> away from the <strong>${next.name}</strong> level — one click below preselects the exact amount.</p>`
+    : tierName
+      ? "" // has a tier but no next rung = the top level: thank, never re-solicit
+      : "";
+  const topHtml =
+    tierName && !next
+      ? `<p>You've reached the <strong>highest supporter level</strong> this cycle — there is nothing more to ask. Thank you.</p>`
+      : "";
   return {
     subject: "Thank you for supporting Matt Grant for Congress",
     html: renderEmail({
@@ -124,11 +140,17 @@ export function donationThankYou(firstName = "Friend", amount?: number, tierName
       heroImage: { src: img("brand/headshot.png"), alt: "Matt Grant" },
       bodyHtml: `<p>Your contribution of <strong>${amt}</strong> goes straight to the work: doors knocked, calls made, and neighbors reached before ${CAMPAIGN.electionLabel}.</p>
         ${tierHtml}
+        ${nextHtml}
+        ${topHtml}
         <p>Matt doesn't just talk — he takes action, and so do you. Thank you for being part of it.</p>
         <p style="font-size:13px;color:#6B7280;">Contributions to ${CAMPAIGN.committee} are not tax-deductible. Federal law requires us to use best efforts to collect and report the name, mailing address, occupation, and employer of individuals whose contributions exceed $200 in an election cycle.</p>`,
       signature: true,
-      button: { label: "Visit your community", href: `${SITE_URL}/community`, color: "blue" },
-      secondaryButton: { label: "Share why you gave", href: `${SITE_URL}/media`, color: "red" },
+      button: next
+        ? { label: `Give ${nextDollars} — reach ${next.name}`, href: next.href, color: "red" }
+        : { label: "Visit your community", href: `${SITE_URL}/community`, color: "blue" },
+      secondaryButton: next
+        ? { label: "Visit your community", href: `${SITE_URL}/community`, color: "blue" }
+        : { label: "Share why you gave", href: `${SITE_URL}/media`, color: "red" },
     }),
     text: renderText({
       title,
@@ -137,6 +159,7 @@ export function donationThankYou(firstName = "Friend", amount?: number, tierName
         ...(tierName
           ? [`Your giving this cycle makes you part of the ${tierName} — the campaign will follow up on your supporter-level thank-yous.`]
           : []),
+        ...(next ? [`You're ${nextDollars} from the ${next.name} level: ${next.href}`] : []),
       ],
     }),
   };

@@ -26,6 +26,31 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-10 -- v1.x -- Seamless tier→WinRed clicks + tier-aware thank-you emails
+
+**Changes:**
+- [updated] `candidate/donor-value-ladder.md` §5 -- added the WinRed source-code map: every
+  tier link now preselects its amount on WinRed (documented `?amount=` parameter) AND stamps
+  a per-surface source code (web-ladder / web-impact / letter-supporter-levels /
+  email-next-level) so WinRed reports show which button, letter, or email drove each gift.
+- (companion web changes in the same PR: shared donateHref URL builder; the donation
+  thank-you email now offers a one-click "give $Δ to reach [next level]" button with the
+  exact difference preselected -- suppressed entirely at the $7,000 cycle max; the webhook
+  captures WinRed's source code onto the contribution record when present)
+
+**Verifications Performed:**
+- WinRed `?amount=` preselection verified 2026-07-10 (WinRed Help Center, "Use URL
+  Parameters"); the next-level ask is never shown to a maxed-out donor (unit-tested).
+
+**Known Gaps:**
+- WinRed webhook payload field name for the source code is normalized defensively
+  (sc/source_code/utm_source aliases) -- confirm against a real webhook sample.
+
+**Files Modified:**
+- candidate/donor-value-ladder.md
+
+---
+
 ## 2026-07-10 -- v1.x -- Donor value ladder (recognition tiers + FEC compliance)
 
 **Changes:**

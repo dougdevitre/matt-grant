@@ -6,9 +6,10 @@ import { normalizeWinred, extractWinredToken, classifyWinredEvent } from "@/lib/
 import { sendEmail, sesEnabled } from "@/lib/email/send";
 import { donationThankYou } from "@/lib/email/templates";
 import { donorSummaryForEmail } from "@/lib/donorStatus";
-import { ladderTierForCents } from "@/lib/donorLadder";
+import { donateHref, ladderTierForCents, nextRung } from "@/lib/donorLadder";
 import { notifyAdminsNewDonation } from "@/lib/notifications/staffNotify";
 import { getSecret } from "@/lib/ssm";
+import { CAMPAIGN } from "@/lib/site";
 
 // WinRed donation webhook: records each contribution to the donor partition and
 // fires a branded thank-you receipt. Secured by a shared secret you configure in
@@ -112,6 +113,7 @@ export async function POST(req: NextRequest) {
       type: isRefund ? "refund" : undefined,
       recurring: rec.recurring,
       receivedAt: rec.donatedAt ?? undefined,
+      sc: rec.sc,
     });
   } catch {
     return NextResponse.json({ error: "failed to record donation" }, { status: 502 });
@@ -124,10 +126,21 @@ export async function POST(req: NextRequest) {
     try {
       // Donor value ladder: recognition keys on the donor's cycle-to-date total
       // (this gift is already recorded above), so the email names the highest
-      // level reached — or none, below the first rung. Best-effort.
+      // level reached AND offers one click to the next level with the exact
+      // difference preselected on WinRed. No next rung (the $7,000 cycle max)
+      // → no ask, ever. Best-effort.
       const summary = await donorSummaryForEmail(rec.email).catch(() => null);
-      const tier = ladderTierForCents(summary?.totalCents ?? 0);
-      const tpl = donationThankYou(rec.firstName ?? "Friend", rec.amount, tier?.name);
+      const totalCents = summary?.totalCents ?? 0;
+      const tier = ladderTierForCents(totalCents);
+      const next = nextRung(totalCents);
+      const nextLevel = next
+        ? {
+            name: next.name,
+            deltaCents: next.amountCents - totalCents,
+            href: donateHref(CAMPAIGN.donateUrl, next.amountCents - totalCents, "email-next-level"),
+          }
+        : undefined;
+      const tpl = donationThankYou(rec.firstName ?? "Friend", rec.amount, tier?.name, nextLevel);
       await sendEmail({ to: rec.email, subject: tpl.subject, html: tpl.html, text: tpl.text });
     } catch {
       /* recorded already; receipt is non-critical */

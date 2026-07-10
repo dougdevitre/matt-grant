@@ -75,4 +75,28 @@ describe("donationThankYou", () => {
     expect(html).toMatch(/best efforts to collect and report/i);
     expect(html).toMatch(/occupation, and employer/i);
   });
+
+  it("names the reached tier and offers a one-click next-level ask with the exact delta", () => {
+    const next = { name: "Precinct Partner", deltaCents: 150_00, href: "https://secure.winred.com/x?amount=150&sc=email-next-level" };
+    const { html, text } = donationThankYou("Sam", 100, "Grant Team Tee", next);
+    expect(html).toContain("Grant Team Tee");
+    expect(html).toContain("$150");
+    expect(html).toContain("Precinct Partner");
+    expect(html).toContain(next.href);
+    expect(text).toContain(next.href);
+  });
+
+  it("NEVER solicits at the top rung: tier without a next level thanks and asks for nothing", () => {
+    const { html } = donationThankYou("Sam", 3500, "Full-Cycle Champion");
+    expect(html).toContain("Full-Cycle Champion");
+    expect(html).toMatch(/highest supporter level/i);
+    expect(html).not.toMatch(/away from/i);
+    expect(html).not.toContain("email-next-level");
+  });
+
+  it("stays the plain receipt when no tier is reached", () => {
+    const { html } = donationThankYou("Sam", 10);
+    expect(html).not.toMatch(/supporter level/i);
+    expect(html).not.toMatch(/away from/i);
+  });
 });
