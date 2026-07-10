@@ -6,6 +6,53 @@ type Json = Record<string, unknown>;
 
 const str = (v: unknown): string | undefined => (typeof v === "string" && v.trim() ? v.trim() : undefined);
 
+// Coerce a checkbox / opt-in value that may arrive as a boolean, "true"/"false",
+// 1/0, "yes"/"no", "on", "y", "checked". Returns undefined when the value is absent
+// or unrecognizable, so a caller can tell "not present" from "explicitly false" —
+// and, critically, only ever texts a donor on an explicit `true`.
+function bool(v: unknown): boolean | undefined {
+  if (v == null) return undefined;
+  if (typeof v === "boolean") return v;
+  if (typeof v === "number") return v === 1 ? true : v === 0 ? false : undefined;
+  if (typeof v === "string") {
+    const s = v.trim().toLowerCase();
+    if (["true", "1", "yes", "y", "on", "checked"].includes(s)) return true;
+    if (["false", "0", "no", "n", "off", "unchecked", ""].includes(s)) return false;
+  }
+  return undefined;
+}
+
+// WinRed's SMS-consent checkbox may surface as a flat/nested boolean OR inside a
+// custom-fields array (each entry a { name/label/key, value } pair). Parse both shapes
+// defensively — the EXACT field name must be confirmed against a real payload from your
+// account. If nothing matches, this returns undefined and NO donor text is sent (fail-safe):
+// a donation is never treated as SMS consent on its own.
+function pickSmsConsent(d: Json): boolean | undefined {
+  const flat = bool(
+    pick(
+      d,
+      "sms_opt_in", "smsOptIn", "sms_consent", "smsConsent", "text_opt_in", "opt_in_sms",
+      "mobile_opt_in", "sms_marketing", "donor.sms_opt_in", "donor.sms_consent", "billing.sms_opt_in",
+    ),
+  );
+  if (flat !== undefined) return flat;
+  // Custom-field array fallback: find an entry whose name/label/key mentions sms/text.
+  for (const key of ["custom_fields", "customFields", "opt_ins", "optIns", "fields"]) {
+    const arr = (d as Json)[key];
+    if (!Array.isArray(arr)) continue;
+    for (const item of arr) {
+      if (!item || typeof item !== "object") continue;
+      const row = item as Json;
+      const label = str(row.name) ?? str(row.label) ?? str(row.key) ?? "";
+      if (/sms|text/i.test(label)) {
+        const b = bool(row.value ?? row.checked ?? row.enabled);
+        if (b !== undefined) return b;
+      }
+    }
+  }
+  return undefined;
+}
+
 // Parse a money value that may arrive as a number or a string like "25",
 // "25.00", or "$1,250.00". Returns a finite number (in the field's own unit) or
 // undefined — never NaN.
@@ -34,6 +81,8 @@ export type NormalizedDonation = {
   lastName?: string;
   name?: string;
   email?: string;
+  phone?: string; // raw; the route normalizes to E.164 for consent/SMS
+  smsConsent?: boolean; // true ONLY when the donor checked the SMS-consent box
   city?: string;
   state?: string;
   zip?: string;
@@ -104,6 +153,7 @@ export function normalizeWinred(payload: Json): NormalizedDonation {
   const first = str(pick(d, "donor.first_name", "first_name", "billing.first_name"));
   const last = str(pick(d, "donor.last_name", "last_name", "billing.last_name"));
   const email = str(pick(d, "donor.email", "email", "billing.email"));
+  const phone = str(pick(d, "donor.phone", "phone", "billing.phone", "phone_number", "donor.phone_number", "billing.phone_number", "mobile", "donor.mobile"));
 
   return {
     externalId: str(pick(d, "id", "donation.id", "transaction_id")),
@@ -112,6 +162,8 @@ export function normalizeWinred(payload: Json): NormalizedDonation {
     lastName: last,
     name: [first, last].filter(Boolean).join(" ") || undefined,
     email,
+    phone,
+    smsConsent: pickSmsConsent(d),
     city: str(pick(d, "donor.city", "billing.city", "city")),
     state: str(pick(d, "donor.state", "billing.state", "state")),
     zip: str(pick(d, "donor.zip", "billing.zip", "zip")),

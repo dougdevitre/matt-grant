@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { smsSegments, withCompliance, getSmsTemplate, SMS_COMPLIANCE_SUFFIX, SMS_TEMPLATES, nonGsmChars, daysUntilElection } from "./templates";
+import { smsSegments, withCompliance, getSmsTemplate, SMS_COMPLIANCE_SUFFIX, SMS_TEMPLATES, nonGsmChars, daysUntilElection, donationThankYouSms } from "./templates";
 import { CAMPAIGN } from "@/lib/site";
 
 describe("smsSegments", () => {
@@ -91,5 +91,22 @@ describe("templates", () => {
     expect(matched).toContain("utm_campaign=issue-family-courts");
     expect(getSmsTemplate("issue-update")!.build({ priority: "taxes" })).toContain("/issues/lower-taxes");
     expect(getSmsTemplate("issue-update")!.build({ priority: "" })).toContain("/issues");
+  });
+
+  it("donationThankYouSms is GSM-7 clean, merges name/amount, and stays 1 segment with the suffix", () => {
+    // Plain (no name/amount)
+    const plain = donationThankYouSms();
+    expect(plain).toContain("Matt Grant for Congress");
+    expect(nonGsmChars(withCompliance(plain))).toEqual([]);
+    // With a name + amount — still GSM-7 and a single segment after the compliance suffix
+    const full = donationThankYouSms("Jordan", 250);
+    expect(full).toContain("Jordan");
+    expect(full).toContain("$250");
+    expect(nonGsmChars(withCompliance(full))).toEqual([]);
+    expect(smsSegments(withCompliance(full)).segments).toBe(1);
+    // A long name + max primary gift still fits one segment (guards the copy length)
+    expect(smsSegments(withCompliance(donationThankYouSms("Jonathan", 3300))).segments).toBe(1);
+    // A zero/absent amount omits the "$" clause
+    expect(donationThankYouSms("Sam", 0)).not.toContain("$");
   });
 });

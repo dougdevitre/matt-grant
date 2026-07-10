@@ -25,6 +25,7 @@ type Contribution = {
 export type ContributionInput = {
   email?: string | null;
   name?: string | null;
+  phone?: string | null; // donor mobile (from WinRed) — stored for SMS receipts/thank-yous
   city?: string | null;
   state?: string | null;
   zip?: string | null;
@@ -93,6 +94,7 @@ export async function recordContribution(c: ContributionInput): Promise<void> {
   // name / state / source are DynamoDB reserved words → aliased.
   set(c.name, "#n = :n", { "#n": "name" }, ":n", c.name);
   set(c.email, "email = :em", {}, ":em", c.email?.toLowerCase());
+  set(c.phone, "phone = :ph", {}, ":ph", c.phone);
   set(c.city, "city = :ci", {}, ":ci", c.city);
   set(c.state, "#stt = :stt", { "#stt": "state" }, ":stt", c.state);
   set(c.zip, "zip = :z", {}, ":z", c.zip);
