@@ -15,7 +15,10 @@ every step so your ballot **counts**.
 > the bottom of this guide) or the Missouri Secretary of State at https://www.sos.mo.gov
 > before you rely on a date. **Dates and notary rules last verified June 24, 2026**
 > against the Missouri SOS; **MO-02 county election-authority contacts verified
-> July 3, 2026** against the official county websites.
+> July 3, 2026** against the official county websites. **Re-checked July 10, 2026:**
+> the live dates below are current (by-mail application received-by **July 22**, no-excuse
+> in-person **July 21 – Aug 3**, Election Day **Aug 4**); the **July 8 voter-registration
+> deadline has now passed** for this primary.
 
 > **EDUCATIONAL DISCLAIMER:** This is educational voting information, not legal
 > advice. The voting process applies to all voters regardless of candidate
@@ -55,7 +58,7 @@ flowchart TD
 
 | What | Deadline |
 |---|---|
-| Register to vote | **Wed, July 8, 2026** |
+| Register to vote | **Wed, July 8, 2026 — this deadline has PASSED** (registration for the Aug 4 primary is closed) |
 | Excuse-based absentee opens | ~June 23, 2026 (open now) |
 | **By-mail application must be RECEIVED** | **5:00 p.m. Wed, July 22, 2026** |
 | No-excuse early in-person voting | ~**July 21 – Aug 3, 2026** |
@@ -222,8 +225,8 @@ local election authority at **sos.mo.gov**.
 ---
 
 ## 🤝 Make your plan to vote
-1. **Confirm you're registered** (deadline July 8).
-2. **Pick your option** — early in person is fastest.
+1. **Confirm you're registered.** *(The July 8 registration deadline for this primary has passed — if you registered by then, you're set; if not, you can't vote in the Aug 4 primary, but you can still register for November.)*
+2. **Pick your option** — early in person is fastest (July 21 – Aug 3), or vote on Election Day (Aug 4).
 3. **Put it on your calendar** and **bring a friend or family member.**
 4. **Tell three people** how easy this is.
 

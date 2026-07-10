@@ -114,4 +114,4 @@ This grants the app role `ssm:GetParameter*` on `/mattgrant/prod/social/*` (plus
 
 ## See also
 - [`social-command-center.md`](./social-command-center.md) — day-to-day composing, scheduling, and the footprint optimizer.
-- [`google-youtube-setup.md`](./google-youtube-setup.md) — Google/YouTube account setup.
+- [`google-youtube-setup.md`](../../docs/google-youtube-setup.md) — Google/YouTube account setup.
