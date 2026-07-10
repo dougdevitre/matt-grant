@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { parseCsv } from "@/lib/data/csv";
 import { toCsv } from "@/lib/contacts/import";
 import {
@@ -21,6 +22,14 @@ import {
 // a CSV gives a live ranked preview with no upload — the same pipeline as the
 // /api/dashboard/signs/placement route, so the download here matches the route's byte-for-byte
 // (minus BOM). Mirrors DonorImport (textarea + live preview) and TargetTable (table + Blob download).
+
+// MapLibre touches window/WebGL — load client-only, same as MapExplorer's RegionMap3D import.
+const SignsMap = dynamic(() => import("@/components/dashboard/SignsMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="grid h-full w-full place-items-center bg-ink/5 text-sm text-slate">Loading map…</div>
+  ),
+});
 
 const tierColor: Record<ScoredPlacement["tier"], string> = {
   A: "bg-brick/12 text-brick",
@@ -64,6 +73,33 @@ export function SignPlacementTool() {
     }
     return { ordered, scored, dropped, allocation } as const;
   }, [locText, capText]);
+
+  // GeoJSON for the map — only rows with valid lat/lng plot; a CSV with no coordinates just
+  // shows an empty map rather than erroring (the tables above still work either way).
+  const mapData = useMemo(() => {
+    if (!result || "error" in result) return null;
+    const hasLatLng = <P extends { lat?: number; lng?: number }>(p: P): p is P & { lat: number; lng: number } =>
+      typeof p.lat === "number" && typeof p.lng === "number";
+    const placements: GeoJSON.FeatureCollection = {
+      type: "FeatureCollection",
+      features: result.scored.filter(hasLatLng).map((p) => ({
+        type: "Feature",
+        properties: { name: p.name, type: p.type, tier: p.tier, score: p.score, captainId: p.captainId ?? "", precinct: p.precinct ?? "" },
+        geometry: { type: "Point", coordinates: [p.lng, p.lat] },
+      })),
+    };
+    const droppedFc: GeoJSON.FeatureCollection = {
+      type: "FeatureCollection",
+      features: result.dropped
+        .filter((d) => hasLatLng(d.row))
+        .map((d) => ({
+          type: "Feature",
+          properties: { name: d.row.name, reasons: d.reasons.join("; ") },
+          geometry: { type: "Point", coordinates: [d.row.lng as number, d.row.lat as number] },
+        })),
+    };
+    return { placements, dropped: droppedFc };
+  }, [result]);
 
   const download = () => {
     if (!result || "error" in result) return;
@@ -137,6 +173,25 @@ export function SignPlacementTool() {
               Download placement_output.csv
             </button>
           </div>
+
+          {/* Map — plots every scored/dropped row that has lat/lng; click a pin for details */}
+          {mapData && (mapData.placements.features.length > 0 || mapData.dropped.features.length > 0) && (
+            <>
+              <div className="h-[50vh] min-h-[360px] overflow-hidden rounded-lg border border-line shadow-card">
+                <SignsMap placements={mapData.placements} dropped={mapData.dropped} />
+              </div>
+              <p className="text-xs text-slate">
+                <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: "#B5343B" }} aria-hidden />
+                Tier A ·{" "}
+                <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: "#2563EB" }} aria-hidden />
+                Tier B ·{" "}
+                <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: "#5A6472" }} aria-hidden />
+                Tier C ·{" "}
+                <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full border border-brick align-middle opacity-50" style={{ background: "#B5343B" }} aria-hidden />
+                Dropped (hard-gate failure). Rows without lat/lng don&apos;t plot but still appear in the tables below.
+              </p>
+            </>
+          )}
 
           {/* Ranked deploy table */}
           {result.ordered.length > 0 && (
