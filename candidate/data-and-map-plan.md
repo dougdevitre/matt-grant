@@ -7,6 +7,14 @@ loadable as GeoJSON. Sample data ships in `web/lib/mapData.ts`; this is how to m
 > Educational planning doc. Verify every dataset's vintage and licensing before public use. Map
 > figures shipped in the app (turnout, partner points) are illustrative placeholders.
 
+> **Map features shipped July 10, 2026:** the field map now has fullscreen/scale/reset controls
+> with a one-time auto-fit to the district, hover highlighting, an on-map legend, a jump-to
+> search box (precincts, municipalities, polling places, events, counties, saved signs), a
+> column-mode switch (Aug-2024 turnout · target tier A/B/C matching the Targets page · GOTV
+> upside), two-way Map↔Targets deep links, and a **Signs layer** (off by default) plotting the
+> Signs page's saved placements — blue = verified, amber = pending. The data gaps below (rural
+> county turnout, live schools) are unchanged and still gate what the map can honestly show.
+
 ## 0. District coverage — MO-02 ≠ St. Louis County (important)
 
 St. Louis County is split across **MO-01, MO-02, and MO-03**, and MO-02 reaches **beyond the
