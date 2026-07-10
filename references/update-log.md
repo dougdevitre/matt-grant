@@ -26,6 +26,28 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-10 -- v1.x -- Volunteer self-signup for poll shifts (supporter hub)
+
+**Changes:**
+- [updated] `candidate/poll-coverage-plan.md` §4 shipped note -- signed-in volunteers can now
+  take open greeter shifts (or drop ones they can't make) directly on the supporter hub;
+  claims are self-scoped to the session identity, capacity-checked server-side, and land on
+  the same field board and reminder pipeline captains already use.
+
+**Verifications Performed:**
+- Identity comes only from the authenticated session (the volunteer record key), never from
+  form input; past shifts can't be joined or dropped; dropping clears the reminder claim so a
+  replacement gets a fresh text.
+
+**Known Gaps:**
+- No notification to the captain on self-signup/drop yet -- the board reflects it immediately,
+  but a captain watching only their phone won't know until they check.
+
+**Files Modified:**
+- candidate/poll-coverage-plan.md
+
+---
+
 ## 2026-07-10 -- v1.x -- Captain shift reminders via their own text-alerts number
 
 **Changes:**

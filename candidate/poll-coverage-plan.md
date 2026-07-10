@@ -98,7 +98,10 @@ the sign plan).
 > numbers only, STOP honored), sent only 9am–8pm CT, logged to the campaign inbox, and deduped so a
 > re-run only reaches newly added assignees. Captains are texted at the number from their own
 > "My text alerts" opt-in (self-service — never entered by an admin); a captain without one is
-> reported as skipped rather than guessed.
+> reported as skipped rather than guessed. Volunteers can also **take open shifts themselves** on
+> the supporter hub (`/community`): signed-in volunteers see upcoming under-staffed windows, claim
+> one (or drop one they can't make), and the field board updates instantly — self-service fills
+> the schedule between captain assignments.
 
 ---
 
