@@ -7,6 +7,7 @@ import {
   allocateToCaptains,
   distanceMeters,
   rowToPlacement,
+  rowToCaptain,
   placementRows,
   PLACEMENT_OUTPUT_HEADERS,
   type PlacementInput,
@@ -233,6 +234,19 @@ describe("CSV adapters", () => {
     const [row] = placementRows(scored);
     expect(String(row[1]).startsWith("'=")).toBe(true); // name defused
     expect(String(row[11]).startsWith("'+")).toBe(true); // notes defused
+  });
+
+  it("rowToCaptain maps the plan's captains.csv columns (inventory numeric, blanks undefined)", () => {
+    expect(rowToCaptain({ id: "C01", name: "Maria Lopez", sign_inventory: "250" })).toEqual({
+      id: "C01",
+      name: "Maria Lopez",
+      signInventory: 250,
+    });
+    expect(rowToCaptain({ id: " C02 ", name: "", sign_inventory: "" })).toEqual({
+      id: "C02",
+      name: undefined,
+      signInventory: undefined,
+    });
   });
 
   it("headers match the plan's placement_output schema (tier in place of the draft's phase)", () => {

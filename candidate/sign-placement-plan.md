@@ -261,8 +261,11 @@ site_score = voter_contact_value          # relative worth of reaching deciding 
 ### 8.6 The scorer tool (don't rank by hand)
 
 This model is implemented in the campaign web app (`web/lib/signs/placement.ts` — unit-tested,
-pure). A staff login with field-targeting access can POST the locations CSV and download the
-ranked output:
+pure). **The easiest way to run it is the dashboard page: Dashboard → Field → Signs
+(`/dashboard/signs`)** — paste the locations CSV (and optionally the captains CSV) to get the
+ranked deploy list, the dropped-with-reasons audit table, per-captain turf packets with
+inventory/span flags, and the `placement_output.csv` download, all in the browser (nothing is
+uploaded). For scripts, the same pipeline is exposed as an endpoint:
 
 ```bash
 # From a machine with a signed-in dashboard session cookie:
@@ -275,9 +278,9 @@ curl -X POST https://YOUR_DOMAIN/api/dashboard/signs/placement \
   with a `DROPPED: <reasons>` note (the audit trail).
 - Raw MoDOT `aadt` counts are normalized across the candidate set automatically; you may supply a
   pre-normalized `aadt_norm` column instead. Missing factors default to neutral values.
-- Per-captain turf packets (§6 Phase 2) are supported by the same module
-  (`allocateToCaptains` — span-of-control + inventory flags); a dashboard upload page that runs
-  both steps in the browser is a **documented follow-up**, not yet built.
+- Per-captain turf packets (§6 Phase 2) run on the **Signs page** too — paste the captains CSV
+  alongside the locations and the page renders each captain's packet with over-inventory /
+  over-span flags and a "needs host" list (`allocateToCaptains`).
 
 ---
 

@@ -225,6 +225,16 @@ const asType = (v: string | undefined): PlacementType => {
   return "corridor";
 };
 
+/** Map a parsed `captains.csv` row (plan §7: id,name,zone_name,zone_precincts,contact,sign_inventory)
+ *  to a CaptainInput for `allocateToCaptains`. Rows without an id are unusable and map to id "". */
+export function rowToCaptain(row: Record<string, string>): CaptainInput {
+  return {
+    id: (row.id ?? "").trim(),
+    name: row.name || undefined,
+    signInventory: opt(row.sign_inventory),
+  };
+}
+
 /** Map a parsed `polling_sites.csv` / candidate-location row (from `parseCsv`) to a PlacementInput.
  *  `aadt` is the RAW MoDOT count (normalized later by `normalizeTraffic`); `aadt_norm` is 0..1. */
 export function rowToPlacement(row: Record<string, string>): PlacementInput {
