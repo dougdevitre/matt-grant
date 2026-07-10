@@ -8,6 +8,7 @@ import {
   ROLE_LABELS,
   ROLE_BLURBS,
   ROLE_BADGE,
+  ALL_CAPABILITIES,
   isStaffRole,
   homeFor,
   postAuthDestination,
@@ -15,9 +16,11 @@ import {
   type Role,
 } from "@/lib/rbac";
 
-// Every capability in the matrix. If you add one to rbac.ts, add it here too —
-// the count assertions below will otherwise fail, which is the point: the
-// access matrix must never drift silently.
+// Every capability in the matrix. If you add one to rbac.ts, add it here too — the
+// anti-drift assertion below compares this list set-equal to the runtime ALL_CAPABILITIES
+// export, so a capability added to the matrix but not to these isolation walls fails loudly.
+// (Previously this comment promised a count assertion that didn't exist, and two capabilities
+// — moderateIssues, manageInfluencers — drifted in silently, untested.)
 const ALL_CAPS: Capability[] = [
   "viewOverview",
   "manageVolunteers",
@@ -34,6 +37,8 @@ const ALL_CAPS: Capability[] = [
   "sendTeamSms",
   "messageIndividuals",
   "manageEvents",
+  "moderateIssues",
+  "manageInfluencers",
   "editFinance",
   "viewDonorDetail",
   "viewCompliance",
@@ -72,6 +77,8 @@ const GRANTS: Record<Role, Capability[]> = {
     "sendTeamSms",
     "messageIndividuals",
     "manageEvents",
+    "moderateIssues",
+    "manageInfluencers",
     ...PEACE_CAPS,
     "viewCommunity",
   ],
@@ -92,6 +99,14 @@ const GRANTS: Record<Role, Capability[]> = {
 };
 
 describe("rbac capability matrix", () => {
+  // ANTI-DRIFT RATCHET: the test's ALL_CAPS enumeration must be set-equal to the runtime
+  // capability list (ALL_CAPABILITIES = admin's full grant, by design). If a capability is
+  // added to rbac.ts but not here, every isolation wall below silently skips it — this
+  // assertion makes that a loud failure instead.
+  it("ALL_CAPS covers every runtime capability (no silent drift)", () => {
+    expect([...ALL_CAPS].sort()).toEqual([...ALL_CAPABILITIES].sort());
+  });
+
   for (const role of ROLES) {
     const granted = new Set(GRANTS[role]);
     for (const cap of ALL_CAPS) {

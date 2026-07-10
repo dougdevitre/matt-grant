@@ -154,7 +154,7 @@ Load only what is needed for the current task:
 | `candidate/strategic-plan.md` | User asks how Matt Grant plans to win MO-02 — theory of victory, timeline, fundraising/field targets, GOTV, messaging |
 | `candidate/captain-field-plan.md` | User asks how Matt Grant organizes his MO-02 field team — captain coverage by county, which archetypes to deploy where, volunteer→supporter pipeline targets. Applies `tactics/captain-archetypes.md` to the real district; counts are illustrative placeholders |
 | `candidate/library-print-and-produce-guide.md` | User (or a supporter) asks how to print campaign materials, make yard/window signs, banners, swag, or video, where to print cheaply, or how to post/distribute materials legally — covers St. Louis County Library mobile printing + creative lab and Missouri sign/electioneering rules |
-| `candidate/absentee-voting-guide.md` | User (or a supporter/voter) asks how to vote early, vote absentee, or vote by mail in MO-02 for the August 4, 2026 primary — covers the three voting options, deadlines, notary rules, the absentee application walkthrough, photo ID, and the St. Louis County / St. Charles County election authorities. Mirrors the `/vote/absentee` page on the campaign site |
+| `candidate/absentee-voting-guide.md` | User (or a supporter/voter) asks how to vote early, vote absentee, or vote by mail in MO-02 for the August 4, 2026 primary — covers the three voting options, deadlines, notary rules, the absentee application walkthrough, photo ID, and the MO-02 county election authorities (St. Louis County portion plus Jefferson, Washington, Crawford, and Gasconade counties — St. Charles is NOT in MO-02 under the 2025 map). Mirrors the `/vote/absentee` page on the campaign site |
 
 **Core reference files:**
 

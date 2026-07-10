@@ -54,8 +54,15 @@ export async function markThanked(id: string): Promise<void> {
   );
 }
 
-export async function recordContribution(c: ContributionInput): Promise<void> {
-  if (!dbConfigured) return;
+/**
+ * Record a contribution. Returns `true` when this call actually recorded a NEW gift and
+ * `false` for a duplicate delivery (same externalId already in `seenIds`) or an unconfigured
+ * store — so the WinRed webhook can gate its side effects (thank-you email/SMS, admin notify)
+ * and a retried delivery can't double-text a donor. A gift with no externalId can't be
+ * deduped and is treated as new (unchanged behavior).
+ */
+export async function recordContribution(c: ContributionInput): Promise<boolean> {
+  if (!dbConfigured) return false;
   const now = c.receivedAt ?? new Date().toISOString();
   const amountCents = Math.round(c.amountCents ?? 0);
   // Row key: group a returning donor's gifts by email. With no email, fall back
@@ -127,9 +134,11 @@ export async function recordContribution(c: ContributionInput): Promise<void> {
         ...(ConditionExpression ? { ConditionExpression } : {}),
       }),
     );
+    return true;
   } catch (err) {
-    // A duplicate delivery of a gift already recorded — idempotent no-op.
-    if ((err as { name?: string })?.name === "ConditionalCheckFailedException") return;
+    // A duplicate delivery of a gift already recorded — idempotent no-op, and the caller
+    // must NOT re-fire receipts/notifications for it.
+    if ((err as { name?: string })?.name === "ConditionalCheckFailedException") return false;
     throw err;
   }
 }

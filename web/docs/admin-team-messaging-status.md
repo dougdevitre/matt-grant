@@ -108,7 +108,11 @@ Chosen model: **self-serve** (a staffer opts in on their own — the only TCPA-v
 ### Explicitly out of scope / guardrails
 - No cold-texting anyone (staff or supporter) who hasn't opted in — the consent gate stays.
 - No new policy positions, endorsements, or fabricated data.
-- Quiet hours and the FEC disclaimer continue to apply to every outbound message.
+- The FEC disclaimer applies to every outbound message. **Quiet hours (9am–8pm CT) apply to all
+  broadcasts and to staff-initiated one-off texts (e.g. task assignment)**; automated
+  **confirmations of the person's own action** — the inbound-keyword auto-reply, a signup
+  welcome, a donation thank-you — send immediately, because the person is actively engaged at
+  that moment (see `sendLifecycleText`'s `respectQuietHours` split in `lib/sms/lifecycle.ts`).
 
 ---
 
