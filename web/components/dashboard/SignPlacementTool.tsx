@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { parseCsv } from "@/lib/data/csv";
 import { toCsv } from "@/lib/contacts/import";
+import { useResource } from "@/lib/data/useResource";
 import {
   hardFilter,
   normalizeTraffic,
@@ -11,10 +12,13 @@ import {
   allocateToCaptains,
   rowToPlacement,
   rowToCaptain,
+  poiToPlacement,
   placementRows,
   PLACEMENT_OUTPUT_HEADERS,
   type ScoredPlacement,
   type PlacementType,
+  type PlacementInput,
+  type CaptainInput,
 } from "@/lib/signs/placement";
 
 // Browser front-end for the sign-placement scorer (candidate/sign-placement-plan.md §8).
@@ -44,20 +48,49 @@ const LOCATIONS_HINT =
   "name,lat,lng,site_type,days_active,in_district,buffer_verified,property_permission,captain_id,assigned_volunteer,precinct,aadt,propensity,visibility,serviceability,voter_contact_value,notes";
 const CAPTAINS_HINT = "id,name,zone_name,zone_precincts,contact,sign_inventory";
 
-export function SignPlacementTool() {
+export type SignPlacementToolProps = {
+  // Real, active captain roster (email as id), loaded server-side. [] when none — the paste
+  // workflow keeps working either way.
+  initialCaptains?: CaptainInput[];
+};
+
+export function SignPlacementTool({ initialCaptains = [] }: SignPlacementToolProps) {
   const [locText, setLocText] = useState("");
   const [capText, setCapText] = useState("");
+  const [useRealRoster, setUseRealRoster] = useState(true);
+
+  // Live St. Louis County Election-Day polling places (the same public feed MapExplorer uses) —
+  // lazy: it's 196 rows + an external fetch, so it loads only when staff click the button, unlike
+  // the always-available captain roster below.
+  const poisRes = useResource<GeoJSON.FeatureCollection>("/api/geo/pois", { manual: true });
+  const [useLivePolling, setUseLivePolling] = useState(false);
+
+  const livePlacements: PlacementInput[] = useMemo(() => {
+    if (!useLivePolling) return [];
+    const features = poisRes.data?.features ?? [];
+    return features
+      .filter((f) => (f.properties as { category?: string } | null)?.category === "polling")
+      .map(poiToPlacement);
+  }, [poisRes.data, useLivePolling]);
 
   // Parse + score live. parseCsv never throws (returns empty on garbage), and every scoring
-  // function is pure, so this is safe to run per keystroke via useMemo.
+  // function is pure, so this is safe to run per keystroke via useMemo. Locations = pasted CSV
+  // rows concatenated with live-loaded polling rows (if toggled on); captains = the real roster
+  // (if toggled on) merged with pasted captain rows, manual entries winning on id collision — so
+  // a captain not yet in the system, or a sign_inventory override, can still be pasted in.
   const result = useMemo(() => {
     const trimmed = locText.trim();
-    if (!trimmed) return null;
-    const { columns, items } = parseCsv(trimmed);
-    if (columns.length < 2 || !columns.includes("name") || items.length === 0) {
-      return { error: "That doesn't look like a locations CSV — the header row must include `name` (see the schema hint above)." } as const;
+    let pastedLocations: PlacementInput[] = [];
+    if (trimmed) {
+      const { columns, items } = parseCsv(trimmed);
+      if (columns.length < 2 || !columns.includes("name") || items.length === 0) {
+        return { error: "That doesn't look like a locations CSV — the header row must include `name` (see the schema hint above)." } as const;
+      }
+      pastedLocations = items.map(rowToPlacement);
     }
-    const normalized = normalizeTraffic(items.map(rowToPlacement));
+    if (pastedLocations.length === 0 && livePlacements.length === 0) return null;
+
+    const normalized = normalizeTraffic([...pastedLocations, ...livePlacements]);
     const { kept, dropped } = hardFilter(normalized);
     const scored = scorePlacements(kept);
     // Deploy order (same as the CSV): sites first — early-vote funded off the top — then corridors.
@@ -65,14 +98,24 @@ export function SignPlacementTool() {
       scored.filter((p) => fam.includes(p.type)).sort((a, b) => a.rank - b.rank);
     const ordered = [...byFamilyRank(["site"]), ...byFamilyRank(["corridor", "residential"])];
 
+    const capMap = new Map<string, CaptainInput>();
+    if (useRealRoster) for (const c of initialCaptains) capMap.set(c.id, c);
     const capTrimmed = capText.trim();
-    let allocation: ReturnType<typeof allocateToCaptains> | null = null;
     if (capTrimmed) {
       const caps = parseCsv(capTrimmed).items.map(rowToCaptain).filter((c) => c.id);
-      if (caps.length) allocation = allocateToCaptains(scored, caps);
+      for (const c of caps) capMap.set(c.id, c); // manual paste wins on id collision
     }
-    return { ordered, scored, dropped, allocation } as const;
-  }, [locText, capText]);
+    const allocation = capMap.size ? allocateToCaptains(scored, [...capMap.values()]) : null;
+
+    return {
+      ordered,
+      scored,
+      dropped,
+      allocation,
+      pastedCount: pastedLocations.length,
+      liveCount: livePlacements.length,
+    } as const;
+  }, [locText, capText, livePlacements, useRealRoster, initialCaptains]);
 
   // GeoJSON for the map — only rows with valid lat/lng plot; a CSV with no coordinates just
   // shows an empty map rather than erroring (the tables above still work either way).
@@ -146,11 +189,45 @@ export function SignPlacementTool() {
         </div>
       </div>
 
+      {/* Live data — additive, opt-in. Neither source knows compliance facts (buffer/permission),
+          so live-loaded rows always land in the dropped/audit table until a human confirms. */}
+      <div className="card flex flex-wrap items-center gap-4 p-5">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              setUseLivePolling(true);
+              poisRes.reload();
+            }}
+            className="btn-ghost"
+            disabled={poisRes.state === "loading"}
+          >
+            {poisRes.state === "loading"
+              ? "Loading polling places…"
+              : useLivePolling && poisRes.state === "ready"
+                ? "Reload live polling places"
+                : "Load live Election-Day polling places (St. Louis County GIS)"}
+          </button>
+          {useLivePolling && poisRes.state === "ready" && (
+            <span className="rounded-sm bg-field/10 px-2 py-1 font-mono text-[0.65rem] font-bold text-field">
+              {livePlacements.length} live · Election-Day only, not yet buffer/permission-verified
+            </span>
+          )}
+          {useLivePolling && poisRes.state === "error" && (
+            <span className="text-xs text-brick">Couldn&apos;t load the live feed — try again.</span>
+          )}
+        </div>
+        <label className="ml-auto flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate">
+          <input type="checkbox" checked={useRealRoster} onChange={(e) => setUseRealRoster(e.target.checked)} />
+          Use real captain roster ({initialCaptains.length} active)
+        </label>
+      </div>
+
       {!result && (
         <p className="text-sm text-slate">
-          Paste the locations CSV to see the ranked deploy list. Rows failing a hard gate
-          (out-of-district, no permission, buffer unverified) are never scored — they appear below
-          with reasons instead.
+          Paste the locations CSV, or load live polling places above, to see the ranked deploy
+          list. Rows failing a hard gate (out-of-district, no permission, buffer unverified) are
+          never scored — they appear below with reasons instead.
         </p>
       )}
 
@@ -169,6 +246,11 @@ export function SignPlacementTool() {
             <span className="rounded-sm bg-gold/15 px-3 py-1.5 font-mono text-xs font-bold text-gold-ink">
               {result.scored.filter((p) => p.tier === "A").length} tier A
             </span>
+            {result.liveCount > 0 && (
+              <span className="rounded-sm bg-line px-3 py-1.5 font-mono text-xs text-slate">
+                {result.pastedCount} pasted · {result.liveCount} live
+              </span>
+            )}
             <button type="button" onClick={download} className="btn-ghost ml-auto" disabled={result.scored.length === 0 && result.dropped.length === 0}>
               Download placement_output.csv
             </button>
