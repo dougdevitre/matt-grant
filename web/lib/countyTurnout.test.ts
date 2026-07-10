@@ -19,7 +19,12 @@ describe("COUNTY_TURNOUT", () => {
       expect(c.ballots, `${county}.ballots <= registered`).toBeLessThanOrEqual(c.registered);
       expect(c.turnoutPct, `${county}.turnoutPct >= 0`).toBeGreaterThanOrEqual(0);
       expect(c.turnoutPct, `${county}.turnoutPct <= 100 (whole-number percent)`).toBeLessThanOrEqual(100);
-      expect(c.sourceUrl, `${county}.sourceUrl must be a URL`).toMatch(/^https?:\/\//);
+      // turnoutPct must be DERIVED from the entered ballots/registered, not typed
+      // separately — a hand-typo in any of the three fields fails here.
+      expect(c.turnoutPct, `${county}.turnoutPct = round(100·ballots/registered)`).toBe(
+        Math.round((100 * c.ballots) / c.registered),
+      );
+      expect(c.sourceUrl, `${county}.sourceUrl must be an https URL`).toMatch(/^https:\/\//);
       expect(c.asOf.length, `${county}.asOf non-empty`).toBeGreaterThan(0);
     }
   });
