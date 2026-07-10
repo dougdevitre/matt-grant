@@ -26,6 +26,33 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-10 -- v1.x -- Voter file Phase 2: the /dashboard/voters command center
+
+**Changes:**
+- [added] `/dashboard/voters` behind a NEW admin-only `viewVoterFile` capability (rbac +
+  ratchet test): RSMo 115.157 banner, district scoreboard + county mix from VOTERAGG
+  rollups, sortable precinct table (voters / persuade / mobilize / bank), per-precinct
+  drill-down (one bounded shard at a time -- never a district-wide scan) with segment/T/
+  age-band/street filters, and walk / mail / call CSV exports stamped with the RSMo notice
+  and guarded against spreadsheet formula injection. Call lists carry an EMPTY phone column
+  by design (the file has no phones; SMS is never sourced from it).
+- [updated] `candidate/voter-file-plan.md` §3 Phase-2 shipped note; sidebar gains "Voter
+  database" (admin only).
+
+**Verifications Performed:**
+- 5 new dashboard-lib tests (rollups, combined filters, notice + per-channel headers,
+  formula guard) + rbac ratchet updated; empty-state shows the exact ingest runbook.
+
+**Known Gaps:**
+- Page lights up only after the live ingest runs in the AWS environment (owner runbook).
+
+**Files Modified:**
+- web/lib/rbac.ts (+test), web/lib/voters/{store,storeTypes,dashboard}.ts (+test)
+- web/app/dashboard/voters/*, web/components/dashboard/VotersExplorer.tsx, DashSidebar
+- candidate/voter-file-plan.md
+
+---
+
 ## 2026-07-10 -- v1.x -- Franklin County reconciliation (six-county MO-02)
 
 **Changes:**
