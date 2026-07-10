@@ -26,6 +26,73 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-10 -- v1.x -- Voter file Phase 1: ingest engine + full-district census
+
+**Changes:**
+- [added] `web/lib/voters/{parse,score,crosswalk}.ts` (+ tests, synthetic fixtures only) --
+  the pure voter engine: defensive 36-column row parser, the T 0-5 recency scorecard +
+  labeled support proxy + targeting-matrix segments (BANK/MOBILIZE/PERSUADE/PROSPECT/
+  MONITOR), and the precinct crosswalk (normalize + unambiguous matching, misses reported).
+- [added] `web/scripts/ingest-voters.ts` (`npm run ingest:voters`) -- xlsx ingest CLI with
+  --dry-run (report only, zero AWS needed) and live mode (sharded VOTER#county#precinct
+  rows, VOTERAGG rollups, INGESTRUN manifest with file hashes).
+- [updated] `candidate/voter-file-plan.md` §5 -- **the reconciliation is RESOLVED**: the
+  full 577,366-row dry run (0 parse failures) shows six counties in 2025-map CD-2, with
+  **Franklin County second-largest at 78,635 voters (13.6%)** -- the prior "Franklin is not
+  in MO-02" description is contradicted by the official coding. Field-program docs
+  (captain zones, sign turf, poll coverage, map layers) queued for a Franklin extension.
+
+**Verifications Performed:**
+- Full-file dry run: 577,366 voters (115,474 x4 + 115,470 -- matches inspection), 0
+  unparseable, 178 precinct keys, 91.3% Active, party filled 11.7%, county census as
+  tabled in the plan doc. Unit suite: 11 voter-lib tests green; tsc/lint clean.
+
+**Known Gaps:**
+- Live write requires AWS credentials (run in the deploy environment; command in the doc).
+- Precinct-key granularity (178) vs map precincts -- crosswalk tuning lands in Phase 3.
+- Franklin extension of field docs is queued, not yet applied.
+
+**Files Modified:**
+- web/lib/voters/* , web/scripts/ingest-voters.ts, web/package.json
+- candidate/voter-file-plan.md
+
+---
+
+## 2026-07-10 -- v1.x -- Voter file Phase 0: custody, compliance, and the voter-engine plan
+
+**Changes:**
+- [added] `candidate/voter-file-plan.md` -- governing doc for the real MO-02 voter file
+  (577,366 registered voters, 2025-map CD-2, inspected 2026-07-10): verified contents (one
+  row per voter; birth YEAR only; party blank ~90%; Voter History = most recent election
+  ONLY; NO phones or emails), S3 custody rules, RSMo 115.157 political-use-only
+  restriction, the absolute TCPA line (SMS never from this file; matched/appended phones
+  are call-lists only), sharded ingest architecture, honest scorecard (T 0-5 recency
+  propensity + labeled support proxy + targeting-matrix segments), per-channel rules, and
+  the open Franklin County district reconciliation.
+- [removed] the five `docs/MO02_VotersList_Part*_of_5.xlsx` from the repo working tree
+  (voter PII out of git; private S3 is canonical -- upload command in `docs/VOTER-FILE.md`;
+  git-HISTORY purge is an open owner decision).
+- [added] registered in SKILL.md, INDEX.md ("I need to contact voters"), commands
+  (`/voterfile`).
+
+**Verifications Performed:**
+- File inspected via aggregate-only analysis (no PII printed): 577,366 rows across 5 parts
+  (115,474 x4 + 115,470), 36 columns, no duplicate Voter IDs in a 50k sample, all sampled
+  rows coded `25 CN 2`, counties incl. Franklin (~5-6% of sample).
+- Repo confirmed PRIVATE before deciding custody steps.
+
+**Known Gaps:**
+- Franklin County reconciliation pending the Phase 1 per-county census.
+- Full vote history (frequency-based propensity) needs a follow-up records request.
+- Git-history purge and phone-append vendor are open owner decisions.
+
+**Files Modified:**
+- candidate/voter-file-plan.md
+- docs/VOTER-FILE.md
+- SKILL.md / INDEX.md / commands/commands.md
+
+---
+
 ## 2026-07-10 -- v1.x -- Captains notified on shift self-signup/drop
 
 **Changes:**

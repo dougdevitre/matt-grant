@@ -63,6 +63,11 @@ export const PK = {
   msgTemplates: "MSGTEMPLATE", // admin-saved role-tagged email/SMS templates (SK = id)
   signs: "SIGNPLACEMENT", // persisted sign placements (SK = id uuid); scores/tiers derived, never stored
   pollShifts: "POLLSHIFT", // poll-coverage greeter shifts (SK = id uuid); grid/stats/packets derived, never stored
+  // Voter engine (candidate/voter-file-plan.md): 577k voters are SHARDED by
+  // county#precinct — never one giant partition (queryAllPages on a single
+  // 577k-row partition would OOM). Dashboards read VOTERAGG only.
+  voterShard: (precinctKey: string) => `VOTER#${precinctKey}`, // SK = Voter ID
+  voterAgg: "VOTERAGG", // per-precinct rollups (SK = precinctKey)
 } as const;
 
 export function newId(): string {
