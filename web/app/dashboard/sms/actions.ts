@@ -19,7 +19,12 @@ function parse(formData: FormData) {
   const volRoles = formData.getAll("volRoles").map(String).filter((t) => parseVolRole(t) !== null);
   const vars: Record<string, string> = {};
   if (template) for (const f of template.fields) vars[f.name] = String(formData.get(f.name) ?? "").trim();
-  const body = template ? withCompliance(template.build(vars)) : "";
+  // Personalize: prepend a "Hi {first}, " greeting (a literal {first} merge token the drain
+  // replaces per recipient). Volunteers/role audiences carry a name; others fall back to "there".
+  const personalize = String(formData.get("personalize") ?? "") === "true";
+  const built = template ? template.build(vars) : "";
+  const greeted = personalize && built ? `Hi {first}, ${built}` : built;
+  const body = template ? withCompliance(greeted) : "";
   return { template, groups, roles, volRoles, body };
 }
 
@@ -34,7 +39,8 @@ export async function sendTestSms(formData: FormData): Promise<SmsSendState> {
   const to = toE164(String(formData.get("testTo") ?? ""));
   if (!to) return { ok: false, message: "Enter a valid mobile number, e.g. +13145551234." };
   if (!(await isOptedIn(to))) return { ok: false, message: `${to} isn't opted in — that number must text the opt-in keyword first.` };
-  const r = await sendSms({ to, body });
+  // A test is a preview: resolve any {first} merge token to "there" so it isn't sent literally.
+  const r = await sendSms({ to, body: body.replace(/\{first\}/g, "there") });
   return r.sent ? { ok: true, message: `Test sent to ${to}.` } : { ok: false, message: `Couldn't send: ${r.error ?? "unknown error"}.` };
 }
 

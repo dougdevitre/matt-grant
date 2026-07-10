@@ -33,12 +33,19 @@ export function SmsComposer({
   const [volRoleSel, setVolRoleSel] = useState<string[]>([]);
   const [testTo, setTestTo] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
+  const [personalize, setPersonalize] = useState(false);
   const [res, setRes] = useState<SmsSendState | null>(null);
   const [pending, start] = useTransition();
 
   const tpl = getSmsTemplate(key);
-  const body = useMemo(() => withCompliance(tpl?.build(vars) ?? ""), [tpl, vars]);
-  const seg = smsSegments(body);
+  // With personalization on, the stored body leads with "Hi {first}, " — a merge token the send
+  // replaces per recipient. The preview substitutes a sample name so staff see the effect.
+  const body = useMemo(() => {
+    const built = tpl?.build(vars) ?? "";
+    return withCompliance(personalize && built ? `Hi {first}, ${built}` : built);
+  }, [tpl, vars, personalize]);
+  const preview = body.replace(/\{first\}/g, "Jordan");
+  const seg = smsSegments(preview);
   // Group + volunteer-role counts are known up front (both are single roster reads on the
   // server), so fold them into the reach estimate. Clerk account roles stay "counted at send".
   const groupReach = selected.reduce((n, v) => n + (groups.find((g) => g.value === v)?.count ?? 0), 0);
@@ -48,7 +55,7 @@ export function SmsComposer({
 
   // Non-GSM characters (smart quotes, dashes, emoji) force pricier UCS-2 — surface them so
   // staff can fix before paying ~2x. Only meaningful when the preview is already UCS-2.
-  const offenders = useMemo(() => (seg.encoding === "UCS-2" ? nonGsmChars(body) : []), [seg.encoding, body]);
+  const offenders = useMemo(() => (seg.encoding === "UCS-2" ? nonGsmChars(preview) : []), [seg.encoding, preview]);
 
   // Local "now" (YYYY-MM-DDThh:mm) for the datetime-local min + past-time guard.
   const nowLocal = useMemo(() => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16), []);
@@ -78,6 +85,7 @@ export function SmsComposer({
     volRoleSel.forEach((v) => f.append("volRoles", v));
     f.set("scheduledAt", scheduledAt);
     f.set("testTo", testTo);
+    f.set("personalize", personalize ? "true" : "false");
     tpl?.fields.forEach((fld) => f.set(fld.name, vars[fld.name] ?? ""));
     return f;
   };
@@ -127,15 +135,23 @@ export function SmsComposer({
           </div>
         ))}
 
+        {/* Personalize: merge the recipient's first name */}
+        <label className="flex items-center gap-2 text-sm text-ink">
+          <input type="checkbox" checked={personalize} onChange={(e) => setPersonalize(e.target.checked)} className="h-4 w-4" />
+          Personalize with first name
+          <span className="text-xs text-slate">— volunteers/team get their name; general opt-ins get “there”.</span>
+        </label>
+
         {/* Live message preview + segment counter (incl. the compliance suffix). */}
         <div>
-          <label className="text-xs font-semibold text-slate">Message preview</label>
+          <label className="text-xs font-semibold text-slate">Message preview{personalize ? " (sample name shown)" : ""}</label>
           <p className="mt-1 whitespace-pre-wrap rounded-sm border border-line bg-paper px-3 py-2 text-sm text-ink">
-            {body || <span className="text-slate">Your message will appear here…</span>}
+            {preview || <span className="text-slate">Your message will appear here…</span>}
           </p>
           <p className="mt-1 font-mono text-[0.65rem] text-slate">
             {seg.chars} chars · {seg.segments} segment{seg.segments === 1 ? "" : "s"} · {seg.encoding}
             {seg.segments > 1 ? " · multi-segment texts cost more" : ""}
+            {personalize ? " · counts vary by name length" : ""}
           </p>
           {seg.encoding === "UCS-2" && (
             <p className="mt-1 text-xs text-brick">
