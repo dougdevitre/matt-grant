@@ -53,6 +53,7 @@ Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026
 
 ## "I need to contact voters"
 
+- [candidate/voter-file-plan.md](candidate/voter-file-plan.md) -- The MO-02 voter engine: custody + RSMo 115.157/TCPA rules for the real 577k-voter file, the ingest/scoring architecture (T 0-5 recency propensity, honest support proxy, MOBILIZE/PERSUADE/BANK/MONITOR segments), and the channel rules (doors/mail/signs now; phones matched-only; SMS never from the file)
 - [tools/voter-engagement-tools.md](tools/voter-engagement-tools.md) -- 15 interactive voter engagement tools
 - [workflows/volunteer-management.md](workflows/volunteer-management.md) -- Recruiting, training, and retaining volunteers
 - [workflows/gotv-plan.md](workflows/gotv-plan.md) -- Get Out The Vote operations
