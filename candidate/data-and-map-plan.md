@@ -53,6 +53,18 @@ Two consequences for this app:
 > tripwire rejects internally inconsistent entries). Automated retrieval was attempted July 10,
 > 2026 and blocked (sos.mo.gov / county sites return 403 to this environment), so **no values were
 > entered** — the shading mechanism is fully wired and activates as soon as verified numbers land.
+>
+> **Schools layer candidates (July 10, 2026 — unverified, do not wire as-is):** two published
+> sources exist for live MO public-school point locations, either of which could replace the
+> sample schools POIs following the polling-layer pattern in `web/app/api/geo/pois/route.ts`:
+> DESE's **`https://gis.mo.gov/arcgis/rest/services/DESE/Missouri_Public_Schools/MapServer`** and
+> the MSDIS Open Data item **"MO Public Schools"** (`data-msdis.opendata.arcgis.com`, an
+> ArcGIS-Online-hosted FeatureServer; contact info updated nightly, locations annually). Neither
+> endpoint's query interface or field names could be verified from this environment (all ArcGIS
+> and state-GIS domains 403 here — even the polling FeatureServer the app already uses in
+> production is blocked from the sandbox), so the schools layer stays **sample** until someone
+> with an ordinary browser confirms one endpoint's GeoJSON query + field names and wires it with
+> a source/date comment in `web/lib/geoSources.ts`.
 
 2. **Rural counties** — add one geo-proxy per county (pattern in `lib/geoSources.ts`). Jefferson has
    ArcGIS precinct polygons; Washington/Crawford/Gasconade have no ArcGIS feed → use Census VTD
