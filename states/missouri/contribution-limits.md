@@ -1,9 +1,25 @@
 # Missouri Contribution Limits (Detailed)
 
-> **STALENESS WARNING:** This reference was written in April 2026. Missouri contribution
-> limits are adjusted biennially based on the Consumer Price Index (CPI). The figures
-> shown here reflect the 2025-2026 election cycle. Verify current limits at
-> https://www.mec.mo.gov before making compliance decisions.
+> **STALENESS WARNING (written April 2026; flagged for re-verification July 10, 2026):**
+> Missouri's state contribution limits derive from Constitutional Amendment 2 (2016), are
+> CPI-adjusted, and have been the subject of **ongoing federal litigation** — so several
+> figures/claims in this file should be treated as **UNDER RE-VERIFICATION** and confirmed
+> with the Missouri Ethics Commission (https://www.mec.mo.gov) before any compliance decision:
+> - the **exact current per-person limit** (Amendment 2's base is $2,600 per Art. VIII §23.3(1);
+>   the CPI-adjusted 2025-2026 figure — and whether it is uniform across offices — should be
+>   confirmed against MEC and the NCSL 2025-2026 state-limits table);
+> - the **treatment of corporate/union contributions** (parts of Amendment 2's corporate/union
+>   provisions were held unconstitutional in federal court; the current rule is contested); and
+> - the **CPI-adjustment interval** (stated below as "biennial" — confirm against Mo. Const.
+>   Art. VIII §23, which may specify a different interval).
+>
+> **This file is a STATE-office reference and does NOT govern Matt Grant's federal MO-02
+> congressional race**, which is FEC-only — the individual limit there is **$3,500 per election**
+> (see [`../../federal/contribution-limits.md`](../../federal/contribution-limits.md), verified 2026-07-03).
+>
+> Sources to reconcile against: [MEC](https://www.mec.mo.gov) ·
+> [Ballotpedia — Missouri campaign finance](https://ballotpedia.org/Campaign_finance_requirements_in_Missouri) ·
+> [NCSL state limits 2025-2026](https://documents.ncsl.org/wwwncsl/Elections/State-Limits-on-Contributions-to-Candidates-2025-2026.pdf).
 
 > **EDUCATIONAL DISCLAIMER:** This document is for educational and informational purposes
 > only. It does not constitute legal advice. Campaigns should consult a qualified election
