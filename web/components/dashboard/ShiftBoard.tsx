@@ -119,8 +119,9 @@ function ReminderCard({ defaultDate }: { defaultDate: string }) {
       <p className="mt-1 max-w-2xl text-sm text-slate">
         One text per greeter covering all their shifts on the chosen date. Only opted-in numbers are texted, and
         sends happen 9am&ndash;8pm CT only (outside that window they&rsquo;re skipped, not queued &mdash; re-run
-        later). Captains have no phone on file and are reported as skipped. A &ldquo;&#10003;&rdquo; on a name means
-        their reminder for that shift went out.
+        later). Captains are texted at the number from their own &ldquo;My text alerts&rdquo; opt-in (My
+        notifications); without one they&rsquo;re skipped &mdash; the Team page shows who&rsquo;s reachable. A
+        &ldquo;&#10003;&rdquo; on a name means their reminder for that shift went out.
       </p>
       <form action={action} className="mt-3 flex flex-wrap items-end gap-3">
         <label className="grid gap-1 text-[0.65rem] uppercase tracking-eyebrow text-slate">
