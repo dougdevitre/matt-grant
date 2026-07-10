@@ -15,8 +15,10 @@ not-tax-deductible and best-efforts lines, and the letterhead footer carries
 from brand_letter import build, WINRED_DONATE, QR_ACTIONS
 
 _VOTE, _ACT, DONATE_PAGE = QR_ACTIONS
+# Source codes: WinRed reports attribute gifts from this letter's QR to
+# `letter-supporter-levels` (see candidate/donor-value-ladder.md SS5 map).
 BAND = [
-    ("Give Now", WINRED_DONATE[1], "Donate via WinRed"),
+    ("Give Now", WINRED_DONATE[1] + "?sc=letter-supporter-levels", "Donate via WinRed"),
     ("Supporter Levels", DONATE_PAGE[1], "See every level online"),
 ]
 
