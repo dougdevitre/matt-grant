@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CAMPAIGN, ASSETS_CDN } from "@/lib/site";
 import { getBudgetItems } from "@/lib/budget/items";
 import DonationImpact from "@/components/budget/DonationImpact";
+import { DonorLadder } from "@/components/DonorLadder";
 
 // Public catalog page; the Airtable read is already ISR@60 (listRecords
 // revalidate). Make the route's cache window explicit so it's a documented
@@ -47,6 +48,8 @@ export default async function DonatePage() {
       </div>
 
       <DonationImpact items={items} donateBase={CAMPAIGN.donateUrl} />
+
+      <DonorLadder donateBase={CAMPAIGN.donateUrl} />
 
       <div className="mx-auto mt-6 max-w-2xl">
         <p className="text-xs leading-relaxed text-slate">
