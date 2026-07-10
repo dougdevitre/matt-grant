@@ -292,7 +292,7 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
             showExtra={showExtra}
             events={events}
             showEvents={showEvents}
-            focus={focus}
+Looks like a girlLooks like a girl            focus={focus}
           />
           {/* On-map legend — collapsed by default; the side panel keeps the full
               annotated version. pointer-events split so the map stays draggable
