@@ -44,6 +44,15 @@ Two consequences for this app:
 > **Election Night Reporting** per-county views, which are not a clean machine-readable dataset, so
 > rural-county turnout is **not wired** — the counties show boundaries only, not shaded by turnout.
 > Source: <https://www.sos.mo.gov/CMSImages/ElectionResultsStatistics/2024PrimaryElection.pdf>.
+>
+> **Update (July 10, 2026):** the SOS also publishes a dedicated **"Voter Turnout Report"** PDF
+> series with per-county registered/ballots figures — confirmed to exist for the Nov 2024 general
+> (`.../CMSImages/ElectionResultsStatistics/Nov2024OfficialVoterTurnout.pdf`). A staffer should
+> check the SOS "Previous Election Results" page for the **Aug 6, 2024 primary** equivalent and
+> hand-fill `web/lib/countyTurnout.ts` from it (schema + rules in that file's header; a vitest
+> tripwire rejects internally inconsistent entries). Automated retrieval was attempted July 10,
+> 2026 and blocked (sos.mo.gov / county sites return 403 to this environment), so **no values were
+> entered** — the shading mechanism is fully wired and activates as soon as verified numbers land.
 
 2. **Rural counties** — add one geo-proxy per county (pattern in `lib/geoSources.ts`). Jefferson has
    ArcGIS precinct polygons; Washington/Crawford/Gasconade have no ArcGIS feed → use Census VTD
