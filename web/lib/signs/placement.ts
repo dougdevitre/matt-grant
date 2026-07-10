@@ -25,8 +25,11 @@ export type PlacementInput = {
   inDistrict: boolean;
   bufferVerified: boolean;
   propertyPermission: boolean;
-  // scoring factors (all 0..1 unless noted; missing → sensible neutral default)
+  assignedVolunteer?: string; // servicing volunteer (Phase 2's "every location has a host")
+  notes?: string; // operational notes — carried through to the output, never destroyed
+  // scoring factors (all 0..1 unless noted; missing → a NEUTRAL default, never a zeroing one)
   aadtNorm?: number; // corridor/residential: normalized traffic 0..1
+  aadtRaw?: number; // raw MoDOT AADT count (e.g. 45000) — normalized across the set by normalizeTraffic
   propensity?: number; // R-primary propensity of the precinct 0..1 (label proxy upstream)
   visibility?: number; // sightline quality 0..1
   serviceability?: number; // volunteer maintainability 0.5..1 (0.5 floor when un-hosted)
@@ -34,7 +37,7 @@ export type PlacementInput = {
   daysActive?: number; // site: 14 early-vote, 1 Election-Day-only
 };
 
-export type DroppedPlacement = { name: string; reasons: string[] };
+export type DroppedPlacement = { row: PlacementInput; reasons: string[] };
 export type ScoredPlacement = PlacementInput & { score: number; rank: number; tier: PlacementTier };
 
 export type CaptainInput = { id: string; name?: string; signInventory?: number };
@@ -74,6 +77,24 @@ export function distanceMeters(a: { lat: number; lng: number }, b: { lat: number
 }
 
 /**
+ * Normalize raw MoDOT AADT counts into aadtNorm across the candidate set (min-max), for rows that
+ * carry a raw `aadt` but no pre-normalized `aadt_norm`. Without this, a raw 45,000 and a raw 3,000
+ * would both clamp to 1.0 at scoring — erasing the model's primary corridor differentiator. Rows
+ * with an explicit aadtNorm are untouched; a degenerate set (all equal raw values) maps to 1.0.
+ */
+export function normalizeTraffic(rows: PlacementInput[]): PlacementInput[] {
+  const raws = rows.filter((r) => r.aadtNorm == null && typeof r.aadtRaw === "number").map((r) => r.aadtRaw as number);
+  if (raws.length === 0) return rows;
+  const min = Math.min(...raws);
+  const max = Math.max(...raws);
+  return rows.map((r) => {
+    if (r.aadtNorm != null || typeof r.aadtRaw !== "number") return r;
+    const norm = max === min ? 1 : (r.aadtRaw - min) / (max - min);
+    return { ...r, aadtNorm: round4(norm) };
+  });
+}
+
+/**
  * Hard filters (run first): a candidate is scored only if it is in-district, has property permission,
  * and its polling-place buffer is verified. Anything failing is dropped with reasons (the audit trail),
  * never silently scored. Mirrors the "filter before score" discipline in the plan's §8.0.
@@ -86,7 +107,7 @@ export function hardFilter(rows: PlacementInput[]): { kept: PlacementInput[]; dr
     if (!r.inDistrict) reasons.push("out-of-district");
     if (!r.propertyPermission) reasons.push("no property permission");
     if (!r.bufferVerified) reasons.push("buffer not verified");
-    if (reasons.length) dropped.push({ name: r.name, reasons });
+    if (reasons.length) dropped.push({ row: r, reasons });
     else kept.push(r);
   }
   return { kept, dropped };
@@ -106,7 +127,9 @@ export function placementScore(r: PlacementInput): number {
     const daysNorm = clamp(num(r.daysActive, 1) / 14, 0, 1); // 14→1.0, 1→~0.07
     return round4(vcv * (0.4 + 0.6 * daysNorm) * vis * svc); // days dominant, never a zero multiplier
   }
-  const aadt = clamp(num(r.aadtNorm, 0), 0, 1);
+  // Missing traffic data defaults NEUTRAL (0.5), not 0 — a spec-schema CSV that carries no
+  // traffic columns must still produce a meaningful ranking instead of all-zero scores.
+  const aadt = clamp(num(r.aadtNorm, 0.5), 0, 1);
   const prop = clamp(num(r.propensity, 0.5), 0, 1);
   return round4(aadt * prop * vis * svc);
 }
@@ -202,7 +225,8 @@ const asType = (v: string | undefined): PlacementType => {
   return "corridor";
 };
 
-/** Map a parsed `polling_sites.csv` / candidate-location row (from `parseCsv`) to a PlacementInput. */
+/** Map a parsed `polling_sites.csv` / candidate-location row (from `parseCsv`) to a PlacementInput.
+ *  `aadt` is the RAW MoDOT count (normalized later by `normalizeTraffic`); `aadt_norm` is 0..1. */
 export function rowToPlacement(row: Record<string, string>): PlacementInput {
   return {
     name: row.name ?? "",
@@ -211,10 +235,13 @@ export function rowToPlacement(row: Record<string, string>): PlacementInput {
     type: asType(row.site_type ?? row.type),
     precinct: row.precinct || undefined,
     captainId: row.captain_id || undefined,
+    assignedVolunteer: row.assigned_volunteer || undefined,
+    notes: row.notes || undefined,
     inDistrict: bool(row.in_district),
     bufferVerified: bool(row.buffer_verified),
     propertyPermission: bool(row.property_permission),
-    aadtNorm: opt(row.aadt_norm ?? row.aadt),
+    aadtNorm: opt(row.aadt_norm),
+    aadtRaw: opt(row.aadt),
     propensity: opt(row.propensity),
     visibility: opt(row.visibility),
     serviceability: opt(row.serviceability),
@@ -223,21 +250,75 @@ export function rowToPlacement(row: Record<string, string>): PlacementInput {
   };
 }
 
+// Matches the plan's §7 placement_output.csv, with `tier` (A/B/C priority band) in place of the
+// draft's leftover `phase` letter — the plan documents this mapping.
 export const PLACEMENT_OUTPUT_HEADERS = [
   "rank",
   "name",
-  "type",
-  "tier",
-  "score",
-  "captain_id",
-  "precinct",
   "lat",
   "lng",
+  "type",
+  "tier",
+  "captain_id",
+  "assigned_volunteer",
+  "score",
+  "precinct",
+  "aadt",
+  "notes",
 ] as const;
 
-/** Rows for `placement_output.csv` (feed to `toCsv(PLACEMENT_OUTPUT_HEADERS, …)`), globally rank-ordered. */
-export function placementRows(scored: ScoredPlacement[]): (string | number | null | undefined)[][] {
-  return [...scored]
-    .sort((a, b) => b.score - a.score)
-    .map((p, i) => [i + 1, p.name, p.type, p.tier, p.score, p.captainId, p.precinct, p.lat, p.lng]);
+// Excel executes a leading = + - @ in a cell as a formula — neutralize donor/operator-supplied
+// text (name/notes) so a crafted location name can't become =HYPERLINK(...) in the download.
+const deFormula = (s: string | undefined): string | undefined =>
+  s && /^[=+\-@]/.test(s) ? `'${s}` : s;
+
+const outRow = (p: ScoredPlacement, rank: number | "", noteOverride?: string): (string | number | null | undefined)[] => [
+  rank,
+  deFormula(p.name),
+  p.lat,
+  p.lng,
+  p.type,
+  p.tier,
+  p.captainId,
+  p.assignedVolunteer,
+  p.score,
+  p.precinct,
+  p.aadtRaw,
+  deFormula(noteOverride ?? p.notes),
+];
+
+/**
+ * Rows for `placement_output.csv` (feed to `toCsv(PLACEMENT_OUTPUT_HEADERS, …)`).
+ * Deploy order per the plan's §8.4: ALL sites first (early-vote sites are funded off the top of N),
+ * then corridor/residential — each family in its own rank order. Rank is the sequential deploy
+ * order, NOT a cross-family score comparison (the two families score on different bases).
+ * Hard-filtered `dropped` rows are appended at the bottom with a blank rank and a
+ * "DROPPED: <reasons>" note — the audit trail the plan mandates, visible right in the download.
+ */
+export function placementRows(
+  scored: ScoredPlacement[],
+  dropped: DroppedPlacement[] = [],
+): (string | number | null | undefined)[][] {
+  const byFamilyRank = (fam: PlacementType[]) =>
+    scored.filter((p) => fam.includes(p.type)).sort((a, b) => a.rank - b.rank);
+  const ordered = [...byFamilyRank(["site"]), ...byFamilyRank(["corridor", "residential"])];
+  const rows = ordered.map((p, i) => outRow(p, i + 1));
+  for (const d of dropped) {
+    const r = d.row;
+    rows.push([
+      "", // no rank — not deployable
+      deFormula(r.name),
+      r.lat,
+      r.lng,
+      r.type,
+      "", // no tier
+      r.captainId,
+      r.assignedVolunteer,
+      "", // no score
+      r.precinct,
+      r.aadtRaw,
+      deFormula(`DROPPED: ${d.reasons.join("; ")}${r.notes ? ` | ${r.notes}` : ""}`),
+    ]);
+  }
+  return rows;
 }

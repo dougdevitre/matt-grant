@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   hardFilter,
+  normalizeTraffic,
   placementScore,
   scorePlacements,
   allocateToCaptains,
@@ -28,8 +29,31 @@ describe("hardFilter", () => {
       { ...base, name: "nobuf", bufferVerified: false, inDistrict: false }, // two reasons
     ]);
     expect(kept.map((r) => r.name)).toEqual(["ok"]);
-    expect(dropped.find((d) => d.name === "oob")?.reasons).toEqual(["out-of-district"]);
-    expect(dropped.find((d) => d.name === "nobuf")?.reasons).toEqual(["out-of-district", "buffer not verified"]);
+    expect(dropped.find((d) => d.row.name === "oob")?.reasons).toEqual(["out-of-district"]);
+    expect(dropped.find((d) => d.row.name === "nobuf")?.reasons).toEqual(["out-of-district", "buffer not verified"]);
+  });
+});
+
+describe("normalizeTraffic", () => {
+  it("min-max normalizes raw MoDOT counts across the set (raw 45k ≠ raw 3k)", () => {
+    const [a, b, c] = normalizeTraffic([
+      { ...base, name: "hwy", aadtRaw: 45000 },
+      { ...base, name: "arterial", aadtRaw: 24000 },
+      { ...base, name: "street", aadtRaw: 3000 },
+    ]);
+    expect(a.aadtNorm).toBe(1);
+    expect(c.aadtNorm).toBe(0);
+    expect(b.aadtNorm).toBeGreaterThan(0.4);
+    expect(b.aadtNorm).toBeLessThan(0.6);
+  });
+
+  it("leaves an explicit aadt_norm untouched and maps a degenerate set to 1", () => {
+    const [explicit, only] = normalizeTraffic([
+      { ...base, name: "explicit", aadtNorm: 0.3, aadtRaw: 45000 },
+      { ...base, name: "only", aadtRaw: 9000 },
+    ]);
+    expect(explicit.aadtNorm).toBe(0.3); // pre-normalized wins
+    expect(only.aadtNorm).toBe(1); // single raw value → 1.0, not NaN
   });
 });
 
@@ -45,6 +69,14 @@ describe("placementScore", () => {
     expect(placementScore({ ...base, type: "corridor", aadtNorm: 1, propensity: 1, visibility: 1, serviceability: 1 })).toBe(1);
     // an un-hosted location floors serviceability at 0.5 (missing → 0.5), halving an otherwise-perfect score
     expect(placementScore({ ...base, type: "corridor", aadtNorm: 1, propensity: 1, visibility: 1 })).toBe(0.5);
+  });
+
+  it("missing traffic data defaults NEUTRAL (0.5), never zero — a spec-schema CSV still ranks", () => {
+    // The plan's own polling_sites.csv carries no traffic columns; that must not zero every corridor.
+    const noTraffic = placementScore({ ...base, type: "corridor", propensity: 1, visibility: 1, serviceability: 1 });
+    expect(noTraffic).toBe(0.5); // neutral traffic, not 0
+    const higherVis = placementScore({ ...base, type: "corridor", propensity: 1, visibility: 0.8, serviceability: 1 });
+    expect(noTraffic).toBeGreaterThan(higherVis); // rows still differentiate on the factors that exist
   });
 
   it("clamps out-of-range factors", () => {
@@ -137,7 +169,7 @@ describe("distanceMeters", () => {
 });
 
 describe("CSV adapters", () => {
-  it("rowToPlacement parses booleans/numbers and maps site_type", () => {
+  it("rowToPlacement parses booleans/numbers, maps site_type, and keeps aadt RAW + notes/volunteer", () => {
     const p = rowToPlacement({
       name: "Daniel Boone Library",
       lat: "38.6031",
@@ -149,6 +181,9 @@ describe("CSV adapters", () => {
       property_permission: "false",
       days_active: "14",
       captain_id: "C01",
+      assigned_volunteer: "V001",
+      aadt: "45000",
+      notes: "confirm designation w/ STL Co BOE",
       precinct: "STL-042",
     });
     expect(p.type).toBe("site");
@@ -156,17 +191,53 @@ describe("CSV adapters", () => {
     expect(p.bufferVerified).toBe(false);
     expect(p.daysActive).toBe(14);
     expect(p.lat).toBeCloseTo(38.6031);
+    expect(p.aadtRaw).toBe(45000); // raw count — NOT clamped into 0..1
+    expect(p.aadtNorm).toBeUndefined(); // normalized later, across the set
+    expect(p.assignedVolunteer).toBe("V001");
+    expect(p.notes).toContain("STL Co BOE"); // input notes survive the round trip
   });
 
-  it("placementRows emits header-aligned, globally rank-ordered rows", () => {
+  it("placementRows deploys sites FIRST (early-vote funded off the top), then corridors, sequential rank", () => {
     const scored = scorePlacements([
-      { ...base, name: "lo", type: "corridor", aadtNorm: 0.2, propensity: 0.5, visibility: 0.5, serviceability: 0.5 },
-      { ...base, name: "hi", type: "site", voterContactValue: 1, daysActive: 14, visibility: 1, serviceability: 1 },
+      { ...base, name: "bigCorridor", type: "corridor", aadtNorm: 1, propensity: 1, visibility: 1, serviceability: 1 }, // score 1.0
+      { ...base, name: "modestSite", type: "site", voterContactValue: 0.6, daysActive: 14, visibility: 0.8, serviceability: 1 }, // score < 1.0
     ]);
     const rows = placementRows(scored);
     expect(PLACEMENT_OUTPUT_HEADERS[0]).toBe("rank");
-    expect(rows[0][0]).toBe(1); // rank 1
-    expect(rows[0][1]).toBe("hi"); // highest score first, globally
+    // The site deploys first even though the corridor's raw score is higher — the two families
+    // score on different bases and §8.4 funds sites off the top.
+    expect(rows[0][1]).toBe("modestSite");
+    expect(rows[0][0]).toBe(1);
+    expect(rows[1][1]).toBe("bigCorridor");
+    expect(rows[1][0]).toBe(2);
+  });
+
+  it("appends DROPPED rows with reasons — the audit trail is in the download, not just a count", () => {
+    const { kept, dropped } = hardFilter([
+      { ...base, name: "good" },
+      { ...base, name: "bad", inDistrict: false, notes: "was promising" },
+    ]);
+    const rows = placementRows(scorePlacements(kept), dropped);
     expect(rows.length).toBe(2);
+    const droppedRow = rows[1];
+    expect(droppedRow[0]).toBe(""); // no rank — not deployable
+    expect(droppedRow[1]).toBe("bad");
+    expect(String(droppedRow[11])).toContain("DROPPED: out-of-district");
+    expect(String(droppedRow[11])).toContain("was promising"); // original notes preserved
+  });
+
+  it("neutralizes leading formula characters in name/notes (CSV injection)", () => {
+    const scored = scorePlacements([
+      { ...base, name: "=HYPERLINK(\"http://evil\")", type: "corridor", notes: "+SUM(A1)" },
+    ]);
+    const [row] = placementRows(scored);
+    expect(String(row[1]).startsWith("'=")).toBe(true); // name defused
+    expect(String(row[11]).startsWith("'+")).toBe(true); // notes defused
+  });
+
+  it("headers match the plan's placement_output schema (tier in place of the draft's phase)", () => {
+    expect([...PLACEMENT_OUTPUT_HEADERS]).toEqual([
+      "rank", "name", "lat", "lng", "type", "tier", "captain_id", "assigned_volunteer", "score", "precinct", "aadt", "notes",
+    ]);
   });
 });
