@@ -26,6 +26,30 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-10 -- v1.x -- Sign placement master plan (MO-02 field ops)
+
+**Changes:**
+- [added] `candidate/sign-placement-plan.md` -- MO-02 yard/corridor/polling-place sign master plan for the Aug 4, 2026 primary: phased field ops (foundations → scoring → turf → early-vote deploy → Election Day → teardown), a per-type scoring/allocation model, CSV data schemas, and a full §9 compliance section. Finishes + hardens a campaign-supplied Draft v0.1 (completed the scoring model, added the missing compliance section; verified the 2026 dates and the district COMPOSITION — the final precinct-list confirmation remains an open §3 item that gates geocoding).
+- [updated] registered in SKILL.md (candidate reference table) and INDEX.md ("print & produce" cluster)
+
+**Verifications Performed:**
+- 2026 MO primary dates (registration Jul 8; in-person no-excuse absentee Jul 21–Aug 3; mail-application received-by Jul 22; Election Day Aug 4, polls 6a–7p) reconciled with `candidate/absentee-voting-guide.md` and confirmed via a Missouri SOS / election-calendar web search on 2026-07-10.
+- MO sign law reused from the already-verified `candidate/library-print-and-produce-guide.md` (verified 2026-06-18) and re-checked via web search 2026-07-10: 25-ft polling-place buffer (RSMo 115.637; HB 783's 100-ft proposal not enacted); right-of-way ban (RSMo 227.220 / MoDOT); resident political-sign protection (RSMo 442.404). Corrected the draft's erroneous "RSMo 67.317" (that statute governs FOR-SALE signs, not political).
+- Operative 2025 MO-02 map composition (St. Louis County portion + Jefferson, Washington, Crawford, Gasconade; excludes St. Charles/Franklin/Warren) from `candidate/data-and-map-plan.md` and `candidate/captain-field-plan.md`.
+
+**Known Gaps:**
+- Final precinct list, early-vote/library site designations + hours, sign inventory (N), and volunteer/captain rosters are campaign-supplied — left as clearly-marked placeholders/open items.
+- All scoring weights, factor ranges, and inventory splits are illustrative planning placeholders, not real data or predictions.
+- Per-municipality sign ordinances (size/number/timing/removal deadlines) vary and must be confirmed per municipality before each deployment.
+
+**Files Modified:**
+- candidate/sign-placement-plan.md
+- SKILL.md
+- INDEX.md
+- references/update-log.md
+
+---
+
 ## 2026-07-10 -- v1.x -- Compliance freshness sweep (~4 weeks to the Aug 4 primary) + doc link fix
 
 **Changes:**

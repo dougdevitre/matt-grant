@@ -109,6 +109,7 @@ Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026
 ## "I want to print & produce materials"
 
 - [candidate/library-print-and-produce-guide.md](candidate/library-print-and-produce-guide.md) -- Supporter guide: print flyers/signs/banners and make swag & video at the St. Louis County Library — what to print, how, and how to use it responsibly (MO sign & electioneering law)
+- [candidate/sign-placement-plan.md](candidate/sign-placement-plan.md) -- Master plan for placing yard/corridor/polling-place signs in MO-02 for the Aug 4, 2026 primary: phased field ops, a scoring/allocation model, data schemas, and the MO sign-placement/electioneering compliance rules (25-ft poll buffer, right-of-way ban, permission, per-municipality removal). Counts/weights are illustrative
 - [candidate/walgreens-print-plan.md](candidate/walgreens-print-plan.md) -- Same-day Walgreens photo prints of campaign assets via the native Photo Prints API
 - [tools/disclaimer-generator.md](tools/disclaimer-generator.md) -- Generate the required "Paid for by" disclaimer for any printed piece
 - [tools/print-tracker.md](tools/print-tracker.md) -- Letter-sized print tracker: every printable item mapped to the template that produces it, its compliance flags, and production status (also a staff view at `/dashboard/print`)
