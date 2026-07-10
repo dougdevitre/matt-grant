@@ -26,6 +26,41 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-10 -- v1.x -- Voter file Phase 0: custody, compliance, and the voter-engine plan
+
+**Changes:**
+- [added] `candidate/voter-file-plan.md` -- governing doc for the real MO-02 voter file
+  (577,366 registered voters, 2025-map CD-2, inspected 2026-07-10): verified contents (one
+  row per voter; birth YEAR only; party blank ~90%; Voter History = most recent election
+  ONLY; NO phones or emails), S3 custody rules, RSMo 115.157 political-use-only
+  restriction, the absolute TCPA line (SMS never from this file; matched/appended phones
+  are call-lists only), sharded ingest architecture, honest scorecard (T 0-5 recency
+  propensity + labeled support proxy + targeting-matrix segments), per-channel rules, and
+  the open Franklin County district reconciliation.
+- [removed] the five `docs/MO02_VotersList_Part*_of_5.xlsx` from the repo working tree
+  (voter PII out of git; private S3 is canonical -- upload command in `docs/VOTER-FILE.md`;
+  git-HISTORY purge is an open owner decision).
+- [added] registered in SKILL.md, INDEX.md ("I need to contact voters"), commands
+  (`/voterfile`).
+
+**Verifications Performed:**
+- File inspected via aggregate-only analysis (no PII printed): 577,366 rows across 5 parts
+  (115,474 x4 + 115,470), 36 columns, no duplicate Voter IDs in a 50k sample, all sampled
+  rows coded `25 CN 2`, counties incl. Franklin (~5-6% of sample).
+- Repo confirmed PRIVATE before deciding custody steps.
+
+**Known Gaps:**
+- Franklin County reconciliation pending the Phase 1 per-county census.
+- Full vote history (frequency-based propensity) needs a follow-up records request.
+- Git-history purge and phone-append vendor are open owner decisions.
+
+**Files Modified:**
+- candidate/voter-file-plan.md
+- docs/VOTER-FILE.md
+- SKILL.md / INDEX.md / commands/commands.md
+
+---
+
 ## 2026-07-10 -- v1.x -- Captains notified on shift self-signup/drop
 
 **Changes:**
