@@ -26,6 +26,29 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-10 -- v1.x -- Shift reminder texts (shift board → consent-gated SMS)
+
+**Changes:**
+- [updated] `candidate/poll-coverage-plan.md` §4 shipped note -- the shift board can now text
+  each assigned greeter a per-day shift reminder through the campaign's existing lifecycle-SMS
+  path: consent ledger + block list + 9am-8pm CT quiet hours all enforced by the shared helper,
+  compliance suffix (paid-for + STOP) appended automatically, one message per person per day,
+  deduped per shift+assignee so re-runs only reach newly added greeters.
+
+**Verifications Performed:**
+- No new SMS policy logic introduced -- the action delegates every gate to the existing
+  `sendLifecycleText` helper; the reminder copy restates only the plan's verified §7 conduct
+  rule (25-ft buffer) and adds no new legal claims.
+
+**Known Gaps:**
+- Captains (staff accounts) have no phone number stored anywhere in the app, so they are
+  reported as skipped, not texted.
+
+**Files Modified:**
+- candidate/poll-coverage-plan.md
+
+---
+
 ## 2026-07-10 -- v1.x -- Poll-coverage shift board shipped (dashboard tooling)
 
 **Changes:**
