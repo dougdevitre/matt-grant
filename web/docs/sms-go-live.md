@@ -188,6 +188,5 @@ This exercises signature verification, the consent ledger, roster mirroring, and
 - [`../../messaging/sms-texting.md`](../../messaging/sms-texting.md) — compliance, consent language, message templates, cadence, metrics.
 - [`../../docs/CAMPAIGN-ACCOUNTS.md`](../../docs/CAMPAIGN-ACCOUNTS.md) — Twilio account setup + what to send the developer.
 - [`messaging-rbac.md`](./messaging-rbac.md) — who can draft vs. send.
+- [`sms-operator-runbook.md`](./sms-operator-runbook.md) — the day-to-day operator guide (sending, inbox, opt-ins, troubleshooting).
 - [`social-go-live.md`](./social-go-live.md) — the companion go-live runbook for social auto-posting.
-</content>
-</invoke>
