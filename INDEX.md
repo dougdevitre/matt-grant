@@ -31,6 +31,7 @@ Matt Grant — U.S. House, Missouri District 2 (MO-02) · Primary August 4, 2026
 - [messaging/email-fundraising.md](messaging/email-fundraising.md) -- Email fundraising templates and strategy
 - [tools/contribution-tracker.md](tools/contribution-tracker.md) -- Tracking and reconciling donations
 - [tools/donor-limit-checker.md](tools/donor-limit-checker.md) -- Check whether a donor can give more
+- [candidate/donor-value-ladder.md](candidate/donor-value-ladder.md) -- Recognition tiers $25→$7,000 (schwag, signage, time with Matt) with the FEC compliance gates: full amount counts, $3,500/election + $7,000 designation, premiums as committee fundraising expenses, guaranteed-not-chance, access ≠ official action
 
 ## "I need to build my message"
 

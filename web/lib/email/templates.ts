@@ -106,9 +106,14 @@ export function supporterWelcome(firstName = "there"): Email {
   };
 }
 
-export function donationThankYou(firstName = "Friend", amount?: number): Email {
+export function donationThankYou(firstName = "Friend", amount?: number, tierName?: string): Email {
   const amt = amount ? `$${amount}` : "your gift";
   const title = `Thank you, ${firstName}.`;
+  // Donor value ladder (candidate/donor-value-ladder.md §5): recognition framing
+  // only — "the campaign provides a thank-you", never purchase/price language.
+  const tierHtml = tierName
+    ? `<p>Your giving this cycle makes you part of the <strong>${tierName}</strong> — as a thank-you, the campaign will follow up on your supporter-level items and invitations. Just reply with sizing or delivery notes.</p>`
+    : "";
   return {
     subject: "Thank you for supporting Matt Grant for Congress",
     html: renderEmail({
@@ -118,13 +123,22 @@ export function donationThankYou(firstName = "Friend", amount?: number): Email {
       subtitle: "Your support is the engine of this campaign — thank you.",
       heroImage: { src: img("brand/headshot.png"), alt: "Matt Grant" },
       bodyHtml: `<p>Your contribution of <strong>${amt}</strong> goes straight to the work: doors knocked, calls made, and neighbors reached before ${CAMPAIGN.electionLabel}.</p>
+        ${tierHtml}
         <p>Matt doesn't just talk — he takes action, and so do you. Thank you for being part of it.</p>
         <p style="font-size:13px;color:#6B7280;">Contributions to ${CAMPAIGN.committee} are not tax-deductible. Federal law requires us to use best efforts to collect and report the name, mailing address, occupation, and employer of individuals whose contributions exceed $200 in an election cycle.</p>`,
       signature: true,
       button: { label: "Visit your community", href: `${SITE_URL}/community`, color: "blue" },
       secondaryButton: { label: "Share why you gave", href: `${SITE_URL}/media`, color: "red" },
     }),
-    text: renderText({ title, lines: [`Your contribution of ${amt} funds doors, calls, and neighbors reached before ${CAMPAIGN.electionLabel}. Thank you.`] }),
+    text: renderText({
+      title,
+      lines: [
+        `Your contribution of ${amt} funds doors, calls, and neighbors reached before ${CAMPAIGN.electionLabel}. Thank you.`,
+        ...(tierName
+          ? [`Your giving this cycle makes you part of the ${tierName} — the campaign will follow up on your supporter-level thank-yous.`]
+          : []),
+      ],
+    }),
   };
 }
 
