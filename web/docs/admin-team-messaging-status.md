@@ -123,6 +123,5 @@ Chosen model: **self-serve** (a staffer opts in on their own — the only TCPA-v
 ## See also
 - [`sms-go-live.md`](./sms-go-live.md) — Twilio verification + secrets, the send prerequisite.
 - [`messaging-rbac.md`](./messaging-rbac.md) — who can draft vs. send vs. message individuals.
+- [`sms-operator-runbook.md`](./sms-operator-runbook.md) — the day-to-day operator guide for staff.
 - [`../../messaging/sms-texting.md`](../../messaging/sms-texting.md) — consent language, templates, cadence, metrics.
-</content>
-</invoke>
