@@ -1,11 +1,23 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { PageHeader, HowTo } from "@/components/dashboard/Notice";
+import CoverageMap from "@/components/dashboard/CoverageMap";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { listRegions } from "@/lib/volunteers/regions";
 import { listActiveCaptains } from "@/lib/volunteers/captains";
 import { buildCoverage, SPAN_MAX, type CoverageRow } from "@/lib/volunteers/coverage";
+import type { CoverageMapRow } from "@/lib/volunteers/coverageGeo";
+
+// Serializable subset of a CoverageRow for the client map: name + status +
+// captain summary (first names only, exactly what the list shows).
+const toMapRow = (r: CoverageRow): CoverageMapRow => ({
+  name: r.region.name,
+  level: r.region.level,
+  status: r.gap ? "gap" : r.overlap ? "overlap" : "covered",
+  captains: r.captains.length ? r.captains.map((c) => `${c.firstName} (${c.teamSize})`).join(" · ") : "Unassigned",
+  teamSize: r.teamSize,
+});
 
 export const dynamic = "force-dynamic";
 
@@ -68,6 +80,7 @@ export default async function CoveragePage() {
           "A Gap means no captain covers that region — recruit or assign one. An Overlap means more than one captain shares it; clarify ownership or split the turf.",
           `Over ${SPAN_MAX} flags a region whose combined team has reached the span-of-control max — promote a strong volunteer to captain and split.`,
           "Team size counts volunteers whose captain covers the region; a captain assigned to several regions counts in each.",
+          "The map paints each region by status (brick = gap, green = covered, gold = overlap) when its name matches a precinct, municipality, or county boundary; St. Louis County shows its MO-02 portion, and names that match nothing are listed under the map.",
         ]}
       />
 
@@ -90,6 +103,11 @@ export default async function CoveragePage() {
             <Stat label="Overlaps" value={rep.totals.overlaps} tone={rep.totals.overlaps ? "gold" : "ink"} />
             <Stat label={`Over ${SPAN_MAX}`} value={rep.totals.overSpan} tone={rep.totals.overSpan ? "gold" : "ink"} />
             <Stat label="Captains" value={rep.totals.captains} />
+          </div>
+
+          <div className="mt-8">
+            <p className="eyebrow text-slate">On the map</p>
+            <CoverageMap rows={rep.rows.map(toMapRow)} />
           </div>
 
           <div className="mt-8">
