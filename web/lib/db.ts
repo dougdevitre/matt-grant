@@ -62,6 +62,7 @@ export const PK = {
   notifPrefs: "NOTIFPREF", // per-staffer notification opt-outs (SK = email; muted: string[])
   msgTemplates: "MSGTEMPLATE", // admin-saved role-tagged email/SMS templates (SK = id)
   signs: "SIGNPLACEMENT", // persisted sign placements (SK = id uuid); scores/tiers derived, never stored
+  pollShifts: "POLLSHIFT", // poll-coverage greeter shifts (SK = id uuid); grid/stats/packets derived, never stored
 } as const;
 
 export function newId(): string {

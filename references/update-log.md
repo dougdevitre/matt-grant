@@ -26,6 +26,28 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-10 -- v1.x -- Poll-coverage shift board shipped (dashboard tooling)
+
+**Changes:**
+- [updated] `candidate/poll-coverage-plan.md` §4 -- noted the shipped shift board at
+  `/dashboard/coverage/shifts`: generates the site × day × window schedule, assigns greeters,
+  computes the §8 fill metrics, and prints per-greeter shift packets with the §7 conduct rules
+  plus an unfilled-shifts recruiting page.
+
+**Verifications Performed:**
+- Default window labels and key dates quote the plan's own §2/§4 (verified 2026-07-10); the
+  printed compliance footer restates only §7's already-verified facts (RSMo 115.637 buffer)
+  with the same re-verify caveat. No new statutes, dates, or hours introduced.
+
+**Known Gaps:**
+- Actual early-vote site hours remain a per-authority confirmation (the board's window labels
+  are staff-editable text, not clock claims).
+
+**Files Modified:**
+- candidate/poll-coverage-plan.md
+
+---
+
 ## 2026-07-10 -- v1.x -- Doc sync: sign persistence + field-map features (post-merge pass)
 
 **Changes:**
