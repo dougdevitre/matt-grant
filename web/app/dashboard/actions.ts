@@ -285,6 +285,8 @@ export async function addTask(formData: FormData) {
 
   // Text the assignee that they've got a task (self-gates on their SMS opt-in — no-op
   // otherwise). It logs to the 1:1 inbox, so a question reply lands where staff can see it.
+  // Staff-initiated (not a confirmation of the volunteer's own action), so it respects quiet
+  // hours: outside 9am–8pm CT the text is skipped rather than sent at night.
   if (volunteerId) {
     const vol = await getVolunteer(volunteerId).catch(() => null);
     if (vol?.phone) {
@@ -292,6 +294,7 @@ export async function addTask(formData: FormData) {
         to: vol.phone,
         body: `You've got a new volunteer task: ${title}. Reply here with any questions - thanks for stepping up!`,
         by: "system",
+        respectQuietHours: true,
       }).catch(() => {});
     }
   }

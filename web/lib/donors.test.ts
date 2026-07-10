@@ -44,12 +44,18 @@ describe("recordContribution", () => {
     expect(input.ExpressionAttributeValues[":xid"]).toBe("wr_123");
   });
 
-  it("is idempotent: a duplicate delivery that fails the condition is a silent no-op", async () => {
+  it("is idempotent: a duplicate delivery that fails the condition returns FALSE (no side effects for the caller)", async () => {
     h.conditionFails = true;
     await expect(
       recordContribution({ email: "Jane@Example.com", externalId: "wr_123", amountCents: 5000 }),
-    ).resolves.toBeUndefined(); // ConditionalCheckFailedException swallowed, not thrown
+    ).resolves.toBe(false); // ConditionalCheckFailedException swallowed → duplicate signal, not a throw
     expect(writes()).toHaveLength(1); // the single atomic write was attempted...
+  });
+
+  it("returns TRUE when a new gift is actually recorded (so the webhook may send receipts)", async () => {
+    await expect(
+      recordContribution({ email: "Jane@Example.com", externalId: "wr_124", amountCents: 5000 }),
+    ).resolves.toBe(true);
   });
 
   it("appends a new gift and accumulates on one row keyed by email", async () => {

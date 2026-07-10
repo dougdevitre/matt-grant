@@ -82,6 +82,10 @@ export async function POST(req: NextRequest) {
     console.warn("[winred] donation recorded with no parseable amount — check payload field names against normalizeWinred", { event, fieldCount: Object.keys(payload).length });
   }
 
+  // Whether THIS delivery recorded a new gift. WinRed delivers at-least-once, so a retry of an
+  // already-recorded gift returns false — and every side effect below (receipt email, admin
+  // notify, thank-you SMS, role upgrade) is gated on it so a donor is never double-thanked.
+  let recordedNew = false;
   try {
     // Funnel through the shared recorder so the gift lands in contributions[]
     // (counted by the dashboard) and dedupes by email; externalId makes webhook
@@ -90,7 +94,7 @@ export async function POST(req: NextRequest) {
     // idempotent against duplicate refund webhooks — without being deduped against
     // the original gift.
     const cents = Math.round((rec.amount ?? 0) * 100);
-    await recordContribution({
+    recordedNew = await recordContribution({
       email: rec.email,
       name: rec.name,
       phone: rec.phone,
@@ -111,9 +115,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "failed to record donation" }, { status: 502 });
   }
 
-  // Thank-you only for new gifts — never email a "thanks" for a refund/dispute.
+  // Thank-you only for NEW gifts — never email a "thanks" for a refund/dispute, and never
+  // re-send on a duplicate webhook delivery (recordedNew is false for a deduped externalId).
   // Best-effort: never fail the webhook if email is down/unconfigured.
-  if (!isRefund && sesEnabled && rec.email) {
+  if (recordedNew && !isRefund && sesEnabled && rec.email) {
     try {
       const tpl = donationThankYou(rec.firstName ?? "Friend", rec.amount);
       await sendEmail({ to: rec.email, subject: tpl.subject, html: tpl.html, text: tpl.text });
@@ -129,7 +134,7 @@ export async function POST(req: NextRequest) {
   // explicit flag: record that consent in the ledger, then send. sendLifecycleText itself re-checks
   // the recorded opt-in, so it no-ops if consent wasn't recorded — defense in depth. Best-effort;
   // never fails the webhook. (Independent of SES so a texting-only receipt still works.)
-  if (!isRefund && rec.phone && rec.smsConsent === true) {
+  if (recordedNew && !isRefund && rec.phone && rec.smsConsent === true) {
     try {
       const { recordConsent } = await import("@/lib/sms/consent");
       const { sendLifecycleText } = await import("@/lib/sms/lifecycle");
@@ -144,7 +149,7 @@ export async function POST(req: NextRequest) {
   // On a new gift, promote a public supporter to the `donor` role so they get the
   // private "my giving" portal. Guarded (never downgrades staff/partner) and
   // best-effort — refunds and not-yet-signed-up givers are skipped.
-  if (!isRefund && rec.email) {
+  if (recordedNew && !isRefund && rec.email) {
     try {
       const { upgradeToDonorByEmail } = await import("@/lib/clerkRoles");
       await upgradeToDonorByEmail(rec.email);
@@ -162,11 +167,11 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    recorded: true,
+    recorded: recordedNew, // false = duplicate delivery of an already-recorded gift (no side effects re-fired)
     event,
     refund: isRefund,
     amount: rec.amount,
-    emailed: !isRefund && sesEnabled && !!rec.email,
-    textConsent: !isRefund && !!rec.phone && rec.smsConsent === true,
+    emailed: recordedNew && !isRefund && sesEnabled && !!rec.email,
+    textConsent: recordedNew && !isRefund && !!rec.phone && rec.smsConsent === true,
   });
 }
