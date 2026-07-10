@@ -10,6 +10,7 @@
 import { getSecret } from "@/lib/ssm";
 import { isEventType, type EventRow, type EventType, type EventStatus } from "@/lib/events/types";
 import { AIRTABLE_BASES } from "@/lib/airtable/registry";
+import { geocodeAddress } from "@/lib/events/geocode";
 
 // Volunteer Engagement base + Events table, from the central registry; override
 // via env if they ever move. One workspace token reads every base.
@@ -60,7 +61,11 @@ function toStart(date: unknown, time: unknown): { start: string; allDay: boolean
   return parsed ? { start: `${d}T${parsed}`, allDay: false } : { start: `${d}T00:00:00`, allDay: true };
 }
 
-function recordToRow(rec: AirtableRecord): EventRow | null {
+/** Exported for unit tests (pure). "Address" is an optional Airtable field — a
+ *  street address incl. city, MO assumed — read defensively: rows without it (or
+ *  bases where the field doesn't exist yet) simply carry no address and skip
+ *  geocoding, exactly the pre-existing behavior. */
+export function recordToRow(rec: AirtableRecord): EventRow | null {
   const f = rec.fields;
   const title = String(f["Event Name"] ?? "").trim();
   const { start, allDay } = toStart(f["Date"], f["Time"]);
@@ -75,7 +80,7 @@ function recordToRow(rec: AirtableRecord): EventRow | null {
     start,
     end: null,
     allDay,
-    location: { name: String(f["Venue"] ?? "").trim(), address: "", city: "", county: "" },
+    location: { name: String(f["Venue"] ?? "").trim(), address: String(f["Address"] ?? "").trim(), city: "", county: "" },
     lat: null,
     lng: null,
     districtKey: "district:mo-02",
@@ -116,6 +121,26 @@ async function fetchRecords(): Promise<AirtableRecord[]> {
   }
 }
 
+// Fill lat/lng from the Address field via the Census geocoder so Airtable-
+// originated events plot on the field map (previously they were hardcoded
+// null and never appeared). Best-effort and cheap: only rows WITH an address
+// and WITHOUT coords geocode, the geocoder fetch is cached a day per address,
+// and any failure just leaves the event unplotted — lists render regardless.
+async function withCoords(rows: EventRow[]): Promise<EventRow[]> {
+  await Promise.all(
+    rows
+      .filter((r) => r.lat == null && r.location.address)
+      .map(async (r) => {
+        const c = await geocodeAddress(r.location);
+        if (c) {
+          r.lat = c.lat;
+          r.lng = c.lng;
+        }
+      }),
+  );
+  return rows;
+}
+
 /** Upcoming events from Airtable, mapped to EventRow (mirrors the DynamoDB version). */
 export async function listUpcomingEventsFromAirtable(
   opts?: { limit?: number; publishedOnly?: boolean },
@@ -128,7 +153,8 @@ export async function listUpcomingEventsFromAirtable(
     .filter((r) => r.start >= now)
     .sort((a, b) => a.start.localeCompare(b.start));
   if (opts?.publishedOnly) rows = rows.filter((r) => r.status === "PUBLISHED");
-  return opts?.limit ? rows.slice(0, opts.limit) : rows;
+  rows = opts?.limit ? rows.slice(0, opts.limit) : rows;
+  return withCoords(rows);
 }
 
 // ── One-way mirror: dashboard (DynamoDB) → Airtable ───────────────────────────────
@@ -190,6 +216,13 @@ function eventToFields(e: EventRow): Record<string, unknown> {
   if (time) fields.Time = time;
   if (e.capacity != null) fields.Capacity = e.capacity;
   if (e.captain?.name) fields["Host / Lead"] = e.captain.name;
+  // Round-trip the street address so an Airtable-read event geocodes the same
+  // spot the dashboard plotted. Requires an actual STREET line — a bare city is
+  // not an address and would never geocode on the read side. Optional field —
+  // the mirror retries without it if the Airtable table lacks the column (below).
+  if (e.location.address) {
+    fields.Address = [e.location.address, e.location.city].filter(Boolean).join(", ");
+  }
   return fields;
 }
 
@@ -214,10 +247,19 @@ async function writeAirtable(method: "POST" | "PATCH", path: string, body: unkno
 export async function mirrorEventToAirtable(e: EventRow, recId?: string | null): Promise<string | null> {
   try {
     const fields = eventToFields(e);
-    const res = recId
-      ? await writeAirtable("PATCH", `/${recId}`, { typecast: true, fields })
-      : await writeAirtable("POST", "", { typecast: true, fields });
+    const send = (f: Record<string, unknown>) =>
+      recId
+        ? writeAirtable("PATCH", `/${recId}`, { typecast: true, fields: f })
+        : writeAirtable("POST", "", { typecast: true, fields: f });
+    let res = await send(fields);
     if (!res) return null; // unconfigured
+    if (!res.ok && "Address" in fields) {
+      // An unknown field name 422s the WHOLE record write. Address is the one
+      // optional column staff may not have added to the Airtable table yet —
+      // retry once without it so the mirror never regresses on its account.
+      const { Address: _drop, ...withoutAddress } = fields;
+      res = (await send(withoutAddress)) ?? res;
+    }
     if (!res.ok) throw new Error(`${recId ? "PATCH" : "POST"} ${res.status}`);
     if (recId) return recId;
     const data = (await res.json()) as { id?: string };
@@ -268,7 +310,10 @@ export async function getEventFromAirtable(id: string): Promise<EventRow | null>
     });
     if (!res.ok) return null;
     const rec = (await res.json()) as AirtableRecord;
-    return rec?.id ? recordToRow(rec) : null;
+    const row = rec?.id ? recordToRow(rec) : null;
+    if (!row) return null;
+    const [withGeo] = await withCoords([row]);
+    return withGeo;
   } catch {
     return null;
   }

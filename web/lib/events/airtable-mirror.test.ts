@@ -113,3 +113,38 @@ describe("event → Airtable mirror", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
+
+describe("Address round-trip (optional Airtable column)", () => {
+  it("mirrors the street address when the event has one", async () => {
+    await mirrorEventToAirtable(makeEvent({ location: { name: "Foundry Art Centre", address: "520 N Main Ctr", city: "St. Charles", county: "" } }));
+    expect(callAt(0).fields?.Address).toBe("520 N Main Ctr, St. Charles");
+  });
+
+  it("omits Address entirely when the event has none (no blank writes)", async () => {
+    await mirrorEventToAirtable(makeEvent());
+    expect(callAt(0).fields).not.toHaveProperty("Address");
+  });
+
+  it("retries once WITHOUT Address if the write fails — the mirror never regresses on the optional column", async () => {
+    fetchMock
+      .mockResolvedValueOnce({ ok: false, status: 422, json: async () => ({}) })
+      .mockResolvedValueOnce(okJson({ id: "recNEW" }));
+    const recId = await mirrorEventToAirtable(makeEvent({ location: { name: "X", address: "1 Main St", city: "Eureka", county: "" } }));
+    expect(recId).toBe("recNEW");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(callAt(0).fields).toHaveProperty("Address");
+    expect(callAt(1).fields).not.toHaveProperty("Address");
+  });
+});
+
+describe("recordToRow (Airtable → EventRow read mapping)", () => {
+  it("reads the optional Address field into location.address; absent field → blank (pre-existing behavior)", async () => {
+    const { recordToRow } = await import("./airtable");
+    const base = { "Event Name": "Canvass Launch", Date: "2026-07-19", Time: "9:00 AM", Venue: "HQ" };
+    const withAddr = recordToRow({ id: "rec1", fields: { ...base, Address: "1625 Mason Knoll Rd, St. Louis" } })!;
+    expect(withAddr.location.address).toBe("1625 Mason Knoll Rd, St. Louis");
+    expect(withAddr.lat).toBeNull(); // geocoding happens in the list path, not the pure mapper
+    const withoutAddr = recordToRow({ id: "rec2", fields: base })!;
+    expect(withoutAddr.location.address).toBe("");
+  });
+});
