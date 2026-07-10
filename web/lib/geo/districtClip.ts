@@ -31,9 +31,13 @@ const REVALIDATE = 86400;
 
 async function fetchBoundaryFc(url: string, params: URLSearchParams): Promise<GeoJSON.FeatureCollection | null> {
   try {
+    // Hard timeout — callers of districtClipPolygons() run inside build-time
+    // prerenders, and an un-timed-out fetch to a hung GIS server would hang the
+    // whole build. Abort just means this source contributes no polygons.
     const res = await fetch(`${url}?${params}`, {
       next: { revalidate: REVALIDATE },
       headers: { accept: "application/geo+json,application/json" },
+      signal: AbortSignal.timeout(15_000),
     });
     if (!res.ok) return null;
     const fc = (await res.json()) as GeoJSON.FeatureCollection;

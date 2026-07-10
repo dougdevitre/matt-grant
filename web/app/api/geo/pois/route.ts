@@ -53,9 +53,13 @@ async function livePolling(): Promise<PoiFeature[] | null> {
 // schema mismatch degrades to "no live data" — never to mislabeled pins.
 async function liveSchools(): Promise<PoiFeature[] | null> {
   try {
+    // Hard timeout: this route prerenders at build time (ISR), and Node fetch
+    // never times out on its own — a hung gis.mo.gov would hang the BUILD
+    // (exactly what took out the axe CI job). Abort → null → sample fallback.
     const res = await fetch(arcgisGeojsonUrl(SCHOOLS.url), {
       next: { revalidate },
       headers: { accept: "application/geo+json,application/json" },
+      signal: AbortSignal.timeout(15_000),
     });
     if (!res.ok) return null;
     const fc = (await res.json()) as GeoJSON.FeatureCollection;
