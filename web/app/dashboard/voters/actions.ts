@@ -10,7 +10,7 @@ import { mapReturnRows } from "@/lib/voters/chase";
 import { matchPhones, type PhoneContact } from "@/lib/voters/phones";
 import { mapAppendRows } from "@/lib/voters/phoneAppend";
 import { listAppendedPhones, putAppendedPhones } from "@/lib/voters/phoneStore";
-import { importReturns } from "@/lib/voters/returnsStore";
+import { importReturns, listReturnsByPrecinct } from "@/lib/voters/returnsStore";
 import { listVotersByPrecinct } from "@/lib/voters/store";
 import { syncCallList, syncTurfs, type SyncResult, type TurfSummary } from "@/lib/voters/turfSync";
 import type { StoredVoter } from "@/lib/voters/storeTypes";
@@ -30,6 +30,10 @@ async function allowed(): Promise<boolean> {
 
 export type PrecinctVoters = {
   voters: StoredVoter[];
+  // voterId -> votedAt ("" when the return carried no date): banked ballots for
+  // this precinct. The explorer hides these from lists by default (chase doc:
+  // mark banked AND remove from contact lists).
+  banked: Record<string, string>;
   // voterId → phone matched from campaign records (volunteers/donors who gave
   // us their number, plus any imported vendor append), name+ZIP5 unless the
   // append row carries the exact Voter ID. MANUAL-DIAL call sheets only —
@@ -41,10 +45,13 @@ export type PrecinctVoters = {
  *  matched phones. The explorer filters, cuts walk turfs, and builds the
  *  RSMo-stamped CSVs client-side from this. */
 export async function fetchPrecinctVoters(precinctKey: string): Promise<PrecinctVoters> {
-  if (!(await allowed())) return { voters: [], phones: {} };
+  if (!(await allowed())) return { voters: [], phones: {}, banked: {} };
   const key = String(precinctKey ?? "").trim().slice(0, 120);
-  if (!key) return { voters: [], phones: {} };
-  const voters = await listVotersByPrecinct(key);
+  if (!key) return { voters: [], phones: {}, banked: {} };
+  const [voters, banked] = await Promise.all([
+    listVotersByPrecinct(key),
+    listReturnsByPrecinct(key).catch(() => ({}) as Record<string, string>),
+  ]);
   let phones: Record<string, string> = {};
   try {
     const [vols, donors, appended] = await Promise.all([getVolunteers(), getDonors(), listAppendedPhones()]);
@@ -64,7 +71,7 @@ export async function fetchPrecinctVoters(precinctKey: string): Promise<Precinct
   } catch {
     // Best-effort: no matches beats no voters.
   }
-  return { voters, phones };
+  return { voters, phones, banked };
 }
 
 // ── Airtable sync (Canvass Turf + Contact Lists) ──────────────────────────────
