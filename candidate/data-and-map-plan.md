@@ -14,6 +14,9 @@ loadable as GeoJSON. Sample data ships in `web/lib/mapData.ts`; this is how to m
 > upside), two-way Map↔Targets deep links, and a **Signs layer** (off by default) plotting the
 > Signs page's saved placements — blue = verified, amber = pending. The data gaps below (rural
 > county turnout, live schools) are unchanged and still gate what the map can honestly show.
+> **Shipped July 11, 2026:** a "Voter file" precinct mode (shade = heuristic primary
+> propensity from the ingested voter file, height = PERSUADE universe — enabled once the
+> ingest runs; see `voter-file-plan.md` Phase 3).
 
 > **Coverage page geometry shipped July 10, 2026:** the Team coverage page
 > (`/dashboard/coverage`) now draws its regions on a real map — Geo Hierarchy region names join
@@ -147,7 +150,7 @@ are marked ★.
 | ★ **County precinct results + SOS turnout** (2024 general, 2022/2024 primaries) | Real column heights & shading by precinct | `fill-extrusion-height` by turnout, color by margin |
 | ★ **Census ACS 2024 5-yr** (households w/ children B11005, age, income) | Children-first targeting; affordability map | Choropleth or extruded block groups; bivariate color |
 | ★ **OSM foot-traffic anchors** (markets, parks, rec, worship) | "Where voters spend time" canvass plan | Clustered points + heatmap of density |
-| **Voter file / early-vote & absentee feed** (county) | Live chase: who's voted | Time-slider animating returns by precinct |
+| **Voter file / early-vote & absentee feed** (county) | **SHIPPED 2026-07-11:** daily returns import + live Daily Chase Report at `/dashboard/voters/chase`; banked voters auto-drop off walk/call/mail lists | Map time-slider animating returns is still future — the data now exists |
 | **Terrain / elevation (AWS Terrarium / Mapzen DEM, free)** | True 3D landscape under the data | MapLibre `terrain` + hillshade |
 | **Redistricting "new map" (2025 MO map, if in effect)** | Correct geography incl. added rural counties | Swap boundary source; verify legal status first |
 | **Transit & drive-time isochrones (OSM + OSRM/Valhalla)** | Event siting, ride-to-polls | Isochrone polygons, extruded by minutes |

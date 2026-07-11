@@ -26,6 +26,26 @@ export function chaseTier(segment: Segment, t: number): ChaseTier | null {
   return null; // MONITOR (opponents/inactive) + PROSPECT (unknown, unlikely)
 }
 
+/**
+ * How a banked ballot's tier counter must move when the voter's segment/T
+ * changes AFTER their return was recorded (canvass write-back reconciliation —
+ * without it, banked-per-tier drifts from universe-per-tier and the chase board
+ * can show negative outstanding). null = no move needed.
+ */
+export type TierShift = { dec: ChaseTier | null; inc: ChaseTier | null };
+
+export function tierShift(
+  oldSegment: Segment,
+  oldT: number,
+  newSegment: Segment,
+  newT: number,
+): TierShift | null {
+  const from = chaseTier(oldSegment, oldT);
+  const to = chaseTier(newSegment, newT);
+  if (from === to) return null;
+  return { dec: from, inc: to };
+}
+
 /** Per-precinct banked counters (BALLOTAGG rows) — written by the returns import. */
 export type BallotAggRow = {
   precinctKey: string;

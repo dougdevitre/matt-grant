@@ -8,6 +8,8 @@ export's first line is the RSMo 115.157 notice and is skipped automatically),
 then emits one print-ready PDF per segment — PERSUADE / MOBILIZE / BANK /
 PROSPECT — with a one-page letter per voter via brand_letter.build_many().
 MONITOR rows are skipped (not a mail universe; see workflows/voter-targeting.md).
+Export the mail list with the dashboard's "Hide banked" toggle ON (the default) so
+voters who already cast a ballot don't receive a letter.
 
 Compliance: every page carries the verbatim "Paid for by Matt Grant for
 Congress." footer (brand_letter). Content is faithful to candidate/platform.md —

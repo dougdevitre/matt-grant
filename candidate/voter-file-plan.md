@@ -151,11 +151,14 @@ flowchart LR
   data only through the learning loop: walk lists carry a 1-5 canvass-ID column, IDs are
   entered on the dashboard and written back to voter rows. A statistical model is fitted
   only after canvass labels number in the thousands — never invented before.
-- **Segments** (the `workflows/voter-targeting.md` matrix, computed in one tested module):
-  **MOBILIZE** (supporters who need a turnout push), **PERSUADE** (habitual voters with
-  unknown lean), **BANK** (reliable supporters → light touch + ballot chase),
-  **MONITOR** (opposition — no contact budget). Ballot-chase tiers activate when the
-  early-vote feed arrives (`tactics/ballot-chase-program.md`).
+- **Segments** (the targeting matrix in the spirit of `workflows/voter-targeting.md`;
+  the canonical definitions live in code, `web/lib/voters/score.ts`): **MOBILIZE**
+  (supporters who need a turnout push), **PERSUADE** (habitual voters with unknown
+  lean), **BANK** (reliable supporters → light touch + ballot chase), **PROSPECT**
+  (unknown lean + unlikely voter — lit drops only), **MONITOR** (opposition/inactive —
+  no contact budget). Ballot-chase tiers activate when the
+  early-vote feed arrives (`tactics/ballot-chase-program.md`) — **shipped 2026-07-11**:
+  the live Daily Chase Report at `/dashboard/voters/chase` (Phase-5 note, §3).
 
 ## 5. District reconciliation — RESOLVED by the Phase 1 census (2026-07-10)
 
