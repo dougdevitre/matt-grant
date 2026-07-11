@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { districtRollup, filterVoters, votersToCsv, RSMO_NOTICE } from "./dashboard";
+import { districtRollup, excludeBanked, filterVoters, votersToCsv, RSMO_NOTICE } from "./dashboard";
 import type { StoredVoter, VoterAggRow } from "./storeTypes";
 
 // SYNTHETIC fixtures only — never real voter rows.
@@ -88,5 +88,19 @@ describe("votersToCsv", () => {
     expect(csv).toContain("'=cmd()");
     expect(csv).toContain("'+1 EVIL RD");
     expect(RSMO_NOTICE).toContain("political/election purposes only");
+  });
+});
+
+describe("excludeBanked", () => {
+  const voters = [voter({ voterId: "A" }), voter({ voterId: "B" }), voter({ voterId: "C" })];
+
+  it("drops banked ids when hiding (the chase doc's remove-from-lists rule)", () => {
+    const out = excludeBanked(voters, { B: "2026-07-21", Z: "" }, true);
+    expect(out.map((v) => v.voterId)).toEqual(["A", "C"]); // unknown id Z ignored
+  });
+
+  it("keeps everyone when the toggle is off, and is a no-op with no returns", () => {
+    expect(excludeBanked(voters, { B: "" }, false)).toHaveLength(3);
+    expect(excludeBanked(voters, {}, true)).toHaveLength(3);
   });
 });

@@ -133,6 +133,12 @@ flowchart LR
   also writes a voter-ID index (returns match by official voter id, GetItem only). The
   fitted model REMAINS deferred until canvass labels number in the thousands — no
   "model-assisted" claims before then.
+- **Banked-voter integration shipped 2026-07-11:** once returns import, the precinct
+  drill-down hides banked voters from lists BY DEFAULT (the chase doc's mark-banked-and-
+  remove-from-lists rule) — walk packets, call sheets, and every CSV export drop them
+  automatically, with a visible "Hide banked (N)" toggle for a deliberate include (voted
+  rows then carry a dated badge) and a reprint nudge for packets printed before the last
+  import.
 
 ## 4. Scoring — a transparent scorecard, honestly labeled
 

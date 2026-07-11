@@ -83,6 +83,27 @@ export async function importReturns(rows: ReturnRow[], by: string): Promise<Impo
   return { banked, duplicates, unmatched };
 }
 
+/** voterId → votedAt ("" when the county file carried no date) for ONE precinct
+ *  shard — the outreach lists use this to drop already-banked voters (the chase
+ *  doc's remove-from-lists rule). {} pre-returns / unconfigured. */
+export async function listReturnsByPrecinct(precinctKey: string): Promise<Record<string, string>> {
+  if (!dbConfigured || !precinctKey) return {};
+  try {
+    const items = await queryAllPages({
+      TableName: TABLE,
+      KeyConditionExpression: "PK = :pk",
+      ExpressionAttributeValues: { ":pk": PK.ballotReturns(precinctKey) },
+    });
+    const out: Record<string, string> = {};
+    for (const it of items) {
+      if (typeof it.SK === "string" && it.SK) out[it.SK] = typeof it.votedAt === "string" ? it.votedAt : "";
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
 /** Per-precinct banked counters for the chase board. [] pre-returns. */
 export async function listBallotAggs(): Promise<BallotAggRow[]> {
   if (!dbConfigured) return [];

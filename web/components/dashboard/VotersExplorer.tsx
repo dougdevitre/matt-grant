@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
-import { districtRollup, filterVoters, votersToCsv, type ExportKind, type VoterFilters } from "@/lib/voters/dashboard";
+import { districtRollup, excludeBanked, filterVoters, votersToCsv, type ExportKind, type VoterFilters } from "@/lib/voters/dashboard";
 import { SEGMENTS, type Segment } from "@/lib/voters/score";
 import { AGE_BANDS, ageBand } from "@/lib/voters/parse";
 import { allocateTurfs, cutTurfs } from "@/lib/voters/walk";
@@ -51,6 +51,11 @@ export function VotersExplorer({ aggs, captains = [] }: { aggs: VoterAggRow[]; c
   const [open, setOpen] = useState<string | null>(null);
   const [voters, setVoters] = useState<StoredVoter[]>([]);
   const [phones, setPhones] = useState<Record<string, string>>({});
+  // Banked ballots (voterId -> votedAt). Hidden from lists by DEFAULT — the
+  // chase doc's rule (mark banked AND remove from contact lists); the toggle
+  // makes a deliberate include possible.
+  const [banked, setBanked] = useState<Record<string, string>>({});
+  const [hideBanked, setHideBanked] = useState(true);
   const [filters, setFilters] = useState<VoterFilters>({});
   const [pending, startTransition] = useTransition();
   // Which print-only sheet set is mounted (walk packets XOR call sheet). The
@@ -78,6 +83,8 @@ export function VotersExplorer({ aggs, captains = [] }: { aggs: VoterAggRow[]; c
     setOpen(key);
     setVoters([]);
     setPhones({});
+    setBanked({});
+    setHideBanked(true);
     setFilters({});
     setPrintReq(null);
     setPendingIds({});
@@ -86,6 +93,7 @@ export function VotersExplorer({ aggs, captains = [] }: { aggs: VoterAggRow[]; c
       const res = await fetchPrecinctVoters(key);
       setVoters(res.voters);
       setPhones(res.phones);
+      setBanked(res.banked);
     });
   };
 
@@ -104,11 +112,19 @@ export function VotersExplorer({ aggs, captains = [] }: { aggs: VoterAggRow[]; c
         const fresh = await fetchPrecinctVoters(open);
         setVoters(fresh.voters);
         setPhones(fresh.phones);
+        setBanked(fresh.banked);
       }
     });
   };
 
-  const shown = useMemo(() => filterVoters(voters, filters), [voters, filters]);
+  const bankedShown = useMemo(
+    () => filterVoters(voters, filters).filter((v) => v.voterId in banked).length,
+    [voters, filters, banked],
+  );
+  const shown = useMemo(
+    () => excludeBanked(filterVoters(voters, filters), banked, hideBanked),
+    [voters, filters, banked, hideBanked],
+  );
   // Walk turfs over the FILTERED list (street-sorted 40-60 doors), captains round-robin.
   const turfs = useMemo(() => allocateTurfs(cutTurfs(shown), captains), [shown, captains]);
   const matchedCount = useMemo(() => shown.filter((v) => phones[v.voterId]).length, [shown, phones]);
@@ -220,7 +236,9 @@ export function VotersExplorer({ aggs, captains = [] }: { aggs: VoterAggRow[]; c
             <p className="font-display text-lg text-ink">{open.split("#")[1]}</p>
             <span className="font-mono text-[0.65rem] uppercase tracking-eyebrow text-slate">{open.split("#")[0]}</span>
             <span className="text-xs text-slate">
-              {pending ? "Loading voters…" : `${num(shown.length)} of ${num(voters.length)} voters`}
+              {pending
+                ? "Loading voters…"
+                : `${num(shown.length)} of ${num(voters.length)} voters${hideBanked && bankedShown ? ` · ${num(bankedShown)} banked hidden` : ""}`}
             </span>
             <span className="ml-auto flex flex-wrap gap-2">
               {(["walk", "mail", "call"] as const).map((k) => (
@@ -291,7 +309,20 @@ export function VotersExplorer({ aggs, captains = [] }: { aggs: VoterAggRow[]; c
               ))}
             </select>
             <input type="text" value={filters.street ?? ""} onChange={(e) => setFilters({ ...filters, street: e.target.value })} placeholder="Street contains…" className={`${chip} w-44`} aria-label="Street filter" />
+            {Object.keys(banked).length > 0 && (
+              <label className={`${chip} flex cursor-pointer items-center gap-1.5`}>
+                <input type="checkbox" checked={hideBanked} onChange={(e) => setHideBanked(e.target.checked)} />
+                Hide banked ({num(bankedShown)})
+              </label>
+            )}
           </div>
+          {Object.keys(banked).length > 0 && (
+            <p className="mt-2 text-[0.7rem] text-brick no-print">
+              {num(Object.keys(banked).length)} voter{Object.keys(banked).length === 1 ? " in this precinct has" : "s in this precinct have"} already
+              voted — lists and packets {hideBanked ? "exclude them" : "INCLUDE them (toggle re-checked hides them)"}. Packets printed before the
+              last returns import still include them; reprint.
+            </p>
+          )}
           {/* Phase 5 write-back: stage 1-5 IDs per row (from returned walk sheets),
               save once — s/segment recompute server-side and the shard re-fetches. */}
           <div className="mt-2 flex flex-wrap items-center gap-2 no-print">
@@ -323,7 +354,14 @@ export function VotersExplorer({ aggs, captains = [] }: { aggs: VoterAggRow[]; c
               <tbody className="divide-y divide-line">
                 {shown.slice(0, 500).map((v) => (
                   <tr key={v.voterId} className="hover:bg-paper">
-                    <td className="px-3 py-1.5 text-ink">{v.lastName}, {v.firstName}</td>
+                    <td className="px-3 py-1.5 text-ink">
+                      {v.lastName}, {v.firstName}
+                      {v.voterId in banked && (
+                        <span className="ml-1.5 rounded-sm bg-field/15 px-1 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-field">
+                          voted{banked[v.voterId] ? ` ${banked[v.voterId]}` : ""}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-3 py-1.5 text-slate">{v.address}{v.unit ? ` ${v.unit}` : ""}</td>
                     <td className="px-3 py-1.5 text-slate">{v.city}</td>
                     <td className="px-3 py-1.5 font-mono text-xs">{ageBand(v.yob)}</td>

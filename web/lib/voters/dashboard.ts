@@ -58,6 +58,21 @@ export function filterVoters(voters: StoredVoter[], f: VoterFilters): StoredVote
   );
 }
 
+/**
+ * Drop already-banked voters (ballot returned/voted early) from a list — the
+ * chase doc's rule: mark banked AND remove from contact lists. `hide` is the
+ * explorer's toggle (default ON); off keeps everyone so a deliberate include
+ * stays possible. Unknown ids in `banked` are ignored.
+ */
+export function excludeBanked(
+  voters: StoredVoter[],
+  banked: Record<string, string>,
+  hide: boolean,
+): StoredVoter[] {
+  if (!hide) return voters;
+  return voters.filter((v) => !(v.voterId in banked));
+}
+
 export type ExportKind = "walk" | "mail" | "call";
 
 // Column sets per channel. Walk lists carry the 1-5 canvass-ID column (blank —

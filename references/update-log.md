@@ -26,6 +26,32 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-11 -- v1.x -- Banked voters come off the outreach lists
+
+**Changes:**
+- [added] `listReturnsByPrecinct` (returnsStore) + `excludeBanked` (dashboard, pure,
+  tested): the precinct drill-down now loads the shard's banked ballots and HIDES them
+  from lists by default -- tactics/ballot-chase-program.md's rule (mark banked AND remove
+  from contact lists). Walk packets, call sheets, canvass entry, and every CSV export
+  operate on the filtered list automatically.
+- [added] "Hide banked (N)" toggle (default ON) for a deliberate include -- visible voted
+  rows carry a dated badge; a reprint nudge flags packets printed before the last import.
+- Pre-returns the behavior is byte-identical (empty banked map -> toggle hidden).
+
+**Verifications Performed:**
+- Unit: excludeBanked truth table (hide drops banked ids, unknown ids ignored, toggle-off
+  keeps all, empty map no-op). Full typecheck/lint/test/build pass.
+
+**Known Gaps:**
+- None new. Reprint detection is a nudge, not tracked state (no record of which packet
+  print preceded which import -- deliberate, no new stores).
+
+**Files Modified:**
+- web/lib/voters/{returnsStore,dashboard}.ts (+ test), web/app/dashboard/voters/actions.ts,
+  web/components/dashboard/VotersExplorer.tsx, candidate/voter-file-plan.md
+
+---
+
 ## 2026-07-11 -- v1.x -- GOTV war room: the final-stretch overview page
 
 **Changes:**
