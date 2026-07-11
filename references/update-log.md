@@ -26,6 +26,38 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-11 -- v1.x -- GOTV war room: the final-stretch overview page
+
+**Changes:**
+- [added] `/dashboard/war-room` (staff dashboard, Field section, manageTeam gate) -- one
+  read-only screen for the final stretch: countdowns to early voting (Jul 21) and the
+  primary (Aug 4), a live snapshot of every field system linking to its page (ballot
+  chase universe/banked/outstanding -- admin-only numbers; poll-shift fill rate with
+  uncovered flagged; volunteers/captains; signs verified vs pending), the GOTV Timeline
+  with done/current/upcoming markers, and the 4-3-2-1 contact schedule with the live row
+  highlighted in the final four days.
+- [added] `web/lib/gotv/warRoom.ts` (+ tests) -- pure countdown math; the timeline and
+  contact-schedule content is VERBATIM from workflows/gotv-plan.md (this page adds only
+  countdown status, never new advice). Sections degrade independently; aggregates only,
+  no voter PII on the page.
+- [updated] workflows/gotv-plan.md shipped pointer; sidebar gains "War room".
+
+**Verifications Performed:**
+- Unit: daysUntil (same-day/month-boundary/past), timeline window boundaries (4-days-out
+  start, election day), activeContactRound (null outside the final 4 days; complete 4..0
+  coverage). Dates cross-checked against candidate/poll-coverage-plan.md and the absentee
+  guide. Full typecheck/lint/test/build pass.
+
+**Known Gaps:**
+- None new -- the page reads existing stores only; sections show honest empty states
+  pre-ingest / pre-schedule.
+
+**Files Modified:**
+- web/lib/gotv/warRoom.ts (+ test), web/app/dashboard/war-room/page.tsx,
+  web/components/dashboard/DashSidebar.tsx, workflows/gotv-plan.md
+
+---
+
 ## 2026-07-11 -- v1.x -- Voter file Phase 5: canvass-ID write-back + ballot-chase board
 
 **Changes:**
