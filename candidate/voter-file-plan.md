@@ -84,8 +84,8 @@ flowchart LR
   capability) — district scoreboard + county mix from the rollups, sortable precinct
   table (persuade/mobilize/bank universes), per-precinct drill-down with segment/T/age/
   street filters, and RSMo-stamped walk/mail/call CSV exports (formula-injection-guarded;
-  call lists carry an empty phone column by design). Shows the ingest runbook until the
-  live load runs.
+  call lists carried an empty phone column until Phase 4's matching). Shows the ingest
+  runbook until the live load runs.
 - **Phase 3 shipped 2026-07-11:** the voter file now feeds the existing tactics. The 3D
   map (`/dashboard/map`) gains a "Voter file" mode — shade = heuristic primary propensity
   (§4 weights over the T histogram), height = the PERSUADE universe — enabled only once
@@ -94,6 +94,21 @@ flowchart LR
   CSV fields) from the same join. The Signs tool auto-fills a blank `propensity` from the
   voter file when a row's precinct matches — an explicitly typed value always wins. All
   three surfaces label the score heuristic; nothing renders pre-ingest.
+- **Phase 4 shipped 2026-07-11:** the outreach generators. From a precinct drill-down the
+  explorer now prints **walk packets** — the filtered list cut into street-sorted turfs of
+  ~40-60 doors (the targeting doc's shift size), round-robined across the active captain
+  roster, each page carrying the 1-5 canvass-ID column (**scale, defined once in
+  `web/lib/voters/walk.ts`:** 1 Strong Grant · 2 Lean Grant · 3 Undecided · 4 Lean other ·
+  5 Strong other — Phase 5's write-back uses the same numbers), not-home boxes, and the
+  RSMo notice. **Matched phones:** volunteers/donors who gave the campaign their number
+  are matched to voters by full name + ZIP5 (ambiguous keys dropped); matches fill the
+  call CSV's phone column and a printable **manual-dial call sheet** — texting stays
+  consent-ledger-gated, never voter-file-sourced. **Mail merge:**
+  `tools/pdf-letterhead/voters_mailing.py` turns a mail-list export into one letterhead
+  PDF per segment (PERSUADE persuasion piece / MOBILIZE turnout plan / BANK
+  early-vote-and-bring-a-neighbor / PROSPECT introduction; MONITOR skipped), every page
+  carrying the verbatim disclaimer. Airtable Canvass Turf counts remain a manual entry
+  (no write path from here) — noted as a gap.
 
 ## 4. Scoring — a transparent scorecard, honestly labeled
 

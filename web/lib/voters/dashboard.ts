@@ -75,14 +75,16 @@ const HEADERS: Record<ExportKind, string[]> = {
 // file, but exports get opened in Excel constantly — neutralize defensively.
 const safeCell = (s: string) => (/^[=+\-@]/.test(s) ? `'${s}` : s);
 
-export function votersToCsv(voters: StoredVoter[], kind: ExportKind): string {
+// `phones` (voterId → matched phone from campaign records) fills the call
+// list's phone column for matched voters ONLY — manual dial, never texting.
+export function votersToCsv(voters: StoredVoter[], kind: ExportKind, phones: Record<string, string> = {}): string {
   const name = (v: StoredVoter) => safeCell(`${v.lastName}, ${v.firstName}`);
   const rows: string[][] = voters.map((v) => {
     const band = ageBand(v.yob);
     if (kind === "walk")
       return [v.voterId, name(v), safeCell(v.address), v.unit ?? "", v.city, v.zip, band, String(v.t), v.segment, "", "", ""];
     if (kind === "mail") return [v.voterId, name(v), safeCell([v.address, v.unit].filter(Boolean).join(" ")), v.city, v.zip, v.segment, band];
-    return [v.voterId, name(v), v.city, v.zip, v.segment, String(v.t), "", ""];
+    return [v.voterId, name(v), v.city, v.zip, v.segment, String(v.t), safeCell(phones[v.voterId] ?? ""), ""];
   });
   // Notice line first (single header cell), then the real column row —
   // spreadsheet apps show it as a banner; toCsv keeps every cell formula-safe.

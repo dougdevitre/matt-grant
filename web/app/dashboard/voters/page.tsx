@@ -4,6 +4,7 @@ import { VotersExplorer } from "@/components/dashboard/VotersExplorer";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { dbConfigured } from "@/lib/db";
+import { listActiveCaptains } from "@/lib/volunteers/captains";
 import { listVoterAggs, latestIngestRun } from "@/lib/voters/store";
 import { RSMO_NOTICE } from "@/lib/voters/dashboard";
 
@@ -17,7 +18,7 @@ export default async function VotersPage() {
   const { role } = await staffGate();
   if (!can(role, "viewVoterFile")) redirect("/dashboard?denied=voters");
 
-  const [aggs, run] = await Promise.all([listVoterAggs(), latestIngestRun()]);
+  const [aggs, run, captains] = await Promise.all([listVoterAggs(), latestIngestRun(), listActiveCaptains()]);
   const ingestedAt = run && typeof run.SK === "string" ? run.SK.slice(0, 10) : null;
 
   return (
@@ -32,7 +33,8 @@ export default async function VotersPage() {
         steps={[
           "The scoreboard and precinct table come from per-precinct rollups of the official MO-02 voter file (577,366 registered voters, six counties). T is turnout propensity 0-5 from participation recency; segments follow the targeting matrix in workflows/voter-targeting.md.",
           "Support is a labeled PROXY (party is blank for ~88% of Missouri rows) — BANK/MOBILIZE grow as canvass IDs replace it (Phase 5). PERSUADE is honestly big: habitual voters with unknown lean are the doors-and-mail universe.",
-          "Open a precinct to browse its voters (filters: segment, T, age band, street) and export RSMo-stamped walk / mail / call lists. Call lists have NO phone column data — the file carries no phones; SMS is never sourced from this data.",
+          "Open a precinct to browse its voters (filters: segment, T, age band, street), export RSMo-stamped walk / mail / call lists, and print street-sorted walk packets (~40-60 doors per turf, captain-allocated) with the 1-5 canvass-ID column.",
+          "The file carries NO phones. Call lists and call sheets show a phone only when a volunteer/donor record matches by name + ZIP — those numbers are for MANUAL DIAL only; SMS is never sourced from this data.",
           "Handle exports like donor lists: no forwarding, no personal devices, delete when stale (candidate/voter-file-plan.md §2).",
         ]}
       />
@@ -61,7 +63,7 @@ export default async function VotersPage() {
           {ingestedAt && (
             <p className="mt-2 text-[0.7rem] text-slate">Last ingest: {ingestedAt} (manifest on file with source hashes).</p>
           )}
-          <VotersExplorer aggs={aggs} />
+          <VotersExplorer aggs={aggs} captains={captains.map((c) => ({ id: c.email, name: c.name || c.email }))} />
         </>
       )}
     </>
