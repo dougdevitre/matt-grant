@@ -1,17 +1,21 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { districtRollup, filterVoters, votersToCsv, type ExportKind, type VoterFilters } from "@/lib/voters/dashboard";
 import { SEGMENTS, type Segment } from "@/lib/voters/score";
 import { AGE_BANDS, ageBand } from "@/lib/voters/parse";
+import { allocateTurfs, cutTurfs } from "@/lib/voters/walk";
 import type { StoredVoter, VoterAggRow } from "@/lib/voters/storeTypes";
+import { CallSheetPages, WalkPacketSheets } from "@/components/dashboard/VoterPacketSheets";
 import { fetchPrecinctVoters } from "@/app/dashboard/voters/actions";
 
 // The voter command center (voter-file-plan.md Phase 2): district scoreboard +
 // county mix from the VOTERAGG rollups, a sortable precinct table, and a
 // per-precinct drill-down (voters fetched on demand — one bounded shard at a
 // time) with filters and RSMo-stamped CSV exports built client-side. Aggregates
-// arrive as a server prop and are consumed directly.
+// arrive as a server prop and are consumed directly. Phase 4 adds printable
+// walk packets (street-sorted 40-60-door turfs, captain-allocated) and
+// manual-dial call sheets for phones matched from campaign records.
 
 const num = (n: number) => n.toLocaleString("en-US");
 const chip = "rounded-sm border border-line bg-white px-2 py-1 text-xs text-ink";
@@ -34,14 +38,23 @@ function download(filename: string, csv: string) {
   URL.revokeObjectURL(url);
 }
 
-export function VotersExplorer({ aggs }: { aggs: VoterAggRow[] }) {
+export function VotersExplorer({ aggs, captains = [] }: { aggs: VoterAggRow[]; captains?: { id: string; name: string }[] }) {
   const rollup = useMemo(() => districtRollup(aggs), [aggs]);
   const [countyFilter, setCountyFilter] = useState("");
   const [sortBy, setSortBy] = useState<"count" | "PERSUADE" | "MOBILIZE" | "BANK">("count");
   const [open, setOpen] = useState<string | null>(null);
   const [voters, setVoters] = useState<StoredVoter[]>([]);
+  const [phones, setPhones] = useState<Record<string, string>>({});
   const [filters, setFilters] = useState<VoterFilters>({});
   const [pending, startTransition] = useTransition();
+  // Which print-only sheet set is mounted (walk packets XOR call sheet). The
+  // token makes a repeat click on the same button re-open the print dialog;
+  // the effect fires only after React commits the selected sheets.
+  const [printReq, setPrintReq] = useState<{ kind: "walk" | "call"; token: number } | null>(null);
+  useEffect(() => {
+    if (printReq) window.print();
+  }, [printReq]);
+  const requestPrint = (kind: "walk" | "call") => setPrintReq((p) => ({ kind, token: (p?.token ?? 0) + 1 }));
 
   const precincts = useMemo(() => {
     const rows = countyFilter ? aggs.filter((a) => a.county === countyFilter) : aggs;
@@ -53,16 +66,23 @@ export function VotersExplorer({ aggs }: { aggs: VoterAggRow[] }) {
   const drill = (key: string) => {
     setOpen(key);
     setVoters([]);
+    setPhones({});
     setFilters({});
+    setPrintReq(null);
     startTransition(async () => {
-      setVoters(await fetchPrecinctVoters(key));
+      const res = await fetchPrecinctVoters(key);
+      setVoters(res.voters);
+      setPhones(res.phones);
     });
   };
 
   const shown = useMemo(() => filterVoters(voters, filters), [voters, filters]);
+  // Walk turfs over the FILTERED list (street-sorted 40-60 doors), captains round-robin.
+  const turfs = useMemo(() => allocateTurfs(cutTurfs(shown), captains), [shown, captains]);
+  const matchedCount = useMemo(() => shown.filter((v) => phones[v.voterId]).length, [shown, phones]);
   const exportCsv = (kind: ExportKind) => {
     if (!open) return;
-    download(`${kind}-list-${open.replace(/[^a-z0-9]+/gi, "-")}.csv`, votersToCsv(shown, kind));
+    download(`${kind}-list-${open.replace(/[^a-z0-9]+/gi, "-")}.csv`, votersToCsv(shown, kind, phones));
   };
 
   return (
@@ -145,14 +165,34 @@ export function VotersExplorer({ aggs }: { aggs: VoterAggRow[] }) {
             <span className="text-xs text-slate">
               {pending ? "Loading voters…" : `${num(shown.length)} of ${num(voters.length)} voters`}
             </span>
-            <span className="ml-auto flex gap-2">
+            <span className="ml-auto flex flex-wrap gap-2">
               {(["walk", "mail", "call"] as const).map((k) => (
                 <button key={k} onClick={() => exportCsv(k)} disabled={pending || !shown.length} className="btn-ghost px-3 py-1 text-xs disabled:opacity-50">
                   Export {k} list
                 </button>
               ))}
+              <button
+                onClick={() => requestPrint("walk")}
+                disabled={pending || !turfs.length}
+                className="no-print btn-ghost px-3 py-1 text-xs disabled:opacity-50"
+              >
+                Print walk packets ({turfs.length})
+              </button>
+              <button
+                onClick={() => requestPrint("call")}
+                disabled={pending || !matchedCount}
+                className="no-print btn-ghost px-3 py-1 text-xs disabled:opacity-50"
+                title={matchedCount ? undefined : "No phones matched from campaign records for this list"}
+              >
+                Print call sheet ({matchedCount})
+              </button>
             </span>
           </div>
+          <p className="mt-2 text-[0.7rem] text-slate">
+            Walk packets cut the filtered list into street-sorted turfs of ~40-60 doors
+            {captains.length ? ` and round-robin them across ${captains.length} active captains` : " (no active captains — walker line left blank)"}.
+            Call sheet covers the {matchedCount} voters with a phone matched from campaign records (volunteers/donors) — manual dial only, never texting.
+          </p>
           <div className="mt-3 flex flex-wrap gap-2 no-print">
             <select value={filters.segment ?? ""} onChange={(e) => setFilters({ ...filters, segment: e.target.value as Segment | "" })} className={chip} aria-label="Segment">
               <option value="">All segments</option>
@@ -201,6 +241,13 @@ export function VotersExplorer({ aggs }: { aggs: VoterAggRow[] }) {
               <p className="px-3 py-2 text-[0.7rem] text-slate">Showing the first 500 on screen — exports include all {num(shown.length)}.</p>
             )}
           </div>
+          {/* Print-only sheets — exactly one set mounted so window.print() is unambiguous. */}
+          {printReq?.kind === "walk" && (
+            <WalkPacketSheets turfs={turfs} precinctLabel={open.split("#")[1] ?? open} county={open.split("#")[0] ?? ""} />
+          )}
+          {printReq?.kind === "call" && (
+            <CallSheetPages voters={shown} phones={phones} precinctLabel={open.split("#")[1] ?? open} county={open.split("#")[0] ?? ""} />
+          )}
         </div>
       )}
     </div>

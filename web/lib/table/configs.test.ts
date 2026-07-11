@@ -14,7 +14,7 @@ import type { InfluencerRow } from "@/lib/influencers/airtable";
 import type { TableConfig } from "./types";
 
 const donor = (over: Partial<DonorRow>): DonorRow => ({
-  id: "d", name: "D", email: "d@x.com", city: "Kirkwood", employer: "Acme", occupation: "Engineer",
+  id: "d", name: "D", email: "d@x.com", phone: null, zip: null, city: "Kirkwood", employer: "Acme", occupation: "Engineer",
   totalCents: 5000, maxPerElectionCents: 5000, thankedAt: null, ...over,
 });
 const task = (over: Partial<TaskRow>): TaskRow => ({
