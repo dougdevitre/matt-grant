@@ -26,6 +26,45 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-11 -- v1.x -- Voter file Phase 4: walk packets, matched-phone call sheets, voter mail merge
+
+**Changes:**
+- [added] `web/lib/voters/walk.ts` -- pure walk-turf cutting: households (address+unit+zip),
+  street-sorted walking order, ~40-60-door turfs (workflows/voter-targeting.md shift size),
+  round-robin captain allocation. Defines the 1-5 canvass-ID scale ONCE (1 Strong Grant ...
+  5 Strong other) so the printed key, CSV column, and Phase 5 write-back can't drift.
+- [added] `web/lib/voters/phones.ts` -- conservative phone matching (full name + ZIP5,
+  ambiguous keys dropped) against campaign records only (volunteers + donors who gave us
+  their number). Matches fill the call CSV phone column and a printable MANUAL-DIAL call
+  sheet; texting stays consent-ledger-gated, never voter-file-sourced (TCPA).
+- [added] Print-only sheets on the voter drill-down (`VoterPacketSheets.tsx`): walk packets
+  (one page-set per turf, canvass-ID + not-home columns, RSMo notice on every page) and the
+  matched-phone call sheet. Internal ops docs -- no public disclaimer, per convention.
+- [added] `tools/pdf-letterhead/voters_mailing.py` -- mail merge: a dashboard mail-list
+  export becomes one letterhead PDF per segment (PERSUADE/MOBILIZE/BANK/PROSPECT; MONITOR
+  skipped) with the verbatim "Paid for by Matt Grant for Congress." on every page.
+- [updated] DonorRow now carries phone/zip (already stored by the WinRed webhook) for the
+  matching path; voters page HowTo and `candidate/voter-file-plan.md` Phase-4 note.
+
+**Verifications Performed:**
+- Unit tests: household grouping/street sort, turf-size banding, doors-vs-voters counting,
+  captain round-robin; phone match truth table (zip mismatch, missing phone, ambiguity,
+  same-phone confirmation). Mail merge smoke-tested on a SYNTHETIC 5-row CSV -- 4 segment
+  PDFs, MONITOR skipped, RSMo banner line handled, disclaimer verified on the rendered PDF.
+  Election dates in the letters re-checked against candidate/absentee-voting-guide.md.
+
+**Known Gaps:**
+- Airtable Canvass Turf counts stay manual (no write path). Phone-append vendor remains an
+  open user decision -- matching covers only people already in campaign records.
+
+**Files Modified:**
+- web/lib/voters/{walk,phones}.ts (+ tests), web/components/dashboard/VoterPacketSheets.tsx,
+  web/components/dashboard/VotersExplorer.tsx, web/app/dashboard/voters/{page,actions}.tsx,
+  web/lib/voters/dashboard.ts, web/lib/queries.ts, web/lib/table/configs.test.ts,
+  tools/pdf-letterhead/voters_mailing.py, candidate/voter-file-plan.md
+
+---
+
 ## 2026-07-11 -- v1.x -- Voter file Phase 3: real voter numbers on the map, Targets, and Signs
 
 **Changes:**

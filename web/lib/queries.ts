@@ -54,6 +54,10 @@ export type DonorRow = {
   id: string;
   name: string;
   email: string | null;
+  // phone/zip captured from WinRed (lib/donors.ts) — used for matched-phone
+  // CALL sheets only (voter-file-plan.md §6); texting stays consent-gated.
+  phone: string | null;
+  zip: string | null;
   city: string | null;
   employer: string | null;
   occupation: string | null;
@@ -172,6 +176,8 @@ export async function getDonors(): Promise<{ connected: boolean; rows: DonorRow[
         id: String(d.SK),
         name: String(d.name),
         email: (d.email as string) ?? null,
+        phone: (d.phone as string) ?? null,
+        zip: (d.zip as string) ?? null,
         city: (d.city as string) ?? null,
         employer: (d.employer as string) ?? null,
         occupation: (d.occupation as string) ?? null,
