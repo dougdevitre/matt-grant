@@ -71,7 +71,19 @@ export const PK = {
   // Vendor phone-append rows (voter-file-plan.md §6): SK = voter id, or
   // "nz:<name>|<zip5>" for name+zip-keyed rows. Manual-dial CALL lists only — never SMS.
   voterPhones: "VOTERPHONE",
+  // Voter-ID → precinct/segment index (Phase 5): sharded so 577k ingest writes
+  // don't hit one partition. Pass voterIdxShard(voterId) — the shard derives
+  // from the id itself, so access is GetItem ONLY; never scanned.
+  voterIdx: (shard: string) => `VOTERIDX#${shard}`,
+  // Ballot-chase returns (Phase 5): per-precinct returned-ballot rows (SK =
+  // voter id, conditional put = idempotent daily imports) + the BALLOTAGG
+  // per-precinct banked counters the chase board reads (SK = precinctKey).
+  ballotReturns: (precinctKey: string) => `BALLOTRETURN#${precinctKey}`,
+  ballotAgg: "BALLOTAGG",
 } as const;
+
+/** Shard for the voter-ID index — the id's last two chars (~100 shards). */
+export const voterIdxShard = (voterId: string) => voterId.slice(-2);
 
 export function newId(): string {
   return crypto.randomUUID();

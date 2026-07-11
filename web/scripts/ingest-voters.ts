@@ -21,19 +21,10 @@ import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import * as XLSX from "xlsx";
-import { parseVoterRow, ageBand, COLUMNS } from "../lib/voters/parse";
-import { scoreVoter, SEGMENTS, type ScoredVoter } from "../lib/voters/score";
+import { parseVoterRow, COLUMNS } from "../lib/voters/parse";
+import { scoreVoter, type ScoredVoter } from "../lib/voters/score";
 import { precinctKey } from "../lib/voters/crosswalk";
-
-type Agg = {
-  count: number;
-  active: number;
-  t: number[]; // histogram 0-5
-  seg: Record<string, number>;
-  age: Record<string, number>;
-  newReg: number;
-  county: string;
-};
+import { accumulate, newAgg, type VoterAgg } from "../lib/voters/aggregate";
 
 const args = process.argv.slice(2);
 const flag = (name: string) => args.includes(name);
@@ -50,16 +41,6 @@ if (!dir) {
   process.exit(1);
 }
 
-const newAgg = (county: string): Agg => ({
-  count: 0,
-  active: 0,
-  t: [0, 0, 0, 0, 0, 0],
-  seg: Object.fromEntries(SEGMENTS.map((s) => [s, 0])),
-  age: {},
-  newReg: 0,
-  county,
-});
-
 async function main() {
   const files = readdirSync(dir!)
     .filter((f) => /\.xlsx$/i.test(f))
@@ -69,7 +50,7 @@ async function main() {
     process.exit(1);
   }
 
-  const aggs = new Map<string, Agg>();
+  const aggs = new Map<string, VoterAgg>();
   const county = new Map<string, number>();
   const cd = new Map<string, number>();
   const manifestFiles: { file: string; sha256: string; rows: number }[] = [];
@@ -83,7 +64,7 @@ async function main() {
   let flush: (() => Promise<void>) | null = null;
   if (!dryRun) {
     const { batchWritePut } = await import("../lib/integrations/batchWrite");
-    const { PK } = await import("../lib/db");
+    const { PK, voterIdxShard } = await import("../lib/db");
     const buf: Record<string, unknown>[] = [];
     const CONCURRENCY = 8;
     const pending: Promise<void>[] = [];
@@ -92,6 +73,16 @@ async function main() {
       if (items.length) await batchWritePut(items);
     };
     write = (v, pk) => {
+      // Slim ID→precinct index (Phase 5): lets the ballot-returns import find a
+      // voter's shard/segment from the county file's voter id alone. Sharded by
+      // the id's tail so the 577k index writes spread across ~100 partitions.
+      buf.push({
+        PK: PK.voterIdx(voterIdxShard(v.voterId)),
+        SK: v.voterId,
+        precinctKey: pk,
+        segment: v.segment,
+        t: v.t,
+      });
       buf.push({
         PK: PK.voterShard(pk),
         SK: v.voterId,
@@ -153,15 +144,8 @@ async function main() {
       if (v.party) partyFilled++;
       const pk = precinctKey(v.county, v.precinctName);
       const a = aggs.get(pk) ?? newAgg(v.county);
-      for (const agg of [a, districtTotals]) {
-        agg.count++;
-        if (v.active) agg.active++;
-        agg.t[v.t]++;
-        agg.seg[v.segment]++;
-        const band = ageBand(v.yob);
-        agg.age[band] = (agg.age[band] ?? 0) + 1;
-        if (v.newRegistrant) agg.newReg++;
-      }
+      accumulate(a, v);
+      accumulate(districtTotals, v);
       aggs.set(pk, a);
       write?.(v, pk);
     }
@@ -217,7 +201,7 @@ async function main() {
       },
     }),
   );
-  console.log(`\nWROTE ${total} voter rows, ${aggItems.length} precinct aggregates, 1 manifest.`);
+  console.log(`\nWROTE ${total} voter rows (+ ${total} id-index rows), ${aggItems.length} precinct aggregates, 1 manifest.`);
 }
 
 main().catch((e) => {

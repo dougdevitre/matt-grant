@@ -4,6 +4,12 @@ Ballot chasing is the systematic process of tracking which supporters have voted
 
 ---
 
+> **Shipped 2026-07-11:** the Daily Chase Report below is computed live at
+> `/dashboard/voters/chase` (admin-only). Paste the county's daily early-vote/absentee
+> returns file there (voter ids; re-imports never double-count) — tier universes come
+> from the scored voter file and move as canvass IDs land. See
+> `candidate/voter-file-plan.md` Phase 5.
+
 ## Program Overview
 
 A ballot chase program has three phases:
