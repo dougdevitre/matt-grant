@@ -11,9 +11,9 @@
 import type { ExpressionSpecification } from "maplibre-gl";
 import { BRAND, TIER_COLOR, TURNOUT_RAMP, TURNOUT_LEGEND_GRADIENT } from "@/lib/viz/palette";
 
-export type MapMode = "turnout" | "tier" | "gotv";
+export type MapMode = "turnout" | "tier" | "gotv" | "voter";
 
-export type ModeStats = { maxExpected: number; maxGotv: number };
+export type ModeStats = { maxExpected: number; maxGotv: number; maxPersuade: number };
 
 // Turnout mode's tallest column is ~40% × 130 = 5200; scale the other modes'
 // tallest to a comparable ceiling so switching modes keeps a familiar skyline.
@@ -25,16 +25,26 @@ const turnoutValue: ExpressionSpecification = ["coalesce", ["get", "turnout"], 0
 export function modeStats(features: GeoJSON.Feature[]): ModeStats {
   let maxExpected = 0;
   let maxGotv = 0;
+  let maxPersuade = 0;
   for (const f of features) {
-    const p = (f.properties ?? {}) as { expected?: number; gotv?: number };
+    const p = (f.properties ?? {}) as { expected?: number; gotv?: number; persuade?: number };
     if (typeof p.expected === "number" && p.expected > maxExpected) maxExpected = p.expected;
     if (typeof p.gotv === "number" && p.gotv > maxGotv) maxGotv = p.gotv;
+    if (typeof p.persuade === "number" && p.persuade > maxPersuade) maxPersuade = p.persuade;
   }
-  return { maxExpected, maxGotv };
+  return { maxExpected, maxGotv, maxPersuade };
 }
 
 /** fill-extrusion-color for the given mode. */
 export function colorExpr(mode: MapMode, stats: ModeStats): ExpressionSpecification {
+  if (mode === "voter") {
+    // Heuristic primary propensity from the ingested voter file (0..1) —
+    // voter-file-plan.md §4/Phase 3. Unmatched precincts coalesce to 0 (palest).
+    return [
+      "interpolate", ["linear"], ["coalesce", ["get", "vPropensity"], 0],
+      0.1, TURNOUT_RAMP[0], 0.3, TURNOUT_RAMP[1], 0.5, TURNOUT_RAMP[2], 0.7, TURNOUT_RAMP[3],
+    ];
+  }
   if (mode === "tier") {
     return [
       "match",
@@ -63,6 +73,11 @@ export function colorExpr(mode: MapMode, stats: ModeStats): ExpressionSpecificat
 
 /** fill-extrusion-height for the given mode. */
 export function heightExpr(mode: MapMode, stats: ModeStats): ExpressionSpecification {
+  if (mode === "voter") {
+    // Height = the PERSUADE universe (habitual voters, unknown lean) — where
+    // doors and mail go; color carries the propensity shade.
+    return ["*", ["coalesce", ["get", "persuade"], 0], HEIGHT_MAX / Math.max(1, stats.maxPersuade)];
+  }
   if (mode === "tier") {
     // Height = expected ballots (what tiering ranks on) so tall = votes at stake.
     return ["*", ["coalesce", ["get", "expected"], 0], HEIGHT_MAX / Math.max(1, stats.maxExpected)];
@@ -79,6 +94,15 @@ export type ModeLegend =
 
 /** Legend spec kept in lockstep with the paint expressions above. */
 export function legendFor(mode: MapMode, stats: ModeStats): ModeLegend {
+  if (mode === "voter") {
+    return {
+      kind: "gradient",
+      gradient: TURNOUT_LEGEND_GRADIENT,
+      minLabel: "~10%",
+      maxLabel: "~70%+",
+      note: "Shade = heuristic primary propensity from the voter file; height = PERSUADE universe (habitual voters, unknown lean). Labeled heuristic — see voter-file-plan.md §4.",
+    };
+  }
   if (mode === "tier") {
     return {
       kind: "swatches",

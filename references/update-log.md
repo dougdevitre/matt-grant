@@ -26,6 +26,43 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-11 -- v1.x -- Voter file Phase 3: real voter numbers on the map, Targets, and Signs
+
+**Changes:**
+- [added] `web/lib/voters/enrich.ts` -- pure enrichment of the VOTERAGG rollups: heuristic
+  expected-primary voters per precinct (transparent recency weights over the T histogram,
+  labeled heuristic per voter-file-plan.md §4), primary propensity 0..1, and PERSUADE/
+  MOBILIZE/BANK universe counts; joined onto map/Targets precinct names via the ingest
+  crosswalk (split precincts summed; unmatched labels reported, never dropped).
+- [added] 3D map "Voter file" mode (`/dashboard/map`): shade = primary propensity, height
+  = PERSUADE universe. The mode stays disabled until ingested aggregates actually join
+  onto live precinct features -- no fake data pre-ingest.
+- [added] Targets page Persuade + primary-propensity columns (screen + CSV export), joined
+  server-side from the same rollups; footnote labels the heuristic and points to the plan.
+- [added] Signs tool propensity autofill: a location's blank `propensity` fills from the
+  voter file when its `precinct` column matches (normalized label); an explicitly typed
+  value always wins. Pre-ingest the scorer's neutral default applies, as before.
+- [updated] `candidate/voter-file-plan.md` §3 Phase-3 shipped note.
+
+**Verifications Performed:**
+- Unit tests: enrichment math (weights x T histogram), split-precinct summing, label
+  lookup sums-before-ratio, autofill never overwrites an explicit value; map paint
+  expressions for the new mode (color reads vPropensity, height scales persuade, legend
+  declares the heuristic). Full typecheck/lint/test/build pass.
+
+**Known Gaps:**
+- All three surfaces light up only after the live ingest runs (user-side runbook in
+  docs/VOTER-FILE.md); scores remain the §4 heuristic until Phase 5 canvass labels exist.
+
+**Files Modified:**
+- web/lib/voters/enrich.ts (+ test), web/app/api/geo/precincts/route.ts,
+  web/lib/viz/precinctPaint.ts (+ test), web/components/MapExplorer.tsx,
+  web/app/dashboard/targets/page.tsx, web/components/dashboard/TargetTable.tsx,
+  web/app/dashboard/signs/page.tsx, web/components/dashboard/SignPlacementTool.tsx,
+  candidate/voter-file-plan.md
+
+---
+
 ## 2026-07-10 -- v1.x -- Voter file Phase 2: the /dashboard/voters command center
 
 **Changes:**
