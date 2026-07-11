@@ -6,6 +6,7 @@
 // voter's most recent election), not a fitted model — Phase 5's canvass labels
 // are what eventually earn a real one.
 import { buildCrosswalk, normalizePrecinct } from "./crosswalk";
+import type { BallotAggRow } from "./chase";
 import type { VoterAggRow } from "./storeTypes";
 
 // P(votes in the Aug 2026 primary | T score) — heuristic recency weights.
@@ -20,6 +21,7 @@ export type PrecinctEnrichment = {
   persuade: number;
   mobilize: number;
   bank: number;
+  banked: number; // ballots already returned (chase imports); 0 pre-returns
 };
 
 export function precinctEnrichment(a: VoterAggRow): PrecinctEnrichment {
@@ -31,6 +33,7 @@ export function precinctEnrichment(a: VoterAggRow): PrecinctEnrichment {
     persuade: a.seg.PERSUADE ?? 0,
     mobilize: a.seg.MOBILIZE ?? 0,
     bank: a.seg.BANK ?? 0,
+    banked: 0, // joined from BALLOTAGG in enrichmentByMapName
   };
 }
 
@@ -46,15 +49,20 @@ export type EnrichmentJoin = {
  * ingest reports on — unmatched labels are returned, never silently dropped.
  * Multiple aggregate rows matching one map name (split precincts) are summed.
  */
-export function enrichmentByMapName(aggs: VoterAggRow[], mapNames: string[]): EnrichmentJoin {
+export function enrichmentByMapName(
+  aggs: VoterAggRow[],
+  mapNames: string[],
+  ballotAggs: BallotAggRow[] = [],
+): EnrichmentJoin {
   const labels = aggs.map((a) => a.precinctKey.split("#")[1] ?? "");
   const { matched, misses, hitRate } = buildCrosswalk(labels, mapNames);
+  const bankedByKey = new Map(ballotAggs.map((b) => [b.precinctKey, b.banked]));
   const byName = new Map<string, PrecinctEnrichment>();
   for (const a of aggs) {
     const label = normalizePrecinct(a.precinctKey.split("#")[1] ?? "");
     const mapName = matched.get(label);
     if (!mapName) continue;
-    const e = precinctEnrichment(a);
+    const e = { ...precinctEnrichment(a), banked: bankedByKey.get(a.precinctKey) ?? 0 };
     const prev = byName.get(mapName);
     byName.set(
       mapName,
@@ -66,6 +74,7 @@ export function enrichmentByMapName(aggs: VoterAggRow[], mapNames: string[]): En
             persuade: prev.persuade + e.persuade,
             mobilize: prev.mobilize + e.mobilize,
             bank: prev.bank + e.bank,
+            banked: prev.banked + e.banked,
           }
         : e,
     );

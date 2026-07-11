@@ -43,7 +43,21 @@ describe("enrichmentByMapName", () => {
     expect(q.expectedPrimary).toBe(60 + 45); // 100×0.6 + 50×0.9
     expect(q.vPropensity).toBeCloseTo(105 / 150);
     expect(q.persuade).toBe(90);
+    expect(q.banked).toBe(0); // no returns passed
     expect(res.misses).toContain("mystery 9");
+  });
+
+  it("joins BALLOTAGG banked counts and sums them across split precincts", () => {
+    const res = enrichmentByMapName(
+      [agg(), agg({ precinctKey: "st louis#queeny 12 split 2", count: 50 })],
+      ["Queeny 12"],
+      [
+        { precinctKey: "st louis#queeny 12", banked: 7, tiers: { "1": 2, "2": 1, "3": 1, "4": 3 } },
+        { precinctKey: "st louis#queeny 12 split 2", banked: 3, tiers: { "1": 1, "2": 0, "3": 0, "4": 2 } },
+        { precinctKey: "st louis#elsewhere 1", banked: 99, tiers: { "1": 0, "2": 0, "3": 0, "4": 0 } },
+      ],
+    );
+    expect(res.byName.get("Queeny 12")!.banked).toBe(10); // summed, unmatched row ignored
   });
 });
 

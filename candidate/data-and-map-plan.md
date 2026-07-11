@@ -16,7 +16,9 @@ loadable as GeoJSON. Sample data ships in `web/lib/mapData.ts`; this is how to m
 > county turnout, live schools) are unchanged and still gate what the map can honestly show.
 > **Shipped July 11, 2026:** a "Voter file" precinct mode (shade = heuristic primary
 > propensity from the ingested voter file, height = PERSUADE universe — enabled once the
-> ingest runs; see `voter-file-plan.md` Phase 3).
+> ingest runs; see `voter-file-plan.md` Phase 3) and an "Early vote" mode (shade =
+> ballots returned as a share of the expected primary vote, height = ballots banked —
+> enabled once chase returns import; the animating time-slider remains future).
 
 > **Coverage page geometry shipped July 10, 2026:** the Team coverage page
 > (`/dashboard/coverage`) now draws its regions on a real map — Geo Hierarchy region names join

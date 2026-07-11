@@ -11,20 +11,20 @@ const feat = (props: Record<string, unknown>): GeoJSON.Feature => ({
 describe("modeStats", () => {
   it("finds max expected/gotv/persuade across features, ignoring missing values", () => {
     const stats = modeStats([
-      feat({ expected: 900, gotv: 1200, persuade: 800 }),
+      feat({ expected: 900, gotv: 1200, persuade: 800, banked: 320 }),
       feat({ expected: 1500, persuade: 2400 }),
       feat({}),
     ]);
-    expect(stats).toEqual({ maxExpected: 1500, maxGotv: 1200, maxPersuade: 2400 });
+    expect(stats).toEqual({ maxExpected: 1500, maxGotv: 1200, maxPersuade: 2400, maxBanked: 320 });
   });
 
   it("is all-zero on empty input (expressions still guard with max(1, …))", () => {
-    expect(modeStats([])).toEqual({ maxExpected: 0, maxGotv: 0, maxPersuade: 0 });
+    expect(modeStats([])).toEqual({ maxExpected: 0, maxGotv: 0, maxPersuade: 0, maxBanked: 0 });
   });
 });
 
 describe("colorExpr", () => {
-  const stats = { maxExpected: 1500, maxGotv: 1200, maxPersuade: 2400 };
+  const stats = { maxExpected: 1500, maxGotv: 1200, maxPersuade: 2400, maxBanked: 320 };
 
   it("turnout mode keeps the original ramp at the 8/18/28/40 stops", () => {
     const e = colorExpr("turnout", stats) as unknown[];
@@ -50,8 +50,16 @@ describe("colorExpr", () => {
   });
 
   it("gotv mode never emits duplicate stops on empty data (max clamped to 1)", () => {
-    const e = colorExpr("gotv", { maxExpected: 0, maxGotv: 0, maxPersuade: 0 }) as unknown[];
+    const e = colorExpr("gotv", { maxExpected: 0, maxGotv: 0, maxPersuade: 0, maxBanked: 0 }) as unknown[];
     expect(e).toContain(1); // clamped top stop, not a 0/0 duplicate
+  });
+
+  it("earlyVote mode ramps over bankedShare (returned share of expected)", () => {
+    const e = colorExpr("earlyVote", stats) as unknown[];
+    expect(e[0]).toBe("interpolate");
+    expect(JSON.stringify(e)).toContain('["coalesce",["get","bankedShare"],0]');
+    expect(e).toContain(0.05);
+    expect(e).toContain(0.5);
   });
 
   it("voter mode ramps over the heuristic vPropensity (0..1), coalescing unmatched to 0", () => {
@@ -65,7 +73,7 @@ describe("colorExpr", () => {
 
 describe("heightExpr", () => {
   it("turnout mode keeps the original t×130 extrusion", () => {
-    expect(heightExpr("turnout", { maxExpected: 0, maxGotv: 0, maxPersuade: 0 })).toEqual([
+    expect(heightExpr("turnout", { maxExpected: 0, maxGotv: 0, maxPersuade: 0, maxBanked: 0 })).toEqual([
       "*",
       ["coalesce", ["get", "turnout"], 0],
       130,
@@ -73,18 +81,24 @@ describe("heightExpr", () => {
   });
 
   it("tier mode scales expected ballots so the tallest column hits the shared ceiling", () => {
-    const e = heightExpr("tier", { maxExpected: 1500, maxGotv: 0, maxPersuade: 0 }) as unknown[];
+    const e = heightExpr("tier", { maxExpected: 1500, maxGotv: 0, maxPersuade: 0, maxBanked: 0 }) as unknown[];
     expect(e[0]).toBe("*");
     expect(e[2]).toBe(3); // 4500 / 1500
   });
 
   it("gotv mode scales by maxGotv and guards a zero max", () => {
-    const e = heightExpr("gotv", { maxExpected: 0, maxGotv: 0, maxPersuade: 0 }) as unknown[];
+    const e = heightExpr("gotv", { maxExpected: 0, maxGotv: 0, maxPersuade: 0, maxBanked: 0 }) as unknown[];
     expect(e[2]).toBe(4500); // 4500 / max(1, 0) — finite, no divide-by-zero
   });
 
+  it("earlyVote mode extrudes ballots banked scaled by maxBanked", () => {
+    const e = heightExpr("earlyVote", { maxExpected: 0, maxGotv: 0, maxPersuade: 0, maxBanked: 900 }) as unknown[];
+    expect(JSON.stringify(e)).toContain('["coalesce",["get","banked"],0]');
+    expect(e[2]).toBe(5); // 4500 / 900
+  });
+
   it("voter mode extrudes the PERSUADE universe scaled by maxPersuade", () => {
-    const e = heightExpr("voter", { maxExpected: 0, maxGotv: 0, maxPersuade: 2250 }) as unknown[];
+    const e = heightExpr("voter", { maxExpected: 0, maxGotv: 0, maxPersuade: 2250, maxBanked: 0 }) as unknown[];
     expect(e[0]).toBe("*");
     expect(JSON.stringify(e)).toContain('["coalesce",["get","persuade"],0]');
     expect(e[2]).toBe(2); // 4500 / 2250
@@ -93,7 +107,7 @@ describe("heightExpr", () => {
 
 describe("legendFor", () => {
   it("tier legend swatches use the same three colors as the paint expression", () => {
-    const l = legendFor("tier", { maxExpected: 1500, maxGotv: 0, maxPersuade: 0 });
+    const l = legendFor("tier", { maxExpected: 1500, maxGotv: 0, maxPersuade: 0, maxBanked: 0 });
     expect(l.kind).toBe("swatches");
     if (l.kind === "swatches") {
       expect(l.entries.map((e) => e.color)).toEqual([TIER_COLOR.A, TIER_COLOR.B, TIER_COLOR.C]);
@@ -101,18 +115,25 @@ describe("legendFor", () => {
   });
 
   it("gotv legend max label tracks the data; turnout keeps the ~8/~40 range", () => {
-    const g = legendFor("gotv", { maxExpected: 0, maxGotv: 1200, maxPersuade: 0 });
+    const g = legendFor("gotv", { maxExpected: 0, maxGotv: 1200, maxPersuade: 0, maxBanked: 0 });
     expect(g.kind).toBe("gradient");
     if (g.kind === "gradient") expect(g.maxLabel).toContain("1,200");
-    const t = legendFor("turnout", { maxExpected: 0, maxGotv: 0, maxPersuade: 0 });
+    const t = legendFor("turnout", { maxExpected: 0, maxGotv: 0, maxPersuade: 0, maxBanked: 0 });
     if (t.kind === "gradient") {
       expect(t.minLabel).toBe("~8%");
       expect(t.maxLabel).toBe("~40%");
     }
   });
 
+  it("earlyVote legend declares the heuristic denominator and the EV window", () => {
+    const l = legendFor("earlyVote", { maxExpected: 0, maxGotv: 0, maxPersuade: 0, maxBanked: 10 });
+    expect(l.kind).toBe("gradient");
+    expect(l.note).toContain("voter-file-plan.md");
+    expect(l.note).toContain("Jul 21");
+  });
+
   it("voter legend is a gradient that declares the heuristic and its source doc", () => {
-    const v = legendFor("voter", { maxExpected: 0, maxGotv: 0, maxPersuade: 2400 });
+    const v = legendFor("voter", { maxExpected: 0, maxGotv: 0, maxPersuade: 2400, maxBanked: 0 });
     expect(v.kind).toBe("gradient");
     expect(v.note).toContain("heuristic");
     expect(v.note).toContain("voter-file-plan.md");

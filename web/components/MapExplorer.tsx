@@ -26,6 +26,7 @@ const MODES: { key: MapMode; label: string }[] = [
   { key: "tier", label: "Target tier" },
   { key: "gotv", label: "GOTV upside" },
   { key: "voter", label: "Voter file" },
+  { key: "earlyVote", label: "Early vote" },
 ];
 
 // Shared legend block — rendered in both the side panel and the on-map overlay,
@@ -150,8 +151,17 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
       ),
     [precincts],
   );
+  // Early-vote mode needs actual banked returns on at least one feature.
+  const earlyVoteAvailable = useMemo(
+    () =>
+      precincts.features.some(
+        (f) => Number((f.properties as { banked?: unknown } | null)?.banked) > 0,
+      ),
+    [precincts],
+  );
   const modeAvailable = (m: MapMode) =>
-    m === "turnout" || (m === "voter" ? voterAvailable : modesAvailable);
+    m === "turnout" ||
+    (m === "voter" ? voterAvailable : m === "earlyVote" ? earlyVoteAvailable : modesAvailable);
   const activeMode: MapMode = modeAvailable(mode) ? mode : "turnout";
   const legend = useMemo(() => legendFor(activeMode, modeStats(precincts.features)), [activeMode, precincts]);
 
@@ -256,6 +266,11 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
               {modesAvailable && !voterAvailable && (
                 <p className="mt-1 text-[0.6rem] text-slate">
                   Voter mode lights up after the voter-file ingest (Field → Voter database).
+                </p>
+              )}
+              {modesAvailable && voterAvailable && !earlyVoteAvailable && (
+                <p className="mt-1 text-[0.6rem] text-slate">
+                  Early-vote mode lights up once returns import (Field → Ballot chase).
                 </p>
               )}
               <div className="mt-3">

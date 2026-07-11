@@ -26,6 +26,35 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-11 -- v1.x -- Early-vote map mode: banked returns on the 3D map
+
+**Changes:**
+- [added] "Early vote" mode on /dashboard/map: shade = ballots returned as a share of the
+  §4 heuristic expected primary vote (denominator declared on the legend), column height
+  = ballots banked. The precincts route joins BALLOTAGG banked counts through the same
+  crosswalk as the voter enrichment (split precincts summed) and stamps banked +
+  bankedShare per feature; meta.voterJoin reports the banked total. The mode stays
+  DISABLED until returns actually import (own availability check, like the voter mode
+  pre-ingest); pre-returns the map is byte-identical.
+- The data-and-map plan's early-vote visualization: the live-current-state mode is now
+  shipped; the animating time-slider remains a future item (noted).
+
+**Verifications Performed:**
+- Unit: BALLOTAGG join sums banked across split precincts and ignores unmatched rows;
+  earlyVote paint expressions (color reads bankedShare, height scales banked by
+  maxBanked, legend cites the heuristic denominator + the Jul 21-Aug 3 window). Full
+  typecheck/lint/test/build pass.
+
+**Known Gaps:**
+- Time-slider animation of returns (future); the mode shows current state only.
+
+**Files Modified:**
+- web/lib/voters/enrich.ts (+ test), web/app/api/geo/precincts/route.ts,
+  web/lib/viz/precinctPaint.ts (+ test), web/components/MapExplorer.tsx,
+  candidate/data-and-map-plan.md
+
+---
+
 ## 2026-07-11 -- v1.x -- Gap pass: chase-tier reconciliation, bulk canvass paste, doc drift
 
 **Changes:**
