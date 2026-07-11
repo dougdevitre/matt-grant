@@ -7,7 +7,7 @@ every use, the ingest/scoring architecture, and the phased rollout that feeds do
 signs, phones, and GOTV from one scored database operated from the admin dashboard.
 
 - **Campaign:** Matt Grant for Congress (FEC C00945394) · **Race:** U.S. House, MO-02 · primary Aug 4, 2026
-- **Owner:** _[campaign manager + data lead]_ · **Last updated:** July 10, 2026 · **Status:** Phase 0-1 shipping
+- **Owner:** _[campaign manager + data lead]_ · **Last updated:** July 11, 2026 · **Status:** Phases 0-5 shipped (model deferred)
 
 > **Educational information, not legal advice.** Voter-list use restrictions (RSMo 115.157)
 > and telephone-solicitation rules (TCPA) below were reviewed **July 10, 2026** for
@@ -117,6 +117,22 @@ flowchart LR
   updates rows instead of duplicating — Walk Status/Priority/Area stay Airtable-curated
   after creation. The **phone-append import** (§6 brief below) closes the other gap's
   plumbing; the vendor purchase itself remains the campaign's decision.
+- **Phase 5 shipped 2026-07-11 (the learning loop + ballot chase):** the precinct
+  drill-down now records **canvass IDs** from returned walk sheets (per-row 1-5 selects
+  saved in one batch, or paste `voterId,canvassId` lines) — a saved ID replaces the party
+  proxy (**canvass -> S: 1->3 · 2->2 · 3->1 · 4/5->0**; both "other" leans are
+  do-not-chase), the segment recomputes, and the precinct's rollup re-aggregates with the
+  exact ingest math (`web/lib/voters/aggregate.ts`), so BANK/MOBILIZE grow as promised.
+  Rollups now carry **chase-tier universes** (Tier 1 Chase Hard = MOBILIZE · 2 Chase Firm
+  = BANK/T4 · 3 Chase Light = BANK/T5 · 4 Persuasion GOTV = PERSUADE; MONITOR + PROSPECT
+  are never chased — `tactics/ballot-chase-program.md`). The **ballot-chase board**
+  (`/dashboard/voters/chase`, admin-only) computes the Daily Chase Report live: paste the
+  county's daily early-vote/absentee returns file (voter ids; idempotent — a cumulative
+  re-import never double-counts), banked ballots roll up per precinct, and the board shows
+  universe/banked/outstanding per tier plus the largest outstanding precincts. The ingest
+  also writes a voter-ID index (returns match by official voter id, GetItem only). The
+  fitted model REMAINS deferred until canvass labels number in the thousands — no
+  "model-assisted" claims before then.
 
 ## 4. Scoring — a transparent scorecard, honestly labeled
 

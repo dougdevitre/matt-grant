@@ -34,6 +34,9 @@ export async function listVoterAggs(): Promise<VoterAggRow[]> {
           seg: (it.seg && typeof it.seg === "object" ? it.seg : {}) as Record<Segment, number>,
           age: (it.age && typeof it.age === "object" ? it.age : {}) as Record<string, number>,
           newReg: num(it.newReg),
+          ...(it.tiers && typeof it.tiers === "object"
+            ? { tiers: it.tiers as VoterAggRow["tiers"] }
+            : {}),
         };
       })
       .filter((r): r is VoterAggRow => r !== null)
@@ -77,6 +80,7 @@ export async function listVotersByPrecinct(precinctKey: string): Promise<StoredV
           s: num(it.s),
           segment: (typeof it.segment === "string" ? it.segment : "MONITOR") as Segment,
           newRegistrant: it.newRegistrant === true,
+          ...(typeof it.canvassId === "number" ? { canvassId: it.canvassId } : {}),
         };
       })
       .filter((r): r is StoredVoter => r !== null)

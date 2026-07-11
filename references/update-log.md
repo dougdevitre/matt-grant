@@ -26,6 +26,51 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-11 -- v1.x -- Voter file Phase 5: canvass-ID write-back + ballot-chase board
+
+**Changes:**
+- [added] Canvass-ID write-back (the learning loop): the precinct drill-down records 1-5
+  IDs from returned walk sheets (per-row selects saved in one batch). A saved ID replaces
+  the party proxy -- canvass->S mapping defined once in `web/lib/voters/score.ts`
+  (1->3, 2->2, 3->1, 4/5->0; identified "other" lean = do-not-chase) -- the segment
+  recomputes, and the precinct's VOTERAGG re-aggregates with the exact ingest math
+  (extracted to `web/lib/voters/aggregate.ts`, now shared by script and write-back).
+- [added] Chase tiers (`web/lib/voters/chase.ts`, per tactics/ballot-chase-program.md):
+  Tier 1 Chase Hard = MOBILIZE · 2 Chase Firm = BANK/T4 · 3 Chase Light = BANK/T5 ·
+  4 Persuasion GOTV = PERSUADE; MONITOR/PROSPECT never chased. Rollups now carry
+  per-tier universes (VOTERAGG.tiers).
+- [added] Ballot-returns import + `/dashboard/voters/chase` (admin-only): paste the
+  county's daily early-vote/absentee file (voter ids; conditional puts make cumulative
+  re-imports idempotent -- never double-counted); returns resolve through a new
+  voter-ID index the ingest writes (GetItem only, id-sharded); BALLOTAGG per-precinct
+  counters feed the live Daily Chase Report (universe/banked/outstanding/% per tier,
+  top-outstanding precincts, printable for the field huddle). Unmatched ids reported,
+  never guessed.
+- [updated] Ingest script now writes the ID index + tier counts (same commands);
+  voter-file-plan Phase-5 note + status; ballot-chase-program shipped pointer;
+  docs/VOTER-FILE.md re-ingest note. Sidebar gains "Ballot chase" (admin).
+
+**Verifications Performed:**
+- Unit: canvass->S table + a Strong-Grant-on-low-T voter landing in MOBILIZE/Tier 1;
+  chase-tier matrix incl. never-chase cases; extracted aggregation reproduces the ingest
+  math + tier cross-counts; Daily-Chase-Report math (summing, zero-division, pre-Phase-5
+  rollups without tiers); returns-CSV mapper truth table. Refactored ingest script
+  smoke-tested. Full typecheck/lint/test/build pass. SYNTHETIC fixtures only.
+
+**Known Gaps:**
+- The fitted support model stays deferred until canvass labels number in the thousands
+  (restated in the plan -- no model-assisted claims before then). Rollups written by the
+  pre-Phase-5 script lack tier counts until a re-ingest (called out on the chase board).
+
+**Files Modified:**
+- web/lib/voters/{aggregate,chase,canvassStore,returnsStore}.ts (+ tests),
+  web/lib/voters/{score,store,storeTypes}.ts, web/lib/db.ts,
+  web/scripts/ingest-voters.ts, web/app/dashboard/voters/{actions.ts,chase/page.tsx},
+  web/components/dashboard/{VotersExplorer,ReturnsImport,DashSidebar}.tsx,
+  candidate/voter-file-plan.md, tactics/ballot-chase-program.md, docs/VOTER-FILE.md
+
+---
+
 ## 2026-07-11 -- v1.x -- Phase-4 gaps closed: Airtable turf sync + phone-append import
 
 **Changes:**

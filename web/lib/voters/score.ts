@@ -49,6 +49,19 @@ export function supportProxy(party?: string): number {
   return 1;
 }
 
+/**
+ * Canvass ID (walk.ts CANVASS_ID_KEY: 1 Strong Grant · 2 Lean Grant ·
+ * 3 Undecided · 4 Lean other · 5 Strong other) → S. The Phase-5 write-back:
+ * a real ID REPLACES the party proxy on the voter row. Both "other" leans map
+ * to 0 — an identified opponent is do-not-chase (tactics/ballot-chase-program.md).
+ */
+export function sFromCanvassId(id: number): number {
+  if (id === 1) return 3;
+  if (id === 2) return 2;
+  if (id === 3) return 1;
+  return 0; // 4 or 5
+}
+
 // The targeting matrix (workflows/voter-targeting.md), one tested function:
 //   BANK     S≥2, T≥4 — reliable supporters: light touch, ballot chase
 //   MOBILIZE S≥2, T 1-3 — supporters who need the turnout push (GOTV core)

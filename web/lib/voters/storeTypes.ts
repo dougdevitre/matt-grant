@@ -12,6 +12,8 @@ export type VoterAggRow = {
   seg: Record<Segment, number>;
   age: Record<string, number>;
   newReg: number;
+  // Chase-tier universes (chase.ts) — absent on rollups written before Phase 5.
+  tiers?: Record<"1" | "2" | "3" | "4", number>;
 };
 
 // The voter fields the ingest CLI writes (scripts/ingest-voters.ts).
@@ -34,4 +36,7 @@ export type StoredVoter = {
   s: number;
   segment: Segment;
   newRegistrant: boolean;
+  // Phase 5 write-back: the 1-5 canvass ID from a returned walk sheet (s and
+  // segment above are RECOMPUTED from it when present — real label beats proxy).
+  canvassId?: number;
 };
