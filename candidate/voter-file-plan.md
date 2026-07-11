@@ -41,8 +41,12 @@ Sunshine follow-up).
 
 1. **Out of git.** Canonical storage is the private S3 bucket (`voters/raw/` prefix, SSE,
    never the public CDN path) — see `docs/VOTER-FILE.md` for the upload command. The xlsx
-   files were removed from the repo working tree 2026-07-10; they remain in git *history*
-   until an owner runs a coordinated history purge (**open decision**).
+   files were removed from the working tree 2026-07-10 and **purged from git history
+   2026-07-11** (owner-run `git-filter-repo` rewrite + coordinated force-push; verified
+   zero voter-file objects reachable from any remote ref). Two residuals, owner actions:
+   every OTHER clone of the repo must be re-cloned (an old clone that pushes would
+   re-introduce the blobs), and a GitHub Support "remove cached views of purged
+   sensitive data" request completes server-side removal of dangling copies/PR refs.
 2. **RSMo 115.157 use restriction.** The list may be used **only for political/election
    purposes** — never commercial use, never publication, never resale. Every export the
    dashboard produces is stamped with this notice.

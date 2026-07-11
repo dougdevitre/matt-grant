@@ -26,6 +26,32 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-11 -- v1.x -- Voter xlsx purged from git history (custody §2.1 resolved)
+
+**Changes:**
+- [removed] The five MO02_VotersList xlsx (577k voters' PII) purged from ALL git history:
+  owner-run `git-filter-repo --invert-paths` on a mirror clone (both path variants --
+  four files under docs/, Part 5 at the repo root) + coordinated force-push. Every branch
+  rewritten in place; no branch deleted; main's tree content unchanged (new commit ids).
+- [updated] `candidate/voter-file-plan.md` §2.1: the Phase-0 "open decision" is resolved;
+  residual owner actions documented (re-clone all other clones; GitHub Support request
+  for server-side cache/PR-ref removal).
+
+**Verifications Performed:**
+- Pre-push: `git rev-list --all --objects | grep -c MO02_VotersList` = 0 in the rewritten
+  mirror. Post-push: 0 across all remote refs from a fresh fetch; voters test suite green
+  on the new history; a full pre-purge bundle backup retained by the owner. S3 copies
+  (the canonical data) untouched.
+
+**Known Gaps:**
+- GitHub-side dangling copies persist until the owner's Support request / GC (repo is
+  private, so exposure is bounded to collaborators meanwhile).
+
+**Files Modified:**
+- candidate/voter-file-plan.md (git history itself rewritten out-of-band by the owner)
+
+---
+
 ## 2026-07-11 -- v1.x -- Early-vote map mode: banked returns on the 3D map
 
 **Changes:**
