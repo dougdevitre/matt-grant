@@ -2,6 +2,7 @@ import { geoRoute } from "@/lib/data/geo";
 import { attachScores, fetchScopedPrecincts, scoreRows } from "@/lib/precincts";
 import { PRECINCTS } from "@/lib/mapData";
 import { listVoterAggs } from "@/lib/voters/store";
+import { listBallotAggs } from "@/lib/voters/returnsStore";
 import { enrichmentByMapName } from "@/lib/voters/enrich";
 
 // Real MO-02 precinct columns: membership = 2025 enacted map (congress25),
@@ -24,17 +25,35 @@ export const GET = geoRoute({
     // per-precinct rollups by name and stamp the heuristic primary propensity +
     // universe counts. Best-effort — no ingest yet (or any error) leaves the
     // features exactly as before, and the propensity map mode stays disabled.
-    let voterJoin: { hitRate: number; matched: number } | undefined;
+    let voterJoin: { hitRate: number; matched: number; banked?: number } | undefined;
     try {
-      const aggs = await listVoterAggs();
+      const [aggs, ballotAggs] = await Promise.all([listVoterAggs(), listBallotAggs()]);
       if (aggs.length) {
         const names = features.map((f) => String((f.properties as { name?: string })?.name ?? ""));
-        const join = enrichmentByMapName(aggs, names);
-        voterJoin = { hitRate: Math.round(join.hitRate * 100) / 100, matched: join.byName.size };
+        const join = enrichmentByMapName(aggs, names, ballotAggs);
+        const bankedTotal = [...join.byName.values()].reduce((n, e) => n + e.banked, 0);
+        voterJoin = {
+          hitRate: Math.round(join.hitRate * 100) / 100,
+          matched: join.byName.size,
+          ...(bankedTotal ? { banked: bankedTotal } : {}),
+        };
         features = features.map((f) => {
           const e = join.byName.get(String((f.properties as { name?: string })?.name ?? ""));
           return e
-            ? { ...f, properties: { ...f.properties, vPropensity: e.vPropensity, persuade: e.persuade, mobilize: e.mobilize, bank: e.bank } }
+            ? {
+                ...f,
+                properties: {
+                  ...f.properties,
+                  vPropensity: e.vPropensity,
+                  persuade: e.persuade,
+                  mobilize: e.mobilize,
+                  bank: e.bank,
+                  banked: e.banked,
+                  // Returned share of the §4 heuristic expected primary vote —
+                  // the early-vote mode's shade (legend declares the denominator).
+                  bankedShare: Math.min(1, e.banked / Math.max(1, e.expectedPrimary)),
+                },
+              }
             : f;
         });
       }

@@ -11,9 +11,9 @@
 import type { ExpressionSpecification } from "maplibre-gl";
 import { BRAND, TIER_COLOR, TURNOUT_RAMP, TURNOUT_LEGEND_GRADIENT } from "@/lib/viz/palette";
 
-export type MapMode = "turnout" | "tier" | "gotv" | "voter";
+export type MapMode = "turnout" | "tier" | "gotv" | "voter" | "earlyVote";
 
-export type ModeStats = { maxExpected: number; maxGotv: number; maxPersuade: number };
+export type ModeStats = { maxExpected: number; maxGotv: number; maxPersuade: number; maxBanked: number };
 
 // Turnout mode's tallest column is ~40% × 130 = 5200; scale the other modes'
 // tallest to a comparable ceiling so switching modes keeps a familiar skyline.
@@ -26,17 +26,27 @@ export function modeStats(features: GeoJSON.Feature[]): ModeStats {
   let maxExpected = 0;
   let maxGotv = 0;
   let maxPersuade = 0;
+  let maxBanked = 0;
   for (const f of features) {
-    const p = (f.properties ?? {}) as { expected?: number; gotv?: number; persuade?: number };
+    const p = (f.properties ?? {}) as { expected?: number; gotv?: number; persuade?: number; banked?: number };
     if (typeof p.expected === "number" && p.expected > maxExpected) maxExpected = p.expected;
     if (typeof p.gotv === "number" && p.gotv > maxGotv) maxGotv = p.gotv;
     if (typeof p.persuade === "number" && p.persuade > maxPersuade) maxPersuade = p.persuade;
+    if (typeof p.banked === "number" && p.banked > maxBanked) maxBanked = p.banked;
   }
-  return { maxExpected, maxGotv, maxPersuade };
+  return { maxExpected, maxGotv, maxPersuade, maxBanked };
 }
 
 /** fill-extrusion-color for the given mode. */
 export function colorExpr(mode: MapMode, stats: ModeStats): ExpressionSpecification {
+  if (mode === "earlyVote") {
+    // Ballots returned as a share of the §4 heuristic expected primary vote —
+    // where the early vote is pacing ahead (dark) vs behind (pale).
+    return [
+      "interpolate", ["linear"], ["coalesce", ["get", "bankedShare"], 0],
+      0.05, TURNOUT_RAMP[0], 0.15, TURNOUT_RAMP[1], 0.3, TURNOUT_RAMP[2], 0.5, TURNOUT_RAMP[3],
+    ];
+  }
   if (mode === "voter") {
     // Heuristic primary propensity from the ingested voter file (0..1) —
     // voter-file-plan.md §4/Phase 3. Unmatched precincts coalesce to 0 (palest).
@@ -73,6 +83,10 @@ export function colorExpr(mode: MapMode, stats: ModeStats): ExpressionSpecificat
 
 /** fill-extrusion-height for the given mode. */
 export function heightExpr(mode: MapMode, stats: ModeStats): ExpressionSpecification {
+  if (mode === "earlyVote") {
+    // Height = ballots in the bank; color carries the pace.
+    return ["*", ["coalesce", ["get", "banked"], 0], HEIGHT_MAX / Math.max(1, stats.maxBanked)];
+  }
   if (mode === "voter") {
     // Height = the PERSUADE universe (habitual voters, unknown lean) — where
     // doors and mail go; color carries the propensity shade.
@@ -94,6 +108,15 @@ export type ModeLegend =
 
 /** Legend spec kept in lockstep with the paint expressions above. */
 export function legendFor(mode: MapMode, stats: ModeStats): ModeLegend {
+  if (mode === "earlyVote") {
+    return {
+      kind: "gradient",
+      gradient: TURNOUT_LEGEND_GRADIENT,
+      minLabel: "~5%",
+      maxLabel: "~50%+",
+      note: "Shade = ballots returned as a share of the expected primary vote (heuristic denominator — voter-file-plan.md §4); height = ballots banked. Early voting Jul 21 - Aug 3; returns from the Ballot chase imports.",
+    };
+  }
   if (mode === "voter") {
     return {
       kind: "gradient",
