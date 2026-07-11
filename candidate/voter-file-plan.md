@@ -107,8 +107,16 @@ flowchart LR
   `tools/pdf-letterhead/voters_mailing.py` turns a mail-list export into one letterhead
   PDF per segment (PERSUADE persuasion piece / MOBILIZE turnout plan / BANK
   early-vote-and-bring-a-neighbor / PROSPECT introduction; MONITOR skipped), every page
-  carrying the verbatim disclaimer. Airtable Canvass Turf counts remain a manual entry
-  (no write path from here) — noted as a gap.
+  carrying the verbatim disclaimer.
+- **Phase 4 gaps closed 2026-07-11:** the drill-down's "Sync counts to Airtable" button
+  now upserts the cut turfs into the base's **Canvass Turf** table (deterministic names,
+  doors/voters counts, captain, Pass Type "Voter ID") and the matched-phone count into
+  **Contact Lists** — SUMMARIES only, never voter names/addresses (the walk list itself
+  stays in the app per §2). Writes obey the base's Front-End Access control table
+  (fail-closed; admins can switch them off in Airtable with no deploy), and a re-sync
+  updates rows instead of duplicating — Walk Status/Priority/Area stay Airtable-curated
+  after creation. The **phone-append import** (§6 brief below) closes the other gap's
+  plumbing; the vendor purchase itself remains the campaign's decision.
 
 ## 4. Scoring — a transparent scorecard, honestly labeled
 
@@ -164,9 +172,29 @@ is the authoritative census until refreshed.
 | **Doors** (walk lists) | Voter rows per turf | Cut at 40-60 doors; canvass-ID column feeds the learning loop |
 | **Mail** | Segment CSV → letterhead mail merge | Disclaimer on every piece; segment personas per `tactics/voter-personas.md` |
 | **Signs** | Per-precinct propensity → sign scorer | Real voter density × traffic replaces placeholder propensity |
-| **Phone** | ONLY matched (donor/volunteer records) or vendor-appended numbers | Manual-dial call sheets; append vendor = open decision |
+| **Phone** | ONLY matched (donor/volunteer records) or vendor-appended numbers | Manual-dial call sheets; append import ships (below) — the vendor purchase is the open decision |
 | **SMS** | Consent ledger ONLY | **Never from the voter file.** No exceptions |
 | **Email** | Not in file | Existing opt-in lists only |
+
+### Phone-append vendor brief (decision still the campaign's; plumbing ships 2026-07-11)
+
+The import path is live: Dashboard → Voter database → **Phone append import** takes the
+purchased CSV (each row: a phone plus either the **voter ID** — best, exact match — or a
+name + 5-digit ZIP) and the numbers immediately appear on call lists, call sheets, and
+the matched-phone Contact Lists count. What to evaluate when buying (no vendor or price
+named here — verify quotes yourself):
+
+- **Key by voter ID.** Ask the vendor to append onto the official voter IDs from this
+  file — ID-keyed rows match exactly; name+ZIP rows fall back to the conservative
+  matcher (ambiguous matches are dropped by design).
+- **Match rate + wireless flags.** Compare quoted match rates; ask for a
+  wireless/landline flag column so callers know what they're dialing.
+- **Contract use-limits.** Confirm the license allows political phone contact for this
+  committee and note any resale/retention restrictions alongside the RSMo rules in §2.
+- **Hard rule, no exceptions:** appended numbers are **manual-dial only**. They never
+  enter the SMS pipeline — broadcast texting stays gated on the person's own opt-in in
+  the consent ledger (TCPA). The import UI, the call sheets, and the CSV column all
+  restate this.
 
 ## 7. See also
 

@@ -26,6 +26,48 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-11 -- v1.x -- Phase-4 gaps closed: Airtable turf sync + phone-append import
+
+**Changes:**
+- [added] `web/lib/voters/turfSync.ts` -- upserts cut walk turfs into the Airtable
+  "Canvass Turf" table and the matched-phone count into "Contact Lists" (Volunteer
+  Engagement base). SUMMARIES only -- turf name, doors/voters counts, captain, notes;
+  voter names/addresses NEVER cross (RSMo 115.157 custody). Deterministic names make
+  re-sync an update, not a duplicate; Walk Status/Priority/Area stay Airtable-curated
+  after creation. Every write is fail-closed on the base's Front-End Access control
+  table + the caller's viewVoterFile RBAC gate. "Sync counts to Airtable" button on the
+  precinct drill-down reports created/updated/denied honestly.
+- [added] Phone-append import (`web/lib/voters/phoneAppend.ts` pure mapper +
+  `phoneStore.ts` VOTERPHONE partition + a paste-import card on /dashboard/voters):
+  a purchased append CSV (phone + voter ID, or phone + name + ZIP5) feeds call
+  lists/sheets immediately -- voter-ID rows match exactly and win; name+ZIP rows join
+  the conservative matcher. MANUAL-DIAL ONLY: appended numbers never enter the SMS
+  pipeline (TCPA; consent ledger stays the only texting gate).
+- [updated] `candidate/voter-file-plan.md`: Phase-4 gap note replaced with the shipped
+  sync; §6 gains a phone-append vendor brief (key by voter ID, match rate/wireless
+  flags, contract use-limits; no vendors/prices named). The PURCHASE stays the
+  campaign's decision -- the plumbing no longer blocks it.
+
+**Verifications Performed:**
+- Unit tests: turf-sync upsert logic against a mocked Airtable client (deterministic
+  names, no-PII payload assertion, update never touches Walk Status, fail-closed
+  governance reported honestly); append-CSV mapper truth table (aliases, ZIP+4
+  truncation, skip reasons). Live Canvass Turf / Contact Lists schemas confirmed via
+  Airtable MCP before coding. Full typecheck/lint/test/build pass.
+
+**Known Gaps:**
+- The phone-append vendor purchase itself (cost/contract) -- campaign decision; also
+  event RSVPs stay out of phone matching (they carry no ZIP, and the conservative
+  name+ZIP5 key is deliberate).
+
+**Files Modified:**
+- web/lib/voters/{turfSync,phoneAppend,phoneStore}.ts (+ tests), web/lib/db.ts,
+  web/app/dashboard/voters/{actions.ts,page.tsx},
+  web/components/dashboard/{VotersExplorer,PhoneAppendImport}.tsx,
+  candidate/voter-file-plan.md
+
+---
+
 ## 2026-07-11 -- v1.x -- Voter file Phase 4: walk packets, matched-phone call sheets, voter mail merge
 
 **Changes:**
