@@ -10,6 +10,7 @@ import { CallSheetPages, WalkPacketSheets } from "@/components/dashboard/VoterPa
 import { SubmitButton } from "@/components/dashboard/SubmitButton";
 import {
   fetchPrecinctVoters,
+  recordCanvassIdsAction,
   syncTurfsToAirtableAction,
   type ActionState,
 } from "@/app/dashboard/voters/actions";
@@ -68,16 +69,42 @@ export function VotersExplorer({ aggs, captains = [] }: { aggs: VoterAggRow[]; c
     );
   }, [aggs, countyFilter, sortBy]);
 
+  // Phase 5: canvass IDs staged per row, saved in one write-back that also
+  // re-aggregates the precinct (segments below move on the re-fetch).
+  const [pendingIds, setPendingIds] = useState<Record<string, number>>({});
+  const [canvassMsg, setCanvassMsg] = useState<ActionState | null>(null);
+
   const drill = (key: string) => {
     setOpen(key);
     setVoters([]);
     setPhones({});
     setFilters({});
     setPrintReq(null);
+    setPendingIds({});
+    setCanvassMsg(null);
     startTransition(async () => {
       const res = await fetchPrecinctVoters(key);
       setVoters(res.voters);
       setPhones(res.phones);
+    });
+  };
+
+  const saveCanvassIds = () => {
+    if (!open) return;
+    const entries = Object.entries(pendingIds).map(([voterId, canvassId]) => ({ voterId, canvassId }));
+    if (!entries.length) return;
+    const fd = new FormData();
+    fd.set("precinctKey", open);
+    fd.set("entries", JSON.stringify(entries));
+    startTransition(async () => {
+      const res = await recordCanvassIdsAction({ ok: true, message: "" }, fd);
+      setCanvassMsg(res);
+      if (res.ok) {
+        setPendingIds({});
+        const fresh = await fetchPrecinctVoters(open);
+        setVoters(fresh.voters);
+        setPhones(fresh.phones);
+      }
     });
   };
 
@@ -265,11 +292,30 @@ export function VotersExplorer({ aggs, captains = [] }: { aggs: VoterAggRow[]; c
             </select>
             <input type="text" value={filters.street ?? ""} onChange={(e) => setFilters({ ...filters, street: e.target.value })} placeholder="Street contains…" className={`${chip} w-44`} aria-label="Street filter" />
           </div>
+          {/* Phase 5 write-back: stage 1-5 IDs per row (from returned walk sheets),
+              save once — s/segment recompute server-side and the shard re-fetches. */}
+          <div className="mt-2 flex flex-wrap items-center gap-2 no-print">
+            <button
+              onClick={saveCanvassIds}
+              disabled={pending || !Object.keys(pendingIds).length}
+              className="btn-ghost px-3 py-1 text-xs disabled:opacity-50"
+            >
+              Save {Object.keys(pendingIds).length || ""} canvass ID{Object.keys(pendingIds).length === 1 ? "" : "s"}
+            </button>
+            <span className="text-[0.7rem] text-slate">
+              1 Strong Grant · 2 Lean · 3 Undecided · 4 Lean other · 5 Strong other — a saved ID replaces the party proxy and recomputes the segment.
+            </span>
+            {canvassMsg?.message && (
+              <span className={`w-full text-[0.7rem] ${canvassMsg.ok ? "text-field" : "text-brick"}`} role="status">
+                {canvassMsg.message}
+              </span>
+            )}
+          </div>
           <div className="mt-3 max-h-[40vh] overflow-y-auto rounded-sm border border-line">
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-white text-left text-slate">
                 <tr>
-                  {["Name", "Address", "City", "Age", "T", "Segment", "Last voted"].map((h) => (
+                  {["Name", "Address", "City", "Age", "T", "Segment", "Last voted", "Canvass ID"].map((h) => (
                     <th key={h} className="whitespace-nowrap px-3 py-2 font-mono text-[0.65rem] uppercase tracking-eyebrow">{h}</th>
                   ))}
                 </tr>
@@ -284,6 +330,27 @@ export function VotersExplorer({ aggs, captains = [] }: { aggs: VoterAggRow[]; c
                     <td className="px-3 py-1.5 font-mono text-xs">{v.t}</td>
                     <td className="px-3 py-1.5 font-mono text-xs">{v.segment}</td>
                     <td className="px-3 py-1.5 font-mono text-xs text-slate">{v.lastVoted ? `${v.lastVoted.date}` : "—"}</td>
+                    <td className="px-3 py-1.5">
+                      <select
+                        value={String(pendingIds[v.voterId] ?? v.canvassId ?? "")}
+                        onChange={(e) =>
+                          setPendingIds((p) => {
+                            const next = { ...p };
+                            const n = Number(e.target.value);
+                            if (n >= 1 && n <= 5 && n !== v.canvassId) next[v.voterId] = n;
+                            else delete next[v.voterId];
+                            return next;
+                          })
+                        }
+                        className={`rounded-sm border px-1 py-0.5 font-mono text-xs ${pendingIds[v.voterId] ? "border-gold bg-gold/10" : "border-line bg-white"}`}
+                        aria-label={`Canvass ID for ${v.firstName} ${v.lastName}`}
+                      >
+                        <option value="">—</option>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <option key={n} value={n}>{n}</option>
+                        ))}
+                      </select>
+                    </td>
                   </tr>
                 ))}
               </tbody>
