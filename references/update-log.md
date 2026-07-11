@@ -26,6 +26,44 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-11 -- v1.x -- Gap pass: chase-tier reconciliation, bulk canvass paste, doc drift
+
+**Changes:**
+- [fixed] REAL BUG: banked-per-tier counters (BALLOTAGG) were frozen at bank-time segment
+  while canvass IDs later moved the universe tiers -- the chase board could show negative
+  Outstanding / >100%. The canvass write-back now reconciles: pure `tierShift` (chase.ts,
+  tested) computes the move; `applyTierShift` (returnsStore) decrements the old tier,
+  increments the new, and restamps the return row's segment/t so repeated changes
+  reconcile from current state. Flat banked totals never change; the save message reports
+  "N banked ballots re-tiered".
+- [added] The bulk canvass paste UI ("Paste IDs from a returned sheet") -- the server
+  action existed but was unwired; per-row selects only render the first 500 rows, so bulk
+  entry matters for big precincts.
+- [updated] Voters page HowTo (canvass write-back steps, banked hiding, Airtable count
+  sync, accurate phone sentence incl. vendor append); data-and-map-plan (early-vote feed
+  integration marked SHIPPED -> chase board; Voter-file map mode added to the shipped
+  note; time-slider = still-future widget, data live); voter-file-plan §4 (PROSPECT added
+  to the segment list, canonical-definitions citation fixed to score.ts, chase-tier line
+  gains the shipped pointer); voters_mailing.py docstring (export with banked hidden).
+
+**Verifications Performed:**
+- Two read-only audit agents swept merged main (#355-#360): rbac consistent, banked
+  filtering reaches every print/export path, all cross-refs resolve, update-log complete.
+  New tierShift unit tests (cross-tier, into/out of non-chase, no-move). Full
+  typecheck/lint/test/build pass.
+
+**Known Gaps:**
+- Pre-existing BALLOTAGG rows written before this fix are not retro-reconciled (no data
+  exists yet -- the live ingest hasn't run, so nothing to migrate).
+
+**Files Modified:**
+- web/lib/voters/{chase,returnsStore,canvassStore}.ts (+ chase test),
+  web/app/dashboard/voters/{actions.ts,page.tsx},
+  web/components/dashboard/VotersExplorer.tsx, candidate/{voter-file-plan,data-and-map-plan}.md,
+  tools/pdf-letterhead/voters_mailing.py
+
+---
+
 ## 2026-07-11 -- v1.x -- Banked voters come off the outreach lists
 
 **Changes:**

@@ -7,6 +7,8 @@ import "server-only";
 import { UpdateCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, dbConfigured, voterIdxShard } from "@/lib/db";
 import { aggregateVoters } from "./aggregate";
+import { tierShift } from "./chase";
+import { applyTierShift, listReturnRowsByPrecinct } from "./returnsStore";
 import { segmentFor, sFromCanvassId } from "./score";
 import { listVotersByPrecinct } from "./store";
 
@@ -14,6 +16,9 @@ export type CanvassEntry = { voterId: string; canvassId: number }; // 1-5
 
 export type CanvassResult = {
   updated: number;
+  // Banked ballots whose chase-tier counter moved because the new ID changed
+  // the segment (BALLOTAGG reconciliation — keeps the chase board truthful).
+  retiered: number;
   unknownIds: string[]; // voter ids not in this precinct — reported, never guessed
 };
 
@@ -27,12 +32,17 @@ export async function recordCanvassIds(
   entries: CanvassEntry[],
   by: string,
 ): Promise<CanvassResult> {
-  if (!dbConfigured || !precinctKey || entries.length === 0) return { updated: 0, unknownIds: [] };
-  const voters = await listVotersByPrecinct(precinctKey);
+  if (!dbConfigured || !precinctKey || entries.length === 0) return { updated: 0, retiered: 0, unknownIds: [] };
+  const [voters, returnRows] = await Promise.all([
+    listVotersByPrecinct(precinctKey),
+    listReturnRowsByPrecinct(precinctKey),
+  ]);
   const byId = new Map(voters.map((v) => [v.voterId, v]));
+  const returnById = new Map(returnRows.map((r) => [r.voterId, r]));
   const now = new Date().toISOString();
   const unknownIds: string[] = [];
   let updated = 0;
+  let retiered = 0;
 
   for (const e of entries) {
     const v = byId.get(e.voterId);
@@ -60,6 +70,17 @@ export async function recordCanvassIds(
           Item: { PK: PK.voterIdx(voterIdxShard(v.voterId)), SK: v.voterId, precinctKey, segment, t: v.t },
         }),
       );
+      // A banked ballot whose tier just changed: move its BALLOTAGG counter
+      // (else banked-per-tier drifts from universe-per-tier and the chase
+      // board can show negative outstanding).
+      const ret = returnById.get(v.voterId);
+      if (ret) {
+        const shift = tierShift(ret.segment, ret.t, segment, v.t);
+        if (shift) {
+          await applyTierShift(precinctKey, v.voterId, shift, segment, v.t);
+          retiered++;
+        }
+      }
       // Mirror into the in-memory copy so the re-aggregation below sees it.
       v.s = s;
       v.segment = segment;
@@ -79,5 +100,5 @@ export async function recordCanvassIds(
       }),
     );
   }
-  return { updated, unknownIds };
+  return { updated, retiered, unknownIds };
 }

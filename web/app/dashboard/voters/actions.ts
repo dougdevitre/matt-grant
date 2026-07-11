@@ -184,7 +184,8 @@ export async function recordCanvassIdsAction(_prev: ActionState, formData: FormD
     const miss = res.unknownIds.length
       ? ` · ${res.unknownIds.length} unknown id${res.unknownIds.length === 1 ? "" : "s"} skipped (${res.unknownIds.slice(0, 5).join(", ")}${res.unknownIds.length > 5 ? "…" : ""})`
       : "";
-    return { ok: true, message: `Saved ${res.updated} canvass ID${res.updated === 1 ? "" : "s"} — segments recomputed${miss}.` };
+    const retier = res.retiered ? ` · ${res.retiered} banked ballot${res.retiered === 1 ? "" : "s"} re-tiered on the chase board` : "";
+    return { ok: true, message: `Saved ${res.updated} canvass ID${res.updated === 1 ? "" : "s"} — segments recomputed${retier}${miss}.` };
   } catch {
     return { ok: false, message: "Write-back failed — check the connection and retry." };
   }

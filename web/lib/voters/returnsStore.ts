@@ -7,7 +7,7 @@
 import "server-only";
 import { GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, TABLE, PK, dbConfigured, queryAllPages, voterIdxShard } from "@/lib/db";
-import { chaseTier, type BallotAggRow, type ChaseTier, type ReturnRow } from "./chase";
+import { chaseTier, type BallotAggRow, type ChaseTier, type ReturnRow, type TierShift } from "./chase";
 import type { Segment } from "./score";
 
 export type ImportReturnsResult = {
@@ -81,6 +81,73 @@ export async function importReturns(rows: ReturnRow[], by: string): Promise<Impo
     banked++;
   }
   return { banked, duplicates, unmatched };
+}
+
+export type ReturnRowStored = { voterId: string; segment: Segment; t: number };
+
+/** The precinct's return rows WITH their at-bank segment/T — the canvass
+ *  write-back reconciles BALLOTAGG tier counters against these. */
+export async function listReturnRowsByPrecinct(precinctKey: string): Promise<ReturnRowStored[]> {
+  if (!dbConfigured || !precinctKey) return [];
+  try {
+    const items = await queryAllPages({
+      TableName: TABLE,
+      KeyConditionExpression: "PK = :pk",
+      ExpressionAttributeValues: { ":pk": PK.ballotReturns(precinctKey) },
+    });
+    return items
+      .map((it): ReturnRowStored | null =>
+        typeof it.SK === "string" && it.SK
+          ? {
+              voterId: it.SK,
+              segment: (typeof it.segment === "string" ? it.segment : "MONITOR") as Segment,
+              t: typeof it.t === "number" ? it.t : 0,
+            }
+          : null,
+      )
+      .filter((r): r is ReturnRowStored => r !== null);
+  } catch {
+    return [];
+  }
+}
+
+/** Move a banked ballot's tier counter after a post-bank segment change (the
+ *  canvass write-back's reconciliation): decrement the old tier, increment the
+ *  new, and restamp the return row's segment/t so future shifts compute from
+ *  current state. Flat `banked` never changes. */
+export async function applyTierShift(
+  precinctKey: string,
+  voterId: string,
+  shift: TierShift,
+  newSegment: Segment,
+  newT: number,
+): Promise<void> {
+  const parts: string[] = [];
+  if (shift.dec) parts.push(`t${shift.dec} :neg`);
+  if (shift.inc) parts.push(`t${shift.inc} :one`);
+  if (parts.length) {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: PK.ballotAgg, SK: precinctKey },
+        UpdateExpression: `ADD ${parts.join(", ")} SET updatedAt = :now`,
+        ExpressionAttributeValues: {
+          ...(shift.dec ? { ":neg": -1 } : {}),
+          ...(shift.inc ? { ":one": 1 } : {}),
+          ":now": new Date().toISOString(),
+        },
+      }),
+    );
+  }
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: PK.ballotReturns(precinctKey), SK: voterId },
+      UpdateExpression: "SET segment = :seg, t = :t",
+      ConditionExpression: "attribute_exists(SK)",
+      ExpressionAttributeValues: { ":seg": newSegment, ":t": newT },
+    }),
+  );
 }
 
 /** voterId → votedAt ("" when the county file carried no date) for ONE precinct
