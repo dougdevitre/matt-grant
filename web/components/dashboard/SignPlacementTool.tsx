@@ -17,6 +17,7 @@ import {
   setSignNotes,
   type SignsSaveState,
 } from "@/app/dashboard/signs/actions";
+import { fillPropensity } from "@/lib/voters/enrich";
 import {
   hardFilter,
   normalizeTraffic,
@@ -76,11 +77,16 @@ export type SignPlacementToolProps = {
   canManage?: boolean;
   // dbConfigured — save/verify need a database; the paste workflow never does.
   connected?: boolean;
+  // Normalized precinct label → heuristic primary propensity from the voter file
+  // (voter-file-plan.md Phase 3), loaded server-side. Fills a row's BLANK
+  // propensity when its `precinct` matches; an explicit CSV value always wins.
+  // {} before the voter ingest — the scorer's neutral default applies.
+  precinctPropensity?: Record<string, number>;
 };
 
 const SAVE_IDLE: SignsSaveState = { ok: true, message: "" };
 
-export function SignPlacementTool({ initialCaptains = [], initialSaved = [], canManage = false, connected = false }: SignPlacementToolProps) {
+export function SignPlacementTool({ initialCaptains = [], initialSaved = [], canManage = false, connected = false, precinctPropensity = {} }: SignPlacementToolProps) {
   const [locText, setLocText] = useState("");
   const [capText, setCapText] = useState("");
   const [useRealRoster, setUseRealRoster] = useState(true);
@@ -120,7 +126,9 @@ export function SignPlacementTool({ initialCaptains = [], initialSaved = [], can
     const unsaved = [...pastedLocations, ...livePlacements].filter((r) => !savedKeys.has(dedupeKey(r)));
     if (unsaved.length === 0 && initialSaved.length === 0) return null;
 
-    const normalized = normalizeTraffic([...initialSaved, ...unsaved]);
+    // Voter-file propensity autofill (blanks only — an explicit CSV/saved value wins).
+    const withPropensity = fillPropensity([...initialSaved, ...unsaved], precinctPropensity);
+    const normalized = normalizeTraffic(withPropensity);
     const { kept, dropped } = hardFilter(normalized);
     const scored = scorePlacements(kept);
     // Deploy order (same as the CSV): sites first — early-vote funded off the top — then corridors.
@@ -147,7 +155,7 @@ export function SignPlacementTool({ initialCaptains = [], initialSaved = [], can
       liveCount: livePlacements.length,
       savedCount: initialSaved.length,
     } as const;
-  }, [locText, capText, livePlacements, useRealRoster, initialCaptains, initialSaved]);
+  }, [locText, capText, livePlacements, useRealRoster, initialCaptains, initialSaved, precinctPropensity]);
 
   // GeoJSON for the map — only rows with valid lat/lng plot; a CSV with no coordinates just
   // shows an empty map rather than erroring (the tables above still work either way).

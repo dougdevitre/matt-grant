@@ -25,6 +25,7 @@ const MODES: { key: MapMode; label: string }[] = [
   { key: "turnout", label: "Turnout" },
   { key: "tier", label: "Target tier" },
   { key: "gotv", label: "GOTV upside" },
+  { key: "voter", label: "Voter file" },
 ];
 
 // Shared legend block — rendered in both the side panel and the on-map overlay,
@@ -140,7 +141,18 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
 
   // Tier/GOTV need the scored LIVE feed — sample precincts carry no tier/expected.
   const modesAvailable = Boolean(precinctsLive);
-  const activeMode: MapMode = modesAvailable ? mode : "turnout";
+  // Voter mode additionally needs the voter-file join: the precincts route only
+  // stamps vPropensity/persuade when VOTERAGG rollups exist (post-ingest).
+  const voterAvailable = useMemo(
+    () =>
+      precincts.features.some(
+        (f) => typeof (f.properties as { vPropensity?: unknown } | null)?.vPropensity === "number",
+      ),
+    [precincts],
+  );
+  const modeAvailable = (m: MapMode) =>
+    m === "turnout" || (m === "voter" ? voterAvailable : modesAvailable);
+  const activeMode: MapMode = modeAvailable(mode) ? mode : "turnout";
   const legend = useMemo(() => legendFor(activeMode, modeStats(precincts.features)), [activeMode, precincts]);
 
   // ?precinct= deep link (from the Targets table): once live precincts arrive,
@@ -221,7 +233,7 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
             <>
               <div className="mt-2 flex rounded-sm border border-line p-0.5" role="group" aria-label="Color and height mode">
                 {MODES.map((m) => {
-                  const disabled = m.key !== "turnout" && !modesAvailable;
+                  const disabled = !modeAvailable(m.key);
                   return (
                     <button
                       key={m.key}
@@ -240,6 +252,11 @@ export function MapExplorer({ initialPrecinct }: { initialPrecinct?: string } = 
               </div>
               {!modesAvailable && (
                 <p className="mt-1 text-[0.6rem] text-slate">Tier / GOTV modes need the live scored feed (loading…).</p>
+              )}
+              {modesAvailable && !voterAvailable && (
+                <p className="mt-1 text-[0.6rem] text-slate">
+                  Voter mode lights up after the voter-file ingest (Field → Voter database).
+                </p>
               )}
               <div className="mt-3">
                 <LegendBlock legend={legend} />
