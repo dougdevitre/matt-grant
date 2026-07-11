@@ -11,6 +11,7 @@ import { SubmitButton } from "@/components/dashboard/SubmitButton";
 import {
   fetchPrecinctVoters,
   recordCanvassIdsAction,
+  recordCanvassPasteAction,
   syncTurfsToAirtableAction,
   type ActionState,
 } from "@/app/dashboard/voters/actions";
@@ -78,6 +79,7 @@ export function VotersExplorer({ aggs, captains = [] }: { aggs: VoterAggRow[]; c
   // re-aggregates the precinct (segments below move on the re-fetch).
   const [pendingIds, setPendingIds] = useState<Record<string, number>>({});
   const [canvassMsg, setCanvassMsg] = useState<ActionState | null>(null);
+  const [pasteText, setPasteText] = useState("");
 
   const drill = (key: string) => {
     setOpen(key);
@@ -109,6 +111,26 @@ export function VotersExplorer({ aggs, captains = [] }: { aggs: VoterAggRow[]; c
       setCanvassMsg(res);
       if (res.ok) {
         setPendingIds({});
+        const fresh = await fetchPrecinctVoters(open);
+        setVoters(fresh.voters);
+        setPhones(fresh.phones);
+        setBanked(fresh.banked);
+      }
+    });
+  };
+
+  // Bulk entry from a returned sheet — covers batches beyond the 500 on-screen
+  // rows the per-row selectors render. Same write-back + refresh path.
+  const submitCanvassPaste = () => {
+    if (!open || !pasteText.trim()) return;
+    const fd = new FormData();
+    fd.set("precinctKey", open);
+    fd.set("lines", pasteText);
+    startTransition(async () => {
+      const res = await recordCanvassPasteAction({ ok: true, message: "" }, fd);
+      setCanvassMsg(res);
+      if (res.ok) {
+        setPasteText("");
         const fresh = await fetchPrecinctVoters(open);
         setVoters(fresh.voters);
         setPhones(fresh.phones);
@@ -342,6 +364,28 @@ export function VotersExplorer({ aggs, captains = [] }: { aggs: VoterAggRow[]; c
               </span>
             )}
           </div>
+          <details className="mt-2 no-print">
+            <summary className="cursor-pointer select-none text-[0.7rem] font-semibold text-slate">
+              Paste IDs from a returned sheet (bulk)
+            </summary>
+            <div className="mt-2 flex flex-wrap items-start gap-2">
+              <textarea
+                value={pasteText}
+                onChange={(e) => setPasteText(e.target.value)}
+                rows={4}
+                placeholder={"voterId,canvassId — one per line, e.g.\n123456,1\n123457,3"}
+                className="w-72 rounded-sm border border-line bg-white p-2 font-mono text-xs text-ink"
+                aria-label="Bulk canvass IDs"
+              />
+              <button
+                onClick={submitCanvassPaste}
+                disabled={pending || !pasteText.trim()}
+                className="btn-ghost px-3 py-1 text-xs disabled:opacity-50"
+              >
+                Save pasted IDs
+              </button>
+            </div>
+          </details>
           <div className="mt-3 max-h-[40vh] overflow-y-auto rounded-sm border border-line">
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-white text-left text-slate">

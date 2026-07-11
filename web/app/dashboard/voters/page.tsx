@@ -34,8 +34,10 @@ export default async function VotersPage() {
         steps={[
           "The scoreboard and precinct table come from per-precinct rollups of the official MO-02 voter file (577,366 registered voters, six counties). T is turnout propensity 0-5 from participation recency; segments follow the targeting matrix in workflows/voter-targeting.md.",
           "Support is a labeled PROXY (party is blank for ~88% of Missouri rows) — BANK/MOBILIZE grow as canvass IDs replace it (Phase 5). PERSUADE is honestly big: habitual voters with unknown lean are the doors-and-mail universe.",
-          "Open a precinct to browse its voters (filters: segment, T, age band, street), export RSMo-stamped walk / mail / call lists, and print street-sorted walk packets (~40-60 doors per turf, captain-allocated) with the 1-5 canvass-ID column.",
-          "The file carries NO phones. Call lists and call sheets show a phone only when a volunteer/donor record matches by name + ZIP — those numbers are for MANUAL DIAL only; SMS is never sourced from this data.",
+          "Open a precinct to browse its voters (filters: segment, T, age band, street), export RSMo-stamped walk / mail / call lists, print street-sorted walk packets (~40-60 doors per turf, captain-allocated) with the 1-5 canvass-ID column, and push turf/door COUNTS to the Airtable Canvass Turf table (never voter names).",
+          "When walk sheets come back, enter the canvass IDs right in the drill-down (per-row selects or the bulk paste box: 1 Strong Grant · 2 Lean · 3 Undecided · 4 Lean other · 5 Strong other) — a saved ID replaces the party proxy, the segment recomputes, and the chase board moves.",
+          "Once county returns import (Ballot chase page), voters who already voted are hidden from lists and packets BY DEFAULT — the 'Hide banked' toggle makes a deliberate include possible; reprint packets after each import.",
+          "The file carries NO phones. Call lists and sheets show a phone only when a volunteer/donor record matches by name + ZIP or an imported vendor append supplies it (see the Phone append card below) — MANUAL DIAL only; SMS is never sourced from this data.",
           "Handle exports like donor lists: no forwarding, no personal devices, delete when stale (candidate/voter-file-plan.md §2).",
         ]}
       />

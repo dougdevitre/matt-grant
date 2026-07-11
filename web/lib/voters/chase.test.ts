@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chaseReport, chaseTier, mapReturnRows } from "./chase";
+import { chaseReport, chaseTier, mapReturnRows, tierShift } from "./chase";
 import { sFromCanvassId, segmentFor } from "./score";
 import { parseCsv } from "@/lib/contacts/import";
 import type { VoterAggRow } from "./storeTypes";
@@ -89,5 +89,23 @@ describe("mapReturnRows", () => {
     const res = mapReturnRows(parseCsv("voter_id\nV1\nV2"));
     expect(res.valid).toEqual([{ voterId: "V1" }, { voterId: "V2" }]);
     expect(mapReturnRows([]).total).toBe(0);
+  });
+});
+
+describe("tierShift", () => {
+  it("moves a banked counter across tiers when the segment changes post-bank", () => {
+    // e.g. PERSUADE/T4 (tier 4) banked, then canvass ID 2 → BANK/T4 (tier 2).
+    expect(tierShift("PERSUADE", 4, "BANK", 4)).toEqual({ dec: "4", inc: "2" });
+    expect(tierShift("BANK", 4, "MOBILIZE", 3)).toEqual({ dec: "2", inc: "1" });
+  });
+
+  it("handles moves into and out of the non-chase universes", () => {
+    expect(tierShift("BANK", 5, "MONITOR", 5)).toEqual({ dec: "3", inc: null }); // opponent ID after banking
+    expect(tierShift("PROSPECT", 2, "MOBILIZE", 2)).toEqual({ dec: null, inc: "1" });
+  });
+
+  it("is null when nothing moves (same tier, or both non-chase)", () => {
+    expect(tierShift("BANK", 4, "BANK", 4)).toBeNull();
+    expect(tierShift("MONITOR", 3, "PROSPECT", 3)).toBeNull(); // null → null
   });
 });
