@@ -28,3 +28,32 @@ The ingest now ALSO writes a slim voter-ID index (for the ballot-returns import)
 and chase-tier counts on each precinct rollup. Same commands as above - nothing
 changes operationally, but if you ingested with an older script, re-run the live
 ingest so the chase board and returns matching light up.
+
+## Low-memory / low-throughput path (AWS CloudShell)
+
+The stock `web/scripts/ingest-voters.ts` reads all five workbooks in one process and
+writes as fast as it can — which OOM-kills a ~1 GB shell (e.g. AWS CloudShell) and can
+throttle a cold DynamoDB table. For those environments use the pre-bundled, self-contained
+loader `web/scripts/loadvoters.cjs` — it runs with plain `node` (no `npm install`; xlsx +
+the AWS SDK are inlined), processes **one file per invocation** (memory released between
+files), writes with **bounded concurrency + throttle-backoff retry**, and merges the
+per-precinct rollups in a final pass. It is idempotent — safe to re-run any file, then
+finalize.
+
+```bash
+# clone (no build needed — the .cjs is committed) and pull the data from S3
+git clone https://github.com/dougdevitre/matt-grant.git
+aws s3 sync "s3://$S3_ASSETS_BUCKET/voters/raw/" /tmp/voters/
+export DYNAMODB_TABLE=matt-grant AWS_REGION=us-east-1
+for f in /tmp/voters/MO02_VotersList_Part*_of_5.xlsx; do
+  node matt-grant/web/scripts/loadvoters.cjs --file "$f"
+done
+node matt-grant/web/scripts/loadvoters.cjs --finalize
+```
+
+`loadvoters.cjs` is generated from `web/scripts/ingest-voters-lowmem.ts`; rebuild it with
+`npx esbuild scripts/ingest-voters-lowmem.ts --bundle --platform=node --format=cjs
+--target=node18 --outfile=scripts/loadvoters.cjs` (run from `web/`). If writes still
+throttle persistently, switch the table to on-demand (PAY_PER_REQUEST) billing in the AWS
+console and re-run — the loader is idempotent.
+
