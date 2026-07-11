@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { DbNotice, HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { VotersExplorer } from "@/components/dashboard/VotersExplorer";
+import { PhoneAppendImport } from "@/components/dashboard/PhoneAppendImport";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { dbConfigured } from "@/lib/db";
@@ -64,6 +65,7 @@ export default async function VotersPage() {
             <p className="mt-2 text-[0.7rem] text-slate">Last ingest: {ingestedAt} (manifest on file with source hashes).</p>
           )}
           <VotersExplorer aggs={aggs} captains={captains.map((c) => ({ id: c.email, name: c.name || c.email }))} />
+          <PhoneAppendImport />
         </>
       )}
     </>

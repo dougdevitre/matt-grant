@@ -68,6 +68,9 @@ export const PK = {
   // 577k-row partition would OOM). Dashboards read VOTERAGG only.
   voterShard: (precinctKey: string) => `VOTER#${precinctKey}`, // SK = Voter ID
   voterAgg: "VOTERAGG", // per-precinct rollups (SK = precinctKey)
+  // Vendor phone-append rows (voter-file-plan.md §6): SK = voter id, or
+  // "nz:<name>|<zip5>" for name+zip-keyed rows. Manual-dial CALL lists only — never SMS.
+  voterPhones: "VOTERPHONE",
 } as const;
 
 export function newId(): string {
