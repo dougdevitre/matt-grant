@@ -53,6 +53,11 @@ GOTV has one goal: convert identified supporters into actual voters. By this poi
 
 ## The 4-3-2-1 Contact Schedule
 
+> **Shipped 2026-07-11:** this schedule and the GOTV Timeline below render live —
+> with countdown status and a snapshot of chase / poll shifts / volunteers / signs —
+> at `/dashboard/war-room` (staff dashboard, Field section).
+
+
 The GOTV contact schedule intensifies as election day approaches. Each contact is a reminder to vote with information on how and where to do so.
 
 | Days Out | Contact | Method | Message |
