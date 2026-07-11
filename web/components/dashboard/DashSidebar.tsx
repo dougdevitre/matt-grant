@@ -26,6 +26,7 @@ const GROUPS: Group[] = [
   {
     label: "Field",
     items: [
+      { href: "/dashboard/war-room", label: "War room", icon: "overview", cap: "manageTeam" },
       { href: "/dashboard/map", label: "Map", icon: "map", cap: "viewMap" },
       { href: "/dashboard/targets", label: "Targets", icon: "targets", cap: "viewTargets" },
       { href: "/dashboard/signs", label: "Signs", icon: "targets", cap: "viewTargets" },
