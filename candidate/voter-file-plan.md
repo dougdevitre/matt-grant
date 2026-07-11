@@ -86,6 +86,14 @@ flowchart LR
   street filters, and RSMo-stamped walk/mail/call CSV exports (formula-injection-guarded;
   call lists carry an empty phone column by design). Shows the ingest runbook until the
   live load runs.
+- **Phase 3 shipped 2026-07-11:** the voter file now feeds the existing tactics. The 3D
+  map (`/dashboard/map`) gains a "Voter file" mode — shade = heuristic primary propensity
+  (§4 weights over the T histogram), height = the PERSUADE universe — enabled only once
+  ingested aggregates join onto precinct features (crosswalk by name; unmatched precincts
+  render unchanged). The Targets page adds Persuade and primary-propensity columns (and
+  CSV fields) from the same join. The Signs tool auto-fills a blank `propensity` from the
+  voter file when a row's precinct matches — an explicitly typed value always wins. All
+  three surfaces label the score heuristic; nothing renders pre-ingest.
 
 ## 4. Scoring — a transparent scorecard, honestly labeled
 

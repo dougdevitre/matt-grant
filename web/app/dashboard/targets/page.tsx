@@ -1,14 +1,35 @@
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
-import { TargetTable } from "@/components/dashboard/TargetTable";
+import { TargetTable, type VoterJoin } from "@/components/dashboard/TargetTable";
 import { fetchPrecinctRows } from "@/lib/precincts";
 import { requireCap } from "@/lib/auth";
+import { enrichmentByMapName } from "@/lib/voters/enrich";
+import { listVoterAggs } from "@/lib/voters/store";
 
 export const dynamic = "force-dynamic";
+
+// Best-effort voter-file join (voter-file-plan.md Phase 3): per-precinct
+// PERSUADE universe + heuristic primary propensity from the VOTERAGG rollups,
+// keyed by the table's precinct names via the crosswalk. Pre-ingest (or on any
+// store error) this returns undefined and the table renders exactly as before.
+async function voterJoinFor(names: string[]): Promise<VoterJoin | undefined> {
+  try {
+    const aggs = await listVoterAggs();
+    if (!aggs.length) return undefined;
+    const { byName } = enrichmentByMapName(aggs, names);
+    if (!byName.size) return undefined;
+    const join: VoterJoin = {};
+    for (const [name, e] of byName) join[name] = { persuade: e.persuade, vPropensity: e.vPropensity };
+    return join;
+  } catch {
+    return undefined;
+  }
+}
 
 export default async function TargetsPage({ searchParams }: { searchParams: Promise<{ precinct?: string }> }) {
   await requireCap("viewTargets");
   const { precinct } = await searchParams;
   const { live, rows } = await fetchPrecinctRows();
+  const voter = await voterJoinFor(rows.map((r) => r.name));
 
   return (
     <>
@@ -39,7 +60,7 @@ export default async function TargetsPage({ searchParams }: { searchParams: Prom
           the 3D map — try again shortly.
         </div>
       ) : (
-        <TargetTable rows={rows} highlight={precinct} />
+        <TargetTable rows={rows} highlight={precinct} voter={voter} />
       )}
 
       <p className="mt-6 text-xs text-slate">
@@ -47,6 +68,14 @@ export default async function TargetsPage({ searchParams }: { searchParams: Prom
         cumulative share of the chosen metric (A→40%, B→70%, C rest). &ldquo;Play&rdquo; compares each precinct to
         the district median. Turnout is Aug 2024 primary (illustrative of Aug 4 2026); verify before use.
       </p>
+      {voter && (
+        <p className="mt-2 text-xs text-slate">
+          Persuade = habitual voters with unknown lean in the ingested voter file (the doors-and-mail
+          universe). Prim. prop. = heuristic expected-primary share from participation recency —
+          labeled heuristic, see <span className="font-mono">candidate/voter-file-plan.md</span> §4.
+          Precincts without a crosswalk match show &ldquo;—&rdquo;.
+        </p>
+      )}
     </>
   );
 }

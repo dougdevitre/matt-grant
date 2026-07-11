@@ -15,17 +15,26 @@ const playColor: Record<ScoredRow["play"], string> = {
   Mobilize: "text-brick",
 };
 
-function toCsv(rows: ScoredRow[], strategy: Strategy): string {
+// Optional voter-file join from the server (voter-file-plan.md Phase 3):
+// precinct name → PERSUADE universe + heuristic primary propensity (0..1).
+// Undefined until the voter ingest has run — the table renders without the columns.
+export type VoterJoin = Record<string, { persuade: number; vPropensity: number }>;
+
+function toCsv(rows: ScoredRow[], strategy: Strategy, voter?: VoterJoin): string {
   const head = ["rank", "precinct", "municipality", "registered", "turnout_pct", "expected_ballots", "gotv_upside", "tier", "play"];
-  const lines = rows.map((r) =>
-    [r.rank, r.name, r.municipality, r.registered, r.turnout ?? "", r.expected, r.gotv, r.tier, r.play]
-      .map((v) => csvField(String(v)))
-      .join(","),
-  );
+  if (voter) head.push("persuade_universe", "primary_propensity");
+  const lines = rows.map((r) => {
+    const cells: (string | number)[] = [r.rank, r.name, r.municipality, r.registered, r.turnout ?? "", r.expected, r.gotv, r.tier, r.play];
+    if (voter) {
+      const v = voter[r.name];
+      cells.push(v ? v.persuade : "", v ? v.vPropensity.toFixed(2) : "");
+    }
+    return cells.map((v) => csvField(String(v))).join(",");
+  });
   return [`# MO-02 precinct targets · strategy=${strategy} · Aug 2024 primary turnout`, head.join(","), ...lines].join("\n");
 }
 
-export function TargetTable({ rows, highlight }: { rows: PrecinctRow[]; highlight?: string }) {
+export function TargetTable({ rows, highlight, voter }: { rows: PrecinctRow[]; highlight?: string; voter?: VoterJoin }) {
   const [strategy, setStrategy] = useState<Strategy>("votes");
   const [muni, setMuni] = useState("");
   const [limit, setLimit] = useState(50);
@@ -57,7 +66,7 @@ export function TargetTable({ rows, highlight }: { rows: PrecinctRow[]; highligh
   const coverage = !muni && shown.length ? shown[shown.length - 1].cumPct : null;
 
   const download = () => {
-    const blob = new Blob([toCsv(filtered, strategy)], { type: "text/csv" });
+    const blob = new Blob([toCsv(filtered, strategy, voter)], { type: "text/csv" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `mo02-targets-${strategy}.csv`;
@@ -140,7 +149,7 @@ export function TargetTable({ rows, highlight }: { rows: PrecinctRow[]; highligh
           <table className="w-full text-sm">
             <thead className="border-b border-line bg-paper text-left text-slate">
               <tr>
-                {["#", "Precinct", "Municipality", "Reg.", "Turnout", metricLabel, "Tier", "Play", "Map"].map((h) => (
+                {["#", "Precinct", "Municipality", "Reg.", "Turnout", metricLabel, "Tier", "Play", ...(voter ? ["Persuade", "Prim. prop."] : []), "Map"].map((h) => (
                   <th key={h} className="whitespace-nowrap px-4 py-3 font-mono text-[0.65rem] uppercase tracking-eyebrow">{h}</th>
                 ))}
               </tr>
@@ -166,6 +175,16 @@ export function TargetTable({ rows, highlight }: { rows: PrecinctRow[]; highligh
                     <span className={`rounded-sm px-2 py-0.5 font-mono text-[0.65rem] font-bold ${tierColor[r.tier]}`}>{r.tier}</span>
                   </td>
                   <td className={`px-4 py-2.5 font-mono text-[0.7rem] uppercase tracking-eyebrow ${playColor[r.play]}`}>{r.play}</td>
+                  {voter && (
+                    <>
+                      <td className="px-4 py-2.5 font-mono text-ink">
+                        {voter[r.name] ? voter[r.name].persuade.toLocaleString() : "—"}
+                      </td>
+                      <td className="px-4 py-2.5 font-mono text-ink">
+                        {voter[r.name] ? `${Math.round(voter[r.name].vPropensity * 100)}%` : "—"}
+                      </td>
+                    </>
+                  )}
                   <td className="px-4 py-2.5">
                     {/* Back-link to the 3D map, zoomed + pulsed on this precinct */}
                     <a
