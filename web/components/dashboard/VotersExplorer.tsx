@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
 import { districtRollup, filterVoters, votersToCsv, type ExportKind, type VoterFilters } from "@/lib/voters/dashboard";
 import { SEGMENTS, type Segment } from "@/lib/voters/score";
 import { AGE_BANDS, ageBand } from "@/lib/voters/parse";
 import { allocateTurfs, cutTurfs } from "@/lib/voters/walk";
 import type { StoredVoter, VoterAggRow } from "@/lib/voters/storeTypes";
 import { CallSheetPages, WalkPacketSheets } from "@/components/dashboard/VoterPacketSheets";
-import { fetchPrecinctVoters } from "@/app/dashboard/voters/actions";
+import { SubmitButton } from "@/components/dashboard/SubmitButton";
+import {
+  fetchPrecinctVoters,
+  syncTurfsToAirtableAction,
+  type ActionState,
+} from "@/app/dashboard/voters/actions";
 
 // The voter command center (voter-file-plan.md Phase 2): district scoreboard +
 // county mix from the VOTERAGG rollups, a sortable precinct table, and a
@@ -80,6 +85,31 @@ export function VotersExplorer({ aggs, captains = [] }: { aggs: VoterAggRow[]; c
   // Walk turfs over the FILTERED list (street-sorted 40-60 doors), captains round-robin.
   const turfs = useMemo(() => allocateTurfs(cutTurfs(shown), captains), [shown, captains]);
   const matchedCount = useMemo(() => shown.filter((v) => phones[v.voterId]).length, [shown, phones]);
+
+  // Airtable sync: only turf SUMMARIES (counts + captain) cross over — never
+  // voter PII. The action is fail-closed on the base's Front-End Access table.
+  const [syncState, syncAction] = useActionState(syncTurfsToAirtableAction, { ok: true, message: "" } as ActionState);
+  const filtersLabel = useMemo(() => {
+    const parts: string[] = [];
+    if (filters.segment) parts.push(`segment=${filters.segment}`);
+    if (filters.minT != null) parts.push(`T>=${filters.minT}`);
+    if (filters.ageBand) parts.push(`age=${filters.ageBand}`);
+    if (filters.street?.trim()) parts.push(`street~${filters.street.trim()}`);
+    return parts.length ? parts.join(", ") : "all voters";
+  }, [filters]);
+  const turfJson = useMemo(
+    () =>
+      JSON.stringify(
+        turfs.map((t) => ({
+          index: t.index,
+          total: turfs.length,
+          doors: t.doors,
+          voters: t.voters,
+          ...(t.captain ? { captainName: t.captain.name } : {}),
+        })),
+      ),
+    [turfs],
+  );
   const exportCsv = (kind: ExportKind) => {
     if (!open) return;
     download(`${kind}-list-${open.replace(/[^a-z0-9]+/gi, "-")}.csv`, votersToCsv(shown, kind, phones));
@@ -193,6 +223,27 @@ export function VotersExplorer({ aggs, captains = [] }: { aggs: VoterAggRow[]; c
             {captains.length ? ` and round-robin them across ${captains.length} active captains` : " (no active captains — walker line left blank)"}.
             Call sheet covers the {matchedCount} voters with a phone matched from campaign records (volunteers/donors) — manual dial only, never texting.
           </p>
+          <form action={syncAction} className="mt-2 flex flex-wrap items-center gap-2 no-print">
+            <input type="hidden" name="precinctLabel" value={open.split("#")[1] ?? open} />
+            <input type="hidden" name="filtersLabel" value={filtersLabel} />
+            <input type="hidden" name="matched" value={matchedCount} />
+            <input type="hidden" name="turfs" value={turfJson} />
+            <SubmitButton
+              className="btn-ghost px-3 py-1 text-xs disabled:opacity-50"
+              disabled={pending || !turfs.length}
+              pendingText="Syncing…"
+            >
+              Sync counts to Airtable
+            </SubmitButton>
+            <span className="text-[0.7rem] text-slate">
+              Pushes turf/door counts + captain to Canvass Turf (and the matched-phone count to Contact Lists) — never voter names or addresses.
+            </span>
+            {syncState.message && (
+              <span className={`w-full text-[0.7rem] ${syncState.ok ? "text-field" : "text-brick"}`} role="status">
+                {syncState.message}
+              </span>
+            )}
+          </form>
           <div className="mt-3 flex flex-wrap gap-2 no-print">
             <select value={filters.segment ?? ""} onChange={(e) => setFilters({ ...filters, segment: e.target.value as Segment | "" })} className={chip} aria-label="Segment">
               <option value="">All segments</option>
