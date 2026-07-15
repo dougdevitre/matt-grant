@@ -51,6 +51,18 @@ describe("donateHref", () => {
     expect(u.searchParams.get("amount")).toBe("25");
     expect(u.searchParams.get("sc")).toBe("letter-supporter-levels");
   });
+
+  it("omits recurring by default (byte-identical to before) and only sets it when passed", () => {
+    // Default: recurring untouched — the base's own value (here false) is preserved verbatim.
+    const base = "https://secure.winred.com/x/donate-today?sc=winred-directory&recurring=false";
+    expect(donateHref(base, 50_00)).toBe(donateHref(base, 50_00, undefined, undefined));
+    expect(new URL(donateHref(base, 50_00)).searchParams.get("recurring")).toBe("false");
+    // Explicit true flips it (the opt-in monthly control); explicit false restates the opt-out.
+    expect(new URL(donateHref(base, 50_00, "web-impact", true)).searchParams.get("recurring")).toBe("true");
+    expect(new URL(donateHref(base, 50_00, "web-impact", false)).searchParams.get("recurring")).toBe("false");
+    // Never duplicates the param.
+    expect(donateHref(base, 50_00, "web-impact", true).match(/recurring=/g)).toHaveLength(1);
+  });
 });
 
 describe("quickPickAmounts", () => {
