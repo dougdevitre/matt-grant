@@ -91,6 +91,7 @@ Instant-generation triggers. When a user types any of these commands, generate t
 | `/textscript` | Peer-to-peer texting scripts (intro, persuasion, GOTV, event invite) -- from `messaging/sms-texting.md` |
 | `/voicemail` | Voicemail script for robocall or volunteer phone banking |
 | `/walkcard` | Walk card / palm card content (front and back) |
+| `/twiliofund [budget]` | Twilio/SMS budget plan — the best use of text-messaging funds across the opted-in audience, joined to voter scores/segments, with the TCPA line stated plainly (the voter file is never texted) and a priority allocation model, sourced from `candidate/twilio-fund-plan.md` (regenerate live numbers with `web/scripts/twilio-fund-report.ts`) |
 
 ### Outreach & Correspondence
 | Command | Output |
