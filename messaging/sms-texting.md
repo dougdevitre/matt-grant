@@ -81,6 +81,21 @@ month goal. A donation of any size makes a difference: [donate link]
 Paid for by Matt Grant for Congress. Reply STOP to quit.
 ```
 
+#### Per-tier `[donate link]` values (copy/paste)
+
+Drop one of these in for `[donate link]` to preselect a level on WinRed. Each is the same base link with `amount` (dollars) and `sc=sms-tier` (so WinRed reports attribute the gift to texting) — the exact output of `donateHref(base, amount, "sms-tier")` (`web/lib/donorLadder.ts`). These are the six entry supporter levels; see [`../candidate/donor-value-ladder.md`](../candidate/donor-value-ladder.md) for what each level unlocks.
+
+| Level | Amount | Link to paste |
+|---|--:|---|
+| Front Porch Friend | $25 | `https://secure.winred.com/matt-grant-for-congress/donate-today?sc=sms-tier&money_bomb=false&recurring=false&amount=25` |
+| Yard Sign Crew | $50 | `https://secure.winred.com/matt-grant-for-congress/donate-today?sc=sms-tier&money_bomb=false&recurring=false&amount=50` |
+| Grant Team Tee | $100 | `https://secure.winred.com/matt-grant-for-congress/donate-today?sc=sms-tier&money_bomb=false&recurring=false&amount=100` |
+| Precinct Partner | $250 | `https://secure.winred.com/matt-grant-for-congress/donate-today?sc=sms-tier&money_bomb=false&recurring=false&amount=250` |
+| Captain's Circle | $500 | `https://secure.winred.com/matt-grant-for-congress/donate-today?sc=sms-tier&money_bomb=false&recurring=false&amount=500` |
+| MO-02 Founders Club | $1,000 | `https://secure.winred.com/matt-grant-for-congress/donate-today?sc=sms-tier&money_bomb=false&recurring=false&amount=1000` |
+
+Run any link through your campaign-approved short-link service before texting. Never pre-select recurring — these are one-time by default (compliance).
+
 ### Get Out The Vote (GOTV)
 
 ```

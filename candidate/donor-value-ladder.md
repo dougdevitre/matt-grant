@@ -146,6 +146,7 @@ only, never donor data:
 | `web-impact` | /donate "choose an amount" impact picker |
 | `letter-supporter-levels` | The on-letterhead supporter-levels letter's QR code |
 | `email-next-level` | The thank-you email's "give $Δ to reach [next level]" button |
+| `sms-tier` | Per-tier donate links pasted into texts (copy/paste table in [`../messaging/sms-texting.md`](../messaging/sms-texting.md) §3) |
 | `winred-directory` | The default (any link without a specific code) |
 
 The thank-you email's next-level ask preselects **exactly the difference** to the donor's next
