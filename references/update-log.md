@@ -26,6 +26,51 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-15 -- v1.x -- Donation packages, voter-record use, seeding & the Twilio-fund report
+
+**Changes:**
+- [updated] Donation packages unified so `/donate` is the canonical public URL: the amount
+  picker now DERIVES from the donor `LADDER` (single source, `web/lib/donorLadder.ts`
+  `quickPickAmounts()`), a shareable `#packages` anchor was added, and the docs
+  (`candidate/donor-value-ladder.md`, `messaging/email-fundraising.md`) reference the same rungs.
+- [added] Voter-record **usage & lineage** map (`candidate/voter-file-plan.md` §7): every consumer,
+  its fields/granularity/output, and governing rule — plus a code-enforced TCPA wall
+  (`web/lib/sms/audiences.voterfile-isolation.test.ts`) that fails the build if any voter-file
+  surface leaks into the SMS recipient path.
+- [added] Synthetic-voter dev seed (`web/scripts/seed-voters-sample.ts`) so the voter dashboard,
+  SMS composer, and the Twilio-fund report render offline without real PII.
+- [added] Twilio-fund decision brief (`candidate/twilio-fund-plan.md`) + pure analysis lib
+  (`web/lib/reports/twilioFund.ts`) + read-only generator (`web/scripts/twilio-fund-report.ts`):
+  optimizes the SMS budget over the opted-in audience joined to voter scores; the voter file is
+  never texted. Registered the `/twiliofund` command and a SKILL.md routing row.
+- [updated] Voter ingest hardened (`web/scripts/ingest-voters.ts`): header/column validation,
+  SHA-256 whole-run idempotency (`--force`), `--from-s3` fetch, and count reconciliation
+  (`web/lib/voters/ingestPlan.ts`, `parse.ts` `validateHeader`).
+
+**Verifications Performed:**
+- `web` unit suite: 1757 passing (added donorLadder, isolation-guard, seed-shared, twilioFund,
+  ingestPlan, and header-validation tests); `tsc --noEmit` and `eslint` clean.
+- Seed + report pipelines exercised offline against synthetic data; ingest dry-run verified on a
+  synthetic xlsx (valid header reconciles; a scrambled header exits non-zero; `--skip-header-check`
+  overrides).
+
+**Known Gaps:**
+- All dollar/count figures in `twilio-fund-plan.md` are illustrative placeholders; regenerate live
+  numbers with `web/scripts/twilio-fund-report.ts` against the real table.
+- `--from-s3` fetch and live DynamoDB writes were not exercised against AWS in this change (offline
+  environment); the pure logic they call is unit-tested.
+
+**Files Modified:**
+- web/lib/donorLadder.ts, web/components/budget/DonationImpact.tsx, web/components/DonorLadder.tsx, web/app/(site)/donate/page.tsx
+- candidate/donor-value-ladder.md, messaging/email-fundraising.md
+- candidate/voter-file-plan.md, SKILL.md, commands/commands.md
+- web/lib/sms/audiences.voterfile-isolation.test.ts
+- web/scripts/seed-voters-sample.ts, web/scripts/seed-constants.ts, web/scripts/seed-shared.ts, web/scripts/seed-dynamo.ts
+- candidate/twilio-fund-plan.md, web/lib/reports/twilioFund.ts, web/scripts/twilio-fund-report.ts
+- web/lib/voters/ingestPlan.ts, web/lib/voters/parse.ts, web/scripts/ingest-voters.ts
+
+---
+
 ## 2026-07-11 -- v1.x -- Voter xlsx purged from git history (custody §2.1 resolved)
 
 **Changes:**
