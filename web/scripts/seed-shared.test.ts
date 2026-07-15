@@ -22,10 +22,16 @@ describe("isSeedItem", () => {
 
 describe("SEED_PARTITIONS", () => {
   it("covers every partition the seed loader writes", () => {
-    // Lock the cleanup sweep to the seed loader: scan seed-dynamo.ts for the PK.*
-    // keys it puts into, and assert each resolves to a partition in SEED_PARTITIONS.
-    // A new entity added to the seed without updating SEED_PARTITIONS fails here.
-    const src = readFileSync(new URL("./seed-dynamo.ts", import.meta.url), "utf8");
+    // Lock the cleanup sweep to the seed loader: scan the seed scripts for the
+    // string-valued PK.* keys they put into, and assert each resolves to a
+    // partition in SEED_PARTITIONS. A new entity added to the seed without
+    // updating SEED_PARTITIONS fails here. (Function-valued PK builders — sharded
+    // voter partitions, INGESTRUN — and the local SMSCONSENT name aren't string
+    // members, so seed-voters-sample.ts lists those explicitly in
+    // SEED_VOTER_PARTITIONS.)
+    const src = ["./seed-dynamo.ts", "./seed-voters-sample.ts"]
+      .map((f) => readFileSync(new URL(f, import.meta.url), "utf8"))
+      .join("\n");
     const used = new Set<string>();
     for (const m of src.matchAll(/PK\.(\w+)/g)) {
       const value = (PK as Record<string, unknown>)[m[1]];

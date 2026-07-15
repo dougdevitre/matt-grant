@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ageBand, assembleAddress, isCd2, parseLastVoted, parseRegDate, parseVoterRow, COLUMNS } from "./parse";
+import { ageBand, assembleAddress, isCd2, parseLastVoted, parseRegDate, parseVoterRow, validateHeader, COLUMNS } from "./parse";
 import { isNewRegistrant, scoreVoter, segmentFor, supportProxy, turnoutScore, SEGMENTS } from "./score";
 import { buildCrosswalk, normalizePrecinct, precinctKey } from "./crosswalk";
 
@@ -63,6 +63,18 @@ describe("parse", () => {
     expect(ageBand(2004)).toBe("18-24");
     expect(ageBand(1970)).toBe("50-64");
     expect(ageBand(null)).toBe("unknown");
+  });
+
+  it("validateHeader accepts the real header (+ extra trailing cols) and flags drift", () => {
+    expect(validateHeader([...COLUMNS])).toEqual([]);
+    // Case/whitespace-insensitive, and extra trailing columns are allowed.
+    expect(validateHeader([...COLUMNS.map((c) => `  ${c.toUpperCase()} `), "EXTRA"])).toEqual([]);
+    // A reordered column is caught (index-based parsing would mis-read every row).
+    const swapped = [...COLUMNS];
+    [swapped[1], swapped[2]] = [swapped[2], swapped[1]];
+    expect(validateHeader(swapped).length).toBeGreaterThan(0);
+    // A short header (missing columns) is caught.
+    expect(validateHeader(COLUMNS.slice(0, 10)).some((p) => /expected at least/.test(p))).toBe(true);
   });
 });
 

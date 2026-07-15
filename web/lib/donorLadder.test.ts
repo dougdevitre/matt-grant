@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { donateHref, LADDER, ladderTierForCents, nextRung } from "./donorLadder";
+import { donateHref, LADDER, ladderTierForCents, nextRung, quickPickAmounts } from "./donorLadder";
 
 describe("LADDER invariants", () => {
   it("is sorted ascending with unique thresholds and the FEC-max top rungs", () => {
@@ -50,6 +50,22 @@ describe("donateHref", () => {
     const u = new URL(donateHref("https://secure.winred.com/x/donate-today", 25_00, "letter-supporter-levels"));
     expect(u.searchParams.get("amount")).toBe("25");
     expect(u.searchParams.get("sc")).toBe("letter-supporter-levels");
+  });
+});
+
+describe("quickPickAmounts", () => {
+  it("derives the picker amounts from the LADDER, excluding the FEC-max rungs", () => {
+    const picks = quickPickAmounts();
+    // The six entry rungs — every LADDER rung WITHOUT a limit note, in dollars.
+    expect(picks).toEqual([25, 50, 100, 250, 500, 1000]);
+    // Never surface the two FEC-max recognition ceilings as one-tap buttons.
+    expect(picks).not.toContain(3500);
+    expect(picks).not.toContain(7000);
+  });
+
+  it("stays in sync with the LADDER (no hand-maintained list)", () => {
+    const derived = LADDER.filter((r) => !r.note).map((r) => r.amountCents / 100);
+    expect(quickPickAmounts()).toEqual(derived);
   });
 });
 

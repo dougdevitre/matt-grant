@@ -72,3 +72,14 @@ export function ladderTierForCents(totalCents: number): LadderRung | null {
 export function nextRung(totalCents: number): LadderRung | null {
   return LADDER.find((r) => totalCents < r.amountCents) ?? null;
 }
+
+/**
+ * Suggested one-tap amounts (whole dollars) for the /donate amount picker,
+ * DERIVED from the LADDER so the picker can never drift from the supporter
+ * levels. Excludes the two FEC-max rungs (the ones carrying a limit `note`,
+ * $3,500 / $7,000): those are recognition ceilings, not casual quick-pick
+ * buttons. Editing a rung's amount above updates the picker automatically.
+ */
+export function quickPickAmounts(): number[] {
+  return LADDER.filter((r) => !r.note).map((r) => r.amountCents / 100);
+}

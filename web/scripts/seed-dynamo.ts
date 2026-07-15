@@ -4,6 +4,7 @@
 import { ddb, TABLE, PK } from "../lib/db";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { SEED_SK_PREFIX } from "./seed-shared";
+import { seedVoterSample } from "./seed-voters-sample";
 
 const now = new Date().toISOString();
 // Every seeded row carries `seed: true` so it stays identifiable even if the
@@ -76,6 +77,15 @@ async function main() {
   await m("Persuade", "Earned + paid media push begins", "2026-06-20", false, 6);
   await m("GOTV", "Absentee / early-vote chase begins", "2026-07-15", false, 7);
   await m("GOTV", "Election Day — MO-02 primary", "2026-08-04", false, 8, "Polls close; chase every supporter.");
+
+  // Synthetic voter engine + a matching opt-in audience (voter dashboard, SMS
+  // composer, and the Twilio-fund report all read from these). Clearly fake data.
+  const vs = await seedVoterSample(put, now);
+  console.log(
+    `Seeded ${vs.voters} synthetic voters across ${vs.precincts} precincts, ` +
+      `${vs.optedIn} opted-in numbers (${vs.matched} matched to voters) into`,
+    TABLE,
+  );
 
   console.log("Seeded sample donors, expenditures, volunteers, tasks, milestones into", TABLE);
 }

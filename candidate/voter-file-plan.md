@@ -7,7 +7,7 @@ every use, the ingest/scoring architecture, and the phased rollout that feeds do
 signs, phones, and GOTV from one scored database operated from the admin dashboard.
 
 - **Campaign:** Matt Grant for Congress (FEC C00945394) · **Race:** U.S. House, MO-02 · primary Aug 4, 2026
-- **Owner:** _[campaign manager + data lead]_ · **Last updated:** July 11, 2026 · **Status:** Phases 0-5 shipped (model deferred)
+- **Owner:** _[campaign manager + data lead]_ · **Last updated:** July 15, 2026 · **Status:** Phases 0-5 shipped (model deferred); usage & lineage documented + enforced (§7)
 
 > **Educational information, not legal advice.** Voter-list use restrictions (RSMo 115.157)
 > and telephone-solicitation rules (TCPA) below were reviewed **July 10, 2026** for
@@ -58,7 +58,10 @@ Sunshine follow-up).
    their turf's rows via generated packets. Donor-list-style hygiene applies: no forwarding
    raw exports, no personal devices for bulk copies, delete stale exports.
 5. **Retention.** Refresh from the election authority rather than accumulating stale
-   copies; the ingest manifest records the source file hashes and dates.
+   copies; the ingest manifest records the source file hashes and dates. Departed
+   registrants (present in a prior load, absent from the newest) are **reported, not
+   auto-deleted** — retiring a voter row is a deliberate decision (the ingest exposes the
+   diff via `reconcileStale`), logged when acted on.
 
 ## 3. Architecture (the voter engine)
 
@@ -80,6 +83,18 @@ flowchart LR
   only queried per precinct (lists, packets, drill-downs).
 - **Crosswalk**: voter-file precinct names ↔ ArcGIS map precincts ↔ Geo Hierarchy, with
   fuzzy normalization; misses are reported in the manifest, never silently dropped.
+- **Ingest hardening (2026-07-15):** the CLI now (a) **validates each file's header**
+  against the expected 36-column order and refuses to load on drift — index-based parsing
+  would otherwise silently mis-read every row (`--skip-header-check` overrides); (b) is
+  **idempotent** — a re-run of the same file set (matched by SHA-256) is a no-op unless
+  `--force`, since aggregates are recomputed from ALL files in one pass and overwrite
+  `VOTERAGG` wholesale (so resume is a whole-run decision, not per-file); (c) records a
+  cheap **count reconciliation** vs the last load's manifest (`+N net registrants`), with a
+  pure departed-ID diff (`reconcileStale`) available for a full pass; and (d) can **fetch the
+  xlsx straight from S3** (`--from-s3`) so the operator needn't download them by hand. The
+  planning logic is pure + unit-tested (`web/lib/voters/ingestPlan.ts`,
+  `web/lib/voters/parse.ts` `validateHeader`). The low-memory CloudShell variant
+  (`ingest-voters-lowmem.ts` / `loadvoters.cjs`) keeps its own per-file resumable design.
 - The full phase-by-phase build plan lives with the engineering record (update log) —
   Phase 0 custody (this doc), Phase 1 ingest, Phase 2 dashboard, Phase 3 feed
   Targets/map/signs, Phase 4 walk/mail/call generators, Phase 5 canvass-ID learning loop
@@ -225,7 +240,57 @@ named here — verify quotes yourself):
   the consent ledger (TCPA). The import UI, the call sheets, and the CSV column all
   restate this.
 
-## 7. See also
+## 7. Voter-record usage & lineage — the precise use of every record
+
+The channel rules (§6) say what may reach a voter; this section says exactly **which system reads
+which voter data, at what granularity, to produce what** — so the precise use of the file is
+explicit and auditable, not spread across the codebase by convention. Every consumer below is
+admin-gated in the dashboard and every export carries the RSMo §115.157 political-use notice.
+Two granularities matter: **aggregate** reads touch only the per-precinct rollups (`VOTERAGG`,
+never a name); **per-row** reads touch individual voter rows (`VOTER#county#precinct`) and therefore
+handle PII — those outputs stay inside the app or a stamped export, never a third party.
+
+```mermaid
+flowchart LR
+  V["VOTER#county#precinct<br/>(per-row PII)"] --> WALK["Walk packets / call sheets / mail merge"]
+  V --> LOOP["Canvass-ID write-back (1-5)"]
+  LOOP --> V
+  A["VOTERAGG<br/>(per-precinct rollups)"] --> DASH["Dashboard scoreboard"]
+  A --> MAP["3D map (Voter-file mode)"]
+  A --> TGT["Targets / Signs scorers"]
+  A --> CHASE["Ballot-chase board"]
+  A --> AT["Airtable turf sync<br/>(SUMMARY COUNTS ONLY)"]
+  P["VOTERPHONE<br/>(vendor append, opt.)"] --> CALL["Manual-dial call lists"]
+  C["SMSCONSENT ledger"] --> SMS["SMS broadcasts"]
+  WALL["TCPA wall: voter-file & VOTERPHONE numbers never reach SMS"]
+  V -.-> WALL
+  P -.-> WALL
+```
+
+| Consumer (surface) | Reads | Granularity | Produces | Governing rule / code |
+|---|---|---|---|---|
+| Voter scoreboard (`/dashboard/voters`) | `VOTERAGG` | Aggregate | District/county scoreboard, sortable precinct table | Admin (`viewVoterFile`); reads rollups only |
+| Precinct drill-down + exports | `VOTER#` rows | Per-row PII | On-screen list + walk/mail/call CSV (formula-injection-guarded) | RSMo stamp on every export; banked voters hidden by default |
+| 3D map — "Voter file" mode (`/dashboard/map`) | `VOTERAGG` → precinct features | Aggregate | Shade = primary-propensity heuristic, height = PERSUADE universe | Crosswalk by name; heuristic labeled; nothing renders pre-ingest |
+| Targets page | `VOTERAGG` | Aggregate | Persuade + primary-propensity columns/CSV | Admin; heuristic labeled |
+| Signs scorer (`web/lib/voters` join) | `VOTERAGG` | Aggregate | Auto-fills a blank precinct `propensity` | An explicitly typed value always wins |
+| Walk packets | `VOTER#` rows | Per-row PII | Street-sorted ~40-60-door turfs w/ canvass-ID column | Stays in the app; RSMo notice; round-robined to captains |
+| Mail merge (`tools/pdf-letterhead/voters_mailing.py`) | Segment CSV export | Per-row PII | One letterhead PDF per segment | Verbatim disclaimer on every page |
+| Matched-phone call sheets (`web/lib/voters/phones.ts`) | `VOTER#` rows ⋈ campaign contacts (name+ZIP5) | Per-row PII | Manual-dial call sheet + call-CSV phone column | **Call only, never SMS**; ambiguous name+ZIP keys dropped |
+| Phone-append import | `VOTERPHONE` (vendor CSV, keyed by voter ID or name+ZIP) | Per-row | Numbers on call lists/sheets | Manual-dial only; license must permit political phone contact |
+| Ballot-chase board (`/dashboard/voters/chase`) | `VOTERAGG` tiers + `BALLOTAGG`; imports returns by voter ID | Aggregate (+ ID-keyed import) | Daily Chase Report: universe/banked/outstanding per tier | Admin; idempotent import; banked hidden from lists |
+| Learning loop (write-back) | Canvass IDs 1-5 → `VOTER#` rows | Per-row | Recomputed S/segment + re-aggregated rollups | `web/lib/voters/aggregate.ts` (exact ingest math) |
+| Airtable turf sync | Cut-turf counts | **Summary only** | Canvass Turf + Contact Lists rows (counts) | **Never voter names/addresses**; fail-closed Front-End Access |
+| **SMS broadcasts** | **`SMSCONSENT` ledger ONLY** | — | Opted-in texts | **Reads NOTHING from the voter file** — TCPA (§2.3) |
+
+**The TCPA wall is enforced in code, not just documented.** No number derived from, appended to, or
+matched against the voter file (`VOTER#`, `VOTERPHONE`, and every voter partition builder in
+`web/lib/db.ts`) may enter the SMS recipient path. `web/lib/sms/audiences.voterfile-isolation.test.ts`
+scans every module under `web/lib/sms/` and fails the build if any voter-file surface is referenced —
+so a future change that tried to text matched or appended numbers cannot ship. SMS recipients come
+exclusively from `optedInSet()` (`web/lib/sms/consent.ts`) intersected with named campaign contacts.
+
+## 8. See also
 
 - [`../workflows/voter-targeting.md`](../workflows/voter-targeting.md) — the universes/matrix this engine computes
 - [`../tactics/voter-personas.md`](../tactics/voter-personas.md) — mail/creative variants per segment

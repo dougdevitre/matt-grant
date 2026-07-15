@@ -52,6 +52,29 @@ export const COLUMNS = [
   "LEGISLATIVE DISTRICT 20", "SENATE DISTRICT 20", "Voter Status", "Voter History",
 ] as const;
 
+const normHeader = (v: unknown): string => String(v ?? "").replace(/\s+/g, " ").trim().toLowerCase();
+
+/**
+ * Validate a file's header row against COLUMNS. Parsing is INDEX-BASED, so a
+ * reordered/renamed/missing column would silently mis-read every row (worse than
+ * skipping) — the ingest must fail loudly instead. Returns human-readable
+ * problems in column order; an empty array means the header matches. Extra
+ * trailing columns beyond COLUMNS are allowed (only indices 0..35 are read).
+ */
+export function validateHeader(header: unknown[]): string[] {
+  if (!Array.isArray(header)) return ["header row is missing or not a row"];
+  const problems: string[] = [];
+  if (header.length < COLUMNS.length) {
+    problems.push(`expected at least ${COLUMNS.length} columns, got ${header.length}`);
+  }
+  for (let i = 0; i < COLUMNS.length; i++) {
+    if (normHeader(header[i]) !== normHeader(COLUMNS[i])) {
+      problems.push(`col ${i}: expected "${COLUMNS[i]}", got "${header[i] ?? "(missing)"}"`);
+    }
+  }
+  return problems;
+}
+
 const str = (v: unknown): string => (v == null ? "" : String(v).trim());
 const opt = (v: unknown): string | undefined => {
   const s = str(v);
