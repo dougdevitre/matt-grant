@@ -14,7 +14,7 @@ const dollars = (cents: number) => `$${(cents / 100).toLocaleString("en-US")}`;
 
 export function DonorLadder({ donateBase }: { donateBase: string }) {
   return (
-    <div className="mx-auto mt-14 max-w-6xl">
+    <div id="packages" className="mx-auto mt-14 max-w-6xl scroll-mt-24">
       <div className="mx-auto max-w-3xl text-center">
         <p className="eyebrow text-brick">Supporter levels</p>
         <h2 className="mt-2 text-2xl font-semibold">Every level unlocks a thank-you</h2>

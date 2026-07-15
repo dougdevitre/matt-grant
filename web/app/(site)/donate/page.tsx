@@ -31,8 +31,11 @@ export default async function DonatePage() {
           <h1 className="mt-3 text-4xl font-semibold sm:text-6xl">Fuel the final stretch.</h1>
           <p className="mt-5 max-w-prose text-lg text-slate">
             Every contribution pays for doors knocked, calls made, and neighbors reached before{" "}
-            {CAMPAIGN.electionLabel}. Pick an amount below and see exactly what it funds — then give
-            securely through WinRed.
+            {CAMPAIGN.electionLabel}. Pick an amount below and see exactly what it funds, or{" "}
+            <Link href="/donate#packages" className="underline hover:text-brick">
+              choose a support level
+            </Link>{" "}
+            — then give securely through WinRed.
           </p>
         </div>
         <div className="relative aspect-[3/2] w-full overflow-hidden rounded-lg border border-line shadow-card">

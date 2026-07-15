@@ -111,7 +111,12 @@ Segment your list and escalate asks over time:
 | Major donor ($250+)| $100 | $250 | $500 |
 | Max-out track | $500 | $1,000 | Max contribution |
 
-Always include multiple suggested amounts in your donation link (e.g., $10 / $25 / $50 / $100 / Other).
+Always include multiple suggested amounts in your donation link. The website's canonical set is the
+six entry supporter levels — **$25 / $50 / $100 / $250 / $500 / $1,000** (from the Donor Value Ladder;
+see [`../candidate/donor-value-ladder.md`](../candidate/donor-value-ladder.md)) — surfaced on
+[mattgrantforcongress.org/donate#packages](https://mattgrantforcongress.org/donate#packages), where each
+amount deep-links to the matching WinRed level. Keep email/SMS asks aligned to these rungs so the
+suggested amount a reader taps matches a named level on the site.
 
 ---
 

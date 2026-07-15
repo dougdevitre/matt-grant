@@ -10,7 +10,7 @@ public use of this ladder. Companion to [`../messaging/email-fundraising.md`](..
 (limits math and over-limit remedies).
 
 - **Campaign:** Matt Grant for Congress (FEC C00945394) · **Race:** U.S. House, MO-02 · primary Aug 4, 2026
-- **Donate:** WinRed — https://secure.winred.com/matt-grant-for-congress/donate-today
+- **Donate:** WinRed — https://secure.winred.com/matt-grant-for-congress/donate-today · **Public packages page:** https://mattgrantforcongress.org/donate#packages (the canonical URL where supporters choose a level; each button deep-links to the matching WinRed amount)
 - **Owner:** _[finance director]_ · **Last updated:** July 10, 2026 · **Status:** Draft v0.1
 
 > **Educational information, not legal advice.** Contribution limits and premium/expenditure rules
@@ -55,6 +55,11 @@ flowchart TD
 **Naming rationale:** every name is field-flavored and factual — porches, yards, precincts,
 captains, and MO-02 are the campaign's real machinery (see `captain-field-plan.md`,
 `sign-placement-plan.md`). No name implies an endorsement, office, or official access.
+
+**Single source of truth.** This table is mirrored in code by the `LADDER` array in
+`web/lib/donorLadder.ts` — **edit both together.** The `/donate` page's "choose an amount" quick-pick
+buttons are *derived* from these rungs (the six entry levels below the FEC-max, via
+`quickPickAmounts()`), so the picker, the supporter-levels cards, and this table can never drift apart.
 
 **Solicitation copy pattern (use this framing everywhere):**
 > *"As a thank-you, Matt Grant for Congress provides [level] supporters with [items/invitation]."*

@@ -7,9 +7,11 @@
 import { useMemo, useState } from "react";
 import type { Item } from "@/lib/budget/types";
 import { formatUSD, maxAffordable, toNumber } from "@/lib/budget/plan";
-import { donateHref } from "@/lib/donorLadder";
+import { donateHref, quickPickAmounts } from "@/lib/donorLadder";
 
-const AMOUNTS = [25, 50, 100, 250, 500, 1000];
+// Derived from the LADDER (single source) so the picker can't drift from the
+// supporter levels shown just below it on /donate.
+const AMOUNTS = quickPickAmounts();
 
 export default function DonationImpact({
   items,
