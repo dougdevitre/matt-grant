@@ -11,8 +11,10 @@
  *   ... (repeat Part2..Part5) ...
  *   node ingest-lowmem.cjs --finalize
  *
- * Per --file: VOTER rows + VOTERIDX rows + per-precinct partial aggs (PK
- *   VAGGPART) + a manifest marker. Idempotent (keys overwrite).
+ * Per --file: VALIDATES the header/column order (fails loudly on drift —
+ *   index-based parsing would otherwise silently mis-read every row;
+ *   --skip-header-check overrides), then writes VOTER rows + VOTERIDX rows +
+ *   per-precinct partial aggs (PK VAGGPART) + a manifest marker. Idempotent.
  * Per --finalize: merge every VAGGPART partial into the real VOTERAGG rollups
  *   the dashboard reads + write the ingest manifest. Idempotent.
  *
@@ -22,7 +24,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 import * as XLSX from "xlsx";
-import { parseVoterRow } from "../lib/voters/parse";
+import { parseVoterRow, validateHeader } from "../lib/voters/parse";
 import { scoreVoter } from "../lib/voters/score";
 import { precinctKey } from "../lib/voters/crosswalk";
 import { newAgg, accumulate, type VoterAgg } from "../lib/voters/aggregate";
@@ -39,6 +41,7 @@ const opt = (name: string) => {
 };
 const file = opt("--file");
 const finalize = args.includes("--finalize");
+const skipHeaderCheck = args.includes("--skip-header-check");
 
 if (!TABLE) {
   console.error("DYNAMODB_TABLE is not set. Re-run with: DYNAMODB_TABLE=matt-grant AWS_REGION=us-east-1 node ...");
@@ -104,6 +107,20 @@ async function ingestOneFile(path: string): Promise<void> {
   const wb = XLSX.read(raw, { type: "buffer", cellDates: true, dense: true });
   const ws = wb.Sheets[wb.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, raw: true });
+
+  // Schema gate (same as ingest-voters.ts): parsing is index-based, so a
+  // reordered/renamed column would silently mis-read every row. Fail loudly.
+  const headerProblems = validateHeader(rows[0] ?? []);
+  if (headerProblems.length) {
+    console.error(`\nHEADER MISMATCH in ${path} — index-based parsing would mis-read every row:`);
+    for (const p of headerProblems.slice(0, 12)) console.error(`  - ${p}`);
+    if (headerProblems.length > 12) console.error(`  … and ${headerProblems.length - 12} more`);
+    if (!skipHeaderCheck) {
+      console.error("Refusing to ingest. Re-verify the export columns, or pass --skip-header-check to override.");
+      process.exit(1);
+    }
+    console.error("Continuing despite mismatch (--skip-header-check).");
+  }
 
   const aggs = new Map<string, VoterAgg>();
   const pool = makePool();
