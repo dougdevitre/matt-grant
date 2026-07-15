@@ -3,11 +3,17 @@
  *
  *   npx tsx scripts/ingest-voters.ts --dir /path/to/xlsx --dry-run
  *   npx tsx scripts/ingest-voters.ts --dir /path/to/xlsx            # writes DynamoDB
- *   ... [--limit N]  cap rows per file (smoke tests)
+ *   npx tsx scripts/ingest-voters.ts --from-s3                      # fetch xlsx from S3 first
+ *   ... [--limit N]              cap rows per file (smoke tests)
+ *   ... [--force]                reload even if the same files were already ingested
+ *   ... [--skip-header-check]    ingest despite a header/column mismatch (dangerous)
  *
- * Reads the five MO02_VotersList_Part*_of_5.xlsx exports (from the private S3
- * voters/raw/ prefix — download locally first; see docs/VOTER-FILE.md), parses
- * + scores every voter (lib/voters/*), and:
+ * Reads the five MO02_VotersList_Part*_of_5.xlsx exports — from a local --dir, or
+ * fetched from the private S3 voters/raw/ prefix with --from-s3 (see
+ * docs/VOTER-FILE.md) — VALIDATES each file's header against the expected column
+ * order (index-based parsing fails loudly on drift), and is IDEMPOTENT: a re-run
+ * of the same file set is a no-op unless --force. Parses + scores every voter
+ * (lib/voters/*), and:
  *   - DRY-RUN: prints the reconciliation report ONLY (counts, per-county census,
  *     T/segment histograms, party fill, district coding) — no writes, no PII out.
  *   - LIVE: batch-writes sharded voter rows (PK VOTER#county#precinct, SK voter
@@ -18,13 +24,15 @@
  * the custody rules in candidate/voter-file-plan.md §2.
  */
 import { createHash } from "node:crypto";
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { basename, join } from "node:path";
 import * as XLSX from "xlsx";
-import { parseVoterRow, COLUMNS } from "../lib/voters/parse";
+import { parseVoterRow, validateHeader, COLUMNS } from "../lib/voters/parse";
 import { scoreVoter, type ScoredVoter } from "../lib/voters/score";
 import { precinctKey } from "../lib/voters/crosswalk";
 import { accumulate, newAgg, type VoterAgg } from "../lib/voters/aggregate";
+import { planResume, reconcileCounts, type PriorRun } from "../lib/voters/ingestPlan";
 
 const args = process.argv.slice(2);
 const flag = (name: string) => args.includes(name);
@@ -33,16 +41,54 @@ const opt = (name: string): string | undefined => {
   return i >= 0 ? args[i + 1] : undefined;
 };
 
-const dir = opt("--dir");
+const dirArg = opt("--dir");
 const dryRun = flag("--dry-run");
+const force = flag("--force");
+const skipHeaderCheck = flag("--skip-header-check");
+const fromS3 = flag("--from-s3");
+const s3Prefix = opt("--from-s3") && !opt("--from-s3")!.startsWith("--") ? opt("--from-s3")! : "voters/raw/";
 const limit = Number(opt("--limit") ?? 0) || Infinity;
-if (!dir) {
-  console.error("usage: npx tsx scripts/ingest-voters.ts --dir <xlsx dir> [--dry-run] [--limit N]");
+if (!dirArg && !fromS3) {
+  console.error(
+    "usage: npx tsx scripts/ingest-voters.ts (--dir <xlsx dir> | --from-s3 [prefix]) " +
+      "[--dry-run] [--force] [--skip-header-check] [--limit N]",
+  );
   process.exit(1);
 }
 
+/**
+ * Download the voter xlsx from the private S3 bucket to a temp dir, so the
+ * operator doesn't have to fetch them by hand (voter-file-plan.md §2 custody
+ * rules still apply — the temp copy is local-only and short-lived).
+ */
+async function fetchFromS3(prefix: string): Promise<string> {
+  const bucket = process.env.S3_ASSETS_BUCKET;
+  if (!bucket) {
+    console.error("Set S3_ASSETS_BUCKET to use --from-s3.");
+    process.exit(1);
+  }
+  const { S3Client, ListObjectsV2Command, GetObjectCommand } = await import("@aws-sdk/client-s3");
+  const s3 = new S3Client({ region: process.env.AWS_REGION ?? "us-east-1" });
+  const listed = await s3.send(new ListObjectsV2Command({ Bucket: bucket, Prefix: prefix }));
+  const keys = (listed.Contents ?? []).map((o) => o.Key).filter((k): k is string => !!k && /\.xlsx$/i.test(k));
+  if (!keys.length) {
+    console.error(`No .xlsx objects under s3://${bucket}/${prefix}`);
+    process.exit(1);
+  }
+  const dest = mkdtempSync(join(tmpdir(), "mo02-voters-"));
+  for (const key of keys) {
+    const obj = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+    if (!obj.Body) continue;
+    const bytes = await obj.Body.transformToByteArray();
+    writeFileSync(join(dest, basename(key)), Buffer.from(bytes));
+    console.log(`fetched s3://${bucket}/${key}`);
+  }
+  return dest;
+}
+
 async function main() {
-  const files = readdirSync(dir!)
+  const dir = fromS3 ? await fetchFromS3(s3Prefix) : dirArg!;
+  const files = readdirSync(dir)
     .filter((f) => /\.xlsx$/i.test(f))
     .sort();
   if (!files.length) {
@@ -58,13 +104,42 @@ async function main() {
   let skipped = 0;
   let partyFilled = 0;
   const districtTotals = newAgg("(district)");
+  let priorRuns: PriorRun[] = [];
 
   // Live-write plumbing loaded lazily so dry-run needs no AWS config at all.
   let write: ((v: ScoredVoter, pk: string) => void) | null = null;
   let flush: (() => Promise<void>) | null = null;
   if (!dryRun) {
     const { batchWritePut } = await import("../lib/integrations/batchWrite");
-    const { PK, voterIdxShard } = await import("../lib/db");
+    const { PK, voterIdxShard, ddb, TABLE } = await import("../lib/db");
+    const { QueryCommand } = await import("@aws-sdk/lib-dynamodb");
+
+    // Resume/idempotency guard: if a prior run already ingested these exact files
+    // (by content hash), re-running is a no-op — the identical rows are present
+    // and re-parsing 577k voters would just rewrite them. Skip unless --force.
+    // (Per-file resume can't help here: aggregates are recomputed from ALL files
+    // in one pass and overwrite VOTERAGG wholesale, so a partial read would write
+    // partial rollups. Resume is therefore a whole-run decision.)
+    const fileRefs = files.map((f) => ({
+      file: f,
+      sha256: createHash("sha256").update(readFileSync(join(dir, f))).digest("hex"),
+    }));
+    const prior = await ddb.send(
+      new QueryCommand({
+        TableName: TABLE,
+        KeyConditionExpression: "PK = :p",
+        ExpressionAttributeValues: { ":p": PK.ingestRuns("voters") },
+      }),
+    );
+    priorRuns = (prior.Items ?? []) as PriorRun[];
+    const decision = planResume(priorRuns, fileRefs, force);
+    if (decision.skip) {
+      console.log(
+        `Already ingested (run ${decision.coveredBy?.SK}) — all ${files.length} file hashes match. ` +
+          "Nothing to do; pass --force to reload.",
+      );
+      return;
+    }
     const buf: Record<string, unknown>[] = [];
     const CONCURRENCY = 8;
     const pending: Promise<void>[] = [];
@@ -122,11 +197,26 @@ async function main() {
   }
 
   for (const f of files) {
-    const raw = readFileSync(join(dir!, f));
+    const raw = readFileSync(join(dir, f));
     const sha256 = createHash("sha256").update(raw).digest("hex");
     const wb = XLSX.read(raw, { type: "buffer", cellDates: true, dense: true });
     const ws = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, raw: true });
+
+    // Schema gate: parsing is index-based, so a reordered/renamed column would
+    // silently mis-read every row. Fail loudly on drift unless explicitly waived.
+    const headerProblems = validateHeader(rows[0] ?? []);
+    if (headerProblems.length) {
+      console.error(`\nHEADER MISMATCH in ${f} — index-based parsing would mis-read every row:`);
+      for (const p of headerProblems.slice(0, 12)) console.error(`  - ${p}`);
+      if (headerProblems.length > 12) console.error(`  … and ${headerProblems.length - 12} more`);
+      if (!skipHeaderCheck) {
+        console.error("Refusing to ingest. Re-verify the export columns, or pass --skip-header-check to override.");
+        process.exit(1);
+      }
+      console.error("Continuing despite mismatch (--skip-header-check).");
+    }
+
     let fileRows = 0;
     for (let i = 1; i < rows.length && fileRows < limit; i++) {
       const r = rows[i];
@@ -167,6 +257,13 @@ async function main() {
   console.log("Segments:", Object.entries(districtTotals.seg).map(([k, v]) => `${k}=${v} (${pct(v)})`).join("  "));
   console.log("Age bands:", Object.entries(districtTotals.age).sort().map(([k, v]) => `${k}=${v}`).join("  "));
 
+  // Cheap drift signal vs the last load's manifest count (no table scan). A full
+  // departed-voter reconciliation (reconcileStale) can run separately when needed.
+  const rec = reconcileCounts(priorRuns, total);
+  if (rec.previous != null && rec.delta != null) {
+    console.log(`Vs last load: ${rec.previous} → ${total} (${rec.delta >= 0 ? "+" : ""}${rec.delta} net registrants)`);
+  }
+
   if (dryRun) {
     console.log("\nDRY RUN — nothing written.");
     return;
@@ -198,6 +295,8 @@ async function main() {
         byCd: Object.fromEntries(cd),
         t: districtTotals.t,
         segments: districtTotals.seg,
+        headerOk: true, // every file passed validateHeader (or --skip-header-check was used)
+        reconciliation: { previous: rec.previous, delta: rec.delta },
       },
     }),
   );

@@ -58,7 +58,10 @@ Sunshine follow-up).
    their turf's rows via generated packets. Donor-list-style hygiene applies: no forwarding
    raw exports, no personal devices for bulk copies, delete stale exports.
 5. **Retention.** Refresh from the election authority rather than accumulating stale
-   copies; the ingest manifest records the source file hashes and dates.
+   copies; the ingest manifest records the source file hashes and dates. Departed
+   registrants (present in a prior load, absent from the newest) are **reported, not
+   auto-deleted** — retiring a voter row is a deliberate decision (the ingest exposes the
+   diff via `reconcileStale`), logged when acted on.
 
 ## 3. Architecture (the voter engine)
 
@@ -80,6 +83,18 @@ flowchart LR
   only queried per precinct (lists, packets, drill-downs).
 - **Crosswalk**: voter-file precinct names ↔ ArcGIS map precincts ↔ Geo Hierarchy, with
   fuzzy normalization; misses are reported in the manifest, never silently dropped.
+- **Ingest hardening (2026-07-15):** the CLI now (a) **validates each file's header**
+  against the expected 36-column order and refuses to load on drift — index-based parsing
+  would otherwise silently mis-read every row (`--skip-header-check` overrides); (b) is
+  **idempotent** — a re-run of the same file set (matched by SHA-256) is a no-op unless
+  `--force`, since aggregates are recomputed from ALL files in one pass and overwrite
+  `VOTERAGG` wholesale (so resume is a whole-run decision, not per-file); (c) records a
+  cheap **count reconciliation** vs the last load's manifest (`+N net registrants`), with a
+  pure departed-ID diff (`reconcileStale`) available for a full pass; and (d) can **fetch the
+  xlsx straight from S3** (`--from-s3`) so the operator needn't download them by hand. The
+  planning logic is pure + unit-tested (`web/lib/voters/ingestPlan.ts`,
+  `web/lib/voters/parse.ts` `validateHeader`). The low-memory CloudShell variant
+  (`ingest-voters-lowmem.ts` / `loadvoters.cjs`) keeps its own per-file resumable design.
 - The full phase-by-phase build plan lives with the engineering record (update log) —
   Phase 0 custody (this doc), Phase 1 ingest, Phase 2 dashboard, Phase 3 feed
   Targets/map/signs, Phase 4 walk/mail/call generators, Phase 5 canvass-ID learning loop
