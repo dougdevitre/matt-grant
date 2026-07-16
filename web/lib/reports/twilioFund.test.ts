@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { allocateBudget, buildCohorts, emptySeg, SMS_PRIORITY, type ReachCohorts } from "./twilioFund";
+import { allocateBudget, buildCohorts, emptySeg, renderReport, SMS_PRIORITY, type ReachCohorts } from "./twilioFund";
 
 describe("buildCohorts", () => {
   it("counts each opted-in phone once, by segment, and derives unmatched", () => {
@@ -30,6 +30,35 @@ const cohorts = (matched: Partial<Record<string, number>>): ReachCohorts => ({
   matched: { ...emptySeg(), ...(matched as Record<string, number>) },
   unmatched: 0,
   universe: emptySeg(),
+});
+
+describe("renderReport", () => {
+  const cohorts: ReachCohorts = {
+    optedIn: 4200,
+    optedOut: 180,
+    matched: { ...emptySeg(), MOBILIZE: 620, BANK: 900, PERSUADE: 780, PROSPECT: 240, MONITOR: 60 },
+    unmatched: 1600,
+    universe: { ...emptySeg(), MOBILIZE: 2551, BANK: 10029, PERSUADE: 393044, PROSPECT: 111086, MONITOR: 60656 },
+  };
+  const plan = allocateBudget(cohorts, { budgetCents: 2000_00, costPerSmsCents: 2 });
+  const md = renderReport(cohorts, plan, { costPerSmsCents: 2, generatedAt: "2026-07-16", source: "table matt-grant" });
+
+  it("renders the summary counts and a markdown table with one row per segment + a total", () => {
+    expect(md).toContain("Opted-in (textable) numbers:** 4,200");
+    expect(md).toContain("opted-in but unmatched:** 1,600");
+    // A header row and a data row for each segment, plus a Total row.
+    expect(md).toContain("| Segment | Opted-in & matched |");
+    for (const seg of ["MOBILIZE", "BANK", "PERSUADE", "PROSPECT", "MONITOR"]) expect(md).toContain(`| ${seg} |`);
+    expect(md).toContain("| **Total** |");
+    // The generation stamp + cost assumption ride along.
+    expect(md).toContain("2026-07-16");
+    expect(md).toContain("$0.02");
+  });
+
+  it("emits COUNTS ONLY — never a phone number or an E.164 string (no PII)", () => {
+    expect(md).not.toMatch(/\+1\d{10}/); // no E.164 numbers
+    expect(md).not.toMatch(/\b\d{3}[-.]\d{3}[-.]\d{4}\b/); // no formatted phone numbers
+  });
 });
 
 describe("allocateBudget", () => {

@@ -21,7 +21,10 @@ vi.mock("@/lib/sms/send", () => ({
 vi.mock("@/lib/sms/consent", () => ({ isOptedIn: (...a: unknown[]) => isOptedIn(...a) }));
 vi.mock("@/lib/sms/moderation", () => ({ isBlocked: (...a: unknown[]) => isBlocked(...a) }));
 vi.mock("@/lib/sms/conversations", () => ({ logOutbound: (...a: unknown[]) => logOutbound(...a) }));
-vi.mock("@/lib/sms/templates", () => ({ withCompliance: (b: string) => `${b} - Paid for by Matt Grant for Congress. Reply STOP to opt out.` }));
+vi.mock("@/lib/sms/templates", async () => {
+  const { CAMPAIGN } = await import("@/lib/site");
+  return { withCompliance: (b: string) => `${b} - ${CAMPAIGN.paidForBy} Reply STOP to opt out.` };
+});
 const withinSendWindow = vi.fn();
 vi.mock("@/lib/sms/campaigns", () => ({ withinSendWindow: () => withinSendWindow() }));
 

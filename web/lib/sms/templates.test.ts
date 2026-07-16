@@ -25,7 +25,7 @@ describe("withCompliance", () => {
     expect(withCompliance("Vote Aug 4")).toBe(`Vote Aug 4${SMS_COMPLIANCE_SUFFIX}`);
     expect(withCompliance("   ")).toBe("");
     expect(SMS_COMPLIANCE_SUFFIX).toContain("Reply STOP to opt out"); // TCPA opt-out
-    expect(SMS_COMPLIANCE_SUFFIX).toContain("Paid for by Matt Grant for Congress."); // FEC disclaimer
+    expect(SMS_COMPLIANCE_SUFFIX).toContain(CAMPAIGN.paidForBy); // FEC disclaimer
   });
 });
 

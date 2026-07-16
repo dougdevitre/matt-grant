@@ -67918,6 +67918,58 @@ var import_node_path8 = require("node:path");
 var XLSX = __toESM(require_xlsx());
 
 // lib/voters/parse.ts
+var COLUMNS = [
+  "County",
+  "Voter ID",
+  "First Name",
+  "Middle Name",
+  "Last Name",
+  "Suffix",
+  "Non Standard Address",
+  "House Number",
+  "House Suffix",
+  "Pre Direction",
+  "Street Name",
+  "Street Type",
+  "Post Direction",
+  "Unit Type",
+  "Unit Number",
+  "Residential City",
+  "Residential State",
+  "Residential ZipCode",
+  "Mailing Address",
+  "Mailing City",
+  "Mailing State",
+  "Mailing ZipCode",
+  "Birthdate",
+  "Political Party",
+  "Registration Date",
+  "Precinct",
+  "Precinct Name",
+  "Split",
+  "Township",
+  "Ward",
+  "CONGRESSIONAL DISTRICT 20",
+  "CONGRESSIONAL DISTRICT 25",
+  "LEGISLATIVE DISTRICT 20",
+  "SENATE DISTRICT 20",
+  "Voter Status",
+  "Voter History"
+];
+var normHeader = (v) => String(v ?? "").replace(/\s+/g, " ").trim().toLowerCase();
+function validateHeader(header) {
+  if (!Array.isArray(header)) return ["header row is missing or not a row"];
+  const problems = [];
+  if (header.length < COLUMNS.length) {
+    problems.push(`expected at least ${COLUMNS.length} columns, got ${header.length}`);
+  }
+  for (let i5 = 0; i5 < COLUMNS.length; i5++) {
+    if (normHeader(header[i5]) !== normHeader(COLUMNS[i5])) {
+      problems.push(`col ${i5}: expected "${COLUMNS[i5]}", got "${header[i5] ?? "(missing)"}"`);
+    }
+  }
+  return problems;
+}
 var str = (v) => v == null ? "" : String(v).trim();
 var opt = (v) => {
   const s = str(v);
@@ -68186,6 +68238,7 @@ var opt2 = (name) => {
 };
 var file = opt2("--file");
 var finalize = args.includes("--finalize");
+var skipHeaderCheck = args.includes("--skip-header-check");
 if (!TABLE) {
   console.error("DYNAMODB_TABLE is not set. Re-run with: DYNAMODB_TABLE=matt-grant AWS_REGION=us-east-1 node ...");
   process.exit(1);
@@ -68240,6 +68293,18 @@ async function ingestOneFile(path) {
   const wb = XLSX.read(raw, { type: "buffer", cellDates: true, dense: true });
   const ws = wb.Sheets[wb.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true });
+  const headerProblems = validateHeader(rows[0] ?? []);
+  if (headerProblems.length) {
+    console.error(`
+HEADER MISMATCH in ${path} \u2014 index-based parsing would mis-read every row:`);
+    for (const p3 of headerProblems.slice(0, 12)) console.error(`  - ${p3}`);
+    if (headerProblems.length > 12) console.error(`  \u2026 and ${headerProblems.length - 12} more`);
+    if (!skipHeaderCheck) {
+      console.error("Refusing to ingest. Re-verify the export columns, or pass --skip-header-check to override.");
+      process.exit(1);
+    }
+    console.error("Continuing despite mismatch (--skip-header-check).");
+  }
   const aggs = /* @__PURE__ */ new Map();
   const pool = makePool();
   let batch = [];

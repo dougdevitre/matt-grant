@@ -7,6 +7,7 @@
  *   ... [--limit N]              cap rows per file (smoke tests)
  *   ... [--force]                reload even if the same files were already ingested
  *   ... [--skip-header-check]    ingest despite a header/column mismatch (dangerous)
+ *   ... [--reconcile]            report departed voters (in a prior load, absent now)
  *
  * Reads the five MO02_VotersList_Part*_of_5.xlsx exports — from a local --dir, or
  * fetched from the private S3 voters/raw/ prefix with --from-s3 (see
@@ -32,7 +33,7 @@ import { parseVoterRow, validateHeader, COLUMNS } from "../lib/voters/parse";
 import { scoreVoter, type ScoredVoter } from "../lib/voters/score";
 import { precinctKey } from "../lib/voters/crosswalk";
 import { accumulate, newAgg, type VoterAgg } from "../lib/voters/aggregate";
-import { planResume, reconcileCounts, type PriorRun } from "../lib/voters/ingestPlan";
+import { planResume, reconcileCounts, reconcileStale, type PriorRun } from "../lib/voters/ingestPlan";
 
 const args = process.argv.slice(2);
 const flag = (name: string) => args.includes(name);
@@ -46,12 +47,13 @@ const dryRun = flag("--dry-run");
 const force = flag("--force");
 const skipHeaderCheck = flag("--skip-header-check");
 const fromS3 = flag("--from-s3");
+const reconcile = flag("--reconcile");
 const s3Prefix = opt("--from-s3") && !opt("--from-s3")!.startsWith("--") ? opt("--from-s3")! : "voters/raw/";
 const limit = Number(opt("--limit") ?? 0) || Infinity;
 if (!dirArg && !fromS3) {
   console.error(
     "usage: npx tsx scripts/ingest-voters.ts (--dir <xlsx dir> | --from-s3 [prefix]) " +
-      "[--dry-run] [--force] [--skip-header-check] [--limit N]",
+      "[--dry-run] [--force] [--skip-header-check] [--reconcile] [--limit N]",
   );
   process.exit(1);
 }
@@ -105,13 +107,16 @@ async function main() {
   let partyFilled = 0;
   const districtTotals = newAgg("(district)");
   let priorRuns: PriorRun[] = [];
+  // --reconcile only: the voter IDs seen in THIS run, and the IDs stored BEFORE it.
+  const currentIds = new Set<string>();
+  let prevIds: Set<string> | null = null;
 
   // Live-write plumbing loaded lazily so dry-run needs no AWS config at all.
   let write: ((v: ScoredVoter, pk: string) => void) | null = null;
   let flush: (() => Promise<void>) | null = null;
   if (!dryRun) {
     const { batchWritePut } = await import("../lib/integrations/batchWrite");
-    const { PK, voterIdxShard, ddb, TABLE } = await import("../lib/db");
+    const { PK, voterIdxShard, ddb, TABLE, queryAllPages } = await import("../lib/db");
     const { QueryCommand } = await import("@aws-sdk/lib-dynamodb");
 
     // Resume/idempotency guard: if a prior run already ingested these exact files
@@ -140,6 +145,32 @@ async function main() {
       );
       return;
     }
+
+    // --reconcile: snapshot the PRIOR stored voter-ID set BEFORE this run upserts
+    // rows (ingest never deletes, so departed voters would still be present after
+    // the write). Enumerate the ~178 precinct keys from VOTERAGG, then drain each
+    // VOTER# partition projecting only the sort key (voterId) — bounded per
+    // partition, no Scan, never one 577k Query (db.ts:66; contracts "never Scan").
+    if (reconcile) {
+      const aggRows = await queryAllPages({
+        TableName: TABLE,
+        KeyConditionExpression: "PK = :p",
+        ExpressionAttributeValues: { ":p": PK.voterAgg },
+      });
+      prevIds = new Set<string>();
+      for (const a of aggRows) {
+        if (typeof a.SK !== "string") continue;
+        const rows = await queryAllPages({
+          TableName: TABLE,
+          KeyConditionExpression: "PK = :p",
+          ExpressionAttributeValues: { ":p": PK.voterShard(a.SK) },
+          ProjectionExpression: "SK",
+        });
+        for (const r of rows) if (typeof r.SK === "string") prevIds.add(r.SK);
+      }
+      console.log(`--reconcile: snapshotted ${prevIds.size} prior voter IDs across ${aggRows.length} precincts.`);
+    }
+
     const buf: Record<string, unknown>[] = [];
     const CONCURRENCY = 8;
     const pending: Promise<void>[] = [];
@@ -227,6 +258,7 @@ async function main() {
         continue;
       }
       const v = scoreVoter(parsed);
+      if (reconcile) currentIds.add(v.voterId);
       fileRows++;
       total++;
       county.set(v.county, (county.get(v.county) ?? 0) + 1);
@@ -264,6 +296,19 @@ async function main() {
     console.log(`Vs last load: ${rec.previous} → ${total} (${rec.delta >= 0 ? "+" : ""}${rec.delta} net registrants)`);
   }
 
+  // --reconcile (live only): exact departed-voter set — IDs stored before this
+  // run but absent from it. Reported, never auto-deleted (voter-file-plan.md §2.5).
+  let departedCount = 0;
+  if (reconcile && prevIds) {
+    const departed = reconcileStale(prevIds, currentIds);
+    departedCount = departed.length;
+    console.log(
+      `Departed (in prior load, absent now): ${departedCount}` +
+        (departedCount ? ` — sample: ${departed.slice(0, 10).join(", ")}` : "") +
+        " (reported only, never auto-deleted)",
+    );
+  }
+
   if (dryRun) {
     console.log("\nDRY RUN — nothing written.");
     return;
@@ -296,7 +341,7 @@ async function main() {
         t: districtTotals.t,
         segments: districtTotals.seg,
         headerOk: true, // every file passed validateHeader (or --skip-header-check was used)
-        reconciliation: { previous: rec.previous, delta: rec.delta },
+        reconciliation: { previous: rec.previous, delta: rec.delta, departed: reconcile ? departedCount : null },
       },
     }),
   );

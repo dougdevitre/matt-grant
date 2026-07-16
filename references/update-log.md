@@ -26,6 +26,40 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-16 -- v1.x -- Low-risk follow-ups: ingest hardening, runbook, donation primitives
+
+**Changes:**
+- [added] `docs/RUNBOOK-voter-ingest-and-twilio-fund.md` — step-by-step for the first real voter ingest
+  (dry-run → live → reconcile) and for regenerating the real Twilio-fund numbers.
+- [updated] Low-memory ingest (`web/scripts/ingest-voters-lowmem.ts`) now validates the header/columns
+  (same fail-loud gate as the stock script, `--skip-header-check` override); regenerated the committed
+  `web/scripts/loadvoters.cjs` bundle.
+- [added] Opt-in `--reconcile` on `web/scripts/ingest-voters.ts` — reports departed voters (in a prior
+  load, absent now) via `reconcileStale`; default-off, reported never auto-deleted.
+- [added] Per-tier shareable WinRed links (`sc=sms-tier`) as copy/paste snippets in
+  `messaging/sms-texting.md` §3 + the sc-map row in `candidate/donor-value-ladder.md`; a unit test binds
+  those doc links to `donateHref` output so they can't drift.
+- [added] Optional `recurring` param on `donateHref` (`web/lib/donorLadder.ts`) — additive, default-off,
+  byte-identical unless explicitly passed; the primitive for a future opt-in "make it monthly" control
+  (the live toggle itself is deferred pending review, compliance-audit A-8).
+
+**Verifications Performed:**
+- `web` suite green; `tsc`/`eslint`/`compliance` clean. Bad-header rejection verified on both the `.ts`
+  and the regenerated `.cjs` (exit 1 before any AWS call); good header passes.
+
+**Known Gaps:**
+- `--reconcile`, `--from-s3`, and live writes are verified offline only (pure helpers unit-tested); the
+  AWS round-trips are exercised by the runbook, not this change. `--reconcile` is stock-path only (memory).
+- The real Twilio-fund numbers and the first live ingest still require an AWS run (the runbook covers them).
+
+**Files Modified:**
+- docs/RUNBOOK-voter-ingest-and-twilio-fund.md, docs/VOTER-FILE.md
+- web/scripts/ingest-voters.ts, web/scripts/ingest-voters-lowmem.ts, web/scripts/loadvoters.cjs
+- web/lib/donorLadder.ts, web/lib/donorLadder.test.ts
+- messaging/sms-texting.md, candidate/donor-value-ladder.md
+
+---
+
 ## 2026-07-15 -- v1.x -- Donation packages, voter-record use, seeding & the Twilio-fund report
 
 **Changes:**
