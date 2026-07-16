@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { donateHref, LADDER, ladderTierForCents, nextRung, quickPickAmounts } from "./donorLadder";
+import { CAMPAIGN } from "@/lib/site";
 
 describe("LADDER invariants", () => {
   it("is sorted ascending with unique thresholds and the FEC-max top rungs", () => {
@@ -78,6 +79,23 @@ describe("quickPickAmounts", () => {
   it("stays in sync with the LADDER (no hand-maintained list)", () => {
     const derived = LADDER.filter((r) => !r.note).map((r) => r.amountCents / 100);
     expect(quickPickAmounts()).toEqual(derived);
+  });
+});
+
+describe("sms-tier shareable links (bind the doc snippets to donateHref)", () => {
+  // The copy/paste per-tier links documented in messaging/sms-texting.md §3 are
+  // static strings. This locks them to donateHref's actual output: if the builder
+  // or CAMPAIGN.donateUrl base changes, this fails — a signal to update that table.
+  it("matches the documented per-tier link values", () => {
+    const base = "https://secure.winred.com/matt-grant-for-congress/donate-today";
+    const expected: Record<number, string> = {
+      25: `${base}?sc=sms-tier&money_bomb=false&recurring=false&amount=25`,
+      50: `${base}?sc=sms-tier&money_bomb=false&recurring=false&amount=50`,
+      1000: `${base}?sc=sms-tier&money_bomb=false&recurring=false&amount=1000`,
+    };
+    for (const [dollars, url] of Object.entries(expected)) {
+      expect(donateHref(CAMPAIGN.donateUrl, Number(dollars) * 100, "sms-tier")).toBe(url);
+    }
   });
 });
 
