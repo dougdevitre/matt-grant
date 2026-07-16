@@ -298,3 +298,4 @@ exclusively from `optedInSet()` (`web/lib/sms/consent.ts`) intersected with name
 - [`../workflows/gotv-plan.md`](../workflows/gotv-plan.md) — the 4-3-2-1 contact schedule the segments feed
 - [`data-and-map-plan.md`](./data-and-map-plan.md) — precinct/map spine the crosswalk joins
 - [`../docs/VOTER-FILE.md`](../docs/VOTER-FILE.md) — where the raw files live + upload commands
+- [`../docs/RUNBOOK-voter-ingest-and-twilio-fund.md`](../docs/RUNBOOK-voter-ingest-and-twilio-fund.md) — the first-run ingest + report operational walkthrough

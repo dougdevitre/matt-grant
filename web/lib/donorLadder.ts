@@ -49,12 +49,19 @@ export const LADDER: LadderRung[] = [
  * or email drove each gift. Proper URL building — works whether or not the
  * base already carries a query string, and never duplicates params. Attribution
  * labels only: no donor PII ever rides the URL.
+ *
+ * `recurring` is OPTIONAL and OMITTED by default: when left undefined the URL is
+ * byte-identical to before (the base already carries `recurring=false`). Pass
+ * `true` only from an explicit, opt-in "make it monthly" control — never
+ * pre-checked (compliance-audit.md A-8; FTC/state-AG enforcement on default
+ * recurring). Passing `false` restates the base's opt-out.
  */
-export function donateHref(base: string, amountCents: number, sc?: string): string {
+export function donateHref(base: string, amountCents: number, sc?: string, recurring?: boolean): string {
   const url = new URL(base);
   const dollars = amountCents / 100;
   url.searchParams.set("amount", Number.isInteger(dollars) ? String(dollars) : dollars.toFixed(2));
   if (sc) url.searchParams.set("sc", sc);
+  if (recurring !== undefined) url.searchParams.set("recurring", String(recurring));
   return url.toString();
 }
 

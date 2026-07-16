@@ -12,6 +12,7 @@
     "db:seed": "tsx scripts/seed-dynamo.ts",
     "db:clean-seed": "tsx scripts/delete-seed.ts",
     "ingest:voters": "tsx scripts/ingest-voters.ts",
+    "bundle:loadvoters": "npx esbuild scripts/ingest-voters-lowmem.ts --bundle --platform=node --format=cjs --target=node18 --outfile=scripts/loadvoters.cjs",
     "backfill:roles": "tsx scripts/backfill-clerk-roles.ts",
     "backfill:sms-consent": "tsx scripts/backfill-sms-consent.ts",
     "brand": "node scripts/brand-assets.mjs",

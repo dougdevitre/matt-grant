@@ -20,7 +20,26 @@ done
 Never place these under the `public/` CDN prefix. The files remain in git HISTORY until an
 owner decides on a history purge (coordinated force-push) — see
 `candidate/voter-file-plan.md` §2 for the full custody, use-restriction (RSMo 115.157),
-and TCPA rules that govern every use of this data. Ingest: `web/scripts/ingest-voters.ts`.
+and TCPA rules that govern every use of this data.
+
+## Ingest: `web/scripts/ingest-voters.ts`
+
+For the full first-run walkthrough (dry-run → live → reconcile, then the Twilio-fund report),
+follow [`RUNBOOK-voter-ingest-and-twilio-fund.md`](./RUNBOOK-voter-ingest-and-twilio-fund.md). Flags:
+
+| Flag | Effect |
+|---|---|
+| `--dry-run` | Parse + score + print the reconciliation report; write nothing. |
+| `--from-s3 [prefix]` | Fetch the xlsx from `s3://$S3_ASSETS_BUCKET/voters/raw/` (default prefix) before ingesting — no manual download. |
+| `--reconcile` | Report departed voters (in a prior load, absent now); reported only, never auto-deleted. |
+| `--force` | Reload even if the same files (by SHA-256) were already ingested (default is a no-op). |
+| `--skip-header-check` | Ingest despite a header/column mismatch — dangerous; only after manually confirming the columns. |
+| `--limit N` | Cap rows per file (smoke tests). |
+
+Every run **validates each file's header** against the expected 36 columns and refuses on drift
+(index-based parsing would otherwise silently mis-read every row). `--reconcile` is **stock-path only**
+— it holds two ~577k voter-ID sets in memory, so run it on a normal machine, not a constrained shell
+(the low-mem `loadvoters.cjs` path below does not support it).
 
 ## Phase-5 note (2026-07-11)
 
@@ -51,9 +70,9 @@ done
 node matt-grant/web/scripts/loadvoters.cjs --finalize
 ```
 
-`loadvoters.cjs` is generated from `web/scripts/ingest-voters-lowmem.ts`; rebuild it with
-`npx esbuild scripts/ingest-voters-lowmem.ts --bundle --platform=node --format=cjs
---target=node18 --outfile=scripts/loadvoters.cjs` (run from `web/`). If writes still
-throttle persistently, switch the table to on-demand (PAY_PER_REQUEST) billing in the AWS
-console and re-run — the loader is idempotent.
+`loadvoters.cjs` is generated from `web/scripts/ingest-voters-lowmem.ts`; rebuild it (from `web/`)
+with **`npm run bundle:loadvoters`** (wraps the documented `esbuild` command) and commit the
+result. Like the stock ingest, the low-mem path validates the header and refuses on column drift
+(`--skip-header-check` overrides). If writes still throttle persistently, switch the table to
+on-demand (PAY_PER_REQUEST) billing in the AWS console and re-run — the loader is idempotent.
 

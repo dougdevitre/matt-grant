@@ -165,6 +165,7 @@ from the same `web/lib/voters/score.ts` the dashboard uses, so this report can n
 - [`../messaging/sms-texting.md`](../messaging/sms-texting.md) — the peer-to-peer texting scripts and opt-in language
 - [`donor-value-ladder.md`](./donor-value-ladder.md) — the fundraising-side counterpart (WinRed levels)
 - [`../workflows/gotv-plan.md`](../workflows/gotv-plan.md) — the 4-3-2-1 GOTV cadence the touch plan follows
+- [`../docs/RUNBOOK-voter-ingest-and-twilio-fund.md`](../docs/RUNBOOK-voter-ingest-and-twilio-fund.md) — how to generate the real numbers (§4–§5)
 
 ---
 

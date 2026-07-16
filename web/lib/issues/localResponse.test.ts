@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buildCuratedResponse, generateLocalResponse } from "./localResponse";
 import { getIssue } from "@/lib/issues";
+import { CAMPAIGN } from "@/lib/site";
 import type { LocalSnapshot } from "./localSnapshot";
 
 const snap: LocalSnapshot = {
@@ -20,7 +21,7 @@ describe("buildCuratedResponse (fallback — pure, no AI)", () => {
     expect(r.paragraphs[0]).toContain("ZIP 63010");
     expect(r.paragraphs[0]).toContain("$72,000");
     expect(r.paragraphs[0]).toContain(issue.commitment);
-    expect(r.disclaimer).toMatch(/Paid for by Matt Grant for Congress/);
+    expect(r.disclaimer).toContain(CAMPAIGN.paidForBy);
   });
 
   it("with no snapshot, states the documented commitment only", () => {
