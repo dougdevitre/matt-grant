@@ -37,7 +37,9 @@ follow [`RUNBOOK-voter-ingest-and-twilio-fund.md`](./RUNBOOK-voter-ingest-and-tw
 | `--limit N` | Cap rows per file (smoke tests). |
 
 Every run **validates each file's header** against the expected 36 columns and refuses on drift
-(index-based parsing would otherwise silently mis-read every row).
+(index-based parsing would otherwise silently mis-read every row). `--reconcile` is **stock-path only**
+— it holds two ~577k voter-ID sets in memory, so run it on a normal machine, not a constrained shell
+(the low-mem `loadvoters.cjs` path below does not support it).
 
 ## Phase-5 note (2026-07-11)
 

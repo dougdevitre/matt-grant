@@ -80,6 +80,13 @@ DYNAMODB_TABLE=$DYNAMODB_TABLE AWS_REGION=$AWS_REGION S3_ASSETS_BUCKET=$S3_ASSET
 
 The manifest also records a cheap count delta (`+N net registrants`) vs the last load, with no extra reads.
 
+> **Memory + path caveat.** `--reconcile` holds two ~577k voter-ID sets in memory (prior + current)
+> and does ~178 sequential SK-only precinct reads before writing, so run it on the **stock**
+> `ingest-voters.ts` on a normal machine — **not** on a constrained shell. The low-memory
+> `loadvoters.cjs` path does **not** support `--reconcile` (it's the OOM-safe path; reconciliation
+> would defeat its purpose). If you only have a small shell, do the live load with `loadvoters.cjs`,
+> then run a separate `--reconcile` pass from a larger machine, or rely on the manifest count delta.
+
 ---
 
 ## 4. Generate the real Twilio-fund numbers
