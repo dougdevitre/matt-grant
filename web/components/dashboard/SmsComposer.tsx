@@ -47,6 +47,7 @@ export function SmsComposer({
   const [volRoleSel, setVolRoleSel] = useState<string[]>([]);
   const [targetSel, setTargetSel] = useState<string[]>([]);
   const [zipFilter, setZipFilter] = useState(""); // free-form ZIP list → zip:<zip5> tokens
+  const [maxTexts, setMaxTexts] = useState(""); // optional cap — trims the lowest-priority tail
   const [testTo, setTestTo] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
   const [personalize, setPersonalize] = useState(false);
@@ -108,6 +109,7 @@ export function SmsComposer({
     roleSel.forEach((r) => f.append("roleGroups", r));
     volRoleSel.forEach((v) => f.append("volRoles", v));
     [...targetSel, ...zipTokens].forEach((t) => f.append("targets", t));
+    f.set("maxTexts", maxTexts);
     f.set("scheduledAt", scheduledAt);
     f.set("testTo", testTo);
     f.set("personalize", personalize ? "true" : "false");
@@ -298,6 +300,27 @@ export function SmsComposer({
                 </p>
               )}
             </>
+          )}
+          {/* Priority cap: the queue always sends highest-likelihood voters first; an
+              optional cap trims the lowest-priority tail (reported after the send). */}
+          {!isCaptain && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <label className="text-xs font-semibold text-slate" htmlFor="sms-max-texts">Max texts (optional)</label>
+              <input
+                id="sms-max-texts"
+                type="number"
+                min={1}
+                value={maxTexts}
+                onChange={(e) => setMaxTexts(e.target.value)}
+                className={`${field} max-w-[8rem]`}
+                placeholder="no cap"
+                aria-label="Maximum number of texts to send"
+              />
+              <span className="text-xs text-slate">
+                Sends queue highest-likelihood voters first (segment + turnout score); a cap cuts only the
+                lowest-priority tail. Unscored numbers go last but are never dropped without a cap.
+              </span>
+            </div>
           )}
           <p className="mt-2 font-mono text-xs text-slate">
             {reach > 0

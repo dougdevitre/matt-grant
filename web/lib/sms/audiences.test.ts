@@ -145,6 +145,14 @@ describe("targeting filters (county / zip / segment / outstanding)", () => {
     expect(out.map((r) => r.phone)).toEqual(["+13145550101"]);
   });
 
+  it("recipients carry the consent-row voter tags so the send path can rank them", async () => {
+    const out = await resolveSmsRecipients(["subscribers"]);
+    const by = new Map(out.map((r) => [r.phone, r]));
+    expect(by.get("+13145550100")).toMatchObject({ voterSegment: "MOBILIZE" });
+    expect(by.get("+13145550101")).toMatchObject({ voterSegment: "BANK" });
+    expect(by.get("+13145550102")?.voterSegment).toBeUndefined(); // unenriched → unscored
+  });
+
   it("invalid tokens are ignored — they can only narrow, never widen or error", async () => {
     const out = await resolveSmsRecipients(["subscribers"], [], [], { targets: ["county:st-charles", "junk"] });
     expect(out.length).toBe(3); // no VALID token → no filtering

@@ -85,11 +85,18 @@ On **Text blasts** (`/dashboard/sms`):
    - **Captains** see **"Texting your team only — N opted-in volunteers"** — the send is
      automatically scoped to their own roster (optionally narrowed by volunteer role). Captains
      can't widen it to the full list.
-5. **Send a test to yourself first.** Enter your own opted-in mobile and hit **Send test**. Always
+5. **Priority ordering is automatic.** Every blast queues **highest-likelihood voters first** —
+   ranked by the voter segment (MOBILIZE > BANK > PERSUADE > PROSPECT) with turnout score as the
+   within-segment tie-break, using the tags the enrichment job wrote (`npm run enrich:sms`).
+   Numbers with no voter match go last but are still sent. The optional **Max texts** field caps a
+   blast to the top N by priority — the cut hits only the lowest-priority tail, and the
+   confirmation reports "Capped to the N highest-priority of M." Because the queue drains in
+   order, even an uncapped blast that spans a quiet-hours cutoff reaches the best targets first.
+6. **Send a test to yourself first.** Enter your own opted-in mobile and hit **Send test**. Always
    do this before a real blast. (Your number must already be opted in — text the keyword first.)
-6. **(Optional) Schedule for later.** Pick a date/time. Texts only leave during quiet hours
+7. **(Optional) Schedule for later.** Pick a date/time. Texts only leave during quiet hours
    (9am–8pm CT); a time outside that waits for the next window.
-7. **Send.** Confirm the audience in the prompt. The blast queues and sends in the background,
+8. **Send.** Confirm the audience in the prompt. The blast queues and sends in the background,
    respecting quiet hours. Track progress under **Recent sends**.
 
 ---

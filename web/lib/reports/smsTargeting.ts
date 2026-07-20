@@ -52,6 +52,30 @@ export type SendList = {
   capped: boolean; // true when the budget cut the eligible list short
 };
 
+/** Coerce a denormalized consent-row segment string to a Segment, else undefined.
+ *  The send path stores plain strings (lib/sms/consent.ts) — validate, never trust. */
+export function toSegment(s: string | undefined | null): Segment | undefined {
+  return s && (SEGMENTS as readonly string[]).includes(s) ? (s as Segment) : undefined;
+}
+
+export type BroadcastRanking = { ordered: ScoredRecipient[]; capped: boolean; total: number };
+
+/**
+ * Order a broadcast audience highest-likelihood-voter first — the SEND-PATH
+ * ranking (candidate/sms-targeting-plan.md §5): unlike buildSendList, nothing is
+ * ever dropped silently. Every recipient stays in the queue; MONITOR and
+ * unscored numbers simply sort last, so when a cap or quiet-hours cutoff bites,
+ * it bites the lowest-priority tail. `cap` (optional) keeps only the top N —
+ * the one place the list shrinks, and the caller reports it to the operator.
+ */
+export function rankForBroadcast(recipients: ScoredRecipient[], cap?: number): BroadcastRanking {
+  const ordered = [...recipients].sort(
+    (a, b) => recipientPriority(b) - recipientPriority(a) || a.phone.localeCompare(b.phone),
+  );
+  const n = cap != null && Number.isFinite(cap) && cap > 0 ? Math.floor(cap) : ordered.length;
+  return { ordered: ordered.slice(0, n), capped: n < ordered.length, total: recipients.length };
+}
+
 /**
  * Rank an opted-in, voter-scored audience into a budget-capped send list —
  * highest-value first. Pure; deterministic tie-break by phone so re-runs match.

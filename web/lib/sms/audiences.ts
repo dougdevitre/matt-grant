@@ -150,7 +150,10 @@ export function smsAudienceLabel(groups: SmsGroup[], roles: Role[] = [], volRole
 // A resolved SMS recipient: the opted-in number plus their first name when a source
 // carries one (volunteer roster / Clerk contact) — so the drain can merge "{first}".
 // The raw subscribers ledger has no name (first stays undefined → "there" at merge).
-export type SmsRecipient = { phone: string; first?: string };
+// voterSegment/voterT are the denormalized tags read off the consent row itself
+// (never the voter file) so the send path can queue highest-likelihood voters
+// first (lib/reports/smsTargeting.ts rankForBroadcast). Undefined = unscored.
+export type SmsRecipient = { phone: string; first?: string; voterSegment?: string; voterT?: number };
 
 const firstOf = (name?: string | null): string | undefined => {
   const f = (name ?? "").trim().split(/\s+/)[0];
@@ -223,9 +226,13 @@ export async function resolveSmsRecipients(
     }
   }
 
-  // Targeting filter last: narrow the resolved set by consent-row fields.
+  // Targeting filter last: narrow the resolved set by consent-row fields — then
+  // attach each number's denormalized voter tags so the caller can rank the queue.
   const targetTokens = (opts.targets ?? []).map(parseTargetToken).filter((t): t is TargetToken => t !== null);
-  const out = [...byPhone].map(([phone, first]) => ({ phone, first }));
+  const out = [...byPhone].map(([phone, first]): SmsRecipient => {
+    const row = rowByPhone.get(phone);
+    return { phone, first, voterSegment: row?.voterSegment, voterT: row?.voterT };
+  });
   return targetTokens.length ? out.filter((r) => rowMatchesTargets(rowByPhone.get(r.phone), targetTokens)) : out;
 }
 

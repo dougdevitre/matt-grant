@@ -1,7 +1,55 @@
 import { describe, expect, it } from "vitest";
-import { buildSendList, recipientPriority, type ScoredRecipient } from "./smsTargeting";
+import { buildSendList, rankForBroadcast, recipientPriority, toSegment, type ScoredRecipient } from "./smsTargeting";
 
 const r = (phone: string, over: Partial<ScoredRecipient> = {}): ScoredRecipient => ({ phone, ...over });
+
+describe("toSegment", () => {
+  it("validates consent-row segment strings, never trusts them", () => {
+    expect(toSegment("MOBILIZE")).toBe("MOBILIZE");
+    expect(toSegment("BANK")).toBe("BANK");
+    for (const bad of ["mobilize", "ADMIN", "", undefined, null]) {
+      expect(toSegment(bad as string | undefined | null), String(bad)).toBeUndefined();
+    }
+  });
+});
+
+describe("rankForBroadcast (the send-path ranking)", () => {
+  const audience: ScoredRecipient[] = [
+    r("+13145550006"), // unscored
+    r("+13145550001", { segment: "MONITOR", t: 0 }),
+    r("+13145550003", { segment: "MOBILIZE", t: 2 }),
+    r("+13145550002", { segment: "BANK", t: 5 }),
+    r("+13145550004", { segment: "PERSUADE", t: 4 }),
+  ];
+
+  it("orders highest-likelihood first and NEVER drops anyone without a cap", () => {
+    const { ordered, capped, total } = rankForBroadcast(audience);
+    expect(ordered.map((x) => x.segment ?? "unscored")).toEqual([
+      "MOBILIZE", "BANK", "PERSUADE", "unscored", "MONITOR", // unscored floor (0.05) > MONITOR (0)
+    ]);
+    expect(ordered).toHaveLength(audience.length); // nobody silently dropped
+    expect(capped).toBe(false);
+    expect(total).toBe(5);
+  });
+
+  it("a cap trims only the lowest-priority tail and reports it", () => {
+    const { ordered, capped } = rankForBroadcast(audience, 2);
+    expect(ordered.map((x) => x.segment)).toEqual(["MOBILIZE", "BANK"]);
+    expect(capped).toBe(true);
+  });
+
+  it("ignores nonsense caps and keeps a deterministic phone tie-break", () => {
+    expect(rankForBroadcast(audience, 0).ordered).toHaveLength(5);
+    expect(rankForBroadcast(audience, NaN).ordered).toHaveLength(5);
+    const tie = rankForBroadcast([r("+2", { segment: "BANK", t: 3 }), r("+1", { segment: "BANK", t: 3 })]);
+    expect(tie.ordered.map((x) => x.phone)).toEqual(["+1", "+2"]);
+  });
+
+  it("keeps the first-name merge field through the ranking", () => {
+    const { ordered } = rankForBroadcast([r("+1", { segment: "MOBILIZE", first: "Jordan" })]);
+    expect(ordered[0].first).toBe("Jordan");
+  });
+});
 
 describe("recipientPriority", () => {
   it("orders by segment weight, with T only as a within-segment tie-break", () => {

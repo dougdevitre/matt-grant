@@ -8,6 +8,7 @@ import { isOptedIn } from "@/lib/sms/consent";
 import { getSmsTemplate, withCompliance } from "@/lib/sms/templates";
 import { createSmsCampaign, drainSmsOnce } from "@/lib/sms/campaigns";
 import { resolveSmsRecipients, smsAudienceLabel, isSmsGroup, parseVolRole, parseTargetToken, type SmsGroup } from "@/lib/sms/audiences";
+import { rankForBroadcast, toSegment } from "@/lib/reports/smsTargeting";
 import { asRole, type Role } from "@/lib/rbac";
 
 export type SmsSendState = { ok: boolean; message: string };
@@ -72,9 +73,22 @@ export async function sendSmsCampaign(formData: FormData): Promise<SmsSendState>
 
   // Captain scope drops subscribers/account-roles server-side, so a tampered form can't widen it.
   const opts = isCaptain ? { captainEmail, targets } : { targets };
-  const recipients = await resolveSmsRecipients(groups, roles, volRoles, opts);
-  if (recipients.length === 0)
+  const resolved = await resolveSmsRecipients(groups, roles, volRoles, opts);
+  if (resolved.length === 0)
     return { ok: false, message: isCaptain ? "No opted-in volunteers on your team for that selection." : "No opted-in recipients for that selection." };
+
+  // Queue highest-likelihood voters FIRST (candidate/sms-targeting-plan.md):
+  // segment weight then turnout tie-break, from the denormalized consent-row tags.
+  // Nobody is dropped by the ranking itself — unscored numbers simply go last —
+  // and the optional cap (admin-entered) trims the lowest-priority tail only.
+  const rawCap = Number(String(formData.get("maxTexts") ?? "").trim());
+  const cap = Number.isFinite(rawCap) && rawCap > 0 ? Math.floor(rawCap) : undefined;
+  const ranking = rankForBroadcast(
+    resolved.map((r) => ({ phone: r.phone, first: r.first, segment: toSegment(r.voterSegment), t: r.voterT })),
+    cap,
+  );
+  const recipients = ranking.ordered.map((r) => ({ phone: r.phone, first: r.first }));
+  const cappedNote = ranking.capped ? ` Capped to the ${recipients.length} highest-priority of ${ranking.total}.` : "";
 
   const rawWhen = String(formData.get("scheduledAt") ?? "").trim();
   let scheduledAt: string | undefined;
@@ -97,7 +111,7 @@ export async function sendSmsCampaign(formData: FormData): Promise<SmsSendState>
 
   if (future) {
     revalidatePath("/dashboard/sms");
-    return { ok: true, message: `Scheduled for ${rawWhen.replace("T", " ")} — ${recipients.length} opted-in recipients. It sends automatically.` };
+    return { ok: true, message: `Scheduled for ${rawWhen.replace("T", " ")} — ${recipients.length} opted-in recipients, highest-likelihood voters first.${cappedNote} It sends automatically.` };
   }
   let progressed: Awaited<ReturnType<typeof drainSmsOnce>> = null;
   try {
@@ -109,7 +123,7 @@ export async function sendSmsCampaign(formData: FormData): Promise<SmsSendState>
   return {
     ok: true,
     message: progressed?.done
-      ? `Sent to ${progressed.sent} of ${recipients.length}.`
-      : `Queued ${recipients.length} opted-in recipients — sending in the background (respects quiet hours, 9am–8pm CT). Track progress below.`,
+      ? `Sent to ${progressed.sent} of ${recipients.length}.${cappedNote}`
+      : `Queued ${recipients.length} opted-in recipients, highest-likelihood voters first.${cappedNote} Sending in the background (respects quiet hours, 9am–8pm CT). Track progress below.`,
   };
 }
