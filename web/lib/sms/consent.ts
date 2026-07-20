@@ -33,6 +33,34 @@ export async function recordConsent(phone: string, source: string, consentAt?: s
   return true;
 }
 
+/** Annotate an EXISTING consent row with self-reported geography (county key +
+ *  optional ZIP5) from the SMS vote agent. Never creates a row — geography is
+ *  metadata on a consent record, not consent itself. This is the self-reported
+ *  side of the audience-enrichment fields (candidate/sms-targeting-plan.md §2);
+ *  composer geo filters read these plain fields only. */
+export async function recordConsentGeo(phone: string, geo: { county: string; zip?: string }): Promise<boolean> {
+  const e = toE164(phone);
+  if (!dbConfigured || !e) return false;
+  try {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: SMS_PK, SK: e },
+        UpdateExpression: "SET county = :c, updatedAt = :u" + (geo.zip ? ", zip = :z" : ""),
+        ConditionExpression: "attribute_exists(SK)",
+        ExpressionAttributeValues: {
+          ":c": geo.county,
+          ":u": new Date().toISOString(),
+          ...(geo.zip ? { ":z": geo.zip } : {}),
+        },
+      }),
+    );
+    return true;
+  } catch {
+    return false; // no consent row (or transient error) — nothing to annotate
+  }
+}
+
 /** Record opt-out (STOP / carrier). Creates the row if the number was never seen. */
 export async function recordOptOut(phone: string): Promise<boolean> {
   const e = toE164(phone);

@@ -68,7 +68,9 @@ Uses only shipped machinery — no code required. Send during the 9am–8pm CT w
 
 ---
 
-## 4. Phase 1 — The VOTE Agent: ZIP-Aware Multi-Turn Replies (ship this week)
+## 4. Phase 1 — The VOTE Agent: ZIP-Aware Multi-Turn Replies
+
+> **Shipped 2026-07-20.** `web/lib/sms/votebot.ts` (replies + parsing + question expiry) and `web/lib/sms/geo.ts` (six-county registry + verified ZIP starter map, compiled from `candidate/absentee-voting-guide.md`), wired into the Twilio webhook. One refinement from the design below: the agent asks for the **county name first** (ZIP also accepted) — county-name matching needs no crosswalk and can't be wrong, while the ZIP map starts with only ZIPs verifiable from campaign reference material and grows via the §6 crosswalk task. Self-reported geography is stored on both the conversation and the consent row, pre-seeding Phase 2 targeting.
 
 The core "phone number can communicate with the SMS agent" upgrade. Deterministic, compliant by construction, no AI required.
 
@@ -132,9 +134,9 @@ Cadence per `workflows/gotv-plan.md` and `candidate/twilio-fund-plan.md` §4 (MO
 
 ## 9. Small Fixes to Land Alongside (each is an easy PR)
 
-1. **Add Franklin County to `web/app/(site)/vote/absentee/page.tsx`** (county list + `AUTHORITIES`) — the live page the VOTE keyword links to still shows five counties; the guide corrected MO-02 to six on 2026-07-10. Do this **before** today's broadcast if at all possible.
-2. Add `EARLY` / `EARLYVOTE` aliases to the VOTE CTA in `web/lib/sms/ctas.ts` (one-line, safe today).
-3. Add an `early-vote` template to `web/lib/sms/templates.ts` with a `daysUntil` countdown to Aug 3 (mirrors the existing `gotv` template's Aug 4 countdown).
+1. ~~**Add Franklin County to `web/app/(site)/vote/absentee/page.tsx`**~~ — **done 2026-07-20** (county list, `AUTHORITIES`, and footer now carry all six counties per the guide's 2026-07-10 correction).
+2. ~~Add `EARLY` / `EARLYVOTE` aliases to the VOTE CTA in `web/lib/sms/ctas.ts`~~ — **done 2026-07-20**.
+3. ~~Add an `early-vote` template to `web/lib/sms/templates.ts`~~ — **done 2026-07-20** (calendar-aware phrasing: "starts Tue July 21" → "open now through 5pm Mon Aug 3" → Election Day, with a Reply VOTE hook into the agent).
 4. Verify + geocode the 12 rows in `candidate/early-vote-sites-seed.csv` per the verification checklist.
 5. Optionally add the Aug 4 primary voting calendar to `states/missouri/` reference files (currently the dates live only in `candidate/` and the web pages).
 

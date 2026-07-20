@@ -123,6 +123,15 @@ are three ways in:
 1. **Text the keyword.** Someone texts **`MATT`** to **+1 844-314-7912** and gets a welcome reply
    with a join link. (Keyword aliases like DONATE, VOLUNTEER, EVENTS, VOTE also opt a person in and
    reply with the matching link.)
+
+   **VOTE (aliases VOTING, EARLY, EARLYVOTE) runs the vote agent** (`lib/sms/votebot.ts`) instead
+   of a static link: if the thread already knows the person's county it replies with that county's
+   early-vote info (election authority, office, phone, live deadlines); otherwise it asks which of
+   the six MO-02 counties they vote in (county name or ZIP). The next non-keyword text is read as
+   the answer — a match is remembered on the conversation and consent row (self-reported geography
+   for audience targeting), while an answer the agent can't parse gets a fallback link to
+   `/vote/absentee` **and still lands in the Inbox** for a human follow-up. An unanswered county
+   question expires after 24 hours.
 2. **The web checkbox.** On the join/updates form, the box **"Text me campaign updates. Msg & data
    rates may apply; reply STOP to opt out."** — checking it (with a mobile number) opts them in.
 3. **The WinRed donation checkbox.** A donor who checks the SMS-consent box (`sms_opt_in`) on the
