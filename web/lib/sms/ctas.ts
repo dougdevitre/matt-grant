@@ -63,8 +63,11 @@ const DEFS: readonly CtaDef[] = [
     lead: `You're on the list for ${CAMPAIGN.committee}! Upcoming events + RSVP:`,
   },
   {
+    // The webhook routes VOTE to the geo-aware vote agent (lib/sms/votebot.ts)
+    // instead of this static reply, which remains the documented fallback. The
+    // EARLY aliases exist for the July 21 - Aug 3 no-excuse window materials.
     canonical: "VOTE",
-    aliases: ["VOTING"],
+    aliases: ["VOTING", "EARLY", "EARLYVOTE"],
     source: "sms-cta-vote",
     dest: "/vote",
     lead: `Standing with ${CAMPAIGN.committee}? Make your plan to vote (primary ${CAMPAIGN.electionLabel}):`,

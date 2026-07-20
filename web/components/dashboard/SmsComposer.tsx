@@ -16,6 +16,7 @@ export type SavedSmsOption = { id: string; name: string; role: Role | null; vars
 export function SmsComposer({
   groups,
   volRoles = [],
+  targets = [],
   saved = [],
   canSend,
   disabled,
@@ -24,6 +25,10 @@ export function SmsComposer({
 }: {
   groups: SmsAudienceOption[];
   volRoles?: SmsAudienceOption[];
+  // Targeting filter chips (county / segment / not-yet-voted) with opted-in counts —
+  // they NARROW the selected audience by consent-row fields (self-reported geo +
+  // the enrichment job's voter tags). Admin composer only; empty hides the section.
+  targets?: SmsAudienceOption[];
   saved?: SavedSmsOption[];
   canSend: boolean;
   disabled: boolean;
@@ -40,6 +45,9 @@ export function SmsComposer({
   const [selected, setSelected] = useState<string[]>(isCaptain ? [] : ["subscribers"]);
   const [roleSel, setRoleSel] = useState<Role[]>([]);
   const [volRoleSel, setVolRoleSel] = useState<string[]>([]);
+  const [targetSel, setTargetSel] = useState<string[]>([]);
+  const [zipFilter, setZipFilter] = useState(""); // free-form ZIP list → zip:<zip5> tokens
+  const [maxTexts, setMaxTexts] = useState(""); // optional cap — trims the lowest-priority tail
   const [testTo, setTestTo] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
   const [personalize, setPersonalize] = useState(false);
@@ -77,6 +85,12 @@ export function SmsComposer({
   const toggle = (v: string) => setSelected((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]));
   const toggleRole = (r: Role) => setRoleSel((cur) => (cur.includes(r) ? cur.filter((x) => x !== r) : [...cur, r]));
   const toggleVolRole = (v: string) => setVolRoleSel((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]));
+  const toggleTarget = (v: string) => setTargetSel((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]));
+  const zipTokens = useMemo(
+    () => zipFilter.split(/[\s,]+/).filter((z) => /^\d{5}$/.test(z)).map((z) => `zip:${z}`),
+    [zipFilter],
+  );
+  const filtering = targetSel.length > 0 || zipTokens.length > 0;
 
   // Load a saved SMS template: rides the generic "custom" template — prefill the body + role.
   const loadSaved = (id: string) => {
@@ -94,6 +108,8 @@ export function SmsComposer({
     selected.forEach((g) => f.append("groups", g));
     roleSel.forEach((r) => f.append("roleGroups", r));
     volRoleSel.forEach((v) => f.append("volRoles", v));
+    [...targetSel, ...zipTokens].forEach((t) => f.append("targets", t));
+    f.set("maxTexts", maxTexts);
     f.set("scheduledAt", scheduledAt);
     f.set("testTo", testTo);
     f.set("personalize", personalize ? "true" : "false");
@@ -244,9 +260,71 @@ export function SmsComposer({
               </div>
             </>
           )}
+          {/* Targeting filters — narrow the selected audience by consent-row fields
+              (self-reported county/ZIP from the vote agent + the enrichment job's
+              voter tags). Chip counts are the most each filter can reach. */}
+          {!isCaptain && targets.length > 0 && (
+            <>
+              <label className="mt-3 block text-xs font-semibold text-slate">Narrow by county / voter tag (optional)</label>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {targets.map((o) => {
+                  const on = targetSel.includes(o.value);
+                  return (
+                    <button
+                      type="button"
+                      key={o.value}
+                      onClick={() => toggleTarget(o.value)}
+                      className={`rounded-sm border px-3 py-1.5 text-xs font-semibold transition-colors ${on ? "border-ink bg-ink text-paper" : "border-line bg-white text-ink hover:border-ink"}`}
+                    >
+                      {o.label}
+                      <span className={`ml-1.5 font-mono text-[0.6rem] ${on ? "text-paper/60" : "text-slate"}`}>{o.count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <input
+                  value={zipFilter}
+                  onChange={(e) => setZipFilter(e.target.value)}
+                  className={`${field} max-w-xs`}
+                  placeholder="ZIPs, e.g. 63011, 63017"
+                  aria-label="Narrow by ZIP codes"
+                />
+                {zipTokens.length > 0 && (
+                  <span className="font-mono text-[0.65rem] text-slate">{zipTokens.length} ZIP{zipTokens.length === 1 ? "" : "s"}</span>
+                )}
+              </div>
+              {filtering && (
+                <p className="mt-1 text-xs text-slate">
+                  Filters narrow the audience above — only opted-in numbers with matching county/ZIP/tag data are texted.
+                </p>
+              )}
+            </>
+          )}
+          {/* Priority cap: the queue always sends highest-likelihood voters first; an
+              optional cap trims the lowest-priority tail (reported after the send). */}
+          {!isCaptain && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <label className="text-xs font-semibold text-slate" htmlFor="sms-max-texts">Max texts (optional)</label>
+              <input
+                id="sms-max-texts"
+                type="number"
+                min={1}
+                value={maxTexts}
+                onChange={(e) => setMaxTexts(e.target.value)}
+                className={`${field} max-w-[8rem]`}
+                placeholder="no cap"
+                aria-label="Maximum number of texts to send"
+              />
+              <span className="text-xs text-slate">
+                Sends queue highest-likelihood voters first (segment + turnout score); a cap cuts only the
+                lowest-priority tail. Unscored numbers go last but are never dropped without a cap.
+              </span>
+            </div>
+          )}
           <p className="mt-2 font-mono text-xs text-slate">
             {reach > 0
-              ? `~${reach} recipient${reach === 1 ? "" : "s"} (before de-dupe)`
+              ? `~${reach} recipient${reach === 1 ? "" : "s"} (before de-dupe${filtering ? " and filters" : ""})`
               : hasRoles
                 ? "Opted-in accounts in the selected role(s)"
                 : isCaptain

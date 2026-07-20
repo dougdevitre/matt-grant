@@ -43,6 +43,7 @@ Everything is under the dashboard's **Comms** section.
 |---|---|---|
 | Send a text blast | `/dashboard/sms` | **Text blasts** |
 | Reply to people 1:1 | `/dashboard/messages` (a thread is `/dashboard/messages/<number>`) | **Inbox** |
+| Decide the SMS budget (admin) | `/dashboard/sms/spend` | **Spend decider** |
 | Finish Twilio setup (admin) | `/dashboard/sms/go-live` | via "Finish setup →" on Text blasts |
 
 ---
@@ -64,14 +65,45 @@ On **Text blasts** (`/dashboard/sms`):
 4. **Choose the audience.**
    - **Admins** pick any of: **All opted-in**, **Volunteers**, **by account role**, or **by
      volunteer role/door**. Counts show how many opted-in people each selection reaches.
+   - **Admins can then NARROW the selection** with the "Narrow by county / voter tag" chips —
+     the six MO-02 counties, school districts (once the crosswalk is generated, below), voter
+     segments (MOBILIZE/BANK/…), **Not yet voted** (skips numbers confirmed voted — GOTV chase
+     mode), or a list of ZIPs. Filters match data carried on the consent row itself: county/ZIP
+     the person told the SMS vote agent, plus the tags the enrichment job writes
+     (`npm run enrich:sms` — run it nightly during the chase window so "Not yet voted" tracks
+     the daily ballot returns). Filters only ever shrink the audience; a geo-filtered send
+     reaches only numbers with known geography. Chips are hidden until any tags exist.
+
+     *School-district chips need a one-time data generation* (the campaign never guesses
+     district boundaries): download the NCES EDGE district-to-county and district-to-ZCTA
+     relationship files from https://nces.ed.gov/programs/edge/geographic/relationshipfiles,
+     run `npm run build:district-crosswalk -- --lea-county <file> --lea-zcta <file>
+     --retrieved YYYY-MM-DD`, verify district names against the DESE School Directory
+     (https://dese.mo.gov/directory), run the test suite, commit the regenerated
+     `lib/sms/school-districts.data.ts`, then re-run `npm run enrich:sms`. ZIPs that cross
+     district lines stay untagged by design. District targeting is for geographic relevance
+     (nearest early-vote site, events) — never to imply local education policy positions.
    - **Captains** see **"Texting your team only — N opted-in volunteers"** — the send is
      automatically scoped to their own roster (optionally narrowed by volunteer role). Captains
      can't widen it to the full list.
-5. **Send a test to yourself first.** Enter your own opted-in mobile and hit **Send test**. Always
+5. **Deciding the budget? Use the Spend Decider.** Admins have **Comms → Spend decider**
+   (`/dashboard/sms/spend`): paste the message, check the Twilio per-segment pricing defaults
+   (verify against twilio.com/en-us/sms/pricing/us — they go stale), enter list size, planned
+   sends, and a total budget, and it returns the **Max texts** cap to type into the composer plus
+   a table of exactly which voter-priority groups the capped blast reaches. Figures are planning
+   estimates; reconcile real spend against the Twilio console and record it as an FEC disbursement.
+6. **Priority ordering is automatic.** Every blast queues **highest-likelihood voters first** —
+   ranked by the voter segment (MOBILIZE > BANK > PERSUADE > PROSPECT) with turnout score as the
+   within-segment tie-break, using the tags the enrichment job wrote (`npm run enrich:sms`).
+   Numbers with no voter match go last but are still sent. The optional **Max texts** field caps a
+   blast to the top N by priority — the cut hits only the lowest-priority tail, and the
+   confirmation reports "Capped to the N highest-priority of M." Because the queue drains in
+   order, even an uncapped blast that spans a quiet-hours cutoff reaches the best targets first.
+7. **Send a test to yourself first.** Enter your own opted-in mobile and hit **Send test**. Always
    do this before a real blast. (Your number must already be opted in — text the keyword first.)
-6. **(Optional) Schedule for later.** Pick a date/time. Texts only leave during quiet hours
+8. **(Optional) Schedule for later.** Pick a date/time. Texts only leave during quiet hours
    (9am–8pm CT); a time outside that waits for the next window.
-7. **Send.** Confirm the audience in the prompt. The blast queues and sends in the background,
+9. **Send.** Confirm the audience in the prompt. The blast queues and sends in the background,
    respecting quiet hours. Track progress under **Recent sends**.
 
 ---
@@ -123,6 +155,15 @@ are three ways in:
 1. **Text the keyword.** Someone texts **`MATT`** to **+1 844-314-7912** and gets a welcome reply
    with a join link. (Keyword aliases like DONATE, VOLUNTEER, EVENTS, VOTE also opt a person in and
    reply with the matching link.)
+
+   **VOTE (aliases VOTING, EARLY, EARLYVOTE) runs the vote agent** (`lib/sms/votebot.ts`) instead
+   of a static link: if the thread already knows the person's county it replies with that county's
+   early-vote info (election authority, office, phone, live deadlines); otherwise it asks which of
+   the six MO-02 counties they vote in (county name or ZIP). The next non-keyword text is read as
+   the answer — a match is remembered on the conversation and consent row (self-reported geography
+   for audience targeting), while an answer the agent can't parse gets a fallback link to
+   `/vote/absentee` **and still lands in the Inbox** for a human follow-up. An unanswered county
+   question expires after 24 hours.
 2. **The web checkbox.** On the join/updates form, the box **"Text me campaign updates. Msg & data
    rates may apply; reply STOP to opt out."** — checking it (with a mobile number) opts them in.
 3. **The WinRed donation checkbox.** A donor who checks the SMS-consent box (`sms_opt_in`) on the

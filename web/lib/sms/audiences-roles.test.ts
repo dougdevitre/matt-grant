@@ -3,7 +3,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Prove SMS role targeting is opted-in BY CONSTRUCTION: a Clerk account with role X is only
 // texted if its phone is in the consent ledger (and not blocked).
 vi.mock("@/lib/queries", () => ({ getVolunteers: async () => ({ rows: [] }) }));
-vi.mock("@/lib/sms/consent", () => ({ optedInSet: async () => new Set(["+13145550001"]) })); // only this one opted in
+vi.mock("@/lib/sms/consent", () => ({
+  optedInSet: async () => new Set(["+13145550001"]), // only this one opted in
+  listConsent: async () => [{ phone: "+13145550001", status: "opted_in" }],
+}));
 vi.mock("@/lib/sms/moderation", () => ({ listBlocked: async () => [{ phone: "+13145559999" }] }));
 vi.mock("@/lib/sms/send", () => ({ toE164: (p: string) => (p?.startsWith("+") ? p : null) }));
 const listClerkContactsByRole = vi.fn();

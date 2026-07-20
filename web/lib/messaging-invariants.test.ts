@@ -18,7 +18,13 @@ vi.mock("@/lib/staff", () => ({ listStaff: async () => [{ email: "cap@x.com", ro
 vi.mock("@/lib/profile", () => ({ segmentEmails: async () => ["seg@x.com"], isWayToHelp: () => false }));
 vi.mock("@/lib/integrations/research/issues", () => ({ isIssueId: (s: string) => s === "x" }));
 // sms deps
-vi.mock("@/lib/sms/consent", () => ({ optedInSet: async () => new Set(["+1A", "+1B"]) }));
+vi.mock("@/lib/sms/consent", () => ({
+  optedInSet: async () => new Set(["+1A", "+1B"]),
+  listConsent: async () => [
+    { phone: "+1A", status: "opted_in" },
+    { phone: "+1B", status: "opted_in" },
+  ],
+}));
 vi.mock("@/lib/sms/moderation", () => ({ listBlocked: async () => [{ phone: "+1B" }] }));
 vi.mock("@/lib/sms/send", () => ({ toE164: (p: string) => (p?.startsWith("+") ? p : null) }));
 

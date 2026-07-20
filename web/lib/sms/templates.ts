@@ -4,6 +4,7 @@
 import { CAMPAIGN, SITE_URL } from "@/lib/site";
 import { ISSUES } from "@/lib/issues";
 import { ctaLink } from "@/lib/sms/ctas";
+import { earlyVotePhrase } from "@/lib/sms/votebot";
 
 export type SmsField = { name: string; label: string; placeholder?: string };
 export type SmsTemplateDef = {
@@ -127,6 +128,17 @@ export const SMS_TEMPLATES: SmsTemplateDef[] = [
       const phrase = n > 1 ? `${n} days away` : n === 1 ? "tomorrow" : n === 0 ? "today" : "almost here";
       return tidy(`The August 4 primary is ${phrase}. Make your plan to vote. Every vote counts.`);
     },
+  },
+  {
+    key: "early-vote",
+    label: "Early-vote push",
+    description:
+      "No-excuse early voting for the Aug 4 primary (July 21 - Aug 3) — the phrasing tracks the calendar automatically, and Reply VOTE hands off to the county-aware vote agent.",
+    fields: [],
+    build: () =>
+      tidy(
+        `Early voting for the Aug 4 primary ${earlyVotePhrase()}. Vote in person at your county election office - bring photo ID, no excuse needed. Reply VOTE for your county's location and info.`,
+      ),
   },
   {
     key: "issue-update",

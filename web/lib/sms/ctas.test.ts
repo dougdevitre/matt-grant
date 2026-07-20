@@ -34,6 +34,9 @@ describe("resolveCta", () => {
     expect(resolveCta("chip-in")!.source).toBe("sms-cta-donate");
     expect(resolveCta("RSVP")!.source).toBe("sms-cta-events");
     expect(resolveCta("vol")!.source).toBe("sms-cta-volunteer");
+    // Early-vote window aliases route to the vote agent's CTA.
+    expect(resolveCta("EARLY")!.source).toBe("sms-cta-vote");
+    expect(resolveCta("early vote")!.source).toBe("sms-cta-vote");
   });
   it("points DONATE at the WinRed URL and VOTE at /vote", () => {
     expect(resolveCta("DONATE")!.reply).toContain(CAMPAIGN.donateUrl);

@@ -14,9 +14,11 @@ const SOS_GOVOTE = "https://www.sos.mo.gov/elections/govotemissouri"; // the Mis
 const SOS_HOME = "https://www.sos.mo.gov";
 
 // MO-02 (2025 enacted map) = the St. Louis County portion of the district plus
-// Jefferson, Washington, Crawford, and Gasconade counties. St. Charles is NOT in
-// MO-02. County election-authority contacts verified 2026-07-03 against the official
-// county sites. Each rural county's election authority is its County Clerk.
+// Franklin, Jefferson, Washington, Crawford, and Gasconade counties (Franklin is
+// in MO-02 per the official voter file — see candidate/absentee-voting-guide.md).
+// St. Charles is NOT in MO-02. County election-authority contacts verified
+// 2026-07-03 against the official county sites (Franklin verified 2026-07-10).
+// Each rural county's election authority is its County Clerk.
 const AUTHORITIES = [
   {
     name: "St. Louis County Board of Elections",
@@ -26,6 +28,14 @@ const AUTHORITIES = [
     email: "boecabsentee@stlouiscountymo.gov",
     site: "https://www.stlouiscountymovotes.gov",
     siteLabel: "stlouiscountymovotes.gov",
+  },
+  {
+    name: "Franklin County Clerk (Election Authority)",
+    lines: ["400 E Locust, Room 201, Union, MO 63084"],
+    tel: "+16365836355",
+    telLabel: "636.583.6355",
+    site: "https://www.franklinmo.org",
+    siteLabel: "franklinmo.org",
   },
   {
     name: "Jefferson County Clerk (Election Authority)",
@@ -105,8 +115,8 @@ export default function AbsenteePage() {
         </p>
         <p className="mt-3">
           Dates, deadlines, and sites below reflect Missouri law and the MO-02 county election
-          authorities — the St. Louis County portion of the district plus Jefferson, Washington,
-          Crawford, and Gasconade counties. Rules can change, so always confirm with your county
+          authorities — the St. Louis County portion of the district plus Franklin, Jefferson,
+          Washington, Crawford, and Gasconade counties. Rules can change, so always confirm with your county
           election authority or the{" "}
           <a className="underline" href={SOS_GOVOTE} target="_blank" rel="noopener noreferrer">
             Missouri Secretary of State
@@ -256,8 +266,8 @@ export default function AbsenteePage() {
       <h2 className="mt-12 font-display text-2xl font-semibold text-ink">Your election authority</h2>
       <p className="mt-3 max-w-prose text-sm text-slate">
         Find the one for <strong className="text-ink">your</strong> county — MO-02 (2025 map) spans the
-        St. Louis County portion of the district plus Jefferson, Washington, Crawford, and Gasconade
-        counties.
+        St. Louis County portion of the district plus Franklin, Jefferson, Washington, Crawford, and
+        Gasconade counties.
       </p>
       <div className="mt-4 grid gap-6 md:grid-cols-2">
         {AUTHORITIES.map((a) => (
@@ -295,7 +305,7 @@ export default function AbsenteePage() {
 
       <p className="mt-8 max-w-prose text-xs text-slate">
         This is educational voting information based on Missouri law and the MO-02 county election
-        authorities (St. Louis, Jefferson, Washington, Crawford, and Gasconade counties). Rules can
+        authorities (St. Louis, Franklin, Jefferson, Washington, Crawford, and Gasconade counties). Rules can
         change — always confirm with your election authority. The voting process applies to all voters
         regardless of candidate preference. For
         the official Missouri voting rules, see{" "}

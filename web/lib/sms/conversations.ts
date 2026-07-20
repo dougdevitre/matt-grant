@@ -37,6 +37,10 @@ export type SmsConversation = {
   flaggedCount: number;
   linkedEmail?: string; // set once registered as a Clerk supporter
   identified?: boolean; // true once we've sent an identified outbound (sender name + STOP) in this thread
+  awaiting?: "geo"; // the vote agent asked a question this thread hasn't answered yet
+  awaitingAt?: string; // when it was asked — lib/sms/votebot.ts expires stale asks
+  county?: string; // CountyKey (lib/sms/geo.ts), self-reported via the vote agent
+  zip?: string; // self-reported ZIP5, when the person answered with one
   status: "open" | "archived";
   updatedAt: string;
 };
@@ -52,6 +56,10 @@ function toConvo(i: Record<string, unknown>): SmsConversation {
     flaggedCount: Number(i.flaggedCount ?? 0),
     linkedEmail: i.linkedEmail ? String(i.linkedEmail) : undefined,
     identified: !!i.identified,
+    awaiting: i.awaiting === "geo" ? "geo" : undefined,
+    awaitingAt: i.awaitingAt ? String(i.awaitingAt) : undefined,
+    county: i.county ? String(i.county) : undefined,
+    zip: i.zip ? String(i.zip) : undefined,
     status: i.status === "archived" ? "archived" : "open",
     updatedAt: String(i.updatedAt ?? ""),
   };
@@ -246,6 +254,49 @@ export async function archiveConversation(phone: string, archived = true): Promi
       UpdateExpression: "SET #st = :s, updatedAt = :u",
       ExpressionAttributeNames: { "#st": "status" },
       ExpressionAttributeValues: { ":s": archived ? "archived" : "open", ":u": new Date().toISOString() },
+    }),
+  );
+}
+
+/** Mark that the vote agent asked this thread its county/ZIP question. Upserts so
+ *  the flag lands even before logInbound creates the conversation row. */
+export async function setAwaitingGeo(phone: string): Promise<void> {
+  const e = toE164(phone);
+  if (!dbConfigured || !e) return;
+  const now = new Date().toISOString();
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: CONVO_PK, SK: e },
+      UpdateExpression: "SET phone = :ph, awaiting = :a, awaitingAt = :u, updatedAt = :u, #st = if_not_exists(#st, :open)",
+      ExpressionAttributeNames: { "#st": "status" },
+      ExpressionAttributeValues: { ":ph": e, ":a": "geo", ":u": now, ":open": "open" },
+    }),
+  );
+}
+
+/** Store a self-reported county (and ZIP, when given) and clear the open question.
+ *  This is the conversation's geo memory: the next VOTE answers immediately. */
+export async function setConversationGeo(phone: string, geo: { county: string; zip?: string }): Promise<void> {
+  const e = toE164(phone);
+  if (!dbConfigured || !e) return;
+  const now = new Date().toISOString();
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: CONVO_PK, SK: e },
+      UpdateExpression:
+        "SET phone = :ph, county = :c, updatedAt = :u, #st = if_not_exists(#st, :open)" +
+        (geo.zip ? ", zip = :z" : "") +
+        " REMOVE awaiting, awaitingAt",
+      ExpressionAttributeNames: { "#st": "status" },
+      ExpressionAttributeValues: {
+        ":ph": e,
+        ":c": geo.county,
+        ":u": now,
+        ":open": "open",
+        ...(geo.zip ? { ":z": geo.zip } : {}),
+      },
     }),
   );
 }

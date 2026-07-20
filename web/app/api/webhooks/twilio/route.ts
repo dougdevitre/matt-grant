@@ -1,12 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSecret } from "@/lib/ssm";
 import { validateTwilioSignature } from "@/lib/sms/send";
-import { recordConsent, recordOptOut } from "@/lib/sms/consent";
+import { recordConsent, recordConsentGeo, recordOptOut } from "@/lib/sms/consent";
 import { setVolunteerContactOptOut } from "@/lib/volunteers/optout";
 import { isBlocked } from "@/lib/sms/moderation";
-import { logInbound } from "@/lib/sms/conversations";
+import { getConversation, logInbound, setAwaitingGeo, setConversationGeo } from "@/lib/sms/conversations";
 import { notifyStaffInboundText } from "@/lib/notifications/staffNotify";
 import { resolveCta, welcomeReply } from "@/lib/sms/ctas";
+import { askGeoReply, awaitingGeoActive, countyVoteReply, parseGeoAnswer, unknownGeoReply } from "@/lib/sms/votebot";
+import { COUNTIES, countyByKey } from "@/lib/sms/geo";
 import { CAMPAIGN } from "@/lib/site";
 
 // Inbound Twilio webhook for the Messaging Service. Verifies the X-Twilio-Signature,
@@ -15,6 +17,10 @@ import { CAMPAIGN } from "@/lib/site";
 //   START/YES/UNSTOP                 → re-subscribe
 //   <SMS_OPTIN_KEYWORD> (e.g. MATT)  → opt-in (text-to-join) + welcome
 //   HELP                             → info reply
+//   VOTE/EARLY                       → the geo-aware vote agent (lib/sms/votebot.ts):
+//                                      county known → county-specific early-vote info;
+//                                      else ask county/ZIP, and read the next
+//                                      non-keyword text as the answer.
 // Inert without TWILIO_AUTH_TOKEN (signature can't be verified → 403), so a keyless
 // deploy is safe. Returns TwiML; Twilio's own Advanced Opt-Out may also auto-reply
 // to STOP/HELP, so we don't double-reply to those.
@@ -79,12 +85,45 @@ export async function POST(req: NextRequest) {
     // (tagged with the CTA source) and reply with that action's trackable link.
     await recordConsent(from, cta.source);
     await setVolunteerContactOptOut({ phone: from }, false).catch(() => {});
-    reply = cta.reply;
+    if (cta.source === "sms-cta-vote") {
+      // VOTE runs the vote agent instead of the static link: answer with the
+      // person's county-specific early-vote info when the thread already knows
+      // their county, else ask for it and remember the open question.
+      const county = countyByKey((await getConversation(from))?.county);
+      if (county) {
+        reply = countyVoteReply(county);
+      } else {
+        await setAwaitingGeo(from);
+        reply = askGeoReply();
+      }
+    } else {
+      reply = cta.reply;
+    }
   }
 
   // A "freeform" text is one that didn't match a reserved word / opt-in keyword / CTA
   // — i.e. a real message a person wrote that needs a human reply in the Inbox.
-  const handled = STOP_WORDS.has(keyword) || START_WORDS.has(keyword) || keyword === optIn || keyword === "HELP" || !!cta;
+  let handled = STOP_WORDS.has(keyword) || START_WORDS.has(keyword) || keyword === optIn || keyword === "HELP" || !!cta;
+
+  // A non-keyword text may be the answer to the vote agent's live county/ZIP
+  // question. A parsed answer is remembered (conversation + consent row — the
+  // self-reported half of candidate/sms-targeting-plan.md's audience enrichment)
+  // and answered with county-specific info. An answer we can't parse still gets
+  // the fallback link, but stays "unhandled" so a human follows up from the Inbox.
+  if (!handled) {
+    const convo = await getConversation(from);
+    if (awaitingGeoActive(convo)) {
+      const geo = parseGeoAnswer(bodyText);
+      if (geo) {
+        await setConversationGeo(from, geo);
+        await recordConsentGeo(from, geo); // never throws; no row → no-op
+        reply = countyVoteReply(COUNTIES[geo.county]);
+        handled = true;
+      } else {
+        reply = unknownGeoReply();
+      }
+    }
+  }
 
   // Best-effort: never hold the 200 ack on a logging failure.
   try {
