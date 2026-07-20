@@ -251,7 +251,7 @@ export function SmsSpendDecider({ optedIn, segmentCounts }: SpendDeciderProps) {
                         r.status === "within"
                           ? "bg-field/10 text-field"
                           : r.status === "partial"
-                            ? "bg-gold/15 text-gold-ink"
+                            ? "bg-ink text-paper" // high-contrast: tinted gold fails WCAG at this size
                             : "bg-paper text-slate"
                       }`}
                     >
