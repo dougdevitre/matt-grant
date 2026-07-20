@@ -4,21 +4,38 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // without DynamoDB.
 vi.mock("@/lib/sms/consent", () => ({
   optedInSet: vi.fn(),
+  listConsent: vi.fn(),
 }));
 vi.mock("@/lib/queries", () => ({
   getVolunteers: vi.fn(),
 }));
 
-import { resolveSmsRecipients, smsAudienceCounts, smsAudienceLabel, smsVolRoleCounts, smsCaptainTeamCount, parseVolRole } from "./audiences";
-import { optedInSet } from "@/lib/sms/consent";
+import {
+  resolveSmsRecipients,
+  smsAudienceCounts,
+  smsAudienceLabel,
+  smsVolRoleCounts,
+  smsCaptainTeamCount,
+  smsTargetCounts,
+  parseVolRole,
+  parseTargetToken,
+  OUTSTANDING_TOKEN,
+} from "./audiences";
+import { optedInSet, listConsent } from "@/lib/sms/consent";
 import { getVolunteers } from "@/lib/queries";
 
-const mockOpted = optedInSet as unknown as ReturnType<typeof vi.fn>;
+const mockOpted = vi.mocked(optedInSet);
+const mockListConsent = vi.mocked(listConsent);
 const mockVols = getVolunteers as unknown as ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
   vi.clearAllMocks();
   mockOpted.mockResolvedValue(new Set(["+13145550100", "+13145550101"]));
+  // The resolver reads the full ledger (opt-in gate + targeting fields in one
+  // read); keep it in lockstep with whatever set each test puts in mockOpted.
+  mockListConsent.mockImplementation(async () =>
+    [...(await mockOpted())].map((phone) => ({ phone, status: "opted_in" as const })),
+  );
   mockVols.mockResolvedValue({
     connected: true,
     rows: [
@@ -64,6 +81,74 @@ describe("smsAudienceLabel", () => {
   });
   it("appends volunteer-role labels", () => {
     expect(smsAudienceLabel([], [], ["role:Canvasser", "door:Team Captain"])).toBe("Canvasser + Door: Team Captain");
+  });
+});
+
+describe("targeting filters (county / zip / segment / outstanding)", () => {
+  const LEDGER = [
+    { phone: "+13145550100", status: "opted_in" as const, county: "franklin", zip: "63084", voterSegment: "MOBILIZE", banked: false },
+    { phone: "+13145550101", status: "opted_in" as const, county: "st-louis", zip: "63011", voterSegment: "BANK", banked: true },
+    { phone: "+13145550102", status: "opted_in" as const }, // no geo/tags (unenriched)
+  ];
+  beforeEach(() => {
+    mockOpted.mockResolvedValue(new Set(LEDGER.map((r) => r.phone)));
+    mockListConsent.mockResolvedValue(LEDGER);
+    mockVols.mockResolvedValue({ connected: true, rows: [] });
+  });
+
+  it("parseTargetToken validates county/zip/segment/outstanding and rejects junk", () => {
+    expect(parseTargetToken("county:franklin")).toEqual({ kind: "county", value: "franklin" });
+    expect(parseTargetToken("zip:63011")).toEqual({ kind: "zip", value: "63011" });
+    expect(parseTargetToken("segment:MOBILIZE")).toEqual({ kind: "segment", value: "MOBILIZE" });
+    expect(parseTargetToken(OUTSTANDING_TOKEN)).toEqual({ kind: "outstanding" });
+    for (const bad of ["county:st-charles", "zip:6301", "segment:nope", "franklin", ""]) {
+      expect(parseTargetToken(bad), bad).toBeNull();
+    }
+  });
+
+  it("a county filter narrows to matching rows; unenriched rows are dropped", async () => {
+    const out = await resolveSmsRecipients(["subscribers"], [], [], { targets: ["county:franklin"] });
+    expect(out.map((r) => r.phone)).toEqual(["+13145550100"]);
+  });
+
+  it("multiple tokens of one kind OR together; kinds AND together", async () => {
+    const both = await resolveSmsRecipients(["subscribers"], [], [], { targets: ["county:franklin", "county:st-louis"] });
+    expect(new Set(both.map((r) => r.phone))).toEqual(new Set(["+13145550100", "+13145550101"]));
+    const anded = await resolveSmsRecipients(["subscribers"], [], [], {
+      targets: ["county:franklin", "county:st-louis", "segment:BANK"],
+    });
+    expect(anded.map((r) => r.phone)).toEqual(["+13145550101"]);
+  });
+
+  it("outstanding drops only CONFIRMED-banked rows — unenriched rows stay in", async () => {
+    const out = await resolveSmsRecipients(["subscribers"], [], [], { targets: [OUTSTANDING_TOKEN] });
+    expect(new Set(out.map((r) => r.phone))).toEqual(new Set(["+13145550100", "+13145550102"]));
+  });
+
+  it("a zip filter matches self-reported/enriched zips", async () => {
+    const out = await resolveSmsRecipients(["subscribers"], [], [], { targets: ["zip:63011", "zip:63017"] });
+    expect(out.map((r) => r.phone)).toEqual(["+13145550101"]);
+  });
+
+  it("invalid tokens are ignored — they can only narrow, never widen or error", async () => {
+    const out = await resolveSmsRecipients(["subscribers"], [], [], { targets: ["county:st-charles", "junk"] });
+    expect(out.length).toBe(3); // no VALID token → no filtering
+  });
+
+  it("smsTargetCounts counts opted-in rows per chip token", async () => {
+    const c = await smsTargetCounts();
+    expect(c["county:franklin"]).toBe(1);
+    expect(c["county:st-louis"]).toBe(1);
+    expect(c["segment:MOBILIZE"]).toBe(1);
+    expect(c["segment:BANK"]).toBe(1);
+    expect(c[OUTSTANDING_TOKEN]).toBe(2); // 0100 (not banked) + 0102 (unknown)
+  });
+
+  it("labels append the filter descriptions", () => {
+    expect(smsAudienceLabel(["subscribers"], [], [], ["county:franklin", OUTSTANDING_TOKEN])).toBe(
+      "All opted-in · Franklin County, not yet voted",
+    );
+    expect(smsAudienceLabel([], [], [], ["zip:63011"])).toBe("ZIP 63011");
   });
 });
 

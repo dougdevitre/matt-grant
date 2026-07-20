@@ -64,6 +64,14 @@ On **Text blasts** (`/dashboard/sms`):
 4. **Choose the audience.**
    - **Admins** pick any of: **All opted-in**, **Volunteers**, **by account role**, or **by
      volunteer role/door**. Counts show how many opted-in people each selection reaches.
+   - **Admins can then NARROW the selection** with the "Narrow by county / voter tag" chips —
+     the six MO-02 counties, voter segments (MOBILIZE/BANK/…), **Not yet voted** (skips numbers
+     confirmed voted — GOTV chase mode), or a list of ZIPs. Filters match data carried on the
+     consent row itself: county/ZIP the person told the SMS vote agent, plus the tags the
+     enrichment job writes (`npm run enrich:sms` — run it nightly during the chase window so
+     "Not yet voted" tracks the daily ballot returns). Filters only ever shrink the audience;
+     a geo-filtered send reaches only numbers with known geography. Chips are hidden until any
+     tags exist.
    - **Captains** see **"Texting your team only — N opted-in volunteers"** — the send is
      automatically scoped to their own roster (optionally narrowed by volunteer role). Captains
      can't widen it to the full list.

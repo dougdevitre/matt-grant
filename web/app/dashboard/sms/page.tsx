@@ -5,7 +5,17 @@ import { SmsComposer } from "@/components/dashboard/SmsComposer";
 import { staffGate } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { smsEnabled } from "@/lib/sms/send";
-import { smsAudienceCounts, smsVolRoleCounts, smsCaptainTeamCount, SMS_GROUP_LABELS, VOL_ROLE_OPTIONS } from "@/lib/sms/audiences";
+import {
+  smsAudienceCounts,
+  smsVolRoleCounts,
+  smsCaptainTeamCount,
+  smsTargetCounts,
+  SMS_GROUP_LABELS,
+  VOL_ROLE_OPTIONS,
+  TARGET_COUNTY_OPTIONS,
+  TARGET_SEGMENT_OPTIONS,
+  OUTSTANDING_TOKEN,
+} from "@/lib/sms/audiences";
 import { listSmsCampaigns } from "@/lib/sms/campaigns";
 import { listSavedTemplates } from "@/lib/notifications/messageTemplates";
 
@@ -21,11 +31,13 @@ export default async function SmsPage() {
   const scope = isCaptain ? "captain" : "admin";
   const captainEmail = isCaptain ? email ?? undefined : undefined;
 
-  const [counts, volRoleCounts, teamCount, sent, enabled, saved] = await Promise.all([
+  const [counts, volRoleCounts, teamCount, targetCounts, sent, enabled, saved] = await Promise.all([
     smsAudienceCounts(),
     // Captain: chip counts scoped to their team so the reach shown matches what actually sends.
     smsVolRoleCounts(captainEmail),
     isCaptain ? smsCaptainTeamCount(captainEmail) : Promise.resolve(0),
+    // Targeting chips are admin-only (their counts cover the whole opt-in ledger).
+    isAdmin ? smsTargetCounts() : Promise.resolve({} as Record<string, number>),
     listSmsCampaigns(15),
     smsEnabled(),
     listSavedTemplates("sms"),
@@ -37,6 +49,16 @@ export default async function SmsPage() {
   // Only surface volunteer-role chips that actually have opted-in members, so the
   // section isn't a wall of zeros (all 23 taxonomy tokens).
   const volRoles = VOL_ROLE_OPTIONS.map((o) => ({ ...o, count: volRoleCounts[o.value] ?? 0 })).filter((o) => o.count > 0);
+  // Targeting chips (admin only): counties/segments with at least one tagged
+  // opted-in number, plus the GOTV "not yet voted" chip once any tags exist —
+  // hidden entirely until the vote agent or enrichment job has produced data.
+  const targets = isAdmin
+    ? [
+        ...TARGET_COUNTY_OPTIONS.map((o) => ({ ...o, count: targetCounts[o.value] ?? 0 })).filter((o) => o.count > 0),
+        ...TARGET_SEGMENT_OPTIONS.map((o) => ({ ...o, count: targetCounts[o.value] ?? 0 })).filter((o) => o.count > 0),
+      ]
+    : [];
+  if (targets.length > 0) targets.push({ value: OUTSTANDING_TOKEN, label: "Not yet voted", count: targetCounts[OUTSTANDING_TOKEN] ?? 0 });
   const when = (iso: string) =>
     new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
@@ -68,7 +90,7 @@ export default async function SmsPage() {
         </div>
       )}
 
-      <SmsComposer groups={groups} volRoles={volRoles} saved={saved} canSend={canSend} disabled={!enabled} scope={scope} teamCount={teamCount} />
+      <SmsComposer groups={groups} volRoles={volRoles} targets={targets} saved={saved} canSend={canSend} disabled={!enabled} scope={scope} teamCount={teamCount} />
 
       <div className="mt-8">
         <p className="eyebrow text-slate">Recent sends</p>

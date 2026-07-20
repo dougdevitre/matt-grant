@@ -1,10 +1,11 @@
 import { getVolunteers } from "@/lib/queries";
-import { optedInSet } from "@/lib/sms/consent";
+import { listConsent, optedInSet, type SmsConsentRow } from "@/lib/sms/consent";
 import { listBlocked } from "@/lib/sms/moderation";
 import { toE164 } from "@/lib/sms/send";
 import { listClerkContactsByRole } from "@/lib/clerkAudiences";
 import { ROLE_LABELS, type Role } from "@/lib/rbac";
 import { VOLUNTEER_ROLES, JOIN_DOORS, isVolunteerRole, isJoinDoor } from "@/lib/volunteer/taxonomy";
+import { COUNTIES, countyByKey } from "@/lib/sms/geo";
 
 // Resolve SMS broadcast recipients. Unlike email, the audience is gated on
 // recorded opt-in: every candidate number is intersected with optedInSet(), so
@@ -57,14 +58,82 @@ function volMatches(v: { roles: string[]; door: string | null }, tokens: VolRole
   return tokens.some((t) => (t.kind === "role" ? v.roles?.includes(t.value) : v.door === t.value));
 }
 
-export function smsAudienceLabel(groups: SmsGroup[], roles: Role[] = [], volRoles: string[] = []): string {
+// ── Targeting filters (consent-row fields only) ───────────────────────────────
+// A fourth dimension that NARROWS whatever the groups/roles selected, matching on
+// plain fields carried by the consent row itself: self-reported geography from
+// the SMS vote agent, and the denormalized voter tags the out-of-band enrichment
+// job wrote (scripts/enrich-sms-audience.ts). Nothing here reads voter data —
+// that's the point of the denormalization (candidate/sms-targeting-plan.md §2).
+// Tokens: "county:<key>" (lib/sms/geo.ts), "zip:<zip5>", "segment:<name>", and
+// "outstanding" (skip numbers confirmed already voted — GOTV chase mode).
+// Semantics: OR within a kind, AND across kinds. A row with no data for a
+// filtered kind is dropped — a geo-targeted send reaches only known geography.
+
+// Label mirror of the voter-score segment names. Deliberately NOT imported from
+// lib/voters/score (the isolation guard forbids lib/sms → lib/voters imports);
+// these are just the strings the enrichment job denormalizes onto consent rows.
+export const VOTER_SEGMENT_NAMES = ["MOBILIZE", "BANK", "PERSUADE", "PROSPECT", "MONITOR"] as const;
+
+export const OUTSTANDING_TOKEN = "outstanding";
+
+export type TargetOption = { value: string; label: string };
+export const TARGET_COUNTY_OPTIONS: TargetOption[] = Object.values(COUNTIES).map((c) => ({
+  value: `county:${c.key}`,
+  label: c.name,
+}));
+export const TARGET_SEGMENT_OPTIONS: TargetOption[] = VOTER_SEGMENT_NAMES.map((s) => ({
+  value: `segment:${s}`,
+  label: s,
+}));
+
+export type TargetToken = { kind: "county" | "zip" | "segment"; value: string } | { kind: "outstanding" };
+
+/** Parse+validate a targeting token, or null (invalid tokens are ignored, never widen). */
+export function parseTargetToken(token: string): TargetToken | null {
+  if (token === OUTSTANDING_TOKEN) return { kind: "outstanding" };
+  const i = token.indexOf(":");
+  if (i < 0) return null;
+  const kind = token.slice(0, i);
+  const value = token.slice(i + 1);
+  if (kind === "county" && countyByKey(value)) return { kind: "county", value };
+  if (kind === "zip" && /^\d{5}$/.test(value)) return { kind: "zip", value };
+  if (kind === "segment" && (VOTER_SEGMENT_NAMES as readonly string[]).includes(value)) return { kind: "segment", value };
+  return null;
+}
+
+function rowMatchesTargets(row: SmsConsentRow | undefined, tokens: TargetToken[]): boolean {
+  const counties = tokens.filter((t) => t.kind === "county").map((t) => (t as { value: string }).value);
+  const zips = tokens.filter((t) => t.kind === "zip").map((t) => (t as { value: string }).value);
+  const segments = tokens.filter((t) => t.kind === "segment").map((t) => (t as { value: string }).value);
+  const outstanding = tokens.some((t) => t.kind === "outstanding");
+  if (counties.length && !(row?.county && counties.includes(row.county))) return false;
+  if (zips.length && !(row?.zip && zips.includes(row.zip))) return false;
+  if (segments.length && !(row?.voterSegment && segments.includes(row.voterSegment))) return false;
+  // "outstanding" drops only CONFIRMED-banked rows; unenriched rows stay in —
+  // never silently exclude someone just because we don't know their status.
+  if (outstanding && row?.banked === true) return false;
+  return true;
+}
+
+export function smsAudienceLabel(groups: SmsGroup[], roles: Role[] = [], volRoles: string[] = [], targets: string[] = []): string {
   const parts = groups.map((g) => SMS_GROUP_LABELS[g]);
   for (const r of roles) parts.push(`Role: ${ROLE_LABELS[r]}`);
   for (const t of volRoles) {
     const opt = VOL_ROLE_OPTIONS.find((o) => o.value === t);
     if (opt) parts.push(opt.label);
   }
-  return parts.join(" + ") || "—";
+  const filters: string[] = [];
+  for (const t of targets) {
+    const p = parseTargetToken(t);
+    if (!p) continue;
+    if (p.kind === "county") filters.push(countyByKey(p.value)?.name ?? p.value);
+    else if (p.kind === "zip") filters.push(`ZIP ${p.value}`);
+    else if (p.kind === "segment") filters.push(p.value);
+    else filters.push("not yet voted");
+  }
+  const base = parts.join(" + ");
+  if (filters.length) return base ? `${base} · ${filters.join(", ")}` : filters.join(", ");
+  return base || "—";
 }
 
 // A resolved SMS recipient: the opted-in number plus their first name when a source
@@ -83,7 +152,10 @@ const lc = (s?: string | null): string => (s ?? "").trim().toLowerCase();
 // send, see rbac `sendTeamSms`), the resolver reaches ONLY that captain's own
 // opted-in team — the full opt-in ledger and Clerk account-role cohorts are
 // dropped server-side, so the scope can't be widened by a tampered form.
-export type SmsResolveOpts = { captainEmail?: string };
+// `targets` (county/zip/segment/outstanding tokens) NARROW the resolved set by
+// consent-row fields; invalid tokens are ignored, so a tampered token can only
+// ever shrink the audience, never widen it.
+export type SmsResolveOpts = { captainEmail?: string; targets?: string[] };
 
 // Recipients from the chosen groups + Clerk roles + volunteer-role segments, filtered
 // to opted-in, minus blocked numbers, and de-duplicated. Every source is gated on opt-in
@@ -99,7 +171,10 @@ export async function resolveSmsRecipients(
   opts: SmsResolveOpts = {},
 ): Promise<SmsRecipient[]> {
   const captainScope = lc(opts.captainEmail); // "" when unscoped (admin/full-list send)
-  const [opted, blocked] = await Promise.all([optedInSet(), listBlocked()]);
+  // One ledger read serves both the opt-in gate and the targeting filter.
+  const [consentRows, blocked] = await Promise.all([listConsent(), listBlocked()]);
+  const opted = new Set(consentRows.filter((r) => r.status === "opted_in").map((r) => r.phone));
+  const rowByPhone = new Map(consentRows.map((r) => [r.phone, r]));
   const blockedSet = new Set(blocked.map((b) => b.phone));
   const byPhone = new Map<string, string | undefined>();
   const add = (e: string, first?: string) => {
@@ -136,7 +211,37 @@ export async function resolveSmsRecipients(
       }
     }
   }
-  return [...byPhone].map(([phone, first]) => ({ phone, first }));
+
+  // Targeting filter last: narrow the resolved set by consent-row fields.
+  const targetTokens = (opts.targets ?? []).map(parseTargetToken).filter((t): t is TargetToken => t !== null);
+  const out = [...byPhone].map(([phone, first]) => ({ phone, first }));
+  return targetTokens.length ? out.filter((r) => rowMatchesTargets(rowByPhone.get(r.phone), targetTokens)) : out;
+}
+
+// Opted-in counts per targeting token (county chips, segment chips, outstanding),
+// for the composer. Counted over the whole opted-in ledger with the same matcher
+// the resolver uses, so a chip's count is exactly the most that token can reach.
+export async function smsTargetCounts(): Promise<Record<string, number>> {
+  const counts: Record<string, number> = {};
+  for (const o of [...TARGET_COUNTY_OPTIONS, ...TARGET_SEGMENT_OPTIONS]) counts[o.value] = 0;
+  counts[OUTSTANDING_TOKEN] = 0;
+  try {
+    for (const row of await listConsent()) {
+      if (row.status !== "opted_in") continue;
+      if (row.county) {
+        const key = `county:${row.county}`;
+        if (key in counts) counts[key]++;
+      }
+      if (row.voterSegment) {
+        const key = `segment:${row.voterSegment}`;
+        if (key in counts) counts[key]++;
+      }
+      if (row.banked !== true) counts[OUTSTANDING_TOKEN]++;
+    }
+  } catch {
+    /* no DB → zeros */
+  }
+  return counts;
 }
 
 // Opted-in count of a captain's OWN team, for the composer's "Texting your team only — N"

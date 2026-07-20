@@ -92,6 +92,8 @@ The core "phone number can communicate with the SMS agent" upgrade. Deterministi
 
 ## 5. Phase 2 — Geo Targeting in the Broadcast Composer
 
+> **Shipped 2026-07-20.** The enrichment job (`web/scripts/enrich-sms-audience.ts`, `npm run enrich:sms`, pure core + tests in `web/lib/reports/smsEnrichment.ts`) tags opted-in consent rows with `voterSegment`/`voterT`/`banked`/`county`/`zip`; the composer gained "Narrow by county / voter tag" chips (six counties, segments, "Not yet voted") plus a free-form ZIP filter, resolved entirely from consent-row fields (`parseTargetToken`/`smsTargetCounts` in `web/lib/sms/audiences.ts`). Self-reported geography from the vote agent carries `geoSource: "self"` and always beats a voter-file match. The isolation guard still passes — `lib/sms/` reads no voter surface. This also delivers sms-targeting-plan Phases 1, 2, and 4.
+
 Extends sms-targeting-plan Phases 1–2 with geography, one job + one filter surface:
 
 1. **`web/scripts/enrich-sms-audience.ts` (the planned Phase-1 job, now geo-aware).** Out-of-band; allowed to read both sides. Match each opted-in number to a voter record (voterId when known, else name+ZIP5 per `voter-file-plan.md` §3) and denormalize onto the consent row: `voterSegment`, `voterT`, `banked`, **`county`, `zip`**, and `schoolDistrict` via the §6 crosswalk. Self-reported ZIP (Phase 1) wins over matched ZIP on conflict — the subscriber's own answer is fresher. Re-run nightly during GOTV to refresh `banked` from ballot-return data.

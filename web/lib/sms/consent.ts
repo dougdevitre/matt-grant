@@ -10,7 +10,25 @@ import { toE164 } from "@/lib/sms/send";
 const SMS_PK = "SMSCONSENT";
 
 export type SmsConsentStatus = "opted_in" | "opted_out";
-export type SmsConsentRow = { phone: string; status: SmsConsentStatus; source?: string; consentAt?: string; updatedAt?: string };
+// Beyond the consent core, a row may carry targeting metadata: self-reported
+// geography from the SMS vote agent (geoSource "self") and the denormalized
+// voter tags the out-of-band enrichment job writes (scripts/enrich-sms-audience.ts
+// — geoSource "voterfile"/"contact"). These are plain fields ON the consent row;
+// nothing here reads voter data, and targeting on them only NARROWS the
+// opted-in audience (candidate/sms-targeting-plan.md §2).
+export type SmsConsentRow = {
+  phone: string;
+  status: SmsConsentStatus;
+  source?: string;
+  consentAt?: string;
+  updatedAt?: string;
+  county?: string; // CountyKey (lib/sms/geo.ts)
+  zip?: string;
+  geoSource?: string; // "self" | "voterfile" | "contact"
+  voterSegment?: string; // MOBILIZE/BANK/PERSUADE/PROSPECT/MONITOR (denormalized)
+  voterT?: number; // turnout score 0-5 (denormalized)
+  banked?: boolean; // confirmed already voted (ballot returns, denormalized)
+};
 
 /** Record explicit opt-in (web checkbox, inbound keyword, START). Re-subscribes an opted-out number.
  *  `consentAt` overrides the stored first-consent timestamp — pass the ORIGINAL opt-in time when
@@ -46,10 +64,13 @@ export async function recordConsentGeo(phone: string, geo: { county: string; zip
       new UpdateCommand({
         TableName: TABLE,
         Key: { PK: SMS_PK, SK: e },
-        UpdateExpression: "SET county = :c, updatedAt = :u" + (geo.zip ? ", zip = :z" : ""),
+        // geoSource "self" marks it self-reported — the enrichment job never
+        // overwrites it (the person's own answer beats a voter-file match).
+        UpdateExpression: "SET county = :c, geoSource = :g, updatedAt = :u" + (geo.zip ? ", zip = :z" : ""),
         ConditionExpression: "attribute_exists(SK)",
         ExpressionAttributeValues: {
           ":c": geo.county,
+          ":g": "self",
           ":u": new Date().toISOString(),
           ...(geo.zip ? { ":z": geo.zip } : {}),
         },
@@ -116,6 +137,12 @@ export async function listConsent(): Promise<SmsConsentRow[]> {
       source: i.source ? String(i.source) : undefined,
       consentAt: i.consentAt ? String(i.consentAt) : undefined,
       updatedAt: i.updatedAt ? String(i.updatedAt) : undefined,
+      county: i.county ? String(i.county) : undefined,
+      zip: i.zip ? String(i.zip) : undefined,
+      geoSource: i.geoSource ? String(i.geoSource) : undefined,
+      voterSegment: i.voterSegment ? String(i.voterSegment) : undefined,
+      voterT: typeof i.voterT === "number" ? i.voterT : undefined,
+      banked: typeof i.banked === "boolean" ? i.banked : undefined,
     }));
   } catch {
     return [];
