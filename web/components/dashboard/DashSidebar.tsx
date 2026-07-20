@@ -56,6 +56,7 @@ const GROUPS: Group[] = [
       { href: "/dashboard/print", label: "Print", icon: "assets", cap: "manageAssets" },
       { href: "/dashboard/emails", label: "Email", icon: "campaign", cap: "draftEmailCampaign" },
       { href: "/dashboard/sms", label: "Text blasts", icon: "campaign", cap: "draftSms" },
+      { href: "/dashboard/sms/spend", label: "Spend decider", icon: "finance", cap: "sendSms" },
       { href: "/dashboard/templates", label: "Templates", icon: "campaign", cap: "draftEmailCampaign" },
       { href: "/dashboard/messages", label: "Inbox", icon: "campaign", cap: "messageIndividuals" },
       { href: "/dashboard/social", label: "Social", icon: "social", cap: "manageSocial" },

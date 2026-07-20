@@ -43,6 +43,7 @@ Everything is under the dashboard's **Comms** section.
 |---|---|---|
 | Send a text blast | `/dashboard/sms` | **Text blasts** |
 | Reply to people 1:1 | `/dashboard/messages` (a thread is `/dashboard/messages/<number>`) | **Inbox** |
+| Decide the SMS budget (admin) | `/dashboard/sms/spend` | **Spend decider** |
 | Finish Twilio setup (admin) | `/dashboard/sms/go-live` | via "Finish setup →" on Text blasts |
 
 ---
@@ -85,18 +86,24 @@ On **Text blasts** (`/dashboard/sms`):
    - **Captains** see **"Texting your team only — N opted-in volunteers"** — the send is
      automatically scoped to their own roster (optionally narrowed by volunteer role). Captains
      can't widen it to the full list.
-5. **Priority ordering is automatic.** Every blast queues **highest-likelihood voters first** —
+5. **Deciding the budget? Use the Spend Decider.** Admins have **Comms → Spend decider**
+   (`/dashboard/sms/spend`): paste the message, check the Twilio per-segment pricing defaults
+   (verify against twilio.com/en-us/sms/pricing/us — they go stale), enter list size, planned
+   sends, and a total budget, and it returns the **Max texts** cap to type into the composer plus
+   a table of exactly which voter-priority groups the capped blast reaches. Figures are planning
+   estimates; reconcile real spend against the Twilio console and record it as an FEC disbursement.
+6. **Priority ordering is automatic.** Every blast queues **highest-likelihood voters first** —
    ranked by the voter segment (MOBILIZE > BANK > PERSUADE > PROSPECT) with turnout score as the
    within-segment tie-break, using the tags the enrichment job wrote (`npm run enrich:sms`).
    Numbers with no voter match go last but are still sent. The optional **Max texts** field caps a
    blast to the top N by priority — the cut hits only the lowest-priority tail, and the
    confirmation reports "Capped to the N highest-priority of M." Because the queue drains in
    order, even an uncapped blast that spans a quiet-hours cutoff reaches the best targets first.
-6. **Send a test to yourself first.** Enter your own opted-in mobile and hit **Send test**. Always
+7. **Send a test to yourself first.** Enter your own opted-in mobile and hit **Send test**. Always
    do this before a real blast. (Your number must already be opted in — text the keyword first.)
-7. **(Optional) Schedule for later.** Pick a date/time. Texts only leave during quiet hours
+8. **(Optional) Schedule for later.** Pick a date/time. Texts only leave during quiet hours
    (9am–8pm CT); a time outside that waits for the next window.
-8. **Send.** Confirm the audience in the prompt. The blast queues and sends in the background,
+9. **Send.** Confirm the audience in the prompt. The blast queues and sends in the background,
    respecting quiet hours. Track progress under **Recent sends**.
 
 ---

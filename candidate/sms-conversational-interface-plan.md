@@ -143,6 +143,7 @@ Cadence per `workflows/gotv-plan.md` and `candidate/twilio-fund-plan.md` §4 (MO
 3. ~~Add an `early-vote` template to `web/lib/sms/templates.ts`~~ — **done 2026-07-20** (calendar-aware phrasing: "starts Tue July 21" → "open now through 5pm Mon Aug 3" → Election Day, with a Reply VOTE hook into the agent).
 4. Verify + geocode the 12 rows in `candidate/early-vote-sites-seed.csv` per the verification checklist.
 5. Optionally add the Aug 4 primary voting calendar to `states/missouri/` reference files (currently the dates live only in `candidate/` and the web pages).
+6. ~~Interactive SMS spend calculator~~ — **done 2026-07-20**: admin-gated **Spend decider** page at `/dashboard/sms/spend` (Comms menu; `sendSms` capability). Pure model in `web/lib/reports/smsSpend.ts` (+ tests); live opted-in and segment counts prefill; returns the composer's Max texts cap and a priority coverage table. Twilio pricing defaults verified July 2026 and must be re-verified before budgeting.
 
 ---
 

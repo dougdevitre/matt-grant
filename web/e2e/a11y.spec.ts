@@ -46,6 +46,7 @@ const DASHBOARD_ROUTES = [
   // where a11y regressions hide (labels, contrast on custom controls), so keep
   // them in the gate.
   "/dashboard/sms",
+  "/dashboard/sms/spend",
   "/dashboard/social",
   "/dashboard/messages",
   "/dashboard/assets",
