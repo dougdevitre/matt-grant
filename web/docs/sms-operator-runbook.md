@@ -65,13 +65,23 @@ On **Text blasts** (`/dashboard/sms`):
    - **Admins** pick any of: **All opted-in**, **Volunteers**, **by account role**, or **by
      volunteer role/door**. Counts show how many opted-in people each selection reaches.
    - **Admins can then NARROW the selection** with the "Narrow by county / voter tag" chips —
-     the six MO-02 counties, voter segments (MOBILIZE/BANK/…), **Not yet voted** (skips numbers
-     confirmed voted — GOTV chase mode), or a list of ZIPs. Filters match data carried on the
-     consent row itself: county/ZIP the person told the SMS vote agent, plus the tags the
-     enrichment job writes (`npm run enrich:sms` — run it nightly during the chase window so
-     "Not yet voted" tracks the daily ballot returns). Filters only ever shrink the audience;
-     a geo-filtered send reaches only numbers with known geography. Chips are hidden until any
-     tags exist.
+     the six MO-02 counties, school districts (once the crosswalk is generated, below), voter
+     segments (MOBILIZE/BANK/…), **Not yet voted** (skips numbers confirmed voted — GOTV chase
+     mode), or a list of ZIPs. Filters match data carried on the consent row itself: county/ZIP
+     the person told the SMS vote agent, plus the tags the enrichment job writes
+     (`npm run enrich:sms` — run it nightly during the chase window so "Not yet voted" tracks
+     the daily ballot returns). Filters only ever shrink the audience; a geo-filtered send
+     reaches only numbers with known geography. Chips are hidden until any tags exist.
+
+     *School-district chips need a one-time data generation* (the campaign never guesses
+     district boundaries): download the NCES EDGE district-to-county and district-to-ZCTA
+     relationship files from https://nces.ed.gov/programs/edge/geographic/relationshipfiles,
+     run `npm run build:district-crosswalk -- --lea-county <file> --lea-zcta <file>
+     --retrieved YYYY-MM-DD`, verify district names against the DESE School Directory
+     (https://dese.mo.gov/directory), run the test suite, commit the regenerated
+     `lib/sms/school-districts.data.ts`, then re-run `npm run enrich:sms`. ZIPs that cross
+     district lines stay untagged by design. District targeting is for geographic relevance
+     (nearest early-vote site, events) — never to imply local education policy positions.
    - **Captains** see **"Texting your team only — N opted-in volunteers"** — the send is
      automatically scoped to their own roster (optionally narrowed by volunteer role). Captains
      can't widen it to the full list.

@@ -41,6 +41,7 @@ export type EnrichmentWrite = {
   banked?: boolean;
   county?: string; // CountyKey (lib/sms/geo.ts)
   zip?: string;
+  schoolDistrict?: string; // LEAID (lib/sms/school-districts.ts), unambiguous ZIPs only
   geoSource?: Exclude<GeoSource, "self">; // "self" is only ever written by the vote agent
 };
 
@@ -61,10 +62,17 @@ export function buildEnrichmentPlan(input: {
   contacts: ContactTag[];
   /** phone → current geoSource on the consent row ("self" is preserved). */
   existingGeoSource: Map<string, string>;
+  /** phone → ZIP already on the consent row (incl. self-reported) — lets a row
+   *  that contributes no new geo still gain a school district. */
+  existingZips?: Map<string, string>;
   countyKeyForName: (raw: string) => string | null;
   countyKeyForZip: (z: string) => string | null;
+  /** ZIP → district LEAID, UNAMBIGUOUS matches only (districtForZipUnambiguous). */
+  districtForZip?: (z: string) => string | null;
 }): EnrichmentPlan {
   const { optedIn, existingGeoSource, countyKeyForName, countyKeyForZip } = input;
+  const existingZips = input.existingZips ?? new Map<string, string>();
+  const districtForZip = input.districtForZip ?? (() => null);
   const byPhone = new Map<string, EnrichmentWrite>();
   let skippedNotOptedIn = 0;
   let geoPreserved = 0;
@@ -106,6 +114,20 @@ export function buildEnrichmentPlan(input: {
     }
     const county = countyKeyForZip(z);
     byPhone.set(c.phone, { phone: c.phone, zip: z, ...(county ? { county } : {}), geoSource: "contact" });
+  }
+
+  // School district — a DERIVED attribute from whichever ZIP the row ends up
+  // with (this run's, or one already stored, incl. self-reported). Only an
+  // UNAMBIGUOUS crosswalk match is written; multi-district ZIPs stay untagged.
+  for (const w of byPhone.values()) {
+    const z = w.zip ?? existingZips.get(w.phone);
+    const district = z ? districtForZip(z) : null;
+    if (district) w.schoolDistrict = district;
+  }
+  for (const [phone, z] of existingZips) {
+    if (byPhone.has(phone) || !optedIn.has(phone)) continue;
+    const district = districtForZip(z);
+    if (district) byPhone.set(phone, { phone, schoolDistrict: district });
   }
 
   return { writes: [...byPhone.values()], skippedNotOptedIn, geoPreserved };

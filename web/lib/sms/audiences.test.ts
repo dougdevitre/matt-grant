@@ -9,6 +9,15 @@ vi.mock("@/lib/sms/consent", () => ({
 vi.mock("@/lib/queries", () => ({
   getVolunteers: vi.fn(),
 }));
+// The shipped crosswalk data is empty by design; mock one district so the
+// district-token path is testable.
+vi.mock("@/lib/sms/school-districts", () => {
+  const FIXTURE = { "2900001": { id: "2900001", name: "Fixture District", counties: ["st-louis"] } };
+  return {
+    SCHOOL_DISTRICTS: FIXTURE,
+    districtById: (id: string) => FIXTURE[id as keyof typeof FIXTURE] ?? null,
+  };
+});
 
 import {
   resolveSmsRecipients,
@@ -87,7 +96,7 @@ describe("smsAudienceLabel", () => {
 describe("targeting filters (county / zip / segment / outstanding)", () => {
   const LEDGER = [
     { phone: "+13145550100", status: "opted_in" as const, county: "franklin", zip: "63084", voterSegment: "MOBILIZE", banked: false },
-    { phone: "+13145550101", status: "opted_in" as const, county: "st-louis", zip: "63011", voterSegment: "BANK", banked: true },
+    { phone: "+13145550101", status: "opted_in" as const, county: "st-louis", zip: "63011", voterSegment: "BANK", banked: true, schoolDistrict: "2900001" },
     { phone: "+13145550102", status: "opted_in" as const }, // no geo/tags (unenriched)
   ];
   beforeEach(() => {
@@ -101,9 +110,15 @@ describe("targeting filters (county / zip / segment / outstanding)", () => {
     expect(parseTargetToken("zip:63011")).toEqual({ kind: "zip", value: "63011" });
     expect(parseTargetToken("segment:MOBILIZE")).toEqual({ kind: "segment", value: "MOBILIZE" });
     expect(parseTargetToken(OUTSTANDING_TOKEN)).toEqual({ kind: "outstanding" });
-    for (const bad of ["county:st-charles", "zip:6301", "segment:nope", "franklin", ""]) {
+    expect(parseTargetToken("district:2900001")).toEqual({ kind: "district", value: "2900001" });
+    for (const bad of ["county:st-charles", "zip:6301", "segment:nope", "district:0000000", "franklin", ""]) {
       expect(parseTargetToken(bad), bad).toBeNull();
     }
+  });
+
+  it("a district filter narrows to rows tagged with that district", async () => {
+    const out = await resolveSmsRecipients(["subscribers"], [], [], { targets: ["district:2900001"] });
+    expect(out.map((r) => r.phone)).toEqual(["+13145550101"]);
   });
 
   it("a county filter narrows to matching rows; unenriched rows are dropped", async () => {
@@ -141,6 +156,7 @@ describe("targeting filters (county / zip / segment / outstanding)", () => {
     expect(c["county:st-louis"]).toBe(1);
     expect(c["segment:MOBILIZE"]).toBe(1);
     expect(c["segment:BANK"]).toBe(1);
+    expect(c["district:2900001"]).toBe(1);
     expect(c[OUTSTANDING_TOKEN]).toBe(2); // 0100 (not banked) + 0102 (unknown)
   });
 
@@ -149,6 +165,7 @@ describe("targeting filters (county / zip / segment / outstanding)", () => {
       "All opted-in · Franklin County, not yet voted",
     );
     expect(smsAudienceLabel([], [], [], ["zip:63011"])).toBe("ZIP 63011");
+    expect(smsAudienceLabel([], [], [], ["district:2900001"])).toBe("Fixture District");
   });
 });
 

@@ -24,6 +24,7 @@ import { toE164 } from "../lib/sms/send";
 import type { Segment } from "../lib/voters/score";
 import type { StoredVoter } from "../lib/voters/storeTypes";
 import { COUNTIES, ZIP_TO_COUNTY, matchCountyName } from "../lib/sms/geo";
+import { districtForZipUnambiguous } from "../lib/sms/school-districts";
 import { buildEnrichmentPlan, type EnrichmentWrite, type MatchedVoterTag } from "../lib/reports/smsEnrichment";
 
 const DRY = process.argv.includes("--dry-run");
@@ -42,11 +43,13 @@ async function main() {
   });
   const optedIn = new Set<string>();
   const existingGeoSource = new Map<string, string>();
+  const existingZips = new Map<string, string>();
   for (const c of consent) {
     const e = toE164(String(c.SK));
     if (!e) continue;
     if (c.status === "opted_in") optedIn.add(e);
     if (typeof c.geoSource === "string") existingGeoSource.set(e, c.geoSource);
+    if (typeof c.zip === "string" && /^\d{5}$/.test(c.zip)) existingZips.set(e, c.zip);
   }
 
   // 2) Named campaign contacts with a phone (volunteers + donors) — identity (name+ZIP)
@@ -103,8 +106,12 @@ async function main() {
     matched,
     contacts: contactTags,
     existingGeoSource,
+    existingZips,
     countyKeyForName: (raw) => matchCountyName(raw)?.key ?? null,
     countyKeyForZip: (z) => ZIP_TO_COUNTY[z] ?? null,
+    // Crosswalk data ships empty until generated (school-districts.data.ts) —
+    // this returns null for every ZIP until then, and no district is written.
+    districtForZip: (z) => districtForZipUnambiguous(z),
   });
 
   // 5) Write the tags onto EXISTING consent rows (never creates one — a tag is
@@ -134,6 +141,7 @@ async function writeTag(w: EnrichmentWrite): Promise<boolean> {
   if (w.banked !== undefined) (sets.push("banked = :b"), (values[":b"] = w.banked));
   if (w.county !== undefined) (sets.push("county = :c"), (values[":c"] = w.county));
   if (w.zip !== undefined) (sets.push("zip = :z"), (values[":z"] = w.zip));
+  if (w.schoolDistrict !== undefined) (sets.push("schoolDistrict = :sd"), (values[":sd"] = w.schoolDistrict));
   if (w.geoSource !== undefined) (sets.push("geoSource = :g"), (values[":g"] = w.geoSource));
   try {
     await ddb.send(

@@ -14,6 +14,7 @@ import {
   VOL_ROLE_OPTIONS,
   TARGET_COUNTY_OPTIONS,
   TARGET_SEGMENT_OPTIONS,
+  TARGET_DISTRICT_OPTIONS,
   OUTSTANDING_TOKEN,
 } from "@/lib/sms/audiences";
 import { listSmsCampaigns } from "@/lib/sms/campaigns";
@@ -55,6 +56,7 @@ export default async function SmsPage() {
   const targets = isAdmin
     ? [
         ...TARGET_COUNTY_OPTIONS.map((o) => ({ ...o, count: targetCounts[o.value] ?? 0 })).filter((o) => o.count > 0),
+        ...TARGET_DISTRICT_OPTIONS.map((o) => ({ ...o, count: targetCounts[o.value] ?? 0 })).filter((o) => o.count > 0),
         ...TARGET_SEGMENT_OPTIONS.map((o) => ({ ...o, count: targetCounts[o.value] ?? 0 })).filter((o) => o.count > 0),
       ]
     : [];

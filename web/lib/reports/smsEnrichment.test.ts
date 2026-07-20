@@ -94,4 +94,39 @@ describe("buildEnrichmentPlan", () => {
     const plan = buildEnrichmentPlan({ ...base(), matched: [matchedVoter({ banked: true })] });
     expect(plan.writes[0].banked).toBe(true);
   });
+
+  describe("school district (derived from ZIP, unambiguous only)", () => {
+    // The injected resolver mirrors districtForZipUnambiguous: 63011 is certain,
+    // 63084 crosses district lines (→ null), everything else unknown.
+    const districtForZip = (z: string) => (z === "63011" ? "2900001" : null);
+
+    it("attaches the district to a write that carries a resolvable ZIP", () => {
+      const plan = buildEnrichmentPlan({ ...base(), matched: [matchedVoter()], districtForZip });
+      expect(plan.writes[0].schoolDistrict).toBe("2900001");
+    });
+
+    it("never tags an ambiguous/unknown ZIP with a district", () => {
+      const plan = buildEnrichmentPlan({ ...base(), matched: [matchedVoter({ zip: "63084" })], districtForZip });
+      expect(plan.writes[0].schoolDistrict).toBeUndefined();
+    });
+
+    it("derives the district from a stored (e.g. self-reported) ZIP when this run adds no geo", () => {
+      const plan = buildEnrichmentPlan({
+        ...base(),
+        matched: [matchedVoter()],
+        existingGeoSource: new Map([["+13145550100", "self"]]), // geo preserved, no zip in the write
+        existingZips: new Map([
+          ["+13145550100", "63011"], // the self-reported zip still yields a district
+          ["+13145550101", "63011"], // a row with ONLY a stored zip gets a district-only write
+          ["+13145550102", "63084"], // ambiguous → no write at all
+        ]),
+        districtForZip,
+      });
+      const by = new Map(plan.writes.map((w) => [w.phone, w]));
+      expect(by.get("+13145550100")).toMatchObject({ schoolDistrict: "2900001" });
+      expect(by.get("+13145550100")?.zip).toBeUndefined(); // self geo still preserved
+      expect(by.get("+13145550101")).toEqual({ phone: "+13145550101", schoolDistrict: "2900001" });
+      expect(by.has("+13145550102")).toBe(false);
+    });
+  });
 });

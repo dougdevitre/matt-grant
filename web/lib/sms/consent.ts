@@ -24,6 +24,7 @@ export type SmsConsentRow = {
   updatedAt?: string;
   county?: string; // CountyKey (lib/sms/geo.ts)
   zip?: string;
+  schoolDistrict?: string; // LEAID (lib/sms/school-districts.ts), derived from ZIP
   geoSource?: string; // "self" | "voterfile" | "contact"
   voterSegment?: string; // MOBILIZE/BANK/PERSUADE/PROSPECT/MONITOR (denormalized)
   voterT?: number; // turnout score 0-5 (denormalized)
@@ -139,6 +140,7 @@ export async function listConsent(): Promise<SmsConsentRow[]> {
       updatedAt: i.updatedAt ? String(i.updatedAt) : undefined,
       county: i.county ? String(i.county) : undefined,
       zip: i.zip ? String(i.zip) : undefined,
+      schoolDistrict: i.schoolDistrict ? String(i.schoolDistrict) : undefined,
       geoSource: i.geoSource ? String(i.geoSource) : undefined,
       voterSegment: i.voterSegment ? String(i.voterSegment) : undefined,
       voterT: typeof i.voterT === "number" ? i.voterT : undefined,

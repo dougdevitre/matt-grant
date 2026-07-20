@@ -6,6 +6,7 @@ import { listClerkContactsByRole } from "@/lib/clerkAudiences";
 import { ROLE_LABELS, type Role } from "@/lib/rbac";
 import { VOLUNTEER_ROLES, JOIN_DOORS, isVolunteerRole, isJoinDoor } from "@/lib/volunteer/taxonomy";
 import { COUNTIES, countyByKey } from "@/lib/sms/geo";
+import { SCHOOL_DISTRICTS, districtById } from "@/lib/sms/school-districts";
 
 // Resolve SMS broadcast recipients. Unlike email, the audience is gated on
 // recorded opt-in: every candidate number is intersected with optedInSet(), so
@@ -85,8 +86,14 @@ export const TARGET_SEGMENT_OPTIONS: TargetOption[] = VOTER_SEGMENT_NAMES.map((s
   value: `segment:${s}`,
   label: s,
 }));
+// District chips exist only once the sourced crosswalk is generated
+// (school-districts.data.ts) — SCHOOL_DISTRICTS is empty until then.
+export const TARGET_DISTRICT_OPTIONS: TargetOption[] = Object.values(SCHOOL_DISTRICTS).map((d) => ({
+  value: `district:${d.id}`,
+  label: d.name,
+}));
 
-export type TargetToken = { kind: "county" | "zip" | "segment"; value: string } | { kind: "outstanding" };
+export type TargetToken = { kind: "county" | "zip" | "segment" | "district"; value: string } | { kind: "outstanding" };
 
 /** Parse+validate a targeting token, or null (invalid tokens are ignored, never widen). */
 export function parseTargetToken(token: string): TargetToken | null {
@@ -98,6 +105,7 @@ export function parseTargetToken(token: string): TargetToken | null {
   if (kind === "county" && countyByKey(value)) return { kind: "county", value };
   if (kind === "zip" && /^\d{5}$/.test(value)) return { kind: "zip", value };
   if (kind === "segment" && (VOTER_SEGMENT_NAMES as readonly string[]).includes(value)) return { kind: "segment", value };
+  if (kind === "district" && districtById(value)) return { kind: "district", value };
   return null;
 }
 
@@ -105,10 +113,12 @@ function rowMatchesTargets(row: SmsConsentRow | undefined, tokens: TargetToken[]
   const counties = tokens.filter((t) => t.kind === "county").map((t) => (t as { value: string }).value);
   const zips = tokens.filter((t) => t.kind === "zip").map((t) => (t as { value: string }).value);
   const segments = tokens.filter((t) => t.kind === "segment").map((t) => (t as { value: string }).value);
+  const districts = tokens.filter((t) => t.kind === "district").map((t) => (t as { value: string }).value);
   const outstanding = tokens.some((t) => t.kind === "outstanding");
   if (counties.length && !(row?.county && counties.includes(row.county))) return false;
   if (zips.length && !(row?.zip && zips.includes(row.zip))) return false;
   if (segments.length && !(row?.voterSegment && segments.includes(row.voterSegment))) return false;
+  if (districts.length && !(row?.schoolDistrict && districts.includes(row.schoolDistrict))) return false;
   // "outstanding" drops only CONFIRMED-banked rows; unenriched rows stay in —
   // never silently exclude someone just because we don't know their status.
   if (outstanding && row?.banked === true) return false;
@@ -129,6 +139,7 @@ export function smsAudienceLabel(groups: SmsGroup[], roles: Role[] = [], volRole
     if (p.kind === "county") filters.push(countyByKey(p.value)?.name ?? p.value);
     else if (p.kind === "zip") filters.push(`ZIP ${p.value}`);
     else if (p.kind === "segment") filters.push(p.value);
+    else if (p.kind === "district") filters.push(districtById(p.value)?.name ?? p.value);
     else filters.push("not yet voted");
   }
   const base = parts.join(" + ");
@@ -223,7 +234,7 @@ export async function resolveSmsRecipients(
 // the resolver uses, so a chip's count is exactly the most that token can reach.
 export async function smsTargetCounts(): Promise<Record<string, number>> {
   const counts: Record<string, number> = {};
-  for (const o of [...TARGET_COUNTY_OPTIONS, ...TARGET_SEGMENT_OPTIONS]) counts[o.value] = 0;
+  for (const o of [...TARGET_COUNTY_OPTIONS, ...TARGET_SEGMENT_OPTIONS, ...TARGET_DISTRICT_OPTIONS]) counts[o.value] = 0;
   counts[OUTSTANDING_TOKEN] = 0;
   try {
     for (const row of await listConsent()) {
@@ -234,6 +245,10 @@ export async function smsTargetCounts(): Promise<Record<string, number>> {
       }
       if (row.voterSegment) {
         const key = `segment:${row.voterSegment}`;
+        if (key in counts) counts[key]++;
+      }
+      if (row.schoolDistrict) {
+        const key = `district:${row.schoolDistrict}`;
         if (key in counts) counts[key]++;
       }
       if (row.banked !== true) counts[OUTSTANDING_TOKEN]++;
