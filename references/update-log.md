@@ -26,6 +26,23 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-21 -- v1.x -- Runbook: TikTok, YouTube, and Threads auto-posting setup
+
+**Changes:**
+- [updated] `web/docs/social-go-live.md` now documents the three platforms whose publish adapters
+  ship but weren't in the runbook: **TikTok** (OAuth `client_key`/`client_secret`, `video.publish`
+  scope, domain verification, `SELF_ONLY` until the content-posting audit), **YouTube** (`client_id`,
+  `youtube.upload`+`readonly`, `private` until Google app verification), and **Threads** (manual
+  token — no OAuth connect yet — via `THREADS_ACCESS_TOKEN` + `THREADS_USER_ID`). Adds the SSM
+  credential blocks, a new §6 on the audit/verification/token gates + the manual-token shortcut, and
+  troubleshooting bullets. All grounded in the actual secret names + scopes in
+  `lib/social/oauth/{tiktok,youtube}.ts` and `publish.ts`.
+
+**Files Modified:**
+- web/docs/social-go-live.md
+
+---
+
 ## 2026-07-21 -- v1.x -- /social: auto-size each channel's share graphic
 
 **Changes:**
