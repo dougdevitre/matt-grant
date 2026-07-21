@@ -247,6 +247,37 @@ export async function notifyStaffInboundText(m: { from: string; bodySnippet: str
   }
 }
 
+/**
+ * Inbound Facebook Messenger / Instagram DM arrived → alert admins + captains, mirroring
+ * notifyStaffInboundText. THROTTLED by the caller to the first unread of a thread. Best-effort.
+ */
+export async function notifyStaffInboundMessenger(m: { key: string; channel: "Messenger" | "Instagram"; name?: string; bodySnippet: string }): Promise<void> {
+  if (!sesEnabled) return;
+  try {
+    const to = await staffEmails(["admin", "captain"], "inbound_messenger");
+    if (!to.length) return;
+    const who = m.name || `${m.channel} user`;
+    const link = `${SITE_URL}/dashboard/messages/social/${encodeURIComponent(m.key)}`;
+    const title = `New ${m.channel} message`;
+    await sendEmail({
+      to,
+      subject: `New ${m.channel} message from ${who}`.slice(0, 120),
+      html: renderEmail({
+        eyebrow: "Inbox",
+        title,
+        bodyHtml: `<p>Someone messaged the campaign on <strong>${esc(m.channel)}</strong> and it's waiting for a reply.</p>
+          <p style="margin:14px 0;padding:12px 16px;background:#F1EFE8;border-radius:4px;"><strong>${esc(who)}</strong><br>
+          <span style="color:#5B6678;">${esc(m.bodySnippet || "(no message body)")}</span></p>
+          <p>Reply from the dashboard <strong>Inbox</strong> within 24 hours to stay in Meta's reply window.</p>`,
+        button: { label: "Open the conversation", href: link, color: "red" },
+      }),
+      text: renderText({ title, lines: [`From: ${who} (${m.channel})`, m.bodySnippet || "", `Reply: ${link}`].filter(Boolean) }),
+    });
+  } catch {
+    /* best-effort */
+  }
+}
+
 // Per-role "here's your access" copy for the team-onboarding welcome.
 const ROLE_WELCOME: Partial<Record<Role, string>> = {
   admin: "You have full access — fundraising, compliance, donors, broadcasts, events, and team management.",

@@ -49,6 +49,7 @@ const DASHBOARD_ROUTES = [
   "/dashboard/sms/spend",
   "/dashboard/social",
   "/dashboard/messages",
+  "/dashboard/messages/social",
   "/dashboard/assets",
   "/dashboard/setup",
   "/dashboard/extension",

@@ -11,14 +11,19 @@ type MetaPage = { id: string; name?: string; token: string; igUserId?: string; i
 // Instagram content publishing rides on the Facebook app + a connected IG
 // business account, so one Meta connect yields both channels.
 
-// Scopes for posting to a Page and publishing to its IG business account.
+// Scopes for posting to a Page and publishing to its IG business account, PLUS the
+// 1:1 inbox: pages_messaging (Messenger send/receive) and instagram_manage_messages
+// (Instagram DMs). The messaging scopes require Meta App Review — until granted, the
+// existing token still posts but can't message (docs/messenger-inbox.md).
 export const META_SCOPES = [
   "pages_show_list",
   "pages_read_engagement",
   "pages_manage_posts",
+  "pages_messaging",
   "business_management",
   "instagram_basic",
   "instagram_content_publish",
+  "instagram_manage_messages",
 ].join(",");
 
 export async function authorizeUrl(state: string): Promise<{ ok: true; url: string } | { ok: false; error: string }> {

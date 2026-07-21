@@ -64,6 +64,7 @@ const ALLOW = new Set<string>([
   // Webhooks — verified by provider signature / shared secret, not a Clerk session
   "app/api/webhooks/clerk/route.ts",
   "app/api/webhooks/inbound-email/route.ts",
+  "app/api/webhooks/meta/route.ts", // Meta Messenger/IG — verified by X-Hub-Signature-256 (app secret)
   "app/api/webhooks/ses/route.ts",
   "app/api/webhooks/twilio/route.ts",
   "app/api/webhooks/twilio/status/route.ts",

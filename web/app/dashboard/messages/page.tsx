@@ -78,6 +78,12 @@ export default async function MessagesPage() {
   return (
     <>
       <PageHeader kicker="Comms" title="Inbox" />
+      <p className="-mt-2 mb-4 text-sm text-slate">
+        This is the text (SMS) inbox.{" "}
+        <a href="/dashboard/messages/social" className="text-field underline">
+          Facebook Messenger &amp; Instagram DMs →
+        </a>
+      </p>
       <HowTo
         steps={[
           "This is 1:1 texting — separate from broadcast Text blasts. Replies from people land here as threads.",
