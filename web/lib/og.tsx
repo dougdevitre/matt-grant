@@ -13,8 +13,9 @@ const MUTED = "#9FB0C3";
 
 // Non-fatal: a flaky Google Fonts fetch (occasionally an HTML error page) must
 // never fail the build/render. Returns null on any problem → render falls back
-// to next/og's default font.
-async function googleFont(family: string, weight: number, text: string): Promise<ArrayBuffer | null> {
+// to next/og's default font. Exported so other image routes (e.g. /api/graphics)
+// share one font-loading path.
+export async function googleFont(family: string, weight: number, text: string): Promise<ArrayBuffer | null> {
   try {
     const url = `https://fonts.googleapis.com/css2?family=${family.replace(/ /g, "+")}:wght@${weight}&text=${encodeURIComponent(text)}`;
     const cssRes = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });

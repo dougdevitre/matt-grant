@@ -143,7 +143,10 @@ function Detail({ post }: { post: SocialPost }) {
       <p className="mt-1 text-xs text-slate">Suggested image: {post.graphic}</p>
 
       <h3 className="mt-6 text-sm font-semibold text-ink">Copy-ready text, per channel</h3>
-      <p className="mb-2 text-xs text-slate">Each is trimmed to that platform&apos;s limit and already ends with the required disclaimer. Copy, add an image, post.</p>
+      <p className="mb-2 text-xs text-slate">
+        Each is trimmed to that platform&apos;s limit and already ends with the required disclaimer.
+        <strong className="font-semibold text-ink"> Copy the text</strong>, tap <strong className="font-semibold text-ink">Open</strong> to jump to that channel, paste, attach your graphic, and post. On Instagram, TikTok, and YouTube you&apos;ll add the downloaded image after opening the app.
+      </p>
       <div className="mt-2">
         <PostChannelCard post={renderable} />
       </div>

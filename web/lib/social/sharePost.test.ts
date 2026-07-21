@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { SOCIAL_POSTS, EVERGREEN_POSTS, SHAREABLE_POSTS } from "@/lib/socialPosts";
 import { CHANNEL_IDS, renderChannelText } from "@/lib/social/channels";
-import { CTA_PATH, ctaUrl, toRenderablePost } from "@/lib/social/sharePost";
+import { CTA_PATH, ctaUrl, toRenderablePost, channelPostUrl } from "@/lib/social/sharePost";
 import { CAMPAIGN, SITE_URL } from "@/lib/site";
 
 describe("sharePost — approved-library → per-channel renderer", () => {
@@ -28,6 +28,28 @@ describe("sharePost — approved-library → per-channel renderer", () => {
         expect(r.text, `${post.id}/${channel} must carry the disclaimer`).toContain(CAMPAIGN.paidForBy);
         expect(r.chars, `${post.id}/${channel} must fit ${r.maxChars}`).toBeLessThanOrEqual(r.maxChars);
       }
+    }
+  });
+
+  it("channelPostUrl deep-links each platform's posting surface", () => {
+    const o = { text: "Vote August 4 — Paid for by Matt Grant for Congress.", link: `${SITE_URL}/vote` };
+    // Prefilled text composers.
+    for (const ch of ["x", "threads"] as const) {
+      const r = channelPostUrl(ch, o);
+      expect(r.kind).toBe("compose");
+      expect(r.href).toContain(encodeURIComponent(o.text));
+    }
+    // Link shares.
+    for (const ch of ["facebook", "linkedin"] as const) {
+      const r = channelPostUrl(ch, o);
+      expect(r.kind).toBe("share");
+      expect(r.href).toContain(encodeURIComponent(o.link));
+    }
+    // Upload/app surfaces (no web prefill).
+    for (const ch of ["instagram", "tiktok", "youtube"] as const) {
+      const r = channelPostUrl(ch, o);
+      expect(r.kind).toBe("upload");
+      expect(r.href).toMatch(/^https:\/\//);
     }
   });
 
