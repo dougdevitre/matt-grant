@@ -26,6 +26,47 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-21 -- v1.x -- Pro-grade /social image generator + one-tap "post to channel"
+
+**Changes:**
+- [added] `web/lib/social/graphicLayout.ts` (+ test) — pure layout engine for the image generator.
+  A **per-glyph advance table** calibrated to Fraunces 700 measures line widths honestly (a flat
+  average badly under-sized caps/`m`/`w`), `fitHeadline` steps the headline down until the
+  MEASURED text fits the card's real box, and `balanceLines` evens the wrap. Per-format geometry
+  (`layoutFor`) + composition family (`familyOf`) reserve an accurate disclaimer band. Replaces the
+  old 5-bucket `headline.length` guess — text now fills each card with even margins at any length.
+- [updated] `web/app/api/graphics/route.tsx` fully reworked: real type (**Fraunces 700** headline +
+  **Public Sans 600** labels via the shared `googleFont` loader, graceful fallback); a
+  **red/white/blue** palette with a **red ground default** (Red / Navy / White) and a tri-color
+  rule; and a robust **per-family composition** — portrait & square STACK (photo top, headline
+  centered), wide keeps text-left/photo-right — fixing the old sideways-band/overflow bug. Lines
+  render `white-space: nowrap` so satori can't re-wrap a fitted line. Params/formats unchanged;
+  route stays public + rate-limited; the "Paid for by" line is on every image.
+- [updated] `GraphicPicker.tsx` + `StudioForm.tsx` theme pickers → Red / Navy / White, default Red.
+- [added] Per-channel **"Open [platform]"** buttons on /social (`channelPostUrl` in `sharePost.ts`,
+  + test; buttons in `PostChannelCard.tsx`) — deep-link to each platform's posting surface
+  (prefilled text for X/Threads, link-share for Facebook/LinkedIn, upload page for
+  Instagram/TikTok/YouTube). Flow: copy → open → paste → attach graphic → post. Red/white/blue
+  brand rule added to the `/social` page.
+
+**Verifications Performed:**
+- `graphicLayout.test.ts` proves the MEASURED longest line ≤ box on every format for many headline
+  lengths; `sharePost.test.ts` covers the deep links. **Visual review**: rendered every format ×
+  theme × short/medium/long via a dev server and confirmed even margins, balanced lines, zero
+  overflow/overlap, and a cohesive red/white/blue look. Full gauntlet green.
+
+**Known Gaps:**
+- Google Fonts fetch may be proxy-blocked in some sandboxes (falls back to the default font);
+  real Fraunces rendering is exercised in the deployed env, like the existing OG cards.
+
+**Files Modified:**
+- web/lib/social/graphicLayout.ts (+ test), web/app/api/graphics/route.tsx, web/lib/og.tsx
+- web/lib/social/sharePost.ts (+ test), web/components/site/PostChannelCard.tsx
+- web/components/site/GraphicPicker.tsx, web/components/dashboard/StudioForm.tsx
+- web/components/site/SocialToolkit.tsx, web/app/(site)/social/page.tsx
+
+---
+
 ## 2026-07-21 -- v1.x -- Public /social page: self-serve "share the campaign" toolkit
 
 **Changes:**

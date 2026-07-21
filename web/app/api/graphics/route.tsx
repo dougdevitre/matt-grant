@@ -3,26 +3,28 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { CAMPAIGN } from "@/lib/site";
 import { trimHeadline } from "@/lib/social/headline";
+import { googleFont } from "@/lib/og";
+import { GRAPHIC_FORMATS, layoutFor, fitHeadline } from "@/lib/social/graphicLayout";
 import { rateLimit, clientIp } from "@/lib/ratelimit";
 
 // Server-side campaign-graphic generator. Composites Matt's photo + custom copy
-// into branded social/print formats. Reads the processed avatar from /public.
+// into branded social/print formats, in the current red/white/blue identity with a
+// real editorial serif (Fraunces) headline that auto-fits its box. The headline is
+// sized + wrapped by the pure lib/social/graphicLayout helpers (satori can't measure
+// text at render time), so the type always fills the card with even margins whatever
+// the character count. Layout is a clean flex COLUMN root — rule, content(flex:1),
+// disclaimer — with a per-family inner composition.
 export const runtime = "nodejs";
 
-const FORMATS: Record<string, { w: number; h: number; label: string }> = {
-  ig_square: { w: 1080, h: 1080, label: "Instagram / FB square" },
-  ig_story: { w: 1080, h: 1920, label: "Instagram / FB story" },
-  x_header: { w: 1500, h: 500, label: "X / Twitter header" },
-  fb_cover: { w: 1640, h: 624, label: "Facebook cover" },
-  yard_sign: { w: 1100, h: 825, label: "Yard sign (24×18)" },
-  web_banner: { w: 1200, h: 400, label: "Web banner" },
-};
+const EYEBROW = "MISSOURI · DISTRICT 2";
 
-const THEMES: Record<string, { bg: string; accent: string; text: string; muted: string }> = {
-  navy: { bg: "#0F2540", accent: "#E0A53B", text: "#FBFAF6", muted: "#9fb0c2" },
-  gold: { bg: "#E0A53B", accent: "#0F2540", text: "#0F2540", muted: "#5a4a1f" },
-  brick: { bg: "#B5343B", accent: "#E0A53B", text: "#FBFAF6", muted: "#f0cdcf" },
+// Red / white / blue themes. `brick` (red ground) is the featured look + default.
+const THEMES: Record<string, { bg: string; text: string; dim: string; eyebrow: string; ring: string }> = {
+  brick: { bg: "#B5343B", text: "#FBFAF6", dim: "#F2D6D8", eyebrow: "#CFE4FF", ring: "#FBFAF6" },
+  navy: { bg: "#0F2540", text: "#FBFAF6", dim: "#AEBBD0", eyebrow: "#6BA6FF", ring: "#6BA6FF" },
+  paper: { bg: "#FBFAF6", text: "#0F2540", dim: "#5A6472", eyebrow: "#B5343B", ring: "#B5343B" },
 };
+const RULE = { brick: "#B5343B", paper: "#FBFAF6", blue: "#6BA6FF" };
 
 async function avatarDataUri(): Promise<string> {
   const buf = await readFile(path.join(process.cwd(), "public", "brand", "avatar-circle.png"));
@@ -37,81 +39,106 @@ export async function GET(req: Request) {
   if (!rl.allowed) return new Response("Too many requests — please slow down.", { status: 429 });
 
   const sp = new URL(req.url).searchParams;
-  const fmt = FORMATS[sp.get("format") ?? "ig_square"] ?? FORMATS.ig_square;
-  const theme = THEMES[sp.get("theme") ?? "navy"] ?? THEMES.navy;
+  const fmt = GRAPHIC_FORMATS[(sp.get("format") ?? "ig_square") as keyof typeof GRAPHIC_FORMATS] ?? GRAPHIC_FORMATS.ig_square;
+  const theme = THEMES[sp.get("theme") ?? "brick"] ?? THEMES.brick;
   const headline = trimHeadline(sp.get("headline") ?? "Put Missouri's children first.", 120);
   const sub = (sp.get("sub") ?? "Matt Grant for Congress").slice(0, 90);
   const showPhoto = sp.get("photo") !== "0";
+  const hasSub = sub.trim().length > 0;
 
   const { w, h } = fmt;
-  const wide = w > h * 1.3;
-  const photo = showPhoto ? await avatarDataUri() : null;
-  const photoSize = wide ? Math.round(h * 0.7) : Math.round(Math.min(w, h) * 0.42);
-  // Scale the headline down as it gets longer so it always fits the card instead of
-  // overflowing and clipping against the bottom "Paid for by" line.
-  const hlLen = headline.length;
-  const hlScale = hlLen <= 24 ? 1 : hlLen <= 40 ? 0.86 : hlLen <= 60 ? 0.72 : hlLen <= 90 ? 0.6 : 0.5;
-  const headSize = Math.round((wide ? h * 0.16 : w * 0.085) * hlScale);
+  const L = layoutFor(fmt, { photo: showPhoto, hasSub });
+  const wide = L.family === "wide";
+  const disclaimer = wide ? CAMPAIGN.paidForBy : `${CAMPAIGN.paidForBy} · mattgrantforcongress.org`;
+
+  // Real type: Fraunces (serif) headline + Public Sans labels, subset to the glyphs
+  // each renders. googleFont returns null on failure → graceful fallback font.
+  const sansText = EYEBROW + sub + disclaimer + "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789·.,'—-";
+  const [fraunces, publicSans, photo] = await Promise.all([
+    googleFont("Fraunces", 700, headline),
+    googleFont("Public Sans", 600, sansText),
+    showPhoto ? avatarDataUri() : Promise.resolve(null),
+  ]);
+  const fonts = [
+    fraunces && { name: "Fraunces", data: fraunces, weight: 700 as const, style: "normal" as const },
+    publicSans && { name: "Public Sans", data: publicSans, weight: 600 as const, style: "normal" as const },
+  ].filter(Boolean) as { name: string; data: ArrayBuffer; weight: 700 | 600; style: "normal" }[];
+
+  const fit = fitHeadline({
+    text: headline,
+    boxW: L.textBoxW,
+    boxH: L.headlineBoxH,
+    maxFont: L.headlineMaxFont,
+    minFont: L.headlineMinFont,
+    maxLines: L.family === "portrait" ? 6 : 5,
+  });
+
+  const align = wide ? "flex-start" : "center";
+  const textAlign = wide ? "left" : "center";
 
   const textBlock = (
-    <div style={{ display: "flex", flexDirection: "column", gap: Math.round(h * 0.02), maxWidth: wide ? "62%" : "100%" }}>
-      <div style={{ display: "flex", color: theme.accent, fontSize: Math.round(headSize * 0.32), letterSpacing: 5 }}>
-        MISSOURI · DISTRICT 2
+    <div style={{ display: "flex", flexDirection: "column", alignItems: align, width: wide ? L.textBoxW : "100%", gap: L.gapV }}>
+      <div style={{ display: "flex", color: theme.eyebrow, fontSize: L.eyebrowSize, fontWeight: 600, letterSpacing: Math.round(L.eyebrowSize * 0.24) }}>
+        {EYEBROW}
       </div>
-      <div style={{ display: "flex", color: theme.text, fontSize: headSize, fontWeight: 700, lineHeight: 1.04 }}>
-        {headline}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: align, fontFamily: "Fraunces", fontWeight: 700, fontSize: fit.fontSize, lineHeight: fit.lineHeight, color: theme.text, textAlign }}>
+        {fit.lines.map((line, i) => (
+          <div key={i} style={{ display: "flex", whiteSpace: "nowrap" }}>{line}</div>
+        ))}
       </div>
-      <div style={{ display: "flex", color: theme.muted, fontSize: Math.round(headSize * 0.42) }}>{sub}</div>
+      {hasSub && <div style={{ display: "flex", color: theme.dim, fontSize: L.subSize, fontWeight: 600 }}>{sub}</div>}
     </div>
   );
 
   const photoEl = photo ? (
-    <div style={{ display: "flex", width: photoSize, height: photoSize, borderRadius: photoSize, border: `${Math.round(photoSize * 0.02)}px solid ${theme.accent}`, overflow: "hidden" }}>
+    <div style={{ display: "flex", width: L.avatar, height: L.avatar, borderRadius: L.avatar, border: `${Math.max(3, Math.round(L.avatar * 0.02))}px solid ${theme.ring}`, overflow: "hidden", flexShrink: 0 }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={photo} width={photoSize} height={photoSize} style={{ objectFit: "cover" }} alt="" />
+      <img src={photo} width={L.avatar} height={L.avatar} style={{ objectFit: "cover" }} alt="" />
     </div>
   ) : null;
 
+  const content = wide ? (
+    <div style={{ display: "flex", flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%", gap: L.colGap, padding: `0 ${L.padX}px` }}>
+      {textBlock}
+      {photoEl}
+    </div>
+  ) : (
+    <div style={{ display: "flex", flex: 1, flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%", gap: Math.round(L.gapV * 1.6), padding: `${L.padY}px ${L.padX}px 0` }}>
+      {photoEl}
+      {textBlock}
+    </div>
+  );
+
   return new ImageResponse(
     (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: wide ? "row" : "column",
-          alignItems: "center",
-          justifyContent: wide ? "space-between" : "center",
-          gap: Math.round(Math.min(w, h) * 0.05),
-          background: theme.bg,
-          // Extra bottom padding reserves room for the absolutely-positioned
-          // "Paid for by" line so the headline never overlaps it.
-          padding: `${Math.round(h * 0.08)}px ${Math.round(w * 0.07)}px ${Math.round(h * 0.16)}px`,
-          fontFamily: "Georgia, serif",
-          position: "relative",
-        }}
-      >
-        <div style={{ display: "flex", position: "absolute", top: 0, left: 0, width: "100%", height: Math.max(8, Math.round(h * 0.014)), background: theme.accent }} />
-        {wide ? (
-          <>
-            {textBlock}
-            {photoEl}
-          </>
-        ) : (
-          <>
-            {photoEl}
-            {textBlock}
-          </>
-        )}
+      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: theme.bg, fontFamily: "Public Sans" }}>
+        {/* Tri-color rule (red / white / blue) — in-flow at the very top. */}
+        <div style={{ display: "flex", width: "100%", height: L.ruleH }}>
+          <div style={{ display: "flex", flex: 1, background: RULE.brick }} />
+          <div style={{ display: "flex", flex: 1, background: RULE.paper }} />
+          <div style={{ display: "flex", flex: 1, background: RULE.blue }} />
+        </div>
+
+        {content}
+
         {/* Required FEC disclaimer — these graphics are downloaded and posted as
             standalone public communications, so the "Paid for by" line must appear
-            on the image itself (not just the site footer). Wide formats keep it to a
-            single line (no domain) so it never clips against the short bottom margin. */}
-        <div style={{ display: "flex", position: "absolute", bottom: Math.round(h * 0.05), left: Math.round(w * 0.07), maxWidth: wide ? "86%" : "86%", color: theme.muted, fontSize: Math.round(headSize * (wide ? 0.2 : 0.3)), lineHeight: 1.2 }}>
-          {wide ? CAMPAIGN.paidForBy : `${CAMPAIGN.paidForBy} · mattgrantforcongress.org`}
+            on the image itself, in-flow at the bottom at a legible size. */}
+        <div
+          style={{
+            display: "flex",
+            width: "100%",
+            justifyContent: wide ? "flex-start" : "center",
+            padding: `0 ${L.padX}px ${Math.round(L.padY * 0.7)}px`,
+            color: theme.dim,
+            fontSize: L.discSize,
+            fontWeight: 600,
+          }}
+        >
+          {disclaimer}
         </div>
       </div>
     ),
-    { width: w, height: h },
+    { width: w, height: h, ...(fonts.length ? { fonts } : {}) },
   );
 }

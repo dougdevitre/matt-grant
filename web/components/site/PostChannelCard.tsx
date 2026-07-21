@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { CHANNEL_IDS, CHANNELS, renderChannelText, type ChannelId, type RenderablePost } from "@/lib/social/channels";
+import { channelPostUrl } from "@/lib/social/sharePost";
+import { SITE_URL } from "@/lib/site";
 
 // Public, self-serve version of the dashboard's ReadyToPostCard: for one approved
 // post it renders the exact, channel-fitted text to paste (caption → CTA → hashtags
@@ -23,6 +25,8 @@ function ChannelRow({ post, channel }: { post: RenderablePost; channel: ChannelI
   const spec = CHANNELS[channel];
   const rendered = renderChannelText(post, channel);
   const [open, setOpen] = useState(false);
+  const shortLabel = spec.label.replace(/\s*\(.*\)$/, "");
+  const openTo = channelPostUrl(channel, { text: rendered.text, link: post.link ?? SITE_URL });
 
   return (
     <div className="rounded-sm border border-line bg-paper/40 p-2.5">
@@ -38,6 +42,14 @@ function ChannelRow({ post, channel }: { post: RenderablePost; channel: ChannelI
           <span className="rounded-sm bg-ink px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-paper">trimmed</span>
         )}
         <CopyValue value={rendered.text} label="Copy text" />
+        <a
+          href={openTo.href}
+          target="_blank"
+          rel="noreferrer"
+          className="rounded-sm border border-ink bg-ink px-2 py-0.5 text-[0.7rem] font-semibold text-paper hover:bg-field hover:border-field"
+        >
+          Open {shortLabel} ↗
+        </a>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}

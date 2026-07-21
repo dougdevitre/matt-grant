@@ -12,9 +12,9 @@ const FORMATS = [
 ];
 
 const THEMES = [
+  { id: "brick", label: "Red", swatch: "#B5343B" },
   { id: "navy", label: "Navy", swatch: "#0F2540" },
-  { id: "gold", label: "Gold", swatch: "#E0A53B" },
-  { id: "brick", label: "Brick", swatch: "#B5343B" },
+  { id: "paper", label: "White", swatch: "#FBFAF6" },
 ];
 
 const BRAND_KIT = [
@@ -29,7 +29,7 @@ const BRAND_KIT = [
 
 export function StudioForm() {
   const [format, setFormat] = useState("ig_square");
-  const [theme, setTheme] = useState("navy");
+  const [theme, setTheme] = useState("brick");
   const [headline, setHeadline] = useState("Put Missouri's children first.");
   const [sub, setSub] = useState("Matt Grant for Congress");
   const [photo, setPhoto] = useState(true);
@@ -107,7 +107,7 @@ export function StudioForm() {
                   theme === t.id ? "border-ink" : "border-line"
                 }`}
               >
-                <span className="h-4 w-4 rounded-full" style={{ background: t.swatch }} />
+                <span className="h-4 w-4 rounded-full border border-line" style={{ background: t.swatch }} />
                 {t.label}
               </button>
             ))}

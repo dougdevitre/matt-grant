@@ -23,6 +23,13 @@ export default function SocialPage() {
         thoughts in your post — just keep the facts accurate to the platform below.
       </p>
 
+      {/* Red / white / blue brand rule */}
+      <div aria-hidden className="mt-8 flex h-1.5 max-w-xs overflow-hidden rounded-full">
+        <span className="flex-1 bg-brick" />
+        <span className="flex-1 bg-paper ring-1 ring-inset ring-line" />
+        <span className="flex-1 bg-gold" />
+      </div>
+
       <SocialToolkit />
 
       <p className="mt-12 max-w-prose text-xs text-slate">{CAMPAIGN.paidForBy}</p>

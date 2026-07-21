@@ -18,14 +18,14 @@ const FORMATS = [
 ] as const;
 
 const THEMES = [
+  { id: "brick", label: "Red", swatch: "#B5343B" },
   { id: "navy", label: "Navy", swatch: "#0F2540" },
-  { id: "gold", label: "Gold", swatch: "#E0A53B" },
-  { id: "brick", label: "Brick", swatch: "#B5343B" },
+  { id: "paper", label: "White", swatch: "#FBFAF6" },
 ] as const;
 
 export function GraphicPicker({ headlineSource }: { headlineSource: string }) {
   const [format, setFormat] = useState<string>("ig_square");
-  const [theme, setTheme] = useState<string>("navy");
+  const [theme, setTheme] = useState<string>("brick");
   const [photo, setPhoto] = useState(true);
 
   const headline = useMemo(() => trimHeadline(headlineSource, 90), [headlineSource]);
@@ -75,7 +75,7 @@ export function GraphicPicker({ headlineSource }: { headlineSource: string }) {
                 aria-pressed={theme === t.id}
                 className={`flex items-center gap-2 rounded-sm border px-3 py-2 text-sm ${theme === t.id ? "border-ink" : "border-line hover:border-ink"}`}
               >
-                <span aria-hidden className="h-4 w-4 rounded-full" style={{ background: t.swatch }} />
+                <span aria-hidden className="h-4 w-4 rounded-full border border-line" style={{ background: t.swatch }} />
                 {t.label}
               </button>
             ))}

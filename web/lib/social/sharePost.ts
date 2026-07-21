@@ -7,7 +7,7 @@
 
 import { SITE_URL } from "@/lib/site";
 import type { SocialPost, CTA } from "@/lib/socialPosts";
-import type { RenderablePost } from "@/lib/social/channels";
+import type { RenderablePost, ChannelId } from "@/lib/social/channels";
 
 // Where each call-to-action points. Absolute URLs, because a shared post needs a
 // clickable link off-platform. Every target is a confirmed public route.
@@ -34,4 +34,33 @@ export function toRenderablePost(post: SocialPost): RenderablePost {
     link: ctaUrl(post.cta),
     cta: post.cta,
   };
+}
+
+// A deep link that opens the given channel's posting surface so a supporter can
+// finish posting after copying the text. Three kinds, because the platforms differ:
+//  - "compose": web compose that PREFILLS the text (X, Threads).
+//  - "share":   web share of the campaign LINK (Facebook, LinkedIn) — text is copied.
+//  - "upload":  the platform's upload/app surface where web prefill isn't possible
+//               (Instagram, TikTok, YouTube) — paste the copied text + attach the image.
+export type ChannelPostLink = { href: string; kind: "compose" | "share" | "upload" };
+
+export function channelPostUrl(channel: ChannelId, o: { text: string; link: string }): ChannelPostLink {
+  const text = encodeURIComponent(o.text);
+  const url = encodeURIComponent(o.link || SITE_URL);
+  switch (channel) {
+    case "x":
+      return { href: `https://twitter.com/intent/tweet?text=${text}`, kind: "compose" };
+    case "threads":
+      return { href: `https://www.threads.net/intent/post?text=${text}`, kind: "compose" };
+    case "facebook":
+      return { href: `https://www.facebook.com/sharer/sharer.php?u=${url}`, kind: "share" };
+    case "linkedin":
+      return { href: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`, kind: "share" };
+    case "instagram":
+      return { href: "https://www.instagram.com/", kind: "upload" };
+    case "tiktok":
+      return { href: "https://www.tiktok.com/upload", kind: "upload" };
+    case "youtube":
+      return { href: "https://www.youtube.com/upload", kind: "upload" };
+  }
 }
