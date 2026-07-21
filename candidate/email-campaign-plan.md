@@ -71,6 +71,8 @@ confirm step and a send log in DynamoDB.
 - **P2:** SES identity + `send.ts`; wire the **contact form** → receipt + welcome (first real sends).
 - **P3:** subscriber table + `/unsubscribe`; enable broadcast sends to the list.
 - **P4:** WinRed donation webhook → thank-you; EventBridge-scheduled GOTV/issue series.
+  - **GOTV early-vote email — delivered 2026-07-21 (`earlyVoteReminder`, template `early-vote-reminder`).** Calendar-aware via the shared `web/lib/electionDates.ts` (same source SMS uses, so the two channels can't drift): the copy reads "starts Tue July 21" → "is open now through 5pm Mon Aug 3" → Election Day automatically, and surfaces the July 22 mail deadline only while live. Zero staff inputs and fixed `/vote/absentee` + `/vote` CTAs, so it schedules cleanly (no required token can block the send). The existing GOTV reminder now auto-fills its countdown too. Sending still waits on **SES verification** + Matt's approval hold.
+  - **Suggested send calendar (mirrors the SMS pushes; stage in the composer, don't auto-send):** early-vote reminder on **Jul 21** (window opens) and again **~Jul 28** (mid-window), a **last-day** nudge **Aug 3**, and the **GOTV reminder Aug 4** (Election Day). Each is one scheduled campaign row via the composer.
 - **P5:** the dashboard composer + send log + simple segments.
 
 _Paid for by Matt Grant for Congress._

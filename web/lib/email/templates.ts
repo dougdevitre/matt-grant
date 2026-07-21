@@ -5,6 +5,7 @@
 import { renderEmail, renderText, EMAIL_CDN, type EmailCard } from "./layout";
 import { CAMPAIGN, SITE_URL } from "@/lib/site";
 import { ISSUES, getIssue, type Issue } from "@/lib/issues";
+import { earlyVotePhrase, mailDeadlineLive, daysUntilElection } from "@/lib/electionDates";
 
 export type Email = { subject: string; html: string; text: string };
 const img = (path: string) => `${EMAIL_CDN}/public/${path}`;
@@ -260,6 +261,47 @@ export function gotvReminder(daysOut = 7): Email {
   };
 }
 
+// Early-vote GOTV email — the email mirror of the SMS early-vote pushes. Calendar-aware
+// via lib/electionDates (shared with SMS), so the same template reads correctly whether
+// it sends before, during, or after the no-excuse window; the mail-application deadline
+// shows only while it's still live. CTAs are FIXED site links (no {{staff}} token), so a
+// scheduled send can never be blocked by an unfilled required field.
+export function earlyVoteReminder(now: Date = new Date()): Email {
+  const phrase = earlyVotePhrase(now); // "starts Tue July 21 …" / "is open now …" / "has ended …"
+  const days = daysUntilElection(now);
+  const countdown = days > 1 ? `${days} days left` : days === 1 ? "Tomorrow" : "Today";
+  const mailLine = mailDeadlineLive(now)
+    ? "<li><strong>Voting by mail?</strong> Your ballot application must ARRIVE by 5pm Wednesday, July 22 — apply today.</li>"
+    : "";
+  const title = `Early voting ${phrase.startsWith("has ended") ? "has ended — Election Day is Tuesday" : phrase.startsWith("is open") ? "is OPEN" : "starts Tuesday"}.`;
+  return {
+    subject: `${countdown} — vote early in the MO-02 primary`,
+    html: renderEmail({
+      preheader: `Early voting ${phrase}.`,
+      greeting: true,
+      eyebrow: "Get out the vote",
+      title,
+      subtitle: `Early voting for the August 4 primary ${phrase}.`,
+      heroImage: { src: img("web/st-louis-arch.png"), alt: "Missouri's 2nd District" },
+      bodyHtml: `<p>Early voting for the August 4 primary <strong>${phrase}</strong>. Skip the Election Day lines — vote in person at your county election office, no excuse needed. Just bring a photo ID.</p>
+        <ul>
+          <li>Find your county election office, hours, and every deadline.</li>
+          ${mailLine}
+          <li>Bring a friend or neighbor — vote for a Congress that shows up.</li>
+        </ul>`,
+      button: { label: "Where and how to vote early", href: `${SITE_URL}/vote/absentee`, color: "red" },
+      secondaryButton: { label: "Make your plan to vote", href: `${SITE_URL}/vote`, color: "navy" },
+      unsubscribeUrl: UNSUB,
+    }),
+    text: renderText({
+      title,
+      lines: [`Early voting for the August 4 primary ${phrase}.`, `Where and how: ${SITE_URL}/vote/absentee`],
+      buttonUrl: `${SITE_URL}/vote/absentee`,
+      unsubscribeUrl: UNSUB,
+    }),
+  };
+}
+
 export function fundraisingAppeal(): Email {
   const title = "Fuel the final stretch.";
   return {
@@ -331,6 +373,7 @@ export const EMAIL_TEMPLATES: { key: string; kind: "transactional" | "broadcast"
   { key: "campaign-newsletter", kind: "broadcast", build: () => campaignNewsletter() },
   { key: "issue-spotlight-family-courts", kind: "broadcast", build: () => issueSpotlight("family-courts") },
   { key: "gotv-reminder", kind: "broadcast", build: () => gotvReminder(7) },
+  { key: "early-vote-reminder", kind: "broadcast", build: () => earlyVoteReminder() },
   { key: "fundraising-appeal", kind: "broadcast", build: () => fundraisingAppeal() },
   { key: "event-invite", kind: "broadcast", build: () => eventInvite() },
   { key: "announcement", kind: "broadcast", build: () => announcement() },

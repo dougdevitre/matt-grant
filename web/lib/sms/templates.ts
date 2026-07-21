@@ -85,12 +85,11 @@ export function nonGsmChars(text: string): string[] {
 
 const tidy = (s: string) => s.replace(/\s+/g, " ").trim();
 
-/** Whole days from `now` until the primary (CAMPAIGN.electionDate), floored at 0. Lets the GOTV
- *  template fill the countdown automatically so staff never type (or fat-finger) the number. */
-export function daysUntilElection(now: Date = new Date()): number {
-  const ms = new Date(CAMPAIGN.electionDate).getTime() - now.getTime();
-  return Math.max(0, Math.ceil(ms / 86_400_000));
-}
+// The election countdown is shared with email via lib/electionDates.ts (single
+// source of truth). Imported for local use (the gotv template) AND re-exported so
+// existing importers of sms/templates keep working.
+import { daysUntilElection } from "@/lib/electionDates";
+export { daysUntilElection };
 
 // Fuzzy-match a typed priority ("family courts", "taxes", "term limits") to a canonical ISSUE,
 // so the issue template can deep-link /issues/<slug> without a select input. null if no match.
