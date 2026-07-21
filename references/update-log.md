@@ -26,6 +26,38 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-21 -- v1.x -- One-tap "Share with image" on /social
+
+**Changes:**
+- [added] `web/lib/social/nativeShare.ts` (+ test) — Web Share API helpers: `canShareFiles()`,
+  `shareImageFile()` (native share sheet with the graphic **and** caption pre-loaded on mobile;
+  falls back to copy-caption + download-image elsewhere), and `postToChannel()` (opens a channel +
+  copies caption + saves image). Fires `track("share_click", …)`.
+- [added] Hero **"Share this post + image"** button in the `/social` detail panel
+  (`web/components/site/SocialToolkit.tsx`) — one tap opens the phone's share sheet with the current
+  graphic + full caption (disclaimer included); the image is pre-fetched into a `File` so the share
+  fires inside the click's activation. Per-channel buttons became **"Post to [platform]"**
+  (`PostChannelCard.tsx`) — open the channel + copy the caption + save the image in one click (the
+  big win for Instagram/TikTok/YouTube, which can't web-prefill).
+- [added] `web/lib/social/graphicUrl.ts` — `graphicSrc()` shared by `GraphicPicker` (now reports its
+  `src` up via `onSrcChange`) and the share actions, so every share uses exactly the graphic on screen.
+
+**Verifications Performed:**
+- `nativeShare.test.ts` covers the feature-detect + native-share + fallback paths; full gauntlet
+  green (tsc, vitest, lint, compliance, build + bundle guard, chromium a11y for /social). Both share
+  payload halves carry "Paid for by…" (text via renderChannelText, image baked by /api/graphics).
+
+**Known Gaps:**
+- File sharing (image in the share sheet) is a mobile-browser capability; desktop uses the
+  copy-caption + download-image fallback. The native share sheet is channel-agnostic (the app is
+  chosen in the OS sheet) — per-channel targeting with an image isn't possible on the web.
+
+**Files Modified:**
+- web/lib/social/nativeShare.ts (+ test), web/lib/social/graphicUrl.ts
+- web/components/site/{SocialToolkit,PostChannelCard,GraphicPicker}.tsx
+
+---
+
 ## 2026-07-21 -- v1.x -- Harden the image generator: self-hosted fonts + render smoke tests
 
 **Changes:**
