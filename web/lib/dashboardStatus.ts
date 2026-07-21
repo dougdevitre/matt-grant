@@ -7,6 +7,7 @@ import { smsEnabled } from "@/lib/sms/send";
 import { smsReadiness } from "@/lib/sms/health";
 import { optedInSet } from "@/lib/sms/consent";
 import { listConnections } from "@/lib/social/connections";
+import { messengerReadiness } from "@/lib/messenger/health";
 import { getSecret } from "@/lib/ssm";
 import { dbConfigured, TABLE } from "@/lib/db";
 import { congressEnabled } from "@/lib/integrations/legislative/config";
@@ -34,11 +35,12 @@ async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
 }
 
 export async function getDashboardStatus(): Promise<StatusRow[]> {
-  const [sms, smsReady, optedIn, connections, winredSecret, ingest, airtable, extUsage] = await Promise.all([
+  const [sms, smsReady, optedIn, connections, messenger, winredSecret, ingest, airtable, extUsage] = await Promise.all([
     safe(() => smsEnabled(), false),
     safe(() => smsReadiness(), { state: "setup" as const, secrets: [], presentCount: 0, missing: [] as string[] }),
     safe(() => optedInSet(), new Set<string>()),
     safe(() => listConnections(), [] as Awaited<ReturnType<typeof listConnections>>),
+    safe(() => messengerReadiness(), { pageToken: false, appSecret: false, verifyToken: false, state: "setup" as const }),
     safe(() => getSecret("WINRED_WEBHOOK_SECRET"), undefined),
     safe(() => lastFieldIngest(), null),
     safe(() => checkAirtableHealth(), { state: "setup" as const, detail: "Status check failed." }),
@@ -82,6 +84,17 @@ export async function getDashboardStatus(): Promise<StatusRow[]> {
           : "Not set up. Add Twilio credentials (account SID, auth token, messaging service) to send texts.",
       actionHref: "/dashboard/sms/go-live",
       actionText: "SMS setup",
+    },
+    {
+      key: "messenger",
+      label: "Messenger & Instagram inbox",
+      state: messenger.state,
+      detail:
+        messenger.state === "live"
+          ? "Live — replying to Facebook Messenger + Instagram DMs from the Inbox."
+          : `Not set up. Present: ${[messenger.pageToken && "Page token", messenger.appSecret && "app secret", messenger.verifyToken && "verify token"].filter(Boolean).join(", ") || "none"}. Also needs the pages_messaging Meta review (see docs/messenger-inbox.md).`,
+      actionHref: "/dashboard/messages/social",
+      actionText: "Meta inbox",
     },
     {
       key: "social",

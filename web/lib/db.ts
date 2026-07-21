@@ -53,6 +53,12 @@ export const PK = {
   smsConvos: "SMSCONVO", // 1:1 conversation index (one row per person; SK = E.164)
   smsThread: (e164: string) => `SMSTHREAD#${e164}`, // per-person message thread (SK = `${iso}#${id}`)
   smsBlocks: "SMSBLOCK", // blocked/banned numbers (SK = E.164; inbound dropped, outbound refused)
+  // Meta inbox (Facebook Messenger + Instagram DMs): 1:1 conversations keyed by the
+  // page-scoped sender id (PSID/IGSID). SK carries the platform so one store serves
+  // both surfaces: `${platform}:${psid}`. Mirrors the SMS convo/thread/block trio.
+  msgrConvos: "MSGRCONVO", // conversation index (SK = `${platform}:${psid}`)
+  msgrThread: (key: string) => `MSGRTHREAD#${key}`, // per-person thread (SK = `${iso}#${id}`)
+  msgrBlocks: "MSGRBLOCK", // blocked sender keys (SK = `${platform}:${psid}`)
   inviteReminders: "INVITEREMINDER", // per-email reminder bookkeeping (SK = email; remindedAt, count)
   events: "EVENT", // campaign events/appearances (SK = `${startISO}#${id}`; chronological)
   eventIngest: "EVENTINGEST", // inbound-email → event dedupe keys (idempotency, SK = sha256)
