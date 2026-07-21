@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { SOCIAL_POSTS, PILLARS, type Pillar, type CTA } from "@/lib/socialPosts";
+import { SHAREABLE_POSTS, PILLARS, type Pillar, type CTA, type SocialPost } from "@/lib/socialPosts";
 import { renderChannelText } from "@/lib/social/channels";
 import { toRenderablePost, ctaUrl } from "@/lib/social/sharePost";
 import { PostChannelCard } from "./PostChannelCard";
@@ -10,7 +10,7 @@ import { GraphicPicker } from "./GraphicPicker";
 const CTAS: CTA[] = ["Vote", "Volunteer", "Donate", "Learn more", "Share"];
 
 // Distinct audiences, derived from the data (persona is a free-form string).
-const PERSONAS = Array.from(new Set(SOCIAL_POSTS.map((p) => p.persona))).sort();
+const PERSONAS = Array.from(new Set(SHAREABLE_POSTS.map((p) => p.persona))).sort();
 
 type PillarFilter = Pillar | "all";
 type PersonaFilter = string;
@@ -20,11 +20,11 @@ export function SocialToolkit() {
   const [pillar, setPillar] = useState<PillarFilter>("all");
   const [persona, setPersona] = useState<PersonaFilter>("all");
   const [cta, setCta] = useState<CtaFilter>("all");
-  const [selectedId, setSelectedId] = useState<string>(SOCIAL_POSTS[0].id);
+  const [selectedId, setSelectedId] = useState<string>(SHAREABLE_POSTS[0].id);
 
   const filtered = useMemo(
     () =>
-      SOCIAL_POSTS.filter(
+      SHAREABLE_POSTS.filter(
         (p) =>
           (pillar === "all" || p.pillar === pillar) &&
           (persona === "all" || p.persona === persona) &&
@@ -125,7 +125,7 @@ function FilterRow({ label, children }: { label: string; children: React.ReactNo
   );
 }
 
-function Detail({ post }: { post: (typeof SOCIAL_POSTS)[number] }) {
+function Detail({ post }: { post: SocialPost }) {
   const renderable = toRenderablePost(post);
   const xText = renderChannelText(renderable, "x").text;
   const link = ctaUrl(post.cta);

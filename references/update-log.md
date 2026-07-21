@@ -35,8 +35,12 @@ Version history and change tracking for the get-elected skill reference files.
   channels with the "Paid for by" disclaimer baked in, plus a downloadable branded graphic and
   X/Facebook share links. No login; approved-content-only (no free-text authoring).
 - [added] `web/lib/social/sharePost.ts` (+ test) — maps a library `SocialPost` onto the pure
-  `renderChannelText` renderer with a CTA→public-URL map; the test proves all 50 posts render on
-  all 7 channels within limits and always keep the disclaimer.
+  `renderChannelText` renderer with a CTA→public-URL map; the test proves every catalog post
+  renders on all 7 channels within limits and always keeps the disclaimer.
+- [added] 18 evergreen shareables (`EVERGREEN_POSTS` in `web/lib/socialPosts.ts`, `day: 0`, new
+  `SHAREABLE_POSTS` = countdown + evergreen) so /social has a deeper, audience-varied catalog
+  (68 posts). Faithful to `platform.md` — no new positions/stats/quotes. The dashboard scheduler
+  still uses the dated `SOCIAL_POSTS` countdown alone, so its behavior is unchanged.
 - [updated] Surfaced `/social` in the nav ("Get Involved"), `sitemap.ts`, and the a11y scan
   (`e2e/a11y.spec.ts`). Reuses the existing public, rate-limited `/api/graphics` endpoint.
 
