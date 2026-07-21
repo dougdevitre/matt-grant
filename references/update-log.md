@@ -36,6 +36,9 @@ Version history and change tracking for the get-elected skill reference files.
   each channel row builds its own `graphicSrc({ format: spec.imageFormat, theme, photo, headline })`.
 - [added] Invariant test (`channels.test.ts`): every channel's `imageFormat` is a real
   `/api/graphics` format, so the auto-sized image can never 404.
+- [added] Feedback on each **"Post to [platform]"** click — an `aria-live` note confirms the
+  caption was copied and the image saved, and tells the user to paste/attach on the channels
+  where that's manual (Instagram/TikTok/YouTube).
 
 **Files Modified:**
 - web/components/site/{GraphicPicker,SocialToolkit,PostChannelCard}.tsx, web/lib/social/channels.test.ts
