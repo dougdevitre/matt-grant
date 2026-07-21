@@ -26,6 +26,33 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-21 -- v1.x -- Harden the image generator: self-hosted fonts + render smoke tests
+
+**Changes:**
+- [added] Self-host the image fonts — `web/public/fonts/fraunces-700.woff` + `public-sans-600.woff`
+  (WOFF v1; satori can't decode woff2) with a loader `web/lib/fonts/brandFonts.ts` (+ test) that
+  reads them from disk, memoized. `web/lib/og.tsx` (`renderOgCard`) and `web/app/api/graphics/route.tsx`
+  now load fonts locally instead of fetching Google Fonts at request time, so a Google Fonts outage
+  can no longer silently downgrade the brand typeface — or the "Paid for by" disclaimer's look — on
+  any generated card. The network fetch survives only as a read-failure fallback (extracted to
+  `web/lib/googleFont.ts` to avoid an import cycle). Files live under `public/` so Next's standalone
+  output ships them. Fixes a latent 500 risk too: satori rejects woff2, which Google can serve.
+- [added] First coverage of the satori RENDER path: `web/e2e/graphics.spec.ts` (Playwright) asserts
+  `GET /api/graphics` returns a valid PNG for every format/theme incl. empty + very long headlines —
+  runs in CI via the existing `test:a11y` (`playwright test`) job; and `brandFonts.test.ts` proves
+  the local fonts load without network.
+
+**Verifications Performed:**
+- Full gauntlet green — tsc, vitest (1,886), lint, compliance, build + bundle guard (the ~40KB woff
+  don't affect the compute budget) — plus the new Playwright render gate (7 passing). Visually
+  confirmed the headline still renders in Fraunces from the local file (not the fallback).
+
+**Files Modified:**
+- web/public/fonts/*.woff, web/lib/fonts/{brandFonts.ts,brandFonts.test.ts,README.md}, web/lib/googleFont.ts
+- web/lib/og.tsx, web/app/api/graphics/route.tsx, web/e2e/graphics.spec.ts
+
+---
+
 ## 2026-07-21 -- v1.x -- Pro-grade /social image generator + one-tap "post to channel"
 
 **Changes:**
