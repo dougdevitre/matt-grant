@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { staffGate } from "@/lib/auth";
 import { can, ROLE_LABELS } from "@/lib/rbac";
 import { PageHeader, HowTo } from "@/components/dashboard/Notice";
@@ -80,9 +81,9 @@ export default async function MessagesPage() {
       <PageHeader kicker="Comms" title="Inbox" />
       <p className="-mt-2 mb-4 text-sm text-slate">
         This is the text (SMS) inbox.{" "}
-        <a href="/dashboard/messages/social" className="text-field underline">
+        <Link href="/dashboard/messages/social" className="text-field underline">
           Facebook Messenger &amp; Instagram DMs →
-        </a>
+        </Link>
       </p>
       <HowTo
         steps={[
