@@ -26,6 +26,101 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-21 -- v1.x -- Runbook: TikTok, YouTube, and Threads auto-posting setup
+
+**Changes:**
+- [updated] `web/docs/social-go-live.md` now documents the three platforms whose publish adapters
+  ship but weren't in the runbook: **TikTok** (OAuth `client_key`/`client_secret`, `video.publish`
+  scope, domain verification, `SELF_ONLY` until the content-posting audit), **YouTube** (`client_id`,
+  `youtube.upload`+`readonly`, `private` until Google app verification), and **Threads** (manual
+  token — no OAuth connect yet — via `THREADS_ACCESS_TOKEN` + `THREADS_USER_ID`). Adds the SSM
+  credential blocks, a new §6 on the audit/verification/token gates + the manual-token shortcut, and
+  troubleshooting bullets. All grounded in the actual secret names + scopes in
+  `lib/social/oauth/{tiktok,youtube}.ts` and `publish.ts`.
+
+**Files Modified:**
+- web/docs/social-go-live.md
+
+---
+
+## 2026-07-21 -- v1.x -- /social: auto-size each channel's share graphic
+
+**Changes:**
+- [added] The per-channel **"Post to [platform]"** buttons now attach the graphic **sized for that
+  platform** (X → landscape, Instagram/Facebook → square, TikTok/Story → 9:16, LinkedIn → banner),
+  driven by the existing `CHANNELS[c].imageFormat` map (previously unused). `GraphicPicker` reports
+  its `{format,theme,photo}` up (`onChange`); the hero share still uses the on-screen image, while
+  each channel row builds its own `graphicSrc({ format: spec.imageFormat, theme, photo, headline })`.
+- [added] Invariant test (`channels.test.ts`): every channel's `imageFormat` is a real
+  `/api/graphics` format, so the auto-sized image can never 404.
+- [added] Feedback on each **"Post to [platform]"** click — an `aria-live` note confirms the
+  caption was copied and the image saved, and tells the user to paste/attach on the channels
+  where that's manual (Instagram/TikTok/YouTube).
+
+**Files Modified:**
+- web/components/site/{GraphicPicker,SocialToolkit,PostChannelCard}.tsx, web/lib/social/channels.test.ts
+
+---
+
+## 2026-07-21 -- v1.x -- One-tap "Share with image" on /social
+
+**Changes:**
+- [added] `web/lib/social/nativeShare.ts` (+ test) — Web Share API helpers: `canShareFiles()`,
+  `shareImageFile()` (native share sheet with the graphic **and** caption pre-loaded on mobile;
+  falls back to copy-caption + download-image elsewhere), and `postToChannel()` (opens a channel +
+  copies caption + saves image). Fires `track("share_click", …)`.
+- [added] Hero **"Share this post + image"** button in the `/social` detail panel
+  (`web/components/site/SocialToolkit.tsx`) — one tap opens the phone's share sheet with the current
+  graphic + full caption (disclaimer included); the image is pre-fetched into a `File` so the share
+  fires inside the click's activation. Per-channel buttons became **"Post to [platform]"**
+  (`PostChannelCard.tsx`) — open the channel + copy the caption + save the image in one click (the
+  big win for Instagram/TikTok/YouTube, which can't web-prefill).
+- [added] `web/lib/social/graphicUrl.ts` — `graphicSrc()` shared by `GraphicPicker` (now reports its
+  `src` up via `onSrcChange`) and the share actions, so every share uses exactly the graphic on screen.
+
+**Verifications Performed:**
+- `nativeShare.test.ts` covers the feature-detect + native-share + fallback paths; full gauntlet
+  green (tsc, vitest, lint, compliance, build + bundle guard, chromium a11y for /social). Both share
+  payload halves carry "Paid for by…" (text via renderChannelText, image baked by /api/graphics).
+
+**Known Gaps:**
+- File sharing (image in the share sheet) is a mobile-browser capability; desktop uses the
+  copy-caption + download-image fallback. The native share sheet is channel-agnostic (the app is
+  chosen in the OS sheet) — per-channel targeting with an image isn't possible on the web.
+
+**Files Modified:**
+- web/lib/social/nativeShare.ts (+ test), web/lib/social/graphicUrl.ts
+- web/components/site/{SocialToolkit,PostChannelCard,GraphicPicker}.tsx
+
+---
+
+## 2026-07-21 -- v1.x -- Harden the image generator: self-hosted fonts + render smoke tests
+
+**Changes:**
+- [added] Self-host the image fonts — `web/public/fonts/fraunces-700.woff` + `public-sans-600.woff`
+  (WOFF v1; satori can't decode woff2) with a loader `web/lib/fonts/brandFonts.ts` (+ test) that
+  reads them from disk, memoized. `web/lib/og.tsx` (`renderOgCard`) and `web/app/api/graphics/route.tsx`
+  now load fonts locally instead of fetching Google Fonts at request time, so a Google Fonts outage
+  can no longer silently downgrade the brand typeface — or the "Paid for by" disclaimer's look — on
+  any generated card. The network fetch survives only as a read-failure fallback (extracted to
+  `web/lib/googleFont.ts` to avoid an import cycle). Files live under `public/` so Next's standalone
+  output ships them. Fixes a latent 500 risk too: satori rejects woff2, which Google can serve.
+- [added] First coverage of the satori RENDER path: `web/e2e/graphics.spec.ts` (Playwright) asserts
+  `GET /api/graphics` returns a valid PNG for every format/theme incl. empty + very long headlines —
+  runs in CI via the existing `test:a11y` (`playwright test`) job; and `brandFonts.test.ts` proves
+  the local fonts load without network.
+
+**Verifications Performed:**
+- Full gauntlet green — tsc, vitest (1,886), lint, compliance, build + bundle guard (the ~40KB woff
+  don't affect the compute budget) — plus the new Playwright render gate (7 passing). Visually
+  confirmed the headline still renders in Fraunces from the local file (not the fallback).
+
+**Files Modified:**
+- web/public/fonts/*.woff, web/lib/fonts/{brandFonts.ts,brandFonts.test.ts,README.md}, web/lib/googleFont.ts
+- web/lib/og.tsx, web/app/api/graphics/route.tsx, web/e2e/graphics.spec.ts
+
+---
+
 ## 2026-07-21 -- v1.x -- Pro-grade /social image generator + one-tap "post to channel"
 
 **Changes:**

@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { CAMPAIGN } from "@/lib/site";
 import { trimHeadline } from "@/lib/social/headline";
-import { googleFont } from "@/lib/og";
+import { brandFonts } from "@/lib/fonts/brandFonts";
 import { GRAPHIC_FORMATS, layoutFor, fitHeadline } from "@/lib/social/graphicLayout";
 import { rateLimit, clientIp } from "@/lib/ratelimit";
 
@@ -51,18 +51,14 @@ export async function GET(req: Request) {
   const wide = L.family === "wide";
   const disclaimer = wide ? CAMPAIGN.paidForBy : `${CAMPAIGN.paidForBy} · mattgrantforcongress.org`;
 
-  // Real type: Fraunces (serif) headline + Public Sans labels, subset to the glyphs
-  // each renders. googleFont returns null on failure → graceful fallback font.
+  // Real type: Fraunces (serif) headline + Public Sans labels, self-hosted (see
+  // lib/fonts/brandFonts.ts) so a Google Fonts outage can't silently downgrade the
+  // brand typeface or the disclaimer's look on the image.
   const sansText = EYEBROW + sub + disclaimer + "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789·.,'—-";
-  const [fraunces, publicSans, photo] = await Promise.all([
-    googleFont("Fraunces", 700, headline),
-    googleFont("Public Sans", 600, sansText),
+  const [fonts, photo] = await Promise.all([
+    brandFonts(headline, sansText),
     showPhoto ? avatarDataUri() : Promise.resolve(null),
   ]);
-  const fonts = [
-    fraunces && { name: "Fraunces", data: fraunces, weight: 700 as const, style: "normal" as const },
-    publicSans && { name: "Public Sans", data: publicSans, weight: 600 as const, style: "normal" as const },
-  ].filter(Boolean) as { name: string; data: ArrayBuffer; weight: 700 | 600; style: "normal" }[];
 
   const fit = fitHeadline({
     text: headline,

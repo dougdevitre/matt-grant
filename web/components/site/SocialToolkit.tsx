@@ -1,11 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SHAREABLE_POSTS, PILLARS, type Pillar, type CTA, type SocialPost } from "@/lib/socialPosts";
 import { renderChannelText } from "@/lib/social/channels";
-import { toRenderablePost, ctaUrl } from "@/lib/social/sharePost";
+import { toRenderablePost } from "@/lib/social/sharePost";
+import { graphicSrc } from "@/lib/social/graphicUrl";
+import { shareImageFile, toImageFile, canShareFiles, type ShareOutcome } from "@/lib/social/nativeShare";
+import { CAMPAIGN } from "@/lib/site";
 import { PostChannelCard } from "./PostChannelCard";
-import { GraphicPicker } from "./GraphicPicker";
+import { GraphicPicker, type GraphicParams } from "./GraphicPicker";
 
 const CTAS: CTA[] = ["Vote", "Volunteer", "Donate", "Learn more", "Share"];
 
@@ -127,10 +130,45 @@ function FilterRow({ label, children }: { label: string; children: React.ReactNo
 
 function Detail({ post }: { post: SocialPost }) {
   const renderable = toRenderablePost(post);
-  const xText = renderChannelText(renderable, "x").text;
-  const link = ctaUrl(post.cta);
-  const xShare = `https://twitter.com/intent/tweet?text=${encodeURIComponent(xText)}`;
-  const fbShare = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`;
+  // Full, channel-agnostic caption for the one-tap share (caption + hashtags + link +
+  // the "Paid for by" disclaimer). Facebook's generous limit keeps everything intact.
+  const shareText = renderChannelText(renderable, "facebook").text;
+  const filename = `matt-grant-${post.id}.png`;
+
+  // Picker params (size/color/photo). The hero share uses this exact image; the
+  // per-channel buttons reuse the theme/photo at each channel's ideal size.
+  const [params, setParams] = useState<GraphicParams>({ format: "ig_square", theme: "brick", photo: true });
+  const heroSrc = useMemo(() => graphicSrc({ ...params, headline: post.caption }), [params, post.caption]);
+  // Pre-fetch it into a File so navigator.share() fires inside the click's activation.
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  useEffect(() => {
+    let live = true;
+    setImageFile(null);
+    toImageFile(heroSrc, filename).then((f) => {
+      if (live) setImageFile(f);
+    });
+    return () => {
+      live = false;
+    };
+  }, [heroSrc, filename]);
+
+  const [status, setStatus] = useState<string>("");
+  const [sharing, setSharing] = useState(false);
+  async function onShare() {
+    setSharing(true);
+    setStatus("Preparing…");
+    const outcome: ShareOutcome = await shareImageFile({ file: imageFile, imageUrl: heroSrc, filename, text: shareText, title: CAMPAIGN.committee, channel: "sheet" });
+    setSharing(false);
+    setStatus(
+      outcome === "shared"
+        ? "Opened your share sheet — pick an app to post."
+        : outcome === "downloaded"
+          ? "Image saved and caption copied — open your app, paste, and attach the image."
+          : outcome === "cancelled"
+            ? ""
+            : "Couldn't prepare the image — try Download on the graphic below.",
+    );
+  }
 
   return (
     <div className="card p-5">
@@ -140,25 +178,30 @@ function Detail({ post }: { post: SocialPost }) {
       </div>
       <p className="mt-3 text-ink">{post.caption}</p>
       <p className="mt-2 font-mono text-xs text-field">{post.hashtags.join(" ")}</p>
-      <p className="mt-1 text-xs text-slate">Suggested image: {post.graphic}</p>
 
-      <h3 className="mt-6 text-sm font-semibold text-ink">Copy-ready text, per channel</h3>
+      <h3 className="mt-6 text-sm font-semibold text-ink">Your graphic</h3>
+      <p className="mb-3 text-xs text-slate">Branded image with the disclaimer built in — pick a size and color; this is what gets shared.</p>
+      <GraphicPicker headlineSource={post.caption} onChange={setParams} />
+
+      {/* Hero one-tap share */}
+      <div className="mt-5 rounded-md border border-line bg-paper/50 p-4">
+        <button type="button" onClick={onShare} disabled={sharing} className="btn-primary w-full text-center disabled:opacity-60">
+          {sharing ? "Preparing…" : "Share this post + image"}
+        </button>
+        <p className="mt-2 text-xs text-slate">
+          On a phone this opens your share sheet with the image and caption loaded — tap any app to post. On a computer it saves the image and copies the caption.
+        </p>
+        <p role="status" aria-live="polite" className="mt-1 min-h-[1rem] text-xs font-semibold text-field">{status}</p>
+      </div>
+
+      <h3 className="mt-6 text-sm font-semibold text-ink">Or post to one channel</h3>
       <p className="mb-2 text-xs text-slate">
-        Each is trimmed to that platform&apos;s limit and already ends with the required disclaimer.
-        <strong className="font-semibold text-ink"> Copy the text</strong>, tap <strong className="font-semibold text-ink">Open</strong> to jump to that channel, paste, attach your graphic, and post. On Instagram, TikTok, and YouTube you&apos;ll add the downloaded image after opening the app.
+        <strong className="font-semibold text-ink">Post to</strong> opens that channel and copies the caption + saves the image, <strong className="font-semibold text-ink">sized right for that platform</strong> (paste, attach, post).
+        Or <strong className="font-semibold text-ink">Copy text</strong> for just the words. Every version ends with the required disclaimer.
       </p>
       <div className="mt-2">
-        <PostChannelCard post={renderable} />
+        <PostChannelCard post={renderable} theme={params.theme} photo={params.photo} headline={post.caption} idBase={post.id} />
       </div>
-
-      <div className="mt-5 flex flex-wrap gap-2">
-        <a href={xShare} target="_blank" rel="noreferrer" className="btn-ghost">Share on X</a>
-        <a href={fbShare} target="_blank" rel="noreferrer" className="btn-ghost">Share on Facebook</a>
-      </div>
-
-      <h3 className="mt-6 text-sm font-semibold text-ink">Make a matching graphic</h3>
-      <p className="mb-3 text-xs text-slate">Branded image with the disclaimer built in — pick a size and download.</p>
-      <GraphicPicker headlineSource={post.caption} />
     </div>
   );
 }

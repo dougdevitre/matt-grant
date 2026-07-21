@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { CHANNEL_IDS, CHANNELS, renderChannelText, type ChannelId, type RenderablePost } from "@/lib/social/channels";
 import { channelPostUrl } from "@/lib/social/sharePost";
+import { graphicSrc } from "@/lib/social/graphicUrl";
+import { postToChannel } from "@/lib/social/nativeShare";
 import { SITE_URL } from "@/lib/site";
 
 // Public, self-serve version of the dashboard's ReadyToPostCard: for one approved
@@ -10,23 +12,68 @@ import { SITE_URL } from "@/lib/site";
 // → link → the "Paid for by" disclaimer, trimmed to each platform's limit) with a
 // per-channel copy button, char count, and notes. renderChannelText is pure and
 // client-safe, so this is byte-identical to what the campaign's own tools produce.
-// No server actions here — supporters just copy.
-export function PostChannelCard({ post }: { post: RenderablePost }) {
+// "Post to [platform]" opens the channel and copies the caption + saves the image,
+// auto-sized to that platform via CHANNELS[channel].imageFormat.
+export function PostChannelCard({
+  post,
+  theme,
+  photo,
+  headline,
+  idBase,
+}: {
+  post: RenderablePost;
+  theme?: string;
+  photo?: boolean;
+  headline?: string;
+  idBase?: string;
+}) {
   return (
     <div className="space-y-2">
       {CHANNEL_IDS.map((c) => (
-        <ChannelRow key={c} post={post} channel={c} />
+        <ChannelRow key={c} post={post} channel={c} theme={theme} photo={photo} headline={headline} idBase={idBase} />
       ))}
     </div>
   );
 }
 
-function ChannelRow({ post, channel }: { post: RenderablePost; channel: ChannelId }) {
+function ChannelRow({
+  post,
+  channel,
+  theme,
+  photo,
+  headline,
+  idBase,
+}: {
+  post: RenderablePost;
+  channel: ChannelId;
+  theme?: string;
+  photo?: boolean;
+  headline?: string;
+  idBase?: string;
+}) {
   const spec = CHANNELS[channel];
   const rendered = renderChannelText(post, channel);
   const [open, setOpen] = useState(false);
   const shortLabel = spec.label.replace(/\s*\(.*\)$/, "");
   const openTo = channelPostUrl(channel, { text: rendered.text, link: post.link ?? SITE_URL });
+  // The image, sized for THIS channel (X→landscape, IG→square, TikTok/Story→9:16).
+  const imageUrl = graphicSrc({ format: spec.imageFormat, theme: theme ?? "brick", photo: photo ?? true, headline: headline ?? "" });
+  const filename = `matt-grant-${idBase ?? "post"}-${channel}.png`;
+
+  // Feedback for the fire-and-forget "Post to" action (opens a tab + copies + saves
+  // in the background), and a nudge where the image must be attached by hand.
+  const [note, setNote] = useState("");
+  function onPost() {
+    postToChannel({ openUrl: openTo.href, imageUrl, filename, text: rendered.text, channel });
+    setNote(
+      openTo.kind === "upload"
+        ? "Caption copied · image saved — paste & attach it in the app."
+        : openTo.kind === "compose"
+          ? "Opened with your caption · image saved to attach."
+          : "Caption copied · image saved — paste & attach.",
+    );
+    window.setTimeout(() => setNote(""), 5000);
+  }
 
   return (
     <div className="rounded-sm border border-line bg-paper/40 p-2.5">
@@ -42,14 +89,13 @@ function ChannelRow({ post, channel }: { post: RenderablePost; channel: ChannelI
           <span className="rounded-sm bg-ink px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow text-paper">trimmed</span>
         )}
         <CopyValue value={rendered.text} label="Copy text" />
-        <a
-          href={openTo.href}
-          target="_blank"
-          rel="noreferrer"
+        <button
+          type="button"
+          onClick={onPost}
           className="rounded-sm border border-ink bg-ink px-2 py-0.5 text-[0.7rem] font-semibold text-paper hover:bg-field hover:border-field"
         >
-          Open {shortLabel} ↗
-        </a>
+          Post to {shortLabel} ↗
+        </button>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
@@ -59,6 +105,7 @@ function ChannelRow({ post, channel }: { post: RenderablePost; channel: ChannelI
           {open ? "hide" : "show text"}
         </button>
       </div>
+      <p role="status" aria-live="polite" className="mt-1 min-h-[0.9rem] text-[0.7rem] font-semibold text-field">{note}</p>
       {open && (
         <>
           <textarea

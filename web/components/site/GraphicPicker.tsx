@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { trimHeadline } from "@/lib/social/headline";
-import { CAMPAIGN } from "@/lib/site";
+import { graphicSrc } from "@/lib/social/graphicUrl";
 
 // Public branded-graphic maker. Wraps the already-public GET /api/graphics endpoint
 // (rate-limited, disclaimer baked onto the image) with a format/theme/photo picker,
@@ -23,23 +23,21 @@ const THEMES = [
   { id: "paper", label: "White", swatch: "#FBFAF6" },
 ] as const;
 
-export function GraphicPicker({ headlineSource }: { headlineSource: string }) {
+export type GraphicParams = { format: string; theme: string; photo: boolean };
+
+export function GraphicPicker({ headlineSource, onChange }: { headlineSource: string; onChange?: (p: GraphicParams) => void }) {
   const [format, setFormat] = useState<string>("ig_square");
   const [theme, setTheme] = useState<string>("brick");
   const [photo, setPhoto] = useState(true);
 
   const headline = useMemo(() => trimHeadline(headlineSource, 90), [headlineSource]);
+  const src = useMemo(() => graphicSrc({ format, theme, photo, headline: headlineSource }), [format, theme, photo, headlineSource]);
 
-  const src = useMemo(() => {
-    const p = new URLSearchParams({
-      format,
-      theme,
-      headline,
-      sub: CAMPAIGN.committee,
-      photo: photo ? "1" : "0",
-    });
-    return `/api/graphics?${p.toString()}`;
-  }, [format, theme, headline, photo]);
+  // Report the chosen params up: the hero share uses this exact image, and the
+  // per-channel buttons reuse the theme/photo at each channel's ideal size.
+  useEffect(() => {
+    onChange?.({ format, theme, photo });
+  }, [format, theme, photo, onChange]);
 
   return (
     <div className="grid gap-4 sm:grid-cols-[minmax(0,220px)_1fr]">

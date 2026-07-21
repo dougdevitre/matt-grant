@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { renderChannelText, composeText, toChannelIds, CHANNELS } from "@/lib/social/channels";
+import { renderChannelText, composeText, toChannelIds, CHANNELS, CHANNEL_IDS } from "@/lib/social/channels";
+import { GRAPHIC_FORMATS } from "@/lib/social/graphicLayout";
 import { CAMPAIGN } from "@/lib/site";
 
 const DISC = CAMPAIGN.paidForBy; // "Paid for by Matt Grant for Congress."
@@ -95,5 +96,15 @@ describe("composeText (unchanged legacy helper)", () => {
 describe("toChannelIds", () => {
   it("maps legacy display names and drops unknowns", () => {
     expect(toChannelIds(["X", "Facebook", "Instagram", "nope"])).toEqual(["x", "facebook", "instagram"]);
+  });
+});
+
+describe("per-channel imageFormat", () => {
+  // /social auto-sizes each channel's share graphic via CHANNELS[c].imageFormat, so
+  // every value must be a real /api/graphics format or the image would 404.
+  it("is a valid graphic format for every channel", () => {
+    for (const c of CHANNEL_IDS) {
+      expect(GRAPHIC_FORMATS, `${c} → ${CHANNELS[c].imageFormat}`).toHaveProperty(CHANNELS[c].imageFormat);
+    }
   });
 });
