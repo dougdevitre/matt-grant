@@ -137,6 +137,7 @@ Correctly states House candidates file with the **FEC, not the MEC**, links fec.
 **Where:** [`lib/email/templates.ts`](../lib/email/templates.ts) (`{{unsubscribe_url}}`), [`lib/email/layout.ts`](../lib/email/layout.ts), `lib/email/send.ts`
 All **broadcast** templates pass `unsubscribeUrl: UNSUB` and the layout renders Unsubscribe + Update-preferences links + paid-for-by + postal address — exactly right. **Risk:** the unsubscribe only works if the actual send path replaces `{{unsubscribe_url}}` and `{{preferences_url}}` per recipient and honors opt-outs within 10 business days. This must be verified in `send.ts` / the sending provider, not just the template.
 **Fix:** confirm token substitution + suppression-list handling in the send path; add a test that fails if a broadcast send leaves `{{unsubscribe_url}}` unsubstituted.
+**Closed 2026-07-21:** the broadcast-level test now exists — [`lib/email/campaignSend.test.ts`](../lib/email/campaignSend.test.ts) runs a real broadcast through the registry build → `sendBroadcastEmail` → `sendEmail` → SES path and asserts the outgoing HTML + text carry a real per-recipient unsubscribe URL with **no leftover `{{…}}`**, and that an email with any unfilled staff token is refused end-to-end (not shipped). Substitution is in `lib/campaignSend.ts`; suppression is fail-closed in `lib/subscribers.ts`.
 
 ### 🟠 E-2 — Transactional emails omit unsubscribe (acceptable) — document the distinction
 **Where:** `volunteerWelcome`, `donationThankYou`, `contactReceipt` in `lib/email/templates.ts`

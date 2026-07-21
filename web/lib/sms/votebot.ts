@@ -16,22 +16,14 @@
 import { CAMPAIGN, SITE_URL } from "@/lib/site";
 import { ctaLink } from "@/lib/sms/ctas";
 import { matchCountyName, matchZip, type County, type CountyKey } from "@/lib/sms/geo";
-
-export const EARLY_VOTE_OPENS = "2026-07-21T00:00:00-05:00"; // Tue Jul 21 (Central)
-export const EARLY_VOTE_ENDS = "2026-08-03T17:00:00-05:00"; // 5pm Mon Aug 3
-export const MAIL_APP_DEADLINE = "2026-07-22T17:00:00-05:00"; // 5pm Wed Jul 22
+// The early-vote calendar is shared with email via lib/electionDates.ts (single
+// source of truth). Re-exported here so existing importers of votebot keep working.
+import { EARLY_VOTE_OPENS, EARLY_VOTE_ENDS, MAIL_APP_DEADLINE, earlyVotePhrase } from "@/lib/electionDates";
+export { EARLY_VOTE_OPENS, EARLY_VOTE_ENDS, MAIL_APP_DEADLINE, earlyVotePhrase };
 
 const STOP = "Reply STOP to opt out.";
 const disclaim = (body: string) => `${body}\n${CAMPAIGN.paidForBy} ${STOP}`;
 const guideLink = () => ctaLink("/vote/absentee", "VOTE");
-
-/** Calendar-aware early-vote clause, completing "Early voting …". */
-export function earlyVotePhrase(now: Date = new Date()): string {
-  const t = now.getTime();
-  if (t < new Date(EARLY_VOTE_OPENS).getTime()) return "starts Tue July 21 and runs through 5pm Mon Aug 3";
-  if (t <= new Date(EARLY_VOTE_ENDS).getTime()) return "is open now through 5pm Mon Aug 3";
-  return "has ended - vote on Election Day, Tue Aug 4, 6am-7pm";
-}
 
 /** The question VOTE asks when we don't yet know the person's county. */
 export function askGeoReply(): string {

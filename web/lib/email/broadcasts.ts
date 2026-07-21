@@ -2,11 +2,13 @@ import {
   campaignNewsletter,
   issueSpotlight,
   gotvReminder,
+  earlyVoteReminder,
   fundraisingAppeal,
   eventInvite,
   announcement,
   type Email,
 } from "./templates";
+import { daysUntilElection } from "@/lib/electionDates";
 import { ISSUES } from "@/lib/issues";
 import type { TopicKey } from "@/lib/subscribers";
 import { escapeHtml, safeUrl, richToEmailHtml, richToText } from "./richtext";
@@ -89,15 +91,23 @@ export const BROADCASTS: BroadcastDef[] = [
     render: (v) => issueSpotlight(v.slug || ISSUES[0].slug),
   }),
   broadcast({
+    key: "early-vote",
+    label: "Early-vote reminder",
+    topic: "gotv",
+    description: "Calendar-aware early-vote push for the Jul 21–Aug 3 window — the phrasing tracks the date automatically and links straight to the county vote guide. No inputs.",
+    fields: [],
+    render: () => earlyVoteReminder(),
+  }),
+  broadcast({
     key: "gotv",
     label: "GOTV reminder",
     topic: "gotv",
-    description: "Make-a-plan-to-vote reminder for the final stretch.",
+    description: "Make-a-plan-to-vote reminder for the final stretch. The countdown auto-fills from the election date; leave it blank.",
     fields: [
-      { name: "daysOut", label: "Days until election", type: "number", required: true, placeholder: "7" },
+      { name: "daysOut", label: "Days until election (blank = auto)", type: "number", required: false, placeholder: "auto" },
       { name: "polling_place_url", label: "Polling-place lookup URL", type: "text", required: true, placeholder: "https://www.sos.mo.gov/..." },
     ],
-    render: (v) => gotvReminder(Number(v.daysOut) || 7),
+    render: (v) => gotvReminder(v.daysOut?.trim() ? Number(v.daysOut) || daysUntilElection() : daysUntilElection()),
   }),
   broadcast({
     key: "fundraising",
