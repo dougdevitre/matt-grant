@@ -50,7 +50,7 @@ These move — re-verify against each platform's current docs and update `CHANNE
 Like SES, Clerk, and S3 elsewhere in the app, publishing **degrades gracefully**:
 
 - **API mode** — when a channel has credentials (an OAuth connection, or a manual token fallback), `drainDue()` posts it automatically through that platform's API at the scheduled time.
-- **Manual mode** — otherwise the post is **staged** at its scheduled time and surfaces in the "Ready to post" queue with copy-ready text + the attached image, exactly like Buffer's "reminder" posts for platforms without a publish API. An admin pushes it and clicks **Mark posted**.
+- **Manual mode** — otherwise the post is **staged** at its scheduled time and surfaces in the "Ready to post" queue, exactly like Buffer's "reminder" posts for platforms without a publish API. Each manual channel gets its **own row** with the exact, channel-fitted text to paste (`renderChannelText` in `channels.ts`: caption → CTA → hashtags → link → the "Paid for by" disclaimer, trimmed to the platform's character limit — the disclaimer is never dropped, so a fitted post stays compliant), a per-channel **Copy** button, the character count + a "fitted" badge, and a **Mark posted** control. The copied string is byte-identical to what API mode would publish (both call `renderChannelText`/`copyText`), and the browser extension exposes the same strings via `/api/ext/social/queue`.
 
 ### Getting credentials: two ways
 
@@ -118,7 +118,7 @@ Attaching an **on-brand graphic** uses the existing `/api/graphics` generator (w
 
 ## Compliance guardrails
 
-- **"Paid for by" disclaimer.** Public campaign communications must carry it. The composer treats an attached on-brand graphic as satisfying this (the image carries the line) and otherwise requires the admin to confirm the disclaimer is in the copy — `scoreContent()` raises an **error** if neither is true. For character-limited formats (X), the FEC's **Adapted Disclaimer** rule allows a shortened sponsor ID plus a link to the full disclaimer when the full text "would occupy more than 25 percent of the communication." *(Verified 2026-06-22 against fec.gov advertising-and-disclaimers guidance and the FEC internet-communications disclaimer rule.)*
+- **"Paid for by" disclaimer.** Public campaign communications must carry it. `renderChannelText` **always appends** the disclaimer to the post text (and never trims it), so every copied/published caption is compliant by construction; `scoreContent()` therefore only nudges (tip, not error) to also bake the line into the graphic for image-first surfaces like Instagram Stories where text is skimmed. For character-limited formats (X), the FEC's **Adapted Disclaimer** rule allows a shortened sponsor ID plus a link to the full disclaimer when the full text "would occupy more than 25 percent of the communication." *(Verified 2026-06-22 against fec.gov advertising-and-disclaimers guidance and the FEC internet-communications disclaimer rule.)*
 - **No fabricated facts.** The content library is the existing 50-post calendar in `lib/socialPosts.ts`, which is faithful to Matt's published platform. The optimizer's thresholds are labeled industry rules of thumb, not Matt-specific data.
 
 > Educational information, not legal advice. Consult a campaign-finance attorney or the FEC for guidance specific to your situation.

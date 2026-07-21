@@ -10,7 +10,7 @@
 
 import { getSecret } from "@/lib/ssm";
 import { SITE_URL } from "@/lib/site";
-import { composeText, type ChannelId } from "@/lib/social/channels";
+import { renderChannelText, type ChannelId } from "@/lib/social/channels";
 import { getFreshConnection } from "@/lib/social/oauth/refresh";
 import { META_GRAPH } from "@/lib/social/credentials";
 import { renderStillToMp4 } from "@/lib/social/video";
@@ -167,7 +167,7 @@ async function publishToLinkedIn(post: PublishablePost, creds: ResolvedCreds): P
   const payload = {
     author,
     lifecycleState: "PUBLISHED",
-    specificContent: { "com.linkedin.ugc.ShareContent": { shareCommentary: { text: copyText(post) }, ...shareMedia } },
+    specificContent: { "com.linkedin.ugc.ShareContent": { shareCommentary: { text: copyText(post, "linkedin") }, ...shareMedia } },
     visibility: { "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC" },
   };
   let res: Response;
@@ -247,7 +247,7 @@ async function publishToFacebook(post: PublishablePost, creds: ResolvedCreds): P
   const pageId = creds.accountId;
   const token = creds.token;
   if (!pageId) return { ok: false, mode: "api", error: "Facebook Page id is not set." };
-  const message = copyText(post);
+  const message = copyText(post, "facebook");
   const media = absoluteMediaUrl(post.mediaUrl);
   const r = media
     ? await metaPost(`${META_GRAPH}/${pageId}/photos`, { url: media, caption: message, access_token: token })
@@ -266,7 +266,7 @@ async function publishToInstagram(post: PublishablePost, creds: ResolvedCreds): 
   const media = absoluteMediaUrl(post.mediaUrl);
   if (!media) return { ok: false, mode: "api", error: "Instagram requires an image — attach a graphic before scheduling." };
 
-  const created = await metaPost(`${META_GRAPH}/${igUserId}/media`, { image_url: media, caption: copyText(post), access_token: token });
+  const created = await metaPost(`${META_GRAPH}/${igUserId}/media`, { image_url: media, caption: copyText(post, "instagram"), access_token: token });
   if (!created.ok) return { ok: false, mode: "api", error: created.error };
   if (!created.id) return { ok: false, mode: "api", error: "Instagram did not return a media container id." };
 
@@ -289,7 +289,7 @@ async function publishToThreads(post: PublishablePost, creds: ResolvedCreds): Pr
 
   const created = await metaPost(`${THREADS_GRAPH}/${userId}/threads`, {
     media_type: media ? "IMAGE" : "TEXT",
-    text: copyText(post),
+    text: copyText(post, "threads"),
     ...(media ? { image_url: media } : {}),
     access_token: token,
   });
@@ -317,7 +317,7 @@ async function publishToTikTok(post: PublishablePost, token: string): Promise<Pu
       method: "POST",
       headers: { authorization: `Bearer ${token}`, "content-type": "application/json; charset=UTF-8" },
       body: JSON.stringify({
-        post_info: { title: copyText(post).slice(0, 2200), privacy_level: privacy },
+        post_info: { title: copyText(post, "tiktok").slice(0, 2200), privacy_level: privacy },
         source_info: { source: "PULL_FROM_URL", photo_cover_index: 0, photo_images: [media] },
         post_mode: "DIRECT_POST",
         media_type: "PHOTO",
@@ -362,7 +362,7 @@ async function publishToYouTube(post: PublishablePost, token: string): Promise<P
 
   const firstLine = (post.caption.split("\n")[0] || "Matt Grant for Congress").slice(0, 90);
   const metadata = {
-    snippet: { title: `${firstLine} #Shorts`.slice(0, 100), description: copyText(post), tags: post.hashtags.map((h) => h.replace(/^#/, "")) },
+    snippet: { title: `${firstLine} #Shorts`.slice(0, 100), description: copyText(post, "youtube"), tags: post.hashtags.map((h) => h.replace(/^#/, "")) },
     status: { privacyStatus: process.env.YOUTUBE_PRIVACY_STATUS || "private", selfDeclaredMadeForKids: false },
   };
 
@@ -446,7 +446,7 @@ async function uploadXMedia(mediaUrl: string, token: string): Promise<{ ok: true
 // as a post failure (never a silent text-only fallback). A non-2xx tweet response
 // likewise surfaces as a failure, not a silent OK.
 async function publishToX(post: PublishablePost, token: string): Promise<PublishResult> {
-  const text = copyText(post);
+  const text = copyText(post, "x");
   let mediaIds: string[] | undefined;
   const media = absoluteMediaUrl(post.mediaUrl);
   if (media) {
@@ -488,10 +488,12 @@ export async function publishToChannel(channel: ChannelId, post: PublishablePost
   }
 }
 
-/** The exact text a human should copy when posting a channel manually. */
-export function copyText(post: PublishablePost): string {
-  const body = composeText(post.caption, post.hashtags);
-  return post.link ? `${body}\n\n${post.link}` : body;
+/** The exact text a channel receives (auto-publish) or a human copies (manual):
+ *  caption + CTA + hashtags + link + the "Paid for by" disclaimer, fitted to the
+ *  channel's character limit. Delegates to the single renderer in channels.ts so
+ *  the copied text and the API-posted text are identical and always compliant. */
+export function copyText(post: PublishablePost, channel: ChannelId): string {
+  return renderChannelText(post, channel).text;
 }
 
 // ── Connection testing (read-only; never posts) ───────────────────────────────

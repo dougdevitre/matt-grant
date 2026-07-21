@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useActionState } from "react";
 import { schedulePost, type ActionState } from "@/app/dashboard/social/actions";
-import { CHANNELS, CHANNEL_IDS, type ChannelId } from "@/lib/social/channels";
+import { CHANNELS, CHANNEL_IDS, renderChannelText, type ChannelId } from "@/lib/social/channels";
 import { scoreContent, type Severity } from "@/lib/social/optimize";
 import { AssetPicker, type PickerAsset } from "@/components/dashboard/AssetPicker";
 import { trimHeadline } from "@/lib/social/headline";
@@ -267,10 +267,36 @@ export function SocialComposer({ library }: { library: LibraryPost[] }) {
                   ))}
                 </ul>
               )}
+              <ExactText channel={s.channel} caption={caption} hashtags={tagList} link={link} cta={cta} />
             </div>
           );
         })}
       </div>
     </form>
+  );
+}
+
+// The exact string this channel will receive — same renderer the manual queue and
+// the auto-publisher use, so the preview is a promise, not an approximation.
+function ExactText({ channel, caption, hashtags, link, cta }: { channel: ChannelId; caption: string; hashtags: string[]; link: string; cta: string }) {
+  const [open, setOpen] = useState(false);
+  const rendered = useMemo(
+    () => renderChannelText({ caption, hashtags, link: link || undefined, cta: cta || undefined }, channel),
+    [channel, caption, hashtags, link, cta],
+  );
+  return (
+    <div className="mt-2 border-t border-line pt-2">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="font-mono text-[0.65rem] text-field hover:underline">
+        {open ? "hide exact text" : "show exact text to post"}
+      </button>
+      {open && (
+        <>
+          <pre className="mt-1.5 max-h-48 overflow-auto whitespace-pre-wrap rounded-sm border border-line bg-paper/40 px-2.5 py-2 font-mono text-[0.7rem] text-ink">{rendered.text}</pre>
+          {rendered.notes.map((n) => (
+            <p key={n} className="mt-1 text-[0.65rem] text-slate">{n}</p>
+          ))}
+        </>
+      )}
+    </div>
   );
 }
