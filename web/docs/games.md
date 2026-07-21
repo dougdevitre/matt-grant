@@ -1,19 +1,25 @@
 # Four Fights Arcade (`games.mattgrantforcongress.org`)
 
-A civic mini-game suite — one quick game per campaign priority. Folded into **this
-same Next.js app** (not a separate repo): it reuses the subdomain router, the FEC
-compliance gate, the SSM-secret pattern, DynamoDB, and the shared chrome. The
-engineering spec is `four-fights-arcade.md` (repo root context); this doc is the
-as-built map.
+A civic mini-game suite mapped to the four campaign priorities — five games in all, with
+**Children First** carrying two. Folded into **this same Next.js app** (not a separate
+repo): it reuses the subdomain router, the FEC compliance gate, the SSM-secret pattern,
+DynamoDB, and the shared chrome. The engineering spec is `four-fights-arcade.md` (repo root
+context); this doc is the as-built map. The catalog source of truth is
+`lib/games/registry.ts`.
 
-## The four games ↔ the four priorities
+## The games ↔ the four priorities
 
 | Game | Priority | Issue slug (`lib/issues.ts`) | Status |
 |---|---|---|---|
 | **Cut & Save** | Lower Taxes | `lower-taxes` | **Live** |
 | **Org Chart** | Smaller Government | `smaller-government` | **Live** |
 | **Rotation** | Term Limits | `term-limits` | **Live** |
-| Clarity Companion | Children First | `family-courts` | Built, flag **OFF** — pending compliance/tone review before the flag flips on |
+| **Red Tape Run** | Children First | `family-courts` | **Live** |
+| **The Docket** | Children First | `family-courts` | **Live** |
+
+> **Clarity Companion** (an earlier Children First record-triage concept) was retired —
+> **Red Tape Run** took its slot. Its lib code remains for reference, but it's off the menu
+> and its route is removed.
 
 ## How it's wired
 

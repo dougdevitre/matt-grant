@@ -10,6 +10,7 @@ const PUBLIC_ROUTES = [
   "/about",
   "/issues",
   "/act",
+  "/social",
   "/vote",
   "/media",
   "/press",
