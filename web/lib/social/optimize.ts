@@ -85,8 +85,11 @@ export function scoreContent(input: ContentInput): ContentScore {
   }
 
   if (!input.hasDisclaimer) {
-    issues.push({ severity: "error", message: `Missing the "${CAMPAIGN.paidForBy}" disclaimer. Required on public campaign communications.` });
-    score -= 25;
+    // The composer's renderer always appends "Paid for by …" to the post TEXT, so
+    // a text post is compliant by construction; nudge to also bake it into the
+    // graphic for image-first surfaces (Instagram, Stories) where text is skimmed.
+    issues.push({ severity: "tip", message: `The "${CAMPAIGN.paidForBy}" line is auto-added to the post text — also put it on the graphic for image-first channels.` });
+    score -= 4;
   }
 
   if (input.link && input.channel === "instagram") {

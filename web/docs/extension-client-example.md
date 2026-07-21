@@ -85,6 +85,20 @@ export const api = {
     extFetch<{ expense: unknown }>("/api/ext/budget/expenses", t, { method: "POST", body }),
   moderateIssue: (t: string, id: string, status: "Approved" | "Rejected") =>
     extFetch("/api/ext/issues/" + id, t, { method: "PATCH", body: { status } }),
+  // Social manual queue — paste-ready per-channel text; mark a channel posted.
+  socialQueue: (t: string) => extFetch<SocialQueueItem[]>("/api/ext/social/queue", t),
+  markSocialPosted: (t: string, id: string, channel: string) =>
+    extFetch("/api/ext/social/posted", t, { method: "POST", body: { id, channel } }),
+};
+
+export type SocialChannelText = {
+  channel: string; label: string;
+  text: string;        // the EXACT string to paste — fitted + "Paid for by" included
+  chars: number; maxChars: number; fitted: boolean; notes: string[];
+};
+export type SocialQueueItem = {
+  id: string; caption: string; scheduledAt: string;
+  mediaUrl: string | null; channels: SocialChannelText[];
 };
 ```
 
@@ -119,7 +133,39 @@ export default function App() {
 }
 ```
 
-## 3b. Background service worker — token without React
+## 3b. Social "copy & post" popup — paste-ready text per channel
+
+The server does the fitting; the popup is just copy buttons. Each channel's `text`
+is final — caption + CTA + hashtags + link + the "Paid for by" disclaimer, trimmed
+to the platform limit — so the staffer copies, pastes into the open compose box,
+attaches the image, posts, and taps "mark posted."
+
+```tsx
+import { useAuth } from "@clerk/chrome-extension";
+import { api, type SocialChannelText } from "./api";
+
+function ChannelCopy({ postId, ch, token, onPosted }: { postId: string; ch: SocialChannelText; token: string; onPosted: () => void }) {
+  return (
+    <div>
+      <b>{ch.label}</b> <span>{ch.chars}/{ch.maxChars}{ch.fitted ? " · fitted" : ""}</span>
+      <button onClick={() => navigator.clipboard.writeText(ch.text)}>Copy text</button>
+      <button onClick={async () => { await api.markSocialPosted(token, postId, ch.channel); onPosted(); }}>
+        Mark posted ✓
+      </button>
+      {ch.notes.map((n) => <p key={n}>{n}</p>)}
+      <textarea readOnly value={ch.text} rows={5} />
+    </div>
+  );
+}
+// Load with api.socialQueue(token); render one <ChannelCopy> per item.channels.
+// Copy the image separately from item.mediaUrl (Instagram: paste text w/o link, link in bio).
+```
+> The extension NEVER auto-fills a social compose box or auto-posts — it only
+> hands the human the exact, compliant string and records the confirmation. All
+> posting stays a deliberate human action (and, until Matt signs off on messaging,
+> nothing should be posted at all).
+
+## 3d. Background service worker — token without React
 
 ```ts
 // background.ts

@@ -3,11 +3,11 @@ import { SocialComposer } from "@/components/dashboard/SocialComposer";
 import { SocialProfileOptimizer } from "@/components/dashboard/SocialProfileOptimizer";
 import { SocialConnections } from "@/components/dashboard/SocialConnections";
 import { SocialAutoSchedule } from "@/components/dashboard/SocialAutoSchedule";
-import { CopyButton } from "@/components/dashboard/CopyButton";
+import { ReadyToPostCard } from "@/components/dashboard/ReadyToPostCard";
 import { requireCap } from "@/lib/auth";
-import { listPosts, type ScheduledPost } from "@/lib/social/schedule";
-import { CHANNELS, composeText, toChannelIds, type ChannelId } from "@/lib/social/channels";
-import { cancelPostAction, confirmPostedAction } from "@/app/dashboard/social/actions";
+import { listPosts } from "@/lib/social/schedule";
+import { CHANNELS, toChannelIds, type ChannelId } from "@/lib/social/channels";
+import { cancelPostAction } from "@/app/dashboard/social/actions";
 import { ConfirmButton } from "@/components/dashboard/ConfirmButton";
 import { SOCIAL_POSTS } from "@/lib/socialPosts";
 import { channelConfigured } from "@/lib/social/publish";
@@ -133,7 +133,7 @@ export default async function SocialPage({ searchParams }: { searchParams: Promi
           <p className="eyebrow text-brick">Ready to post — needs a human</p>
           <div className="mt-3 space-y-3">
             {awaiting.map((p) => (
-              <ReadyCard key={p.id} post={p} />
+              <ReadyToPostCard key={p.id} post={p} />
             ))}
           </div>
         </section>
@@ -224,33 +224,3 @@ function StatusChip({ status }: { status: string }) {
   return <span className={`rounded-sm px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-eyebrow ${STATUS_STYLE[status] ?? "bg-ink/5 text-slate"}`}>{status}</span>;
 }
 
-function ReadyCard({ post }: { post: ScheduledPost }) {
-  const text = composeText(post.caption, post.hashtags) + (post.link ? `\n\n${post.link}` : "");
-  const manual = post.channels.filter((c) => post.perChannel[c]?.status === "ready");
-  return (
-    <div className="card p-4">
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-sm text-ink">{post.caption.slice(0, 140)}…</p>
-        <CopyButton text={text} />
-      </div>
-      <textarea readOnly value={text} rows={3} className="mt-2 w-full rounded-sm border border-line bg-paper/40 px-3 py-2 font-mono text-xs text-slate" />
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        {manual.map((c) => (
-          <form key={c} action={confirmPostedAction} className="flex items-center gap-1.5">
-            <input type="hidden" name="id" value={post.id} />
-            <input type="hidden" name="channel" value={c} />
-            <span className="rounded-sm px-1.5 py-0.5 font-mono text-[0.55rem] text-paper" style={{ background: CHANNELS[c]?.color ?? "#555" }}>
-              {CHANNELS[c]?.label ?? c}
-            </span>
-            <button className="rounded-sm border border-line px-2 py-0.5 font-mono text-[0.6rem] text-field hover:border-field">mark posted ✓</button>
-          </form>
-        ))}
-        {post.mediaUrl && (
-          <a href={post.mediaUrl} target="_blank" rel="noreferrer" className="font-mono text-[0.65rem] text-field hover:underline">
-            open image ↗
-          </a>
-        )}
-      </div>
-    </div>
-  );
-}

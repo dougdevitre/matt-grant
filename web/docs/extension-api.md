@@ -84,6 +84,7 @@ CLERK_AUTHORIZED_PARTIES="https://mattgrantforcongress.org,https://<branch>.<app
 | `/api/ext/research/member/{bioguideId}` | `viewResearch` | Legislative research for a member |
 | `/api/ext/me` | `viewOverview` | The signed-in staffer's OWN next step + readiness checklist (`gatherPersonalSignals`) — self-scoped |
 | `/api/ext/team` | `manageVolunteers` | The signed-in captain's OWN team roster, team-health summary, and upcoming owned events — self-scoped |
+| `/api/ext/social/queue` | `manageSocial` | Staged manual social posts, each with per-channel **paste-ready text** already fitted to the platform limit (`renderChannelText`): `{ id, caption, scheduledAt, mediaUrl, channels: [{ channel, label, text, chars, maxChars, fitted, notes }] }`. The `text` is byte-identical to what auto-publish sends — disclaimer included. |
 
 **Captain-scoped reads (`/api/ext/me`, `/api/ext/team`).** Identity is **server-derived** from the Clerk session (`gate.email`) — there is no id in the path or body, and a captain can only ever read their OWN next step / team. An admin (who leads no team) gets an empty roster + null summary from `/api/ext/team`, never the whole roster. These two are hand-written (GET + OPTIONS) rather than built on the `extRoute` factory because the factory's GET only exposes the capability verdict, not the caller identity these payloads are keyed on.
 
@@ -101,6 +102,7 @@ Body is JSON, zod-validated; unknown/invalid → `400`. Missing capability → `
 | `PATCH /api/ext/events/{id}` | `manageEvents` | any subset of the create fields + `status` | Setting `status:"PUBLISHED"` here **does not** send email/SMS; unknown id → `404` |
 | `PATCH /api/ext/issues/{id}` | `moderateIssues` + Airtable *update* toggle | `{ status }` (`Approved`\|`Rejected`\|`Pending`) **or** `{ topic?, details? }` | Status takes precedence over text |
 | `DELETE /api/ext/issues/{id}` | `moderateIssues` + Airtable *delete* toggle | — | Spam removal |
+| `POST /api/ext/social/posted` | `manageSocial` | `{ id, channel }` — channel ∈ channel ids | Marks that channel posted (mirrors the dashboard's mark-posted), rolls up overall status; unknown id/channel → `404` |
 
 ## Install detection (web ↔ extension handshake)
 
