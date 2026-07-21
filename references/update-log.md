@@ -26,6 +26,36 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-21 -- v1.x -- Public /social page: self-serve "share the campaign" toolkit
+
+**Changes:**
+- [added] Public page `web/app/(site)/social/page.tsx` (+ `web/components/site/SocialToolkit.tsx`,
+  `PostChannelCard.tsx`, `GraphicPicker.tsx`) — anyone can browse the approved 50-post library
+  (filter by issue/audience/goal) and, for any post, get copy-ready text fitted to all seven
+  channels with the "Paid for by" disclaimer baked in, plus a downloadable branded graphic and
+  X/Facebook share links. No login; approved-content-only (no free-text authoring).
+- [added] `web/lib/social/sharePost.ts` (+ test) — maps a library `SocialPost` onto the pure
+  `renderChannelText` renderer with a CTA→public-URL map; the test proves all 50 posts render on
+  all 7 channels within limits and always keep the disclaimer.
+- [updated] Surfaced `/social` in the nav ("Get Involved"), `sitemap.ts`, and the a11y scan
+  (`e2e/a11y.spec.ts`). Reuses the existing public, rate-limited `/api/graphics` endpoint.
+
+**Verifications Performed:**
+- Full gauntlet (tsc, vitest incl. the new sharePost test, lint, compliance, build + bundle guard,
+  chromium axe now covering `/social`). No new public capability beyond the friendly UI — the
+  graphics endpoint was already public.
+
+**Known Gaps:**
+- Graphic headline is derived from the selected approved post (not free text) by design, so
+  supporters can't put arbitrary copy on the campaign brand.
+
+**Files Modified:**
+- web/app/(site)/social/page.tsx, web/components/site/{SocialToolkit,PostChannelCard,GraphicPicker}.tsx
+- web/lib/social/sharePost.ts, web/lib/social/sharePost.test.ts
+- web/lib/site.ts (NAV), web/app/sitemap.ts, web/e2e/a11y.spec.ts
+
+---
+
 ## 2026-07-21 -- v1.x -- Multi-channel voter outreach: SMS vote agent, social precise text, Messenger/IG inbox, GOTV early-vote email
 
 **Changes:**

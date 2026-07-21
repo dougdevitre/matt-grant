@@ -14,6 +14,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/issues",
     "/join",
     "/act",
+    "/social",
     "/events",
     "/vote",
     "/vote/absentee",
