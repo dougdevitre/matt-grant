@@ -26,6 +26,22 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-21 -- v1.x -- /social: auto-size each channel's share graphic
+
+**Changes:**
+- [added] The per-channel **"Post to [platform]"** buttons now attach the graphic **sized for that
+  platform** (X → landscape, Instagram/Facebook → square, TikTok/Story → 9:16, LinkedIn → banner),
+  driven by the existing `CHANNELS[c].imageFormat` map (previously unused). `GraphicPicker` reports
+  its `{format,theme,photo}` up (`onChange`); the hero share still uses the on-screen image, while
+  each channel row builds its own `graphicSrc({ format: spec.imageFormat, theme, photo, headline })`.
+- [added] Invariant test (`channels.test.ts`): every channel's `imageFormat` is a real
+  `/api/graphics` format, so the auto-sized image can never 404.
+
+**Files Modified:**
+- web/components/site/{GraphicPicker,SocialToolkit,PostChannelCard}.tsx, web/lib/social/channels.test.ts
+
+---
+
 ## 2026-07-21 -- v1.x -- One-tap "Share with image" on /social
 
 **Changes:**

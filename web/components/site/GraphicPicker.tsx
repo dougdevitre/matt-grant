@@ -23,7 +23,9 @@ const THEMES = [
   { id: "paper", label: "White", swatch: "#FBFAF6" },
 ] as const;
 
-export function GraphicPicker({ headlineSource, onSrcChange }: { headlineSource: string; onSrcChange?: (src: string) => void }) {
+export type GraphicParams = { format: string; theme: string; photo: boolean };
+
+export function GraphicPicker({ headlineSource, onChange }: { headlineSource: string; onChange?: (p: GraphicParams) => void }) {
   const [format, setFormat] = useState<string>("ig_square");
   const [theme, setTheme] = useState<string>("brick");
   const [photo, setPhoto] = useState(true);
@@ -31,10 +33,11 @@ export function GraphicPicker({ headlineSource, onSrcChange }: { headlineSource:
   const headline = useMemo(() => trimHeadline(headlineSource, 90), [headlineSource]);
   const src = useMemo(() => graphicSrc({ format, theme, photo, headline: headlineSource }), [format, theme, photo, headlineSource]);
 
-  // Report the current image URL up so the share actions use exactly what's on screen.
+  // Report the chosen params up: the hero share uses this exact image, and the
+  // per-channel buttons reuse the theme/photo at each channel's ideal size.
   useEffect(() => {
-    onSrcChange?.(src);
-  }, [src, onSrcChange]);
+    onChange?.({ format, theme, photo });
+  }, [format, theme, photo, onChange]);
 
   return (
     <div className="grid gap-4 sm:grid-cols-[minmax(0,220px)_1fr]">

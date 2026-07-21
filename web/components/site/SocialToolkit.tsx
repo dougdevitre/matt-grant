@@ -8,7 +8,7 @@ import { graphicSrc } from "@/lib/social/graphicUrl";
 import { shareImageFile, toImageFile, canShareFiles, type ShareOutcome } from "@/lib/social/nativeShare";
 import { CAMPAIGN } from "@/lib/site";
 import { PostChannelCard } from "./PostChannelCard";
-import { GraphicPicker } from "./GraphicPicker";
+import { GraphicPicker, type GraphicParams } from "./GraphicPicker";
 
 const CTAS: CTA[] = ["Vote", "Volunteer", "Donate", "Learn more", "Share"];
 
@@ -135,27 +135,29 @@ function Detail({ post }: { post: SocialPost }) {
   const shareText = renderChannelText(renderable, "facebook").text;
   const filename = `matt-grant-${post.id}.png`;
 
-  // The graphic currently shown in the picker — the exact image every share uses.
-  const [imageSrc, setImageSrc] = useState(() => graphicSrc({ format: "ig_square", theme: "brick", photo: true, headline: post.caption }));
+  // Picker params (size/color/photo). The hero share uses this exact image; the
+  // per-channel buttons reuse the theme/photo at each channel's ideal size.
+  const [params, setParams] = useState<GraphicParams>({ format: "ig_square", theme: "brick", photo: true });
+  const heroSrc = useMemo(() => graphicSrc({ ...params, headline: post.caption }), [params, post.caption]);
   // Pre-fetch it into a File so navigator.share() fires inside the click's activation.
   const [imageFile, setImageFile] = useState<File | null>(null);
   useEffect(() => {
     let live = true;
     setImageFile(null);
-    toImageFile(imageSrc, filename).then((f) => {
+    toImageFile(heroSrc, filename).then((f) => {
       if (live) setImageFile(f);
     });
     return () => {
       live = false;
     };
-  }, [imageSrc, filename]);
+  }, [heroSrc, filename]);
 
   const [status, setStatus] = useState<string>("");
   const [sharing, setSharing] = useState(false);
   async function onShare() {
     setSharing(true);
     setStatus("Preparing…");
-    const outcome: ShareOutcome = await shareImageFile({ file: imageFile, imageUrl: imageSrc, filename, text: shareText, title: CAMPAIGN.committee, channel: "sheet" });
+    const outcome: ShareOutcome = await shareImageFile({ file: imageFile, imageUrl: heroSrc, filename, text: shareText, title: CAMPAIGN.committee, channel: "sheet" });
     setSharing(false);
     setStatus(
       outcome === "shared"
@@ -179,7 +181,7 @@ function Detail({ post }: { post: SocialPost }) {
 
       <h3 className="mt-6 text-sm font-semibold text-ink">Your graphic</h3>
       <p className="mb-3 text-xs text-slate">Branded image with the disclaimer built in — pick a size and color; this is what gets shared.</p>
-      <GraphicPicker headlineSource={post.caption} onSrcChange={setImageSrc} />
+      <GraphicPicker headlineSource={post.caption} onChange={setParams} />
 
       {/* Hero one-tap share */}
       <div className="mt-5 rounded-md border border-line bg-paper/50 p-4">
@@ -194,11 +196,11 @@ function Detail({ post }: { post: SocialPost }) {
 
       <h3 className="mt-6 text-sm font-semibold text-ink">Or post to one channel</h3>
       <p className="mb-2 text-xs text-slate">
-        <strong className="font-semibold text-ink">Post to</strong> opens that channel and copies the caption + saves the image (paste, attach, post).
+        <strong className="font-semibold text-ink">Post to</strong> opens that channel and copies the caption + saves the image, <strong className="font-semibold text-ink">sized right for that platform</strong> (paste, attach, post).
         Or <strong className="font-semibold text-ink">Copy text</strong> for just the words. Every version ends with the required disclaimer.
       </p>
       <div className="mt-2">
-        <PostChannelCard post={renderable} imageUrl={imageSrc} filename={filename} />
+        <PostChannelCard post={renderable} theme={params.theme} photo={params.photo} headline={post.caption} idBase={post.id} />
       </div>
     </div>
   );

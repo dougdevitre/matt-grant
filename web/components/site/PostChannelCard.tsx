@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CHANNEL_IDS, CHANNELS, renderChannelText, type ChannelId, type RenderablePost } from "@/lib/social/channels";
 import { channelPostUrl } from "@/lib/social/sharePost";
+import { graphicSrc } from "@/lib/social/graphicUrl";
 import { postToChannel } from "@/lib/social/nativeShare";
 import { SITE_URL } from "@/lib/site";
 
@@ -11,23 +12,53 @@ import { SITE_URL } from "@/lib/site";
 // → link → the "Paid for by" disclaimer, trimmed to each platform's limit) with a
 // per-channel copy button, char count, and notes. renderChannelText is pure and
 // client-safe, so this is byte-identical to what the campaign's own tools produce.
-// "Post to [platform]" opens the channel and copies the caption + saves the image.
-export function PostChannelCard({ post, imageUrl, filename }: { post: RenderablePost; imageUrl?: string; filename?: string }) {
+// "Post to [platform]" opens the channel and copies the caption + saves the image,
+// auto-sized to that platform via CHANNELS[channel].imageFormat.
+export function PostChannelCard({
+  post,
+  theme,
+  photo,
+  headline,
+  idBase,
+}: {
+  post: RenderablePost;
+  theme?: string;
+  photo?: boolean;
+  headline?: string;
+  idBase?: string;
+}) {
   return (
     <div className="space-y-2">
       {CHANNEL_IDS.map((c) => (
-        <ChannelRow key={c} post={post} channel={c} imageUrl={imageUrl} filename={filename} />
+        <ChannelRow key={c} post={post} channel={c} theme={theme} photo={photo} headline={headline} idBase={idBase} />
       ))}
     </div>
   );
 }
 
-function ChannelRow({ post, channel, imageUrl, filename }: { post: RenderablePost; channel: ChannelId; imageUrl?: string; filename?: string }) {
+function ChannelRow({
+  post,
+  channel,
+  theme,
+  photo,
+  headline,
+  idBase,
+}: {
+  post: RenderablePost;
+  channel: ChannelId;
+  theme?: string;
+  photo?: boolean;
+  headline?: string;
+  idBase?: string;
+}) {
   const spec = CHANNELS[channel];
   const rendered = renderChannelText(post, channel);
   const [open, setOpen] = useState(false);
   const shortLabel = spec.label.replace(/\s*\(.*\)$/, "");
   const openTo = channelPostUrl(channel, { text: rendered.text, link: post.link ?? SITE_URL });
+  // The image, sized for THIS channel (X→landscape, IG→square, TikTok/Story→9:16).
+  const imageUrl = graphicSrc({ format: spec.imageFormat, theme: theme ?? "brick", photo: photo ?? true, headline: headline ?? "" });
+  const filename = `matt-grant-${idBase ?? "post"}-${channel}.png`;
 
   return (
     <div className="rounded-sm border border-line bg-paper/40 p-2.5">
@@ -48,8 +79,8 @@ function ChannelRow({ post, channel, imageUrl, filename }: { post: RenderablePos
           onClick={() =>
             postToChannel({
               openUrl: openTo.href,
-              imageUrl: imageUrl ?? "",
-              filename: filename ?? "matt-grant.png",
+              imageUrl,
+              filename,
               text: rendered.text,
               channel,
             })
