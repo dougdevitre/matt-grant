@@ -73,6 +73,15 @@ describe("renderChannelText", () => {
   it("is deterministic", () => {
     expect(renderChannelText(post, "linkedin").text).toBe(renderChannelText(post, "linkedin").text);
   });
+
+  it("keeps the disclaimer within TikTok's 2200 slice (publish.ts slices to 2200)", () => {
+    // A caption far longer than 2200: the disclaimer must survive within the limit
+    // so the adapter's .slice(0, 2200) never chops it off.
+    const r = renderChannelText({ caption: "word ".repeat(700).trim(), hashtags: ["a"], link: "https://x.co/y" }, "tiktok");
+    expect(r.maxChars).toBe(2200);
+    expect(r.chars).toBeLessThanOrEqual(2200);
+    expect(r.text.slice(0, 2200)).toContain(DISC); // survives the adapter slice
+  });
 });
 
 describe("composeText (unchanged legacy helper)", () => {

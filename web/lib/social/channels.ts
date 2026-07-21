@@ -97,7 +97,11 @@ export const CHANNELS: Record<ChannelId, ChannelSpec> = {
   tiktok: {
     id: "tiktok",
     label: "TikTok",
-    maxChars: 4000, // 2026 caption ceiling
+    // The Content Posting API caps a photo post's title/caption at 2200 chars and
+    // publish.ts slices to 2200 before sending. renderChannelText MUST fit within
+    // that so the trailing "Paid for by" disclaimer is never sliced off (a
+    // compliance line, not optional). Do not raise above the adapter's slice.
+    maxChars: 2200,
     feedTruncateChars: 100,
     recommendedHashtags: [3, 5],
     maxHashtags: 20,
