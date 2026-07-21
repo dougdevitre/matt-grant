@@ -26,6 +26,49 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-21 -- v1.x -- Multi-channel voter outreach: SMS vote agent, social precise text, Messenger/IG inbox, GOTV early-vote email
+
+**Changes:**
+- [added] SMS conversational **vote agent** — county/ZIP-aware replies with a calendar-tracking
+  early-vote phrase, plus geo/segment enrichment of the consent ledger and a send-path priority
+  ranking that orders higher-likelihood voters first (MOBILIZE > BANK > PERSUADE > PROSPECT),
+  never dropping unscored recipients (`web/lib/sms/votebot.ts`, `web/lib/sms/geo.ts`,
+  `web/lib/reports/smsTargeting.ts`, `web/lib/reports/smsEnrichment.ts`).
+- [added] Admin-gated **SMS Spend Decider** page — interactive Twilio-pricing/segment-cap
+  planner in the dashboard (`web/app/dashboard/sms/spend/`, gate `sendSms`).
+- [added] Social **precise per-channel paste-ready text** (`renderChannelText`) and an
+  extension queue/posted API so staff copy exactly what each platform will publish
+  (`web/lib/social/channels.ts`, `/api/ext/social/*`).
+- [updated] Compliance fix: TikTok caption cap corrected (4000→2200) so the FEC disclaimer
+  is never sliced off; added tests for the two ext social routes.
+- [added] Facebook **Messenger + Instagram DM** human-only inbox — signed webhook, 24h-window
+  aware, no auto-send (`web/app/api/webhooks/meta/`, `web/lib/messenger/*`,
+  `/dashboard/messages/social`).
+- [added] GOTV **early-vote EMAIL** mirroring the SMS pushes, sharing one date source
+  (`web/lib/electionDates.ts`) so the two channels can't drift; closed compliance-audit **E-1**
+  with a broadcast-level unsubscribe-substitution test.
+
+**Verifications Performed:**
+- Each change shipped through the full CI gauntlet (tsc, vitest, lint, `npm run compliance`,
+  build + bundle guard, chromium a11y). The voter-file TCPA isolation guard
+  (`web/lib/sms/audiences.voterfile-isolation.test.ts`) stayed green — no `lib/sms/` module
+  reads voter partitions; voter-file numbers are never broadcast-texted.
+
+**Known Gaps:**
+- All channels remain inert behind readiness gates + Matt's approval hold. Go-live still waits
+  on human/operational steps: SES verification, Twilio Toll-Free Verification, Meta App Review
+  (`pages_messaging` / `instagram_manage_messages`), and the prod `infra/setup-aws.sh` run.
+
+**Files Modified:**
+- web/lib/sms/votebot.ts, web/lib/sms/geo.ts, web/lib/sms/templates.ts
+- web/lib/reports/smsTargeting.ts, web/lib/reports/smsEnrichment.ts, web/scripts/enrich-sms-audience.ts
+- web/lib/reports/smsSpend.ts, web/components/dashboard/SmsSpendDecider.tsx, web/app/dashboard/sms/spend/page.tsx
+- web/lib/social/channels.ts, web/app/api/ext/social/*
+- web/app/api/webhooks/meta/route.ts, web/lib/messenger/*, web/app/dashboard/messages/social/*
+- web/lib/electionDates.ts, web/lib/email/templates.ts, web/lib/email/broadcasts.ts, web/lib/email/campaignSend.test.ts
+
+---
+
 ## 2026-07-16 -- v1.x -- Low-risk follow-ups: ingest hardening, runbook, donation primitives
 
 **Changes:**
