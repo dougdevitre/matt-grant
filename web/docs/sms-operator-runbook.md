@@ -65,10 +65,20 @@ On **Text blasts** (`/dashboard/sms`):
 4. **Choose the audience.**
    - **Admins** pick any of: **All opted-in**, **Volunteers**, **by account role**, or **by
      volunteer role/door**. Counts show how many opted-in people each selection reaches.
-   - **Admins can then NARROW the selection** with the "Narrow by county / voter tag" chips —
-     the six MO-02 counties, school districts (once the crosswalk is generated, below), voter
-     segments (MOBILIZE/BANK/…), **Not yet voted** (skips numbers confirmed voted — GOTV chase
-     mode), or a list of ZIPs. Filters match data carried on the consent row itself: county/ZIP
+   - **Then pick a voter-priority group** from the **"Who to reach — by likelihood to vote"**
+     dropdown. It offers likelihood-ordered presets over the voter segments — **All opted-in
+     (ranked)**, **GOTV core (MOBILIZE)**, **Top priority (MOBILIZE + BANK)**, **Supporters +
+     persuadable**, **Reliable supporters (BANK)**, **Persuadable (PERSUADE)**, **Prospects
+     (PROSPECT)**, and **GOTV chase (top priority, not yet voted)** — each showing its opted-in
+     reach. The preset narrows the opted-in audience to that group and still queues the
+     highest-likelihood voters first. The dropdown shows even before any voter tags exist (it's
+     disabled with a "run `npm run enrich:sms`" hint) so you know the feature is there; until
+     tags exist, blasts go to all opted-in numbers.
+   - **Admins can further NARROW** with the "Narrow by county / voter tag" chips —
+     the six MO-02 counties, school districts (once the crosswalk is generated, below),
+     **Not yet voted** (skips numbers confirmed voted — GOTV chase mode), or a list of ZIPs.
+     (Voter **segments** now live in the priority dropdown above, not these chips.)
+     Filters match data carried on the consent row itself: county/ZIP
      the person told the SMS vote agent, plus the tags the enrichment job writes
      (`npm run enrich:sms` — run it nightly during the chase window so "Not yet voted" tracks
      the daily ballot returns). Filters only ever shrink the audience; a geo-filtered send
@@ -86,15 +96,25 @@ On **Text blasts** (`/dashboard/sms`):
    - **Captains** see **"Texting your team only — N opted-in volunteers"** — the send is
      automatically scoped to their own roster (optionally narrowed by volunteer role). Captains
      can't widen it to the full list.
-5. **Deciding the budget? Use the Spend Decider.** Admins have **Comms → Spend decider**
-   (`/dashboard/sms/spend`): paste the message, check the Twilio per-segment pricing defaults
-   (verify against twilio.com/en-us/sms/pricing/us — they go stale), enter list size, planned
-   sends, and a total budget, and it returns the **Max texts** cap to type into the composer plus
-   a table of exactly which voter-priority groups the capped blast reaches. Figures are planning
-   estimates; reconcile real spend against the Twilio console and record it as an FEC disbursement.
+5. **Set a budget right in the composer.** Admins have a **Budget $** field under the audience.
+   Type a dollar amount and the composer computes the **Max texts** cap live (same math as the
+   Spend Decider, using the message's segment count and the Twilio planning rates) and shows how
+   far the money reaches — e.g. *"$150 funds ~6,000 texts — the top 60% of this group by voter
+   priority, reaching down through PERSUADE."* The budget fills **Max texts** automatically (it
+   overrides a manual cap); clear the budget to type a cap by hand. Nobody below the line is
+   removed — they're just not sent that blast. For **multi-send calendar planning** (spread a
+   budget across several blasts, model reply costs, per-segment coverage table), use the fuller
+   **Comms → Spend decider** (`/dashboard/sms/spend`) — linked from the composer as *"Full spend
+   planner →"*. Verify the Twilio per-segment rates against twilio.com/en-us/sms/pricing/us — they
+   go stale. Figures are planning estimates; reconcile real spend against the Twilio console and
+   record it as an FEC disbursement.
 6. **Priority ordering is automatic.** Every blast queues **highest-likelihood voters first** —
    ranked by the voter segment (MOBILIZE > BANK > PERSUADE > PROSPECT) with turnout score as the
-   within-segment tie-break, using the tags the enrichment job wrote (`npm run enrich:sms`).
+   within-segment tie-break, using the tags the enrichment job wrote. The enrichment now runs
+   **nightly on its own** (the `matt-grant-sms-enrich` EventBridge rule → `/api/cron/sms-enrich`,
+   ~3am CT) so segments and `banked`/already-voted status stay fresh during GOTV; you can still
+   run it on demand with `npm run enrich:sms`. Check the **SMS go-live** page's *Insight data*
+   panel to see when it last ran and what share of opted-ins are scored.
    Numbers with no voter match go last but are still sent. The optional **Max texts** field caps a
    blast to the top N by priority — the cut hits only the lowest-priority tail, and the
    confirmation reports "Capped to the N highest-priority of M." Because the queue drains in
@@ -104,7 +124,12 @@ On **Text blasts** (`/dashboard/sms`):
 8. **(Optional) Schedule for later.** Pick a date/time. Texts only leave during quiet hours
    (9am–8pm CT); a time outside that waits for the next window.
 9. **Send.** Confirm the audience in the prompt. The blast queues and sends in the background,
-   respecting quiet hours. Track progress under **Recent sends**.
+   respecting quiet hours. The confirmation gives a **completion ETA** for a large send (e.g.
+   *"Sending ~30/min — done ~Thu 2:10 PM CT"*), and **Recent sends** shows a live *"~done …"*
+   estimate while a blast is still draining. Texts pace out at ~30/min by default (tunable via
+   the `SMS_DRAIN_BATCH` / `SMS_DRAIN_BATCHES_PER_RUN` env vars, bounded to Twilio toll-free
+   throughput), so a several-thousand-person GOTV push spreads across one or more send windows —
+   the ETA tells you when it lands.
 
 ---
 

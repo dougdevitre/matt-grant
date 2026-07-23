@@ -26,6 +26,12 @@ export type SpendModel = {
   coveragePct: number; // share of the list a capped blast reaches (0-100); 100 when uncapped
 };
 
+// Twilio US toll-free planning defaults (verify at twilio.com/en-us/sms/pricing/us before
+// budgeting). Shared by the Spend Decider page AND the composer's inline budget field so the
+// two can't drift — base $0.0079/segment, mid-range carrier surcharge $0.0045/segment, a 5%
+// expected reply rate. In CENTS to match SpendInput.
+export const SMS_PRICING_DEFAULTS = { basePerSegCents: 0.79, carrierPerSegCents: 0.45, replyRatePct: 5 } as const;
+
 /** Cost of one recipient replying: one inbound segment (base only — carrier
  *  fees are outbound) plus the vote agent's ~2-segment answer. */
 export function replyCostCents(basePerSegCents: number, carrierPerSegCents: number): number {

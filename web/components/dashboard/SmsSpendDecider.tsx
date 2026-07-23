@@ -8,6 +8,7 @@ import {
   COVERAGE_ORDER,
   ILLUSTRATIVE_COUNTS,
   UNSCORED_KEY,
+  SMS_PRICING_DEFAULTS,
 } from "@/lib/reports/smsSpend";
 
 const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-field";
@@ -32,9 +33,9 @@ const DEFAULT_MESSAGE = withCompliance(
 export function SmsSpendDecider({ optedIn, segmentCounts }: SpendDeciderProps) {
   const haveRealCounts = Object.values(segmentCounts).some((n) => n > 0);
   const [message, setMessage] = useState(DEFAULT_MESSAGE);
-  const [base, setBase] = useState("0.0079");
-  const [fee, setFee] = useState("0.0045");
-  const [replies, setReplies] = useState("5");
+  const [base, setBase] = useState(String(SMS_PRICING_DEFAULTS.basePerSegCents / 100));
+  const [fee, setFee] = useState(String(SMS_PRICING_DEFAULTS.carrierPerSegCents / 100));
+  const [replies, setReplies] = useState(String(SMS_PRICING_DEFAULTS.replyRatePct));
   const [list, setList] = useState(String(optedIn > 0 ? optedIn : 1000));
   const [sends, setSends] = useState("7");
   const [budget, setBudget] = useState("150");

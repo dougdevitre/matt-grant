@@ -26,6 +26,96 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-23 -- v1.x -- SMS go-live readiness: auto-enrichment cron, insights panel, throughput/ETA
+
+**Context:** Assessment of whether the campaign can send insight-driven SMS blasts today. Finding:
+no engineering blocks it — sending is gated on operational setup (Twilio Toll-Free Verification,
+3 SSM secrets, running `infra/setup-aws.sh`, loading the voter file + running enrichment). Added
+three engineering enhancements so delivery is more automated and transparent.
+
+**Changes:**
+- [added] **Auto-run enrichment (Enhancement A).** Extracted the enrichment orchestration into
+  `web/lib/reports/smsEnrichmentRun.ts` (`runSmsEnrichment`), refactored
+  `web/scripts/enrich-sms-audience.ts` to a thin CLI wrapper, added
+  `web/app/api/cron/sms-enrich/route.ts` (bearer-gated, counts-only), and a nightly
+  `matt-grant-sms-enrich` EventBridge rule (`cron(0 8 * * ? *)`) in `infra/setup-aws.sh`. Keeps
+  segments/`banked` fresh during GOTV without a manual run. Reads voter data only from
+  `lib/reports/` — never `lib/sms/` (isolation wall intact).
+- [added] **Insights-readiness panel (Enhancement B).** `smsInsightsReadiness()` in
+  `web/lib/reports/smsInsights.ts` (voter file loaded? last enrich time? % of opted-ins scored?),
+  surfaced as a panel on `/dashboard/sms/go-live` via `components/dashboard/SmsInsightsReadiness.tsx`
+  so staff know whether the priority presets reflect real voters.
+- [added] **Throughput knobs + completion ETA (Enhancement C).** `web/lib/sms/pacing.ts` centralizes
+  env-configurable `SMS_DRAIN_BATCH` / `SMS_DRAIN_BATCHES_PER_RUN` (bounded) and a window-aware
+  `estimateDrainCompletion()` / `formatEtaCT()`. The send confirmation and the Recent-sends list
+  now show when a large blast finishes (respecting 9am–8pm CT quiet hours).
+- [updated] `web/docs/sms-operator-runbook.md` — nightly enrichment, ETA, throughput knobs.
+
+**Verifications Performed:**
+- `npm run test` — 197 SMS/reports tests pass, incl. new `lib/reports/smsInsights.test.ts` and
+  `lib/sms/pacing.test.ts`, and the `audiences.voterfile-isolation.test.ts` guard stays green
+  (the new cron/enrichment/insights code reads voter data only from `lib/reports/` + cron routes).
+- `npx tsc --noEmit` clean; `npm run lint` clean (no new warnings); production build succeeds.
+
+**Known Gaps:**
+- The go-live runbook itself (Twilio verification, SSM secrets, voter ingest, first enrich) is
+  operational and unchanged — see `web/docs/sms-go-live.md`.
+
+**Files Modified:**
+- web/lib/reports/smsEnrichmentRun.ts (new), web/scripts/enrich-sms-audience.ts
+- web/app/api/cron/sms-enrich/route.ts (new), infra/setup-aws.sh
+- web/lib/reports/smsInsights.ts (new), web/lib/reports/smsInsights.test.ts (new)
+- web/components/dashboard/SmsInsightsReadiness.tsx (new), web/app/dashboard/sms/go-live/page.tsx
+- web/lib/sms/pacing.ts (new), web/lib/sms/pacing.test.ts (new)
+- web/lib/sms/campaigns.ts, web/app/api/cron/sms-drain/route.ts
+- web/app/dashboard/sms/actions.ts, web/app/dashboard/sms/page.tsx
+- web/docs/sms-operator-runbook.md
+
+---
+
+## 2026-07-23 -- v1.x -- SMS composer: voter-priority preset dropdown + inline budget
+
+**Changes:**
+- [added] `SMS_PRIORITY_PRESETS` + `presetTokens()` in `web/lib/sms/audiences.ts` — likelihood-ordered
+  presets over the voter segments (All opted-in, GOTV core / MOBILIZE, Top priority / MOBILIZE+BANK,
+  Supporters+persuadable, BANK, PERSUADE, PROSPECT, GOTV chase). Each expands to the existing
+  `segment:`/`outstanding` target tokens, so the resolver, counts, and validation need no new grammar.
+  Voter-free by construction (plain strings, no `lib/voters` import — the TCPA isolation guard).
+- [updated] `web/components/dashboard/SmsComposer.tsx` — surfaces the presets as a first-class
+  **"Who to reach — by likelihood to vote"** dropdown (shown always; disabled/zero empty state before
+  `npm run enrich:sms` has tagged anyone), and adds an inline **Budget $** field that computes the
+  "Max texts" cap live (via `spendModel`) and reports how far the money reaches ("top N%, down through
+  <segment>"). Budget overrides the manual cap. Voter segments moved out of the "narrow by county /
+  voter tag" chips into this dropdown.
+- [updated] `web/app/dashboard/sms/page.tsx` — passes `priorityPresets`, `optedIn`, and per-segment
+  `segmentCounts` to the composer (derived from the already-fetched `smsTargetCounts()`; no new query).
+- [added] `SMS_PRICING_DEFAULTS` in `web/lib/reports/smsSpend.ts`, shared by the composer and the Spend
+  Decider page so the Twilio planning rates can't drift.
+- [updated] Docs: `web/docs/sms-operator-runbook.md` (audience + budget steps),
+  `candidate/sms-targeting-plan.md` (Phase 6).
+
+**Verifications Performed:**
+- `npm run test` — 186 SMS/reports tests pass, incl. new `web/lib/sms/priorityPresets.test.ts` (presets
+  expand only to `parseTargetToken`-valid tokens, MOBILIZE-first order, never MONITOR) and the
+  `audiences.voterfile-isolation.test.ts` guard (proves no new `lib/sms → lib/voters` edge).
+- `npx tsc --noEmit` clean; `npm run lint` clean (no new warnings).
+
+**Known Gaps:**
+- Preset reach counts are per-group opted-in sums; actual sends depend on group/role selection and
+  de-dupe (labeled "before de-dupe and filters"). Real per-segment response weights remain Phase 5.
+
+**Files Modified:**
+- web/lib/sms/audiences.ts
+- web/lib/reports/smsSpend.ts
+- web/components/dashboard/SmsComposer.tsx
+- web/components/dashboard/SmsSpendDecider.tsx
+- web/app/dashboard/sms/page.tsx
+- web/lib/sms/priorityPresets.test.ts (new)
+- web/docs/sms-operator-runbook.md
+- candidate/sms-targeting-plan.md
+
+---
+
 ## 2026-07-21 -- v1.x -- Runbook: TikTok, YouTube, and Threads auto-posting setup
 
 **Changes:**

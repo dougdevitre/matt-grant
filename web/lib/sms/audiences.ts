@@ -93,6 +93,46 @@ export const TARGET_DISTRICT_OPTIONS: TargetOption[] = Object.values(SCHOOL_DIST
   label: d.name,
 }));
 
+// ── Voter-priority presets (composer "Who to reach — by likelihood to vote") ───
+// Bundled, likelihood-ordered tiers over the voter segments, surfaced as a single
+// dropdown in the composer. Each preset expands to existing target tokens
+// ("segment:<NAME>" + optional "outstanding"), so the resolver/counts/validation
+// need no new grammar. Order mirrors VOTER_SEGMENT_NAMES (already the send-path
+// priority order MOBILIZE→BANK→PERSUADE→PROSPECT); MONITOR (priority 0, never
+// funded) is intentionally omitted. Voter-free by construction — plain strings,
+// no lib/voters import (the TCPA isolation guard).
+export type SmsPriorityPreset = {
+  value: string;
+  label: string;
+  segments: string[]; // subset of VOTER_SEGMENT_NAMES; [] = whole opted-in list, ranked
+  outstanding?: boolean; // GOTV chase: also drop numbers confirmed already voted
+};
+
+export const SMS_PRIORITY_PRESETS: SmsPriorityPreset[] = [
+  { value: "all", label: "All opted-in (ranked by likelihood)", segments: [] },
+  { value: "gotv", label: "GOTV core — supporters who need a push (MOBILIZE)", segments: ["MOBILIZE"] },
+  { value: "top", label: "Top priority — MOBILIZE + BANK", segments: ["MOBILIZE", "BANK"] },
+  { value: "supporters-persuade", label: "Supporters + persuadable — MOBILIZE + BANK + PERSUADE", segments: ["MOBILIZE", "BANK", "PERSUADE"] },
+  { value: "bank", label: "Reliable supporters (BANK)", segments: ["BANK"] },
+  { value: "persuade", label: "Persuadable habitual voters (PERSUADE)", segments: ["PERSUADE"] },
+  { value: "prospect", label: "Prospects (PROSPECT)", segments: ["PROSPECT"] },
+  { value: "gotv-chase", label: "GOTV chase — top priority, not yet voted", segments: ["MOBILIZE", "BANK"], outstanding: true },
+];
+
+export function isSmsPriorityPreset(v: string): boolean {
+  return SMS_PRIORITY_PRESETS.some((p) => p.value === v);
+}
+
+/** Expand a preset to its target tokens ("segment:<NAME>" [+ "outstanding"]).
+ *  Every emitted token is one parseTargetToken already validates, so a preset can
+ *  only ever NARROW the opted-in audience, never widen it. The "all" preset emits
+ *  nothing — the whole opted-in list, ranked highest-likelihood-first at send. */
+export function presetTokens(p: SmsPriorityPreset): string[] {
+  const tokens = p.segments.map((s) => `segment:${s}`);
+  if (p.outstanding) tokens.push(OUTSTANDING_TOKEN);
+  return tokens;
+}
+
 export type TargetToken = { kind: "county" | "zip" | "segment" | "district"; value: string } | { kind: "outstanding" };
 
 /** Parse+validate a targeting token, or null (invalid tokens are ignored, never widen). */
