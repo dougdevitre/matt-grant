@@ -26,6 +26,39 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-23 -- v1.x -- SMS go-live: one-click "Run enrichment now" button
+
+**Context:** The composer's priority-group dropdown stays disabled (all groups · 0) until the
+opted-in ledger carries voter-score tags. Enrichment previously needed the CLI or the nightly
+cron; this adds a dashboard button so staff can re-tag on demand once the voter file is loaded.
+
+**Changes:**
+- [added] `runEnrichmentNow()` server action in `web/app/dashboard/sms/go-live/actions.ts` —
+  admin-gated (`manageTeam`), calls the shared `runSmsEnrichment()`, revalidates
+  `/dashboard/sms/go-live` + `/dashboard/sms`, returns a counts-only summary.
+- [added] `web/components/dashboard/RunEnrichmentButton.tsx` (mirrors `GoLiveTestSend`), rendered
+  in the *Insight data* panel (`SmsInsightsReadiness.tsx`), disabled until the voter file is
+  ingested (enrichment has nothing to tag without it).
+- [updated] `web/app/dashboard/sms/go-live/actions.test.ts` — admin success, non-admin rejection,
+  and error-path coverage for the new action.
+- [updated] `web/docs/sms-operator-runbook.md` — the button as the no-CLI way to re-tag.
+
+**Note:** This only automates the *enrichment* step. The one-time voter-file ingest
+(`scripts/ingest-voters.ts --from-s3`) remains an operator/CLI step (large PII files in private
+S3), and the scored ceiling is still bounded by opt-in-list growth + name+ZIP match rate.
+
+**Verifications Performed:**
+- `npm run test` — 1912 pass (incl. 3 new action tests + the `voterfile-isolation` guard);
+  `npx tsc --noEmit` clean; `npm run lint` clean; production build succeeds.
+
+**Files Modified:**
+- web/app/dashboard/sms/go-live/actions.ts, web/app/dashboard/sms/go-live/actions.test.ts
+- web/components/dashboard/RunEnrichmentButton.tsx (new)
+- web/components/dashboard/SmsInsightsReadiness.tsx
+- web/docs/sms-operator-runbook.md
+
+---
+
 ## 2026-07-23 -- v1.x -- SMS go-live readiness: auto-enrichment cron, insights panel, throughput/ETA
 
 **Context:** Assessment of whether the campaign can send insight-driven SMS blasts today. Finding:

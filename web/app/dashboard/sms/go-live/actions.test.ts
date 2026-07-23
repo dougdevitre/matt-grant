@@ -6,6 +6,7 @@ const staffGate = vi.fn();
 const smsEnabled = vi.fn();
 const sendSms = vi.fn();
 const isOptedIn = vi.fn();
+const runSmsEnrichment = vi.fn();
 
 vi.mock("@/lib/auth", () => ({ staffGate: () => staffGate() }));
 vi.mock("@/lib/sms/send", () => ({
@@ -19,8 +20,10 @@ vi.mock("@/lib/sms/send", () => ({
   },
 }));
 vi.mock("@/lib/sms/consent", () => ({ isOptedIn: (...a: unknown[]) => isOptedIn(...a) }));
+vi.mock("@/lib/reports/smsEnrichmentRun", () => ({ runSmsEnrichment: (...a: unknown[]) => runSmsEnrichment(...a) }));
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
-import { sendGoLiveTest } from "./actions";
+import { sendGoLiveTest, runEnrichmentNow } from "./actions";
 
 const form = (o: Record<string, string>) => {
   const f = new FormData();
@@ -34,6 +37,17 @@ beforeEach(() => {
   smsEnabled.mockResolvedValue(true);
   isOptedIn.mockResolvedValue(true);
   sendSms.mockResolvedValue({ sent: true, sid: "SM1" });
+  runSmsEnrichment.mockResolvedValue({
+    optedIn: 8,
+    voterMatchedTags: 3,
+    contactZipOnlyTags: 1,
+    geoPreserved: 0,
+    skippedNotOptedIn: 0,
+    totalWrites: 4,
+    written: 4,
+    byCounty: {},
+    dryRun: false,
+  });
 });
 
 describe("sendGoLiveTest", () => {
@@ -84,5 +98,31 @@ describe("sendGoLiveTest", () => {
     const res = await sendGoLiveTest(form({ to: "+13145551234" }));
     expect(res.ok).toBe(false);
     expect(res.message).toMatch(/30032/);
+  });
+});
+
+describe("runEnrichmentNow", () => {
+  it("runs enrichment for an admin and reports the counts", async () => {
+    const res = await runEnrichmentNow();
+    expect(res.ok).toBe(true);
+    expect(runSmsEnrichment).toHaveBeenCalledTimes(1);
+    expect(res.message).toMatch(/4\/4/);
+    expect(res.message).toMatch(/3 matched/);
+  });
+
+  it("refuses a non-admin (lacks manageTeam) and never enriches", async () => {
+    staffGate.mockResolvedValue({ ok: true, role: "captain", email: "c@x.test" });
+    const res = await runEnrichmentNow();
+    expect(res.ok).toBe(false);
+    expect(res.message).toMatch(/admins/i);
+    expect(runSmsEnrichment).not.toHaveBeenCalled();
+  });
+
+  it("surfaces an enrichment failure without throwing", async () => {
+    runSmsEnrichment.mockRejectedValue(new Error("DYNAMODB_TABLE not set"));
+    const res = await runEnrichmentNow();
+    expect(res.ok).toBe(false);
+    expect(res.message).toMatch(/Couldn't enrich/i);
+    expect(res.message).toMatch(/DYNAMODB_TABLE/);
   });
 });

@@ -112,9 +112,10 @@ On **Text blasts** (`/dashboard/sms`):
    ranked by the voter segment (MOBILIZE > BANK > PERSUADE > PROSPECT) with turnout score as the
    within-segment tie-break, using the tags the enrichment job wrote. The enrichment now runs
    **nightly on its own** (the `matt-grant-sms-enrich` EventBridge rule → `/api/cron/sms-enrich`,
-   ~3am CT) so segments and `banked`/already-voted status stay fresh during GOTV; you can still
-   run it on demand with `npm run enrich:sms`. Check the **SMS go-live** page's *Insight data*
-   panel to see when it last ran and what share of opted-ins are scored.
+   ~3am CT) so segments and `banked`/already-voted status stay fresh during GOTV. To re-tag on
+   demand, click **Run enrichment now** on the **SMS go-live** page's *Insight data* panel (no CLI
+   needed) — or run `npm run enrich:sms`. That same panel shows whether the voter file is loaded,
+   when enrichment last ran, and what share of opted-ins are scored.
    Numbers with no voter match go last but are still sent. The optional **Max texts** field caps a
    blast to the top N by priority — the cut hits only the lowest-priority tail, and the
    confirmation reports "Capped to the N highest-priority of M." Because the queue drains in

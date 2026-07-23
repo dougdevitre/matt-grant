@@ -1,4 +1,5 @@
 import type { SmsInsightsReadiness as Readiness } from "@/lib/reports/smsInsights";
+import { RunEnrichmentButton } from "@/components/dashboard/RunEnrichmentButton";
 
 // Data-side readiness panel for the SMS go-live page — the companion to the Twilio
 // creds panel. Tells staff whether the composer's priority-tier presets + budget
@@ -69,9 +70,11 @@ export function SmsInsightsReadiness({ readiness }: { readiness: Readiness }) {
         ) : !voterFileLoaded ? (
           <>Run <span className="font-mono">ingest-voters.ts --from-s3</span>, then <span className="font-mono">npm run enrich:sms</span>, to light up the presets. Until then blasts go to all opted-in numbers.</>
         ) : (
-          <>Voter file is loaded — run <span className="font-mono">npm run enrich:sms</span> (or wait for the nightly job) to tag the opted-in ledger. Until then blasts go to all opted-in numbers.</>
+          <>Voter file is loaded — run enrichment (or wait for the nightly job) to tag the opted-in ledger. Until then blasts go to all opted-in numbers.</>
         )}
       </p>
+      {/* One-click enrichment — disabled until the voter file is ingested. */}
+      <RunEnrichmentButton disabled={!voterFileLoaded} />
     </div>
   );
 }
