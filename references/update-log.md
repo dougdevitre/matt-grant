@@ -26,6 +26,36 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-23 -- v1.x -- SMS composer: insight-freshness indicator by the priority dropdown
+
+**Context:** The priority-group dropdown ranks by voter scores, but the composer gave no signal of
+how much of the opted-in list is scored or how fresh those scores are — an operator could send an
+"insight-driven" blast on stale/sparse data unknowingly. This surfaces that, with a one-click path
+to refresh.
+
+**Changes:**
+- [added] `web/lib/relativeTime.ts` (+ test) — `relTime()` (server-safe, now-injectable) extracted
+  from the go-live panel, plus `isStale()`. `SmsInsightsReadiness.tsx` now imports it (de-duped).
+- [updated] `web/app/dashboard/sms/page.tsx` — fetches `smsInsightsReadiness()` (admin only) and
+  passes `insight={ scoredPct, lastEnrichedLabel, stale }` to the composer; the timestamp is
+  formatted on the server so the client component stays hydration-safe.
+- [updated] `web/components/dashboard/SmsComposer.tsx` — under the priority dropdown, a freshness
+  line: *"N% of opted-ins scored · voter scores updated <time> · Refresh →"*, tinting *(may be
+  stale)* when scores are >~2 days old; the empty-state hint now links to the go-live **Run
+  enrichment now** button instead of only naming the CLI.
+- [updated] `web/docs/sms-operator-runbook.md` — documents the freshness line.
+
+**Verifications Performed:**
+- `npm run test` — 1921 pass (incl. 9 new `relativeTime` tests + the `voterfile-isolation` guard);
+  `npx tsc --noEmit` clean; `npm run lint` clean; production build succeeds.
+
+**Files Modified:**
+- web/lib/relativeTime.ts (new), web/lib/relativeTime.test.ts (new)
+- web/components/dashboard/SmsInsightsReadiness.tsx, web/components/dashboard/SmsComposer.tsx
+- web/app/dashboard/sms/page.tsx, web/docs/sms-operator-runbook.md
+
+---
+
 ## 2026-07-23 -- v1.x -- SMS go-live: one-click "Run enrichment now" button
 
 **Context:** The composer's priority-group dropdown stays disabled (all groups · 0) until the

@@ -22,6 +22,11 @@ export type SmsAudienceOption = { value: string; label: string; count: number };
 // opted-in reach of the group (segment-count sum, or the whole list for "all").
 export type SmsPriorityPresetOption = { value: string; label: string; tokens: string[]; count: number };
 
+// Insight freshness for the priority dropdown: what share of the opted-in list is
+// scored + a server-formatted "last enriched" label (formatted on the server so this
+// client component stays hydration-safe). `stale` flags scores older than ~2 days.
+export type SmsInsightFreshness = { scoredPct: number; lastEnrichedLabel: string; stale: boolean };
+
 export type SavedSmsOption = { id: string; name: string; role: Role | null; vars: Record<string, string> };
 
 export function SmsComposer({
@@ -36,6 +41,7 @@ export function SmsComposer({
   teamCount = 0,
   optedIn = 0,
   segmentCounts = {},
+  insight,
 }: {
   groups: SmsAudienceOption[];
   volRoles?: SmsAudienceOption[];
@@ -59,6 +65,8 @@ export function SmsComposer({
   // inline budget field's cap + priority-coverage readout. Admin composer only.
   optedIn?: number;
   segmentCounts?: Record<string, number>;
+  // Insight freshness shown under the priority dropdown (admin only; undefined hides it).
+  insight?: SmsInsightFreshness;
 }) {
   const isCaptain = scope === "captain";
   const [key, setKey] = useState(SMS_TEMPLATES[0]?.key ?? "");
@@ -347,10 +355,22 @@ export function SmsComposer({
                   {haveScores ? (
                     <p className="mt-1 text-xs text-slate">
                       Narrows the opted-in audience to this voter-priority group and queues the highest-likelihood voters first.
+                      {insight && (
+                        <>
+                          {" "}
+                          <span className={insight.stale ? "text-gold-ink" : undefined}>
+                            {Math.round(insight.scoredPct)}% of opted-ins scored · voter scores updated {insight.lastEnrichedLabel}
+                            {insight.stale ? " (may be stale)" : ""}
+                          </span>{" "}
+                          <a href="/dashboard/sms/go-live" className="text-field hover:underline">Refresh →</a>
+                        </>
+                      )}
                     </p>
                   ) : (
                     <p className="mt-1 text-xs text-gold-ink">
-                      No voter-score tags yet — run <code>npm run enrich:sms</code> to tag opted-in voters by likelihood, then reload. Until then, blasts go to all opted-in numbers.
+                      No voter-score tags yet —{" "}
+                      <a href="/dashboard/sms/go-live" className="underline">run enrichment on the go-live page</a>{" "}
+                      to tag opted-in voters by likelihood, then reload. Until then, blasts go to all opted-in numbers.
                     </p>
                   )}
                 </>

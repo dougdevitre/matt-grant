@@ -20,8 +20,10 @@ import {
   presetTokens,
 } from "@/lib/sms/audiences";
 import { UNSCORED_KEY } from "@/lib/reports/smsSpend";
+import { smsInsightsReadiness } from "@/lib/reports/smsInsights";
 import { listSmsCampaigns } from "@/lib/sms/campaigns";
 import { estimateDrainCompletion, formatEtaCT } from "@/lib/sms/pacing";
+import { relTime, isStale } from "@/lib/relativeTime";
 import { listSavedTemplates } from "@/lib/notifications/messageTemplates";
 
 export const dynamic = "force-dynamic";
@@ -36,13 +38,16 @@ export default async function SmsPage() {
   const scope = isCaptain ? "captain" : "admin";
   const captainEmail = isCaptain ? email ?? undefined : undefined;
 
-  const [counts, volRoleCounts, teamCount, targetCounts, sent, enabled, saved] = await Promise.all([
+  const [counts, volRoleCounts, teamCount, targetCounts, insights, sent, enabled, saved] = await Promise.all([
     smsAudienceCounts(),
     // Captain: chip counts scoped to their team so the reach shown matches what actually sends.
     smsVolRoleCounts(captainEmail),
     isCaptain ? smsCaptainTeamCount(captainEmail) : Promise.resolve(0),
     // Targeting chips are admin-only (their counts cover the whole opt-in ledger).
     isAdmin ? smsTargetCounts() : Promise.resolve({} as Record<string, number>),
+    // Insight freshness for the composer's priority dropdown (admin only): how much of
+    // the opted-in list is scored + when enrichment last ran.
+    isAdmin ? smsInsightsReadiness() : Promise.resolve(null),
     listSmsCampaigns(15),
     smsEnabled(),
     listSavedTemplates("sms"),
@@ -92,6 +97,12 @@ export default async function SmsPage() {
         count: p.segments.length === 0 ? counts.subscribers : p.segments.reduce((n, s) => n + (segmentCounts[s] ?? 0), 0),
       }))
     : [];
+  // Insight freshness shown beside the priority dropdown: what share of the opted-in
+  // list is scored + a server-formatted "last enriched" label (formatting on the
+  // server keeps the client component hydration-safe). Admin only.
+  const insight = insights
+    ? { scoredPct: insights.scoredPct, lastEnrichedLabel: relTime(insights.lastEnrichedAt), stale: isStale(insights.lastEnrichedAt) }
+    : undefined;
   const when = (iso: string) =>
     new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
@@ -123,7 +134,7 @@ export default async function SmsPage() {
         </div>
       )}
 
-      <SmsComposer groups={groups} volRoles={volRoles} targets={targets} priorityPresets={priorityPresets} saved={saved} canSend={canSend} disabled={!enabled} scope={scope} teamCount={teamCount} optedIn={counts.subscribers} segmentCounts={segmentCounts} />
+      <SmsComposer groups={groups} volRoles={volRoles} targets={targets} priorityPresets={priorityPresets} saved={saved} canSend={canSend} disabled={!enabled} scope={scope} teamCount={teamCount} optedIn={counts.subscribers} segmentCounts={segmentCounts} insight={insight} />
 
       <div className="mt-8">
         <p className="eyebrow text-slate">Recent sends</p>

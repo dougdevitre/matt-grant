@@ -1,5 +1,6 @@
 import type { SmsInsightsReadiness as Readiness } from "@/lib/reports/smsInsights";
 import { RunEnrichmentButton } from "@/components/dashboard/RunEnrichmentButton";
+import { relTime } from "@/lib/relativeTime";
 
 // Data-side readiness panel for the SMS go-live page — the companion to the Twilio
 // creds panel. Tells staff whether the composer's priority-tier presets + budget
@@ -8,22 +9,6 @@ import { RunEnrichmentButton } from "@/components/dashboard/RunEnrichmentButton"
 
 const YES = "bg-field/15 text-field";
 const NO = "bg-gold/20 text-ink";
-
-// Coarse relative time — the page is force-dynamic, so this renders server-side only
-// (no hydration mismatch). "just now" / "3h ago" / "2d ago" / a date past a week.
-function relTime(iso: string | null): string {
-  if (!iso) return "never";
-  const then = new Date(iso).getTime();
-  if (!Number.isFinite(then)) return "never";
-  const mins = Math.max(0, Math.floor((Date.now() - then) / 60000));
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days <= 7) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
 
 export function SmsInsightsReadiness({ readiness }: { readiness: Readiness }) {
   const { voterFileLoaded, optedIn, scored, scoredPct, lastEnrichedAt, ready } = readiness;

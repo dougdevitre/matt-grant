@@ -71,9 +71,12 @@ On **Text blasts** (`/dashboard/sms`):
      persuadable**, **Reliable supporters (BANK)**, **Persuadable (PERSUADE)**, **Prospects
      (PROSPECT)**, and **GOTV chase (top priority, not yet voted)** — each showing its opted-in
      reach. The preset narrows the opted-in audience to that group and still queues the
-     highest-likelihood voters first. The dropdown shows even before any voter tags exist (it's
-     disabled with a "run `npm run enrich:sms`" hint) so you know the feature is there; until
-     tags exist, blasts go to all opted-in numbers.
+     highest-likelihood voters first. Under the dropdown a freshness line tells you **how much of
+     the opted-in list is scored and when the scores were last updated** (e.g. *"42% of opted-ins
+     scored · voter scores updated 3h ago · Refresh →"*) — so you know how far to trust the
+     targeting; if it reads *(may be stale)*, click **Refresh →** to run enrichment. The dropdown
+     shows even before any voter tags exist (disabled, linking to the go-live page's **Run
+     enrichment now**); until tags exist, blasts go to all opted-in numbers.
    - **Admins can further NARROW** with the "Narrow by county / voter tag" chips —
      the six MO-02 counties, school districts (once the crosswalk is generated, below),
      **Not yet voted** (skips numbers confirmed voted — GOTV chase mode), or a list of ZIPs.
