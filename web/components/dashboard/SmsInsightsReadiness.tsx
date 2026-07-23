@@ -11,9 +11,16 @@ const YES = "bg-field/15 text-field";
 const NO = "bg-gold/20 text-ink";
 
 export function SmsInsightsReadiness({ readiness }: { readiness: Readiness }) {
-  const { voterFileLoaded, optedIn, scored, scoredPct, lastEnrichedAt, ready } = readiness;
+  const { voterFileLoaded, voterFileCount, optedIn, scored, scoredPct, lastEnrichedAt, ready } = readiness;
   const enriched = lastEnrichedAt !== null;
   const pct = Math.round(scoredPct);
+  const num = (n: number) => n.toLocaleString("en-US");
+
+  const funnel: { value: string; label: string }[] = [
+    { value: num(voterFileCount), label: "voters loaded" },
+    { value: num(optedIn), label: "opted-in (textable)" },
+    { value: `${num(scored)}${optedIn > 0 ? ` · ${pct}%` : ""}`, label: "scored" },
+  ];
 
   return (
     <div className="card mt-6 p-5">
@@ -22,7 +29,27 @@ export function SmsInsightsReadiness({ readiness }: { readiness: Readiness }) {
         The composer&rsquo;s <span className="font-semibold">Who to reach — by likelihood to vote</span> presets
         and budget coverage only reflect real voters once the voter file is ingested and enrichment has run.
       </p>
-      <div className="mt-3 divide-y divide-line">
+
+      {/* The funnel: why 500k voters ≠ 500k textable. Voter file → opt-in → scored. */}
+      <div className="mt-3 flex flex-wrap items-stretch gap-2">
+        {funnel.map((s, i) => (
+          <div key={s.label} className="flex items-center gap-2">
+            <div className="rounded-sm border border-line bg-paper px-3 py-2">
+              <p className="font-display text-xl font-semibold tabular-nums text-ink">{s.value}</p>
+              <p className="font-mono text-[0.6rem] uppercase tracking-eyebrow text-slate">{s.label}</p>
+            </div>
+            {i < funnel.length - 1 && <span aria-hidden className="text-slate">→</span>}
+          </div>
+        ))}
+      </div>
+      <p className="mt-2 text-xs text-slate">
+        Only <span className="font-semibold">opted-in</span> numbers can be texted (TCPA) — the voter file itself
+        is never messaged. <span className="font-semibold">Scored</span> = opted-ins matched to a voter by
+        name+ZIP, which is what powers the priority presets. Grow the opt-in list and run enrichment to raise
+        the last two numbers.
+      </p>
+
+      <div className="mt-4 divide-y divide-line">
         <div className="flex items-center gap-3 py-2.5">
           <span className={`shrink-0 rounded-sm px-2 py-0.5 font-mono text-[0.6rem] uppercase tracking-eyebrow ${voterFileLoaded ? YES : NO}`}>
             {voterFileLoaded ? "Loaded" : "Not loaded"}

@@ -117,8 +117,11 @@ On **Text blasts** (`/dashboard/sms`):
    **nightly on its own** (the `matt-grant-sms-enrich` EventBridge rule → `/api/cron/sms-enrich`,
    ~3am CT) so segments and `banked`/already-voted status stay fresh during GOTV. To re-tag on
    demand, click **Run enrichment now** on the **SMS go-live** page's *Insight data* panel (no CLI
-   needed) — or run `npm run enrich:sms`. That same panel shows whether the voter file is loaded,
-   when enrichment last ran, and what share of opted-ins are scored.
+   needed) — or run `npm run enrich:sms`. That panel leads with the **funnel** —
+   *`<voters> loaded → <opted-in> textable → <scored> scored`* — which explains why a ~500k voter
+   file only reaches the opted-in list: the voter file is never texted (TCPA), and only opted-ins
+   matched to a voter by name+ZIP get scored. It also shows whether the voter file is loaded, when
+   enrichment last ran, and what share of opted-ins are scored.
    Numbers with no voter match go last but are still sent. The optional **Max texts** field caps a
    blast to the top N by priority — the cut hits only the lowest-priority tail, and the
    confirmation reports "Capped to the N highest-priority of M." Because the queue drains in

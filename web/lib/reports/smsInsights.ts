@@ -15,8 +15,9 @@ import { listVoterAggs } from "@/lib/voters/store";
 export type SmsInsightsReadiness = {
   configured: boolean; // false when the DB isn't configured (everything below is 0/false)
   voterFileLoaded: boolean; // VOTERAGG rollups present → ingest has run for real
-  optedIn: number; // opted-in ledger size
-  scored: number; // opted-in rows carrying a voterSegment tag
+  voterFileCount: number; // total voters in the file (sum of the precinct rollups) — the ~500k
+  optedIn: number; // opted-in ledger size (the textable audience)
+  scored: number; // opted-in rows carrying a voterSegment tag (matched to a voter)
   scoredPct: number; // scored / optedIn * 100 (0 when optedIn is 0)
   lastEnrichedAt: string | null; // most recent enrichedAt across the ledger, or null
   ready: boolean; // voterFileLoaded && scored > 0 → presets show real groups
@@ -25,6 +26,7 @@ export type SmsInsightsReadiness = {
 const empty: SmsInsightsReadiness = {
   configured: false,
   voterFileLoaded: false,
+  voterFileCount: 0,
   optedIn: 0,
   scored: 0,
   scoredPct: 0,
@@ -56,9 +58,13 @@ export async function smsInsightsReadiness(): Promise<SmsInsightsReadiness> {
       }
     }
     const voterFileLoaded = aggs.length > 0;
+    // Total voters = the same per-precinct count sum districtRollup() uses (~178 agg
+    // rows, never a 500k scan). This is the top of the funnel the panel shows.
+    const voterFileCount = aggs.reduce((n, a) => n + (a.count ?? 0), 0);
     return {
       configured: true,
       voterFileLoaded,
+      voterFileCount,
       optedIn,
       scored,
       scoredPct: optedIn > 0 ? (scored / optedIn) * 100 : 0,

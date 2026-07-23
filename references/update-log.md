@@ -26,6 +26,36 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-23 -- v1.x -- SMS go-live: voter-file → opt-in → scored funnel
+
+**Context:** With ~500k voters loaded but the SMS priority groups reading · 0, the voter-DB vs.
+SMS-reach gap looked broken when it's actually the compliant design (the voter file is never
+texted; SMS reaches only opted-ins; scores attach only to opted-ins matched by name+ZIP). Makes
+that relationship legible.
+
+**Changes:**
+- [added] `voterFileCount` to `smsInsightsReadiness()` (`web/lib/reports/smsInsights.ts`) — summed
+  from the ~178 precinct rollups already fetched (`listVoterAggs`), the same count
+  `districtRollup()` uses; no 500k scan.
+- [updated] `web/components/dashboard/SmsInsightsReadiness.tsx` — a headline funnel
+  *`<voters> loaded → <opted-in> textable → <scored> scored`* with a caption explaining the two
+  drop-offs (TCPA opt-in gate + name+ZIP match), above the existing status rows + Run enrichment now.
+- [updated] `web/lib/reports/smsInsights.test.ts` — `voterFileCount` sums agg counts; 0 when empty.
+- [updated] `web/docs/sms-operator-runbook.md` — documents the funnel.
+
+**Note:** Running enrichment stays a prod action (the button/cron) — this change only surfaces the
+relationship; it doesn't move the numbers.
+
+**Verifications Performed:**
+- `npm run test` — 1922 pass (incl. the new funnel assertion + the `voterfile-isolation` guard);
+  `npx tsc --noEmit` clean; `npm run lint` clean; production build succeeds.
+
+**Files Modified:**
+- web/lib/reports/smsInsights.ts, web/lib/reports/smsInsights.test.ts
+- web/components/dashboard/SmsInsightsReadiness.tsx, web/docs/sms-operator-runbook.md
+
+---
+
 ## 2026-07-23 -- v1.x -- SMS composer: insight-freshness indicator by the priority dropdown
 
 **Context:** The priority-group dropdown ranks by voter scores, but the composer gave no signal of
