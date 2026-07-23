@@ -3,6 +3,7 @@ import { ddb, TABLE, PK, newId, dbConfigured, queryAllPages } from "@/lib/db";
 import { sendSms } from "@/lib/sms/send";
 import { isOptedIn } from "@/lib/sms/consent";
 import { isBlocked } from "@/lib/sms/moderation";
+import { SMS_DRAIN_BATCH } from "@/lib/sms/pacing";
 
 // Queued SMS broadcasts, drained in bounded batches by drainSmsOnce() (first batch
 // inline + the /api/cron/sms-drain worker) — the same claim-before-send pattern as
@@ -10,7 +11,7 @@ import { isBlocked } from "@/lib/sms/moderation";
 // RE-CHECKED at send (someone may text STOP in between). Sends only run inside the
 // quiet-hours window; outside it the drain no-ops and resumes next window.
 const SMS_PK = PK.smsCampaigns;
-const BATCH = 10; // small — respect Twilio messaging-service throughput
+const BATCH = SMS_DRAIN_BATCH; // env-configurable (SMS_DRAIN_BATCH), bounded 1..60
 
 export type SmsCampaignStatus = "scheduled" | "queued" | "sending" | "sent" | "failed";
 

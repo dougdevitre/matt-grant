@@ -110,7 +110,11 @@ On **Text blasts** (`/dashboard/sms`):
    record it as an FEC disbursement.
 6. **Priority ordering is automatic.** Every blast queues **highest-likelihood voters first** —
    ranked by the voter segment (MOBILIZE > BANK > PERSUADE > PROSPECT) with turnout score as the
-   within-segment tie-break, using the tags the enrichment job wrote (`npm run enrich:sms`).
+   within-segment tie-break, using the tags the enrichment job wrote. The enrichment now runs
+   **nightly on its own** (the `matt-grant-sms-enrich` EventBridge rule → `/api/cron/sms-enrich`,
+   ~3am CT) so segments and `banked`/already-voted status stay fresh during GOTV; you can still
+   run it on demand with `npm run enrich:sms`. Check the **SMS go-live** page's *Insight data*
+   panel to see when it last ran and what share of opted-ins are scored.
    Numbers with no voter match go last but are still sent. The optional **Max texts** field caps a
    blast to the top N by priority — the cut hits only the lowest-priority tail, and the
    confirmation reports "Capped to the N highest-priority of M." Because the queue drains in
@@ -120,7 +124,12 @@ On **Text blasts** (`/dashboard/sms`):
 8. **(Optional) Schedule for later.** Pick a date/time. Texts only leave during quiet hours
    (9am–8pm CT); a time outside that waits for the next window.
 9. **Send.** Confirm the audience in the prompt. The blast queues and sends in the background,
-   respecting quiet hours. Track progress under **Recent sends**.
+   respecting quiet hours. The confirmation gives a **completion ETA** for a large send (e.g.
+   *"Sending ~30/min — done ~Thu 2:10 PM CT"*), and **Recent sends** shows a live *"~done …"*
+   estimate while a blast is still draining. Texts pace out at ~30/min by default (tunable via
+   the `SMS_DRAIN_BATCH` / `SMS_DRAIN_BATCHES_PER_RUN` env vars, bounded to Twilio toll-free
+   throughput), so a several-thousand-person GOTV push spreads across one or more send windows —
+   the ETA tells you when it lands.
 
 ---
 

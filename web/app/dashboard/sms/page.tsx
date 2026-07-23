@@ -21,6 +21,7 @@ import {
 } from "@/lib/sms/audiences";
 import { UNSCORED_KEY } from "@/lib/reports/smsSpend";
 import { listSmsCampaigns } from "@/lib/sms/campaigns";
+import { estimateDrainCompletion, formatEtaCT } from "@/lib/sms/pacing";
 import { listSavedTemplates } from "@/lib/notifications/messageTemplates";
 
 export const dynamic = "force-dynamic";
@@ -128,14 +129,21 @@ export default async function SmsPage() {
         <p className="eyebrow text-slate">Recent sends</p>
         {sent.length > 0 ? (
           <ul className="mt-3 divide-y divide-line rounded-sm border border-line">
-            {sent.map((c) => (
+            {sent.map((c) => {
+              // ETA for a blast still draining (queued/sending, some left): window-aware,
+              // so operators see when a large send finishes. Scheduled rows show their
+              // start time instead, so no ETA there.
+              const remaining = Math.max(0, c.total - c.sentCount);
+              const draining = (c.status === "queued" || c.status === "sending") && remaining > 0;
+              const etaNote = draining ? ` · ~done ${formatEtaCT(estimateDrainCompletion(remaining).eta)}` : "";
+              return (
               <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm">
                 <span className="min-w-0">
                   <span className="text-ink">{c.body.length > 60 ? `${c.body.slice(0, 60)}…` : c.body}</span>{" "}
                   <span className="text-slate">
                     → {c.audience} · {c.sentCount}/{c.total} sent
                     {c.failedCount ? ` · ${c.failedCount} failed` : ""}
-                    {c.skippedCount ? ` · ${c.skippedCount} skipped` : ""} · by {c.createdBy}
+                    {c.skippedCount ? ` · ${c.skippedCount} skipped` : ""}{etaNote} · by {c.createdBy}
                   </span>
                 </span>
                 <span className="flex shrink-0 items-center gap-2">
@@ -155,7 +163,8 @@ export default async function SmsPage() {
                   </span>
                 </span>
               </li>
-            ))}
+              );
+            })}
           </ul>
         ) : (
           <p className="mt-3 text-sm text-slate">No text blasts sent yet.</p>

@@ -84,6 +84,7 @@ DEST_INGEST="$(create_destination matt-grant-ingest /api/research/ingest)"
 DEST_DRAIN="$(create_destination matt-grant-email-drain /api/cron/email-drain)"
 DEST_SOCIAL="$(create_destination matt-grant-social-drain /api/cron/social-drain)"
 DEST_SMS="$(create_destination matt-grant-sms-drain /api/cron/sms-drain)"
+DEST_SMS_ENRICH="$(create_destination matt-grant-sms-enrich /api/cron/sms-enrich)"
 DEST_NEWS="$(create_destination matt-grant-research-news /api/research/news)"
 DEST_BIO="$(create_destination matt-grant-research-bio /api/research/bio)"
 DEST_DISTRICTS="$(create_destination matt-grant-district-insights /api/cron/district-insights)"
@@ -126,6 +127,9 @@ create_rule matt-grant-email-drain     "rate(1 minute)"      "$DEST_DRAIN"
 create_rule matt-grant-social-drain    "rate(1 minute)"      "$DEST_SOCIAL"
 # Queued SMS broadcasts drain the same way; the route no-ops during quiet hours.
 create_rule matt-grant-sms-drain       "rate(1 minute)"      "$DEST_SMS"
+# Re-tag the opted-in ledger with fresh voter scores + ballot returns nightly (~3am
+# CT) so the composer's priority presets/budget coverage stay current during GOTV.
+create_rule matt-grant-sms-enrich      "cron(0 8 * * ? *)"   "$DEST_SMS_ENRICH"
 # Lightweight enrichments refresh on their own cadence (decoupled from the heavy
 # ingest): news daily (time-sensitive), bios weekly (rarely change).
 create_rule matt-grant-research-news   "cron(0 9 * * ? *)"   "$DEST_NEWS"

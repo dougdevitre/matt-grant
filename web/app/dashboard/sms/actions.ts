@@ -9,6 +9,7 @@ import { getSmsTemplate, withCompliance } from "@/lib/sms/templates";
 import { createSmsCampaign, drainSmsOnce } from "@/lib/sms/campaigns";
 import { resolveSmsRecipients, smsAudienceLabel, isSmsGroup, parseVolRole, parseTargetToken, type SmsGroup } from "@/lib/sms/audiences";
 import { rankForBroadcast, toSegment } from "@/lib/reports/smsTargeting";
+import { estimateDrainCompletion, formatEtaCT, SMS_DRAIN_PER_MINUTE } from "@/lib/sms/pacing";
 import { asRole, type Role } from "@/lib/rbac";
 
 export type SmsSendState = { ok: boolean; message: string };
@@ -120,10 +121,16 @@ export async function sendSmsCampaign(formData: FormData): Promise<SmsSendState>
     /* cron worker continues */
   }
   revalidatePath("/dashboard/sms");
+  if (progressed?.done) {
+    return { ok: true, message: `Sent to ${progressed.sent} of ${recipients.length}.${cappedNote}` };
+  }
+  // Large blasts pace out over the 9am–8pm CT window — give the operator an ETA so a
+  // multi-hour send isn't a surprise (throughput knobs live in lib/sms/pacing.ts).
+  const remaining = recipients.length - (progressed?.sent ?? 0);
+  const est = estimateDrainCompletion(remaining);
+  const eta = est.sendMinutes > 0 ? ` Sending ~${SMS_DRAIN_PER_MINUTE}/min — done ~${formatEtaCT(est.eta)}.` : "";
   return {
     ok: true,
-    message: progressed?.done
-      ? `Sent to ${progressed.sent} of ${recipients.length}.${cappedNote}`
-      : `Queued ${recipients.length} opted-in recipients, highest-likelihood voters first.${cappedNote} Sending in the background (respects quiet hours, 9am–8pm CT). Track progress below.`,
+    message: `Queued ${recipients.length} opted-in recipients, highest-likelihood voters first.${cappedNote} Sending in the background (respects quiet hours, 9am–8pm CT).${eta} Track progress below.`,
   };
 }

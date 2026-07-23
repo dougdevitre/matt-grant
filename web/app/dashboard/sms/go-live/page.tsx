@@ -2,7 +2,9 @@ import Link from "next/link";
 import { requireCap } from "@/lib/auth";
 import { HowTo, PageHeader } from "@/components/dashboard/Notice";
 import { GoLiveTestSend } from "@/components/dashboard/GoLiveTestSend";
+import { SmsInsightsReadiness } from "@/components/dashboard/SmsInsightsReadiness";
 import { smsReadiness } from "@/lib/sms/health";
+import { smsInsightsReadiness } from "@/lib/reports/smsInsights";
 import { smsEnabled } from "@/lib/sms/send";
 import { SITE_URL } from "@/lib/site";
 
@@ -17,7 +19,7 @@ const NO = "bg-gold/20 text-ink";
 // the sms-go-live.md runbook.
 export default async function SmsGoLivePage() {
   await requireCap("manageTeam");
-  const [readiness, enabled] = await Promise.all([smsReadiness(), smsEnabled()]);
+  const [readiness, enabled, insights] = await Promise.all([smsReadiness(), smsEnabled(), smsInsightsReadiness()]);
   const webhookUrl = `${SITE_URL}/api/webhooks/twilio`;
 
   return (
@@ -89,6 +91,9 @@ export default async function SmsGoLivePage() {
           </div>
         </div>
       </div>
+
+      {/* 2b — Insight-data readiness (drives the composer's priority presets) */}
+      <SmsInsightsReadiness readiness={insights} />
 
       {/* 3 — One-click test send */}
       <div className="card mt-6 p-5">
