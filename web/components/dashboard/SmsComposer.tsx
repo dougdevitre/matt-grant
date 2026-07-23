@@ -1,9 +1,14 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import Link from "next/link";
 import { sendTestSms, sendSmsCampaign, type SmsSendState } from "@/app/dashboard/sms/actions";
 import { SMS_TEMPLATES, getSmsTemplate, withCompliance, smsSegments, nonGsmChars } from "@/lib/sms/templates";
 import { ROLES, ROLE_LABELS, type Role } from "@/lib/rbac";
+// Pure cost model — the SAME math the Spend Decider page uses (lib/reports/ lives
+// OUTSIDE lib/sms/, so importing it here adds no lib/sms → lib/voters edge and
+// keeps the TCPA isolation guard green). No data store, no send — client-safe.
+import { spendModel, coverageRows, UNSCORED_KEY, SMS_PRICING_DEFAULTS } from "@/lib/reports/smsSpend";
 
 const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm outline-none focus:border-field";
 
@@ -11,24 +16,37 @@ const field = "w-full rounded-sm border border-line bg-white px-3 py-2 text-sm o
 // pulls from DynamoDB, so it must not be imported into this client bundle).
 export type SmsAudienceOption = { value: string; label: string; count: number };
 
+// A priority-tier preset ("Who to reach — by likelihood to vote"). `tokens` are the
+// pre-expanded target tokens (segment:<NAME> [+ outstanding]) the server built from
+// SMS_PRIORITY_PRESETS, so the client needs no audiences.ts import; `count` is the
+// opted-in reach of the group (segment-count sum, or the whole list for "all").
+export type SmsPriorityPresetOption = { value: string; label: string; tokens: string[]; count: number };
+
 export type SavedSmsOption = { id: string; name: string; role: Role | null; vars: Record<string, string> };
 
 export function SmsComposer({
   groups,
   volRoles = [],
   targets = [],
+  priorityPresets = [],
   saved = [],
   canSend,
   disabled,
   scope = "admin",
   teamCount = 0,
+  optedIn = 0,
+  segmentCounts = {},
 }: {
   groups: SmsAudienceOption[];
   volRoles?: SmsAudienceOption[];
-  // Targeting filter chips (county / segment / not-yet-voted) with opted-in counts —
-  // they NARROW the selected audience by consent-row fields (self-reported geo +
-  // the enrichment job's voter tags). Admin composer only; empty hides the section.
+  // Targeting filter chips (county / not-yet-voted) with opted-in counts — they
+  // NARROW the selected audience by consent-row geo fields. Admin composer only;
+  // empty hides the section. (Voter segments live in the priority-tier dropdown.)
   targets?: SmsAudienceOption[];
+  // Priority-tier presets for the "Who to reach — by likelihood to vote" dropdown.
+  // Admin composer only; empty hides the selector. Always passed for admins so the
+  // disabled/zero empty state can render before enrichment tags exist.
+  priorityPresets?: SmsPriorityPresetOption[];
   saved?: SavedSmsOption[];
   canSend: boolean;
   disabled: boolean;
@@ -37,6 +55,10 @@ export function SmsComposer({
   // (optionally sub-filtered by the volunteer-role chips). "admin" is the full-list composer.
   scope?: "admin" | "captain";
   teamCount?: number;
+  // Opted-in list size + per-segment opted-in counts (Segment name + UNSCORED), for the
+  // inline budget field's cap + priority-coverage readout. Admin composer only.
+  optedIn?: number;
+  segmentCounts?: Record<string, number>;
 }) {
   const isCaptain = scope === "captain";
   const [key, setKey] = useState(SMS_TEMPLATES[0]?.key ?? "");
@@ -46,7 +68,9 @@ export function SmsComposer({
   const [roleSel, setRoleSel] = useState<Role[]>([]);
   const [volRoleSel, setVolRoleSel] = useState<string[]>([]);
   const [targetSel, setTargetSel] = useState<string[]>([]);
+  const [presetVal, setPresetVal] = useState("all"); // priority-tier preset value; "all" = no segment filter
   const [zipFilter, setZipFilter] = useState(""); // free-form ZIP list → zip:<zip5> tokens
+  const [budget, setBudget] = useState(""); // optional $ budget → auto-computed Max texts cap
   const [maxTexts, setMaxTexts] = useState(""); // optional cap — trims the lowest-priority tail
   const [testTo, setTestTo] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
@@ -90,7 +114,66 @@ export function SmsComposer({
     () => zipFilter.split(/[\s,]+/).filter((z) => /^\d{5}$/.test(z)).map((z) => `zip:${z}`),
     [zipFilter],
   );
-  const filtering = targetSel.length > 0 || zipTokens.length > 0;
+  // Priority-tier preset: its pre-expanded segment (+ outstanding) tokens narrow the send
+  // to the chosen likelihood group. "all" carries no tokens (whole opted-in list, ranked).
+  const selectedPreset = useMemo(() => priorityPresets.find((p) => p.value === presetVal), [priorityPresets, presetVal]);
+  const presetTokenList = useMemo(() => selectedPreset?.tokens ?? [], [selectedPreset]);
+  const filtering = presetTokenList.length > 0 || targetSel.length > 0 || zipTokens.length > 0;
+  // Whether any voter-score tags exist yet (UNSCORED excluded). Drives the disabled
+  // empty state on the preset dropdown + budget coverage, so the feature is visible
+  // before `npm run enrich:sms` has tagged anyone.
+  const haveScores = useMemo(
+    () => Object.entries(segmentCounts).some(([k, n]) => k !== UNSCORED_KEY && (n ?? 0) > 0),
+    [segmentCounts],
+  );
+  // The priority group the budget/coverage math is about: the selected preset's reach,
+  // or the whole opted-in list for "all". Falls back to optedIn when presets are absent.
+  const groupSize = selectedPreset ? selectedPreset.count : optedIn;
+
+  // Inline budget → cap. Reuses the Spend Decider's pure model (one blast, sends = 1):
+  // cost per text from the live message's segment count + shared Twilio planning rates.
+  // capPerBlast is null when the budget already covers the whole group (no cap needed).
+  const budgetCents = Math.round((parseFloat(budget) || 0) * 100);
+  const spend = useMemo(
+    () =>
+      spendModel({
+        segments: seg.segments,
+        basePerSegCents: SMS_PRICING_DEFAULTS.basePerSegCents,
+        carrierPerSegCents: SMS_PRICING_DEFAULTS.carrierPerSegCents,
+        replyRatePct: SMS_PRICING_DEFAULTS.replyRatePct,
+        listSize: groupSize,
+        sends: 1,
+        budgetCents,
+      }),
+    [seg.segments, groupSize, budgetCents],
+  );
+  const budgetActive = budgetCents > 0 && seg.segments > 0;
+  const budgetCap = budgetActive ? spend.capPerBlast : null; // null = budget covers everyone
+  // Where a budgeted blast lands: cumulate the selected group's per-segment counts in
+  // priority order and name the last group the cap reaches. "all" spans every segment
+  // (+ unscored tail); a restricted preset only counts its own segments.
+  const coverage = useMemo(() => {
+    if (!budgetActive || budgetCap == null) return null;
+    const inGroup = new Set(
+      presetTokenList
+        .filter((t) => t.startsWith("segment:"))
+        .map((t) => t.slice("segment:".length)),
+    );
+    const counts: Record<string, number> =
+      inGroup.size === 0
+        ? segmentCounts // "all": whole ledger incl. UNSCORED
+        : Object.fromEntries(Object.entries(segmentCounts).filter(([k]) => inGroup.has(k)));
+    const rows = coverageRows(counts, spend.perTextCents, budgetCap);
+    const reached = rows.filter((r) => r.count > 0 && r.status !== "beyond");
+    const last = reached[reached.length - 1];
+    return { lastGroup: last ? (last.key === UNSCORED_KEY ? "unscored" : last.key) : null };
+  }, [budgetActive, budgetCap, presetTokenList, segmentCounts, spend.perTextCents]);
+  // Effective send cap: an explicit budget wins; otherwise the manual Max texts field.
+  const rawMax = parseInt(maxTexts, 10);
+  const manualCap = Number.isFinite(rawMax) && rawMax > 0 ? rawMax : null;
+  const effectiveCap = budgetActive ? budgetCap : manualCap;
+  const usd = (cents: number, digits = 2) =>
+    "$" + (cents / 100).toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
 
   // Load a saved SMS template: rides the generic "custom" template — prefill the body + role.
   const loadSaved = (id: string) => {
@@ -108,8 +191,10 @@ export function SmsComposer({
     selected.forEach((g) => f.append("groups", g));
     roleSel.forEach((r) => f.append("roleGroups", r));
     volRoleSel.forEach((v) => f.append("volRoles", v));
-    [...targetSel, ...zipTokens].forEach((t) => f.append("targets", t));
-    f.set("maxTexts", maxTexts);
+    // Priority-preset tokens (segment:/outstanding) + any county/ZIP narrowing chips.
+    [...presetTokenList, ...targetSel, ...zipTokens].forEach((t) => f.append("targets", t));
+    // A budget-derived cap wins over the manual Max texts field when a budget is set.
+    f.set("maxTexts", effectiveCap != null ? String(effectiveCap) : "");
     f.set("scheduledAt", scheduledAt);
     f.set("testTo", testTo);
     f.set("personalize", personalize ? "true" : "false");
@@ -236,6 +321,40 @@ export function SmsComposer({
                   );
                 })}
               </div>
+              {/* Priority-tier preset: narrow the opted-in audience to a voter-priority
+                  group, ordered by likelihood to vote. Sends still reach only opted-in
+                  numbers — this filters + ranks them; it never reaches the voter file. */}
+              {priorityPresets.length > 0 && (
+                <>
+                  <label className="mt-3 block text-xs font-semibold text-slate" htmlFor="sms-priority">
+                    Who to reach — by likelihood to vote
+                  </label>
+                  <select
+                    id="sms-priority"
+                    value={presetVal}
+                    onChange={(e) => setPresetVal(e.target.value)}
+                    disabled={!haveScores}
+                    className={`${field} mt-1 disabled:opacity-60`}
+                    aria-label="Voter priority group"
+                  >
+                    {priorityPresets.map((p) => (
+                      <option key={p.value} value={p.value}>
+                        {p.label}
+                        {p.value !== "all" ? ` · ${p.count}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                  {haveScores ? (
+                    <p className="mt-1 text-xs text-slate">
+                      Narrows the opted-in audience to this voter-priority group and queues the highest-likelihood voters first.
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-xs text-gold-ink">
+                      No voter-score tags yet — run <code>npm run enrich:sms</code> to tag opted-in voters by likelihood, then reload. Until then, blasts go to all opted-in numbers.
+                    </p>
+                  )}
+                </>
+              )}
             </>
           )}
           {/* By volunteer role/door — opted-in numbers only; counts known up front. */}
@@ -301,6 +420,37 @@ export function SmsComposer({
               )}
             </>
           )}
+          {/* Budget → cap: enter a dollar budget and the composer computes the Max texts
+              cap live (same math as the Spend Decider), so operators don't page-hop.
+              A budget wins over the manual cap below and always cuts the lowest-priority tail. */}
+          {!isCaptain && (
+            <div className="mt-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="text-xs font-semibold text-slate" htmlFor="sms-budget">Budget $ (optional)</label>
+                <input
+                  id="sms-budget"
+                  type="number"
+                  min={0}
+                  step="5"
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value)}
+                  className={`${field} max-w-[8rem]`}
+                  placeholder="no budget"
+                  aria-label="Budget in dollars for this blast"
+                />
+                <Link href="/dashboard/sms/spend" className="font-mono text-xs text-field hover:underline">
+                  Full spend planner →
+                </Link>
+              </div>
+              {budgetActive && (
+                <p className="mt-1 text-xs text-slate">
+                  {budgetCap == null
+                    ? `${usd(budgetCents)} covers all ~${groupSize.toLocaleString()} in this group (${usd(spend.perTextCents, 4)}/text) — no cap needed.`
+                    : `${usd(budgetCents)} funds ~${budgetCap.toLocaleString()} texts (${usd(spend.perTextCents, 4)}/text) — the top ${Math.round(spend.coveragePct)}% of ${groupSize.toLocaleString()} by voter priority${coverage?.lastGroup ? `, reaching down through ${coverage.lastGroup}` : ""}. Fills Max texts automatically; nobody below the line is removed.`}
+                </p>
+              )}
+            </div>
+          )}
           {/* Priority cap: the queue always sends highest-likelihood voters first; an
               optional cap trims the lowest-priority tail (reported after the send). */}
           {!isCaptain && (
@@ -310,15 +460,17 @@ export function SmsComposer({
                 id="sms-max-texts"
                 type="number"
                 min={1}
-                value={maxTexts}
+                value={budgetActive ? (budgetCap ?? "") : maxTexts}
                 onChange={(e) => setMaxTexts(e.target.value)}
-                className={`${field} max-w-[8rem]`}
+                disabled={budgetActive}
+                className={`${field} max-w-[8rem] disabled:opacity-60`}
                 placeholder="no cap"
                 aria-label="Maximum number of texts to send"
               />
               <span className="text-xs text-slate">
-                Sends queue highest-likelihood voters first (segment + turnout score); a cap cuts only the
-                lowest-priority tail. Unscored numbers go last but are never dropped without a cap.
+                {budgetActive
+                  ? "Set from your budget above — clear the budget to enter a cap manually."
+                  : "Sends queue highest-likelihood voters first (segment + turnout score); a cap cuts only the lowest-priority tail. Unscored numbers go last but are never dropped without a cap."}
               </span>
             </div>
           )}

@@ -26,6 +26,49 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-23 -- v1.x -- SMS composer: voter-priority preset dropdown + inline budget
+
+**Changes:**
+- [added] `SMS_PRIORITY_PRESETS` + `presetTokens()` in `web/lib/sms/audiences.ts` — likelihood-ordered
+  presets over the voter segments (All opted-in, GOTV core / MOBILIZE, Top priority / MOBILIZE+BANK,
+  Supporters+persuadable, BANK, PERSUADE, PROSPECT, GOTV chase). Each expands to the existing
+  `segment:`/`outstanding` target tokens, so the resolver, counts, and validation need no new grammar.
+  Voter-free by construction (plain strings, no `lib/voters` import — the TCPA isolation guard).
+- [updated] `web/components/dashboard/SmsComposer.tsx` — surfaces the presets as a first-class
+  **"Who to reach — by likelihood to vote"** dropdown (shown always; disabled/zero empty state before
+  `npm run enrich:sms` has tagged anyone), and adds an inline **Budget $** field that computes the
+  "Max texts" cap live (via `spendModel`) and reports how far the money reaches ("top N%, down through
+  <segment>"). Budget overrides the manual cap. Voter segments moved out of the "narrow by county /
+  voter tag" chips into this dropdown.
+- [updated] `web/app/dashboard/sms/page.tsx` — passes `priorityPresets`, `optedIn`, and per-segment
+  `segmentCounts` to the composer (derived from the already-fetched `smsTargetCounts()`; no new query).
+- [added] `SMS_PRICING_DEFAULTS` in `web/lib/reports/smsSpend.ts`, shared by the composer and the Spend
+  Decider page so the Twilio planning rates can't drift.
+- [updated] Docs: `web/docs/sms-operator-runbook.md` (audience + budget steps),
+  `candidate/sms-targeting-plan.md` (Phase 6).
+
+**Verifications Performed:**
+- `npm run test` — 186 SMS/reports tests pass, incl. new `web/lib/sms/priorityPresets.test.ts` (presets
+  expand only to `parseTargetToken`-valid tokens, MOBILIZE-first order, never MONITOR) and the
+  `audiences.voterfile-isolation.test.ts` guard (proves no new `lib/sms → lib/voters` edge).
+- `npx tsc --noEmit` clean; `npm run lint` clean (no new warnings).
+
+**Known Gaps:**
+- Preset reach counts are per-group opted-in sums; actual sends depend on group/role selection and
+  de-dupe (labeled "before de-dupe and filters"). Real per-segment response weights remain Phase 5.
+
+**Files Modified:**
+- web/lib/sms/audiences.ts
+- web/lib/reports/smsSpend.ts
+- web/components/dashboard/SmsComposer.tsx
+- web/components/dashboard/SmsSpendDecider.tsx
+- web/app/dashboard/sms/page.tsx
+- web/lib/sms/priorityPresets.test.ts (new)
+- web/docs/sms-operator-runbook.md
+- candidate/sms-targeting-plan.md
+
+---
+
 ## 2026-07-21 -- v1.x -- Runbook: TikTok, YouTube, and Threads auto-posting setup
 
 **Changes:**

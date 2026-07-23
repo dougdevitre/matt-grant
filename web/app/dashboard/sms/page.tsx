@@ -13,10 +13,13 @@ import {
   SMS_GROUP_LABELS,
   VOL_ROLE_OPTIONS,
   TARGET_COUNTY_OPTIONS,
-  TARGET_SEGMENT_OPTIONS,
   TARGET_DISTRICT_OPTIONS,
   OUTSTANDING_TOKEN,
+  VOTER_SEGMENT_NAMES,
+  SMS_PRIORITY_PRESETS,
+  presetTokens,
 } from "@/lib/sms/audiences";
+import { UNSCORED_KEY } from "@/lib/reports/smsSpend";
 import { listSmsCampaigns } from "@/lib/sms/campaigns";
 import { listSavedTemplates } from "@/lib/notifications/messageTemplates";
 
@@ -50,17 +53,44 @@ export default async function SmsPage() {
   // Only surface volunteer-role chips that actually have opted-in members, so the
   // section isn't a wall of zeros (all 23 taxonomy tokens).
   const volRoles = VOL_ROLE_OPTIONS.map((o) => ({ ...o, count: volRoleCounts[o.value] ?? 0 })).filter((o) => o.count > 0);
-  // Targeting chips (admin only): counties/segments with at least one tagged
+  // Targeting chips (admin only): counties/districts with at least one tagged
   // opted-in number, plus the GOTV "not yet voted" chip once any tags exist —
   // hidden entirely until the vote agent or enrichment job has produced data.
+  // Voter SEGMENTS are no longer chips here — they're owned by the priority-tier
+  // preset dropdown below (built from SMS_PRIORITY_PRESETS); the chips stay as
+  // optional geographic fine-tuning that narrows the chosen priority group.
   const targets = isAdmin
     ? [
         ...TARGET_COUNTY_OPTIONS.map((o) => ({ ...o, count: targetCounts[o.value] ?? 0 })).filter((o) => o.count > 0),
         ...TARGET_DISTRICT_OPTIONS.map((o) => ({ ...o, count: targetCounts[o.value] ?? 0 })).filter((o) => o.count > 0),
-        ...TARGET_SEGMENT_OPTIONS.map((o) => ({ ...o, count: targetCounts[o.value] ?? 0 })).filter((o) => o.count > 0),
       ]
     : [];
   if (targets.length > 0) targets.push({ value: OUTSTANDING_TOKEN, label: "Not yet voted", count: targetCounts[OUTSTANDING_TOKEN] ?? 0 });
+  // Per-segment opted-in counts feed the composer's priority-tier presets and the
+  // inline budget/coverage math (same derivation as the Spend Decider page). Admin
+  // only — segment tags cover the whole opt-in ledger. UNSCORED = opted-in minus the
+  // sum of scored segments, so the budget coverage readout accounts for the tail.
+  const segmentCounts: Record<string, number> = {};
+  let scored = 0;
+  for (const s of VOTER_SEGMENT_NAMES) {
+    const n = isAdmin ? targetCounts[`segment:${s}`] ?? 0 : 0;
+    segmentCounts[s] = n;
+    scored += n;
+  }
+  segmentCounts[UNSCORED_KEY] = Math.max(0, counts.subscribers - scored);
+  // Priority-tier presets for the composer's "Who to reach — by likelihood to vote"
+  // dropdown (admin only). Each carries its expanded target tokens and an opted-in
+  // reach (segment-count sum, or the whole opted-in list for "all") so the client
+  // needs no audiences.ts import. Always passed for admins — the composer renders a
+  // disabled/zero state when no voter tags exist yet, for discoverability.
+  const priorityPresets = isAdmin
+    ? SMS_PRIORITY_PRESETS.map((p) => ({
+        value: p.value,
+        label: p.label,
+        tokens: presetTokens(p),
+        count: p.segments.length === 0 ? counts.subscribers : p.segments.reduce((n, s) => n + (segmentCounts[s] ?? 0), 0),
+      }))
+    : [];
   const when = (iso: string) =>
     new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
@@ -92,7 +122,7 @@ export default async function SmsPage() {
         </div>
       )}
 
-      <SmsComposer groups={groups} volRoles={volRoles} targets={targets} saved={saved} canSend={canSend} disabled={!enabled} scope={scope} teamCount={teamCount} />
+      <SmsComposer groups={groups} volRoles={volRoles} targets={targets} priorityPresets={priorityPresets} saved={saved} canSend={canSend} disabled={!enabled} scope={scope} teamCount={teamCount} optedIn={counts.subscribers} segmentCounts={segmentCounts} />
 
       <div className="mt-8">
         <p className="eyebrow text-slate">Recent sends</p>
