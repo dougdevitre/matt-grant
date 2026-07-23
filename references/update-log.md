@@ -26,6 +26,38 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-23 -- v1.x -- Off-SMS reach: digital custom-audience export (hashed Meta list)
+
+**Context:** The ~500k voter file can't be texted (no phones, TCPA), and digital ads were the one
+off-SMS channel with no tooling. Adds a way to reach those voters with paid ads via a hashed Meta
+Custom Audience — legal for the campaign's own political targeting (no consent needed, unlike SMS),
+political-use-only per RSMo 115.157.
+
+**Changes:**
+- [added] `web/lib/voters/digitalAudience.ts` (+ test) — pure normalize + SHA-256 hashing of the
+  Meta match keys (fn/ln/ct/st/zip/country); `audienceRow` / `audienceCsv`. Output is hashes only —
+  no plaintext PII, no voterId. Tested against real SHA-256 vectors + empty-field handling.
+- [added] `web/scripts/export-digital-audience.ts` — district-wide export by `--segment`
+  (default: all but MONITOR), optional `--exclude-banked`; iterates shards via lib/db directly
+  (the voter store is server-only) and writes the hashed CSV. Counts-only output + compliance
+  notice, mirroring the enrichment job.
+- [added] `web/docs/digital-audience.md` — how to generate, upload to Meta (mark data hashed), and
+  the RSMo/advertiser-authorization compliance notes; Google Customer Match flagged as future.
+
+**Note:** The script needs prod voter data (like ingest/enrich), so it runs in prod, not the
+sandbox. Reads voter data only in `lib/voters/` + a script — never `lib/sms/` (isolation intact).
+
+**Verifications Performed:**
+- `npm run test` — 1937 pass (incl. 7 new `digitalAudience` tests + the `voterfile-isolation`
+  guard); script arg-validation + missing-table guards smoke-tested; `npx tsc --noEmit` clean;
+  `npm run lint` clean; production build succeeds.
+
+**Files Modified:**
+- web/lib/voters/digitalAudience.ts (new), web/lib/voters/digitalAudience.test.ts (new)
+- web/scripts/export-digital-audience.ts (new), web/docs/digital-audience.md (new)
+
+---
+
 ## 2026-07-23 -- v1.x -- SMS: opt-in growth analytics (by source + trend)
 
 **Context:** Reach is capped by opt-in list size (the voter file can't be texted). The app captures
