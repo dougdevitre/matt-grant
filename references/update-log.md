@@ -26,6 +26,40 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-23 -- v1.x -- Meta ads: Pixel config + tracking + campaign runbook
+
+**Context:** To run digital ads to voters the campaign can't text, it needs conversion tracking on
+the site. Adds an env-gated Meta Pixel (mirroring the existing Google Analytics setup), forwards
+the existing CTA events to it, discloses it, and documents the end-to-end campaign steps.
+
+**Changes:**
+- [added] `web/components/MetaPixel.tsx` — env-gated Meta Pixel (base + PageView, skips /dashboard),
+  **inert until `NEXT_PUBLIC_META_PIXEL_ID` is set** (mirrors `GoogleAnalytics.tsx`). Defaults to
+  Meta **Limited Data Use** (CCPA-friendly) since the site has no cookie banner.
+- [updated] `web/app/layout.tsx` — render `<MetaPixel>` when the env var is present, alongside GA.
+- [updated] `web/lib/analytics.ts` (+ new test) — `track()` now ALSO forwards to `window.fbq`
+  independently of the GA/Plausible/PostHog chain, so donate/join/Text-MATT CTA events feed Meta
+  ad measurement automatically. Never throws.
+- [updated] `web/app/(site)/data-policy/page.tsx` — discloses the Meta Pixel + Limited Data Use +
+  how to limit it (privacy).
+- [added] `web/docs/meta-ads.md` — Pixel activation, political-ad authorization, audience upload,
+  campaign build, measurement, and a compliance checklist; flags the Aug-4 timing/blackout.
+
+**Note:** Committing this turns nothing on — the Pixel activates only when the campaign sets the
+env var on the production branch and completes Meta's data terms. Server-side Conversions API
+(webhook-driven donation/opt-in events) is a documented follow-up, not built here.
+
+**Verifications Performed:**
+- `npm run test` — 1942 pass (incl. new `analytics` forwarding tests + the `voterfile-isolation`
+  guard); `npx tsc --noEmit` clean; `npm run lint` clean; production build succeeds.
+
+**Files Modified:**
+- web/components/MetaPixel.tsx (new), web/app/layout.tsx
+- web/lib/analytics.ts, web/lib/analytics.test.ts (new)
+- web/app/(site)/data-policy/page.tsx, web/docs/meta-ads.md
+
+---
+
 ## 2026-07-23 -- v1.x -- Off-SMS reach: digital custom-audience export (hashed Meta list)
 
 **Context:** The ~500k voter file can't be texted (no phones, TCPA), and digital ads were the one
