@@ -21,6 +21,9 @@ import {
 } from "@/lib/sms/audiences";
 import { UNSCORED_KEY } from "@/lib/reports/smsSpend";
 import { smsInsightsReadiness } from "@/lib/reports/smsInsights";
+import { optinGrowth } from "@/lib/reports/optinGrowth";
+import { OptinGrowth } from "@/components/dashboard/OptinGrowth";
+import { listConsent } from "@/lib/sms/consent";
 import { listSmsCampaigns } from "@/lib/sms/campaigns";
 import { estimateDrainCompletion, formatEtaCT } from "@/lib/sms/pacing";
 import { relTime, isStale } from "@/lib/relativeTime";
@@ -38,7 +41,7 @@ export default async function SmsPage() {
   const scope = isCaptain ? "captain" : "admin";
   const captainEmail = isCaptain ? email ?? undefined : undefined;
 
-  const [counts, volRoleCounts, teamCount, targetCounts, insights, sent, enabled, saved] = await Promise.all([
+  const [counts, volRoleCounts, teamCount, targetCounts, insights, consent, sent, enabled, saved] = await Promise.all([
     smsAudienceCounts(),
     // Captain: chip counts scoped to their team so the reach shown matches what actually sends.
     smsVolRoleCounts(captainEmail),
@@ -48,6 +51,8 @@ export default async function SmsPage() {
     // Insight freshness for the composer's priority dropdown (admin only): how much of
     // the opted-in list is scored + when enrichment last ran.
     isAdmin ? smsInsightsReadiness() : Promise.resolve(null),
+    // Consent ledger for the opt-in growth panel (admin only — list strategy).
+    isAdmin ? listConsent() : Promise.resolve([]),
     listSmsCampaigns(15),
     smsEnabled(),
     listSavedTemplates("sms"),
@@ -103,6 +108,8 @@ export default async function SmsPage() {
   const insight = insights
     ? { scoredPct: insights.scoredPct, lastEnrichedLabel: relTime(insights.lastEnrichedAt), stale: isStale(insights.lastEnrichedAt) }
     : undefined;
+  // Opt-in growth (admin only): where the textable list comes from + a recent trend.
+  const growth = isAdmin ? optinGrowth(consent) : null;
   const when = (iso: string) =>
     new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
@@ -181,6 +188,8 @@ export default async function SmsPage() {
           <p className="mt-3 text-sm text-slate">No text blasts sent yet.</p>
         )}
       </div>
+
+      {growth && <OptinGrowth growth={growth} />}
     </>
   );
 }

@@ -138,6 +138,16 @@ On **Text blasts** (`/dashboard/sms`):
    throughput), so a several-thousand-person GOTV push spreads across one or more send windows —
    the ETA tells you when it lands.
 
+### Growing the opt-in list
+
+Reach is capped by how many people have opted in (only opted-in numbers can be texted). The
+**Opt-in growth** panel at the bottom of the **Text blasts** page (admins) shows where opt-ins come
+from — by source (text keyword, WinRed SMS box, join/contact/RSVP form checkboxes, etc.) — and a
+30-day trend, so you can double down on the channels that convert. Every new opt-in is a textable
+supporter, and enrichment can then score the ones that match a voter. The main levers: promote
+**Text MATT to 844-314-7912** on signs/mailers/stump, keep the SMS-consent checkboxes on the public
+forms, and the WinRed SMS box on the donate flow.
+
 ---
 
 ## Template catalog

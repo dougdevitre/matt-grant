@@ -26,6 +26,38 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-23 -- v1.x -- SMS: opt-in growth analytics (by source + trend)
+
+**Context:** Reach is capped by opt-in list size (the voter file can't be texted). The app captures
+opt-ins from 12 sources but had no view of which sources convert or how the list is growing — so
+there was no way to invest in what works. Adds the measurement layer.
+
+**Changes:**
+- [added] `web/lib/reports/optinGrowth.ts` (+ test) — pure `optinGrowth(rows, {now, days})` over the
+  consent ledger: totals (opted-in / opted-out / sources), opt-ins by `source` (ranked, %),
+  a zero-filled day-bucketed trend (`consentAt`), and recent-window count. `SOURCE_LABELS` maps raw
+  tags to friendly names; unknown sources pass through.
+- [added] `web/components/dashboard/OptinGrowth.tsx` — dependency-free panel (CSS bars, no chart
+  lib): totals, "where opt-ins come from" bars, and a 30-day trend, with an empty-state that names
+  the growth levers.
+- [updated] `web/app/dashboard/sms/page.tsx` — admin-only `optinGrowth(await listConsent())` rendered
+  below Recent sends (one extra consent read, inside the existing admin branch; captains skip it).
+- [updated] `web/docs/sms-operator-runbook.md` — "Growing the opt-in list" section.
+
+**Note:** Read-only aggregation of the consent ledger — no send/consent-write/ranking/isolation
+change; `optinGrowth` lives in `lib/reports/`, never `lib/sms/`.
+
+**Verifications Performed:**
+- `npm run test` — 1930 pass (incl. 8 new `optinGrowth` tests + the `voterfile-isolation` guard);
+  `npx tsc --noEmit` clean; `npm run lint` clean; production build succeeds.
+
+**Files Modified:**
+- web/lib/reports/optinGrowth.ts (new), web/lib/reports/optinGrowth.test.ts (new)
+- web/components/dashboard/OptinGrowth.tsx (new)
+- web/app/dashboard/sms/page.tsx, web/docs/sms-operator-runbook.md
+
+---
+
 ## 2026-07-23 -- v1.x -- SMS go-live: voter-file → opt-in → scored funnel
 
 **Context:** With ~500k voters loaded but the SMS priority groups reading · 0, the voter-DB vs.
