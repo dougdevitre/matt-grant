@@ -35,6 +35,13 @@ export default function DataPolicyPage() {
           <strong>Automatically:</strong> standard web and server logs and basic analytics needed to keep the site
           running and secure.
         </li>
+        <li>
+          <strong>Advertising measurement:</strong> we may use the <strong>Meta (Facebook) Pixel</strong> to measure
+          our ads and reach supporters on Facebook and Instagram. It records that a browser visited a page and any
+          action you take (like clicking &ldquo;Donate&rdquo;), which is shared with Meta under its data policy. We run
+          it in <strong>Limited Data Use</strong> mode. To limit this, use your browser&apos;s ad/cookie controls or
+          your Meta ad-preferences and off-Meta-activity settings.
+        </li>
       </ul>
 
       <h2>Why we collect it</h2>

@@ -71,9 +71,12 @@ On **Text blasts** (`/dashboard/sms`):
      persuadable**, **Reliable supporters (BANK)**, **Persuadable (PERSUADE)**, **Prospects
      (PROSPECT)**, and **GOTV chase (top priority, not yet voted)** — each showing its opted-in
      reach. The preset narrows the opted-in audience to that group and still queues the
-     highest-likelihood voters first. The dropdown shows even before any voter tags exist (it's
-     disabled with a "run `npm run enrich:sms`" hint) so you know the feature is there; until
-     tags exist, blasts go to all opted-in numbers.
+     highest-likelihood voters first. Under the dropdown a freshness line tells you **how much of
+     the opted-in list is scored and when the scores were last updated** (e.g. *"42% of opted-ins
+     scored · voter scores updated 3h ago · Refresh →"*) — so you know how far to trust the
+     targeting; if it reads *(may be stale)*, click **Refresh →** to run enrichment. The dropdown
+     shows even before any voter tags exist (disabled, linking to the go-live page's **Run
+     enrichment now**); until tags exist, blasts go to all opted-in numbers.
    - **Admins can further NARROW** with the "Narrow by county / voter tag" chips —
      the six MO-02 counties, school districts (once the crosswalk is generated, below),
      **Not yet voted** (skips numbers confirmed voted — GOTV chase mode), or a list of ZIPs.
@@ -112,9 +115,13 @@ On **Text blasts** (`/dashboard/sms`):
    ranked by the voter segment (MOBILIZE > BANK > PERSUADE > PROSPECT) with turnout score as the
    within-segment tie-break, using the tags the enrichment job wrote. The enrichment now runs
    **nightly on its own** (the `matt-grant-sms-enrich` EventBridge rule → `/api/cron/sms-enrich`,
-   ~3am CT) so segments and `banked`/already-voted status stay fresh during GOTV; you can still
-   run it on demand with `npm run enrich:sms`. Check the **SMS go-live** page's *Insight data*
-   panel to see when it last ran and what share of opted-ins are scored.
+   ~3am CT) so segments and `banked`/already-voted status stay fresh during GOTV. To re-tag on
+   demand, click **Run enrichment now** on the **SMS go-live** page's *Insight data* panel (no CLI
+   needed) — or run `npm run enrich:sms`. That panel leads with the **funnel** —
+   *`<voters> loaded → <opted-in> textable → <scored> scored`* — which explains why a ~500k voter
+   file only reaches the opted-in list: the voter file is never texted (TCPA), and only opted-ins
+   matched to a voter by name+ZIP get scored. It also shows whether the voter file is loaded, when
+   enrichment last ran, and what share of opted-ins are scored.
    Numbers with no voter match go last but are still sent. The optional **Max texts** field caps a
    blast to the top N by priority — the cut hits only the lowest-priority tail, and the
    confirmation reports "Capped to the N highest-priority of M." Because the queue drains in
@@ -130,6 +137,16 @@ On **Text blasts** (`/dashboard/sms`):
    the `SMS_DRAIN_BATCH` / `SMS_DRAIN_BATCHES_PER_RUN` env vars, bounded to Twilio toll-free
    throughput), so a several-thousand-person GOTV push spreads across one or more send windows —
    the ETA tells you when it lands.
+
+### Growing the opt-in list
+
+Reach is capped by how many people have opted in (only opted-in numbers can be texted). The
+**Opt-in growth** panel at the bottom of the **Text blasts** page (admins) shows where opt-ins come
+from — by source (text keyword, WinRed SMS box, join/contact/RSVP form checkboxes, etc.) — and a
+30-day trend, so you can double down on the channels that convert. Every new opt-in is a textable
+supporter, and enrichment can then score the ones that match a voter. The main levers: promote
+**Text MATT to 844-314-7912** on signs/mailers/stump, keep the SMS-consent checkboxes on the public
+forms, and the WinRed SMS box on the donate flow.
 
 ---
 

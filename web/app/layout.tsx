@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { clerkEnabled } from "@/lib/auth";
 import { CAMPAIGN } from "@/lib/site";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { MetaPixel } from "@/components/MetaPixel";
 import { ErrorReporter } from "@/components/ErrorReporter";
 import "./globals.css";
 
@@ -64,12 +65,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+  const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
   const body = (
     <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
       <body>
         {children}
         <ErrorReporter />
         {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
+        {metaPixelId ? <MetaPixel pixelId={metaPixelId} /> : null}
       </body>
     </html>
   );

@@ -26,6 +26,197 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-23 -- v1.x -- Meta ads: Pixel config + tracking + campaign runbook
+
+**Context:** To run digital ads to voters the campaign can't text, it needs conversion tracking on
+the site. Adds an env-gated Meta Pixel (mirroring the existing Google Analytics setup), forwards
+the existing CTA events to it, discloses it, and documents the end-to-end campaign steps.
+
+**Changes:**
+- [added] `web/components/MetaPixel.tsx` — env-gated Meta Pixel (base + PageView, skips /dashboard),
+  **inert until `NEXT_PUBLIC_META_PIXEL_ID` is set** (mirrors `GoogleAnalytics.tsx`). Defaults to
+  Meta **Limited Data Use** (CCPA-friendly) since the site has no cookie banner.
+- [updated] `web/app/layout.tsx` — render `<MetaPixel>` when the env var is present, alongside GA.
+- [updated] `web/lib/analytics.ts` (+ new test) — `track()` now ALSO forwards to `window.fbq`
+  independently of the GA/Plausible/PostHog chain, so donate/join/Text-MATT CTA events feed Meta
+  ad measurement automatically. Never throws.
+- [updated] `web/app/(site)/data-policy/page.tsx` — discloses the Meta Pixel + Limited Data Use +
+  how to limit it (privacy).
+- [added] `web/docs/meta-ads.md` — Pixel activation, political-ad authorization, audience upload,
+  campaign build, measurement, and a compliance checklist; flags the Aug-4 timing/blackout.
+
+**Note:** Committing this turns nothing on — the Pixel activates only when the campaign sets the
+env var on the production branch and completes Meta's data terms. Server-side Conversions API
+(webhook-driven donation/opt-in events) is a documented follow-up, not built here.
+
+**Verifications Performed:**
+- `npm run test` — 1942 pass (incl. new `analytics` forwarding tests + the `voterfile-isolation`
+  guard); `npx tsc --noEmit` clean; `npm run lint` clean; production build succeeds.
+
+**Files Modified:**
+- web/components/MetaPixel.tsx (new), web/app/layout.tsx
+- web/lib/analytics.ts, web/lib/analytics.test.ts (new)
+- web/app/(site)/data-policy/page.tsx, web/docs/meta-ads.md
+
+---
+
+## 2026-07-23 -- v1.x -- Off-SMS reach: digital custom-audience export (hashed Meta list)
+
+**Context:** The ~500k voter file can't be texted (no phones, TCPA), and digital ads were the one
+off-SMS channel with no tooling. Adds a way to reach those voters with paid ads via a hashed Meta
+Custom Audience — legal for the campaign's own political targeting (no consent needed, unlike SMS),
+political-use-only per RSMo 115.157.
+
+**Changes:**
+- [added] `web/lib/voters/digitalAudience.ts` (+ test) — pure normalize + SHA-256 hashing of the
+  Meta match keys (fn/ln/ct/st/zip/country); `audienceRow` / `audienceCsv`. Output is hashes only —
+  no plaintext PII, no voterId. Tested against real SHA-256 vectors + empty-field handling.
+- [added] `web/scripts/export-digital-audience.ts` — district-wide export by `--segment`
+  (default: all but MONITOR), optional `--exclude-banked`; iterates shards via lib/db directly
+  (the voter store is server-only) and writes the hashed CSV. Counts-only output + compliance
+  notice, mirroring the enrichment job.
+- [added] `web/docs/digital-audience.md` — how to generate, upload to Meta (mark data hashed), and
+  the RSMo/advertiser-authorization compliance notes; Google Customer Match flagged as future.
+
+**Note:** The script needs prod voter data (like ingest/enrich), so it runs in prod, not the
+sandbox. Reads voter data only in `lib/voters/` + a script — never `lib/sms/` (isolation intact).
+
+**Verifications Performed:**
+- `npm run test` — 1937 pass (incl. 7 new `digitalAudience` tests + the `voterfile-isolation`
+  guard); script arg-validation + missing-table guards smoke-tested; `npx tsc --noEmit` clean;
+  `npm run lint` clean; production build succeeds.
+
+**Files Modified:**
+- web/lib/voters/digitalAudience.ts (new), web/lib/voters/digitalAudience.test.ts (new)
+- web/scripts/export-digital-audience.ts (new), web/docs/digital-audience.md (new)
+
+---
+
+## 2026-07-23 -- v1.x -- SMS: opt-in growth analytics (by source + trend)
+
+**Context:** Reach is capped by opt-in list size (the voter file can't be texted). The app captures
+opt-ins from 12 sources but had no view of which sources convert or how the list is growing — so
+there was no way to invest in what works. Adds the measurement layer.
+
+**Changes:**
+- [added] `web/lib/reports/optinGrowth.ts` (+ test) — pure `optinGrowth(rows, {now, days})` over the
+  consent ledger: totals (opted-in / opted-out / sources), opt-ins by `source` (ranked, %),
+  a zero-filled day-bucketed trend (`consentAt`), and recent-window count. `SOURCE_LABELS` maps raw
+  tags to friendly names; unknown sources pass through.
+- [added] `web/components/dashboard/OptinGrowth.tsx` — dependency-free panel (CSS bars, no chart
+  lib): totals, "where opt-ins come from" bars, and a 30-day trend, with an empty-state that names
+  the growth levers.
+- [updated] `web/app/dashboard/sms/page.tsx` — admin-only `optinGrowth(await listConsent())` rendered
+  below Recent sends (one extra consent read, inside the existing admin branch; captains skip it).
+- [updated] `web/docs/sms-operator-runbook.md` — "Growing the opt-in list" section.
+
+**Note:** Read-only aggregation of the consent ledger — no send/consent-write/ranking/isolation
+change; `optinGrowth` lives in `lib/reports/`, never `lib/sms/`.
+
+**Verifications Performed:**
+- `npm run test` — 1930 pass (incl. 8 new `optinGrowth` tests + the `voterfile-isolation` guard);
+  `npx tsc --noEmit` clean; `npm run lint` clean; production build succeeds.
+
+**Files Modified:**
+- web/lib/reports/optinGrowth.ts (new), web/lib/reports/optinGrowth.test.ts (new)
+- web/components/dashboard/OptinGrowth.tsx (new)
+- web/app/dashboard/sms/page.tsx, web/docs/sms-operator-runbook.md
+
+---
+
+## 2026-07-23 -- v1.x -- SMS go-live: voter-file → opt-in → scored funnel
+
+**Context:** With ~500k voters loaded but the SMS priority groups reading · 0, the voter-DB vs.
+SMS-reach gap looked broken when it's actually the compliant design (the voter file is never
+texted; SMS reaches only opted-ins; scores attach only to opted-ins matched by name+ZIP). Makes
+that relationship legible.
+
+**Changes:**
+- [added] `voterFileCount` to `smsInsightsReadiness()` (`web/lib/reports/smsInsights.ts`) — summed
+  from the ~178 precinct rollups already fetched (`listVoterAggs`), the same count
+  `districtRollup()` uses; no 500k scan.
+- [updated] `web/components/dashboard/SmsInsightsReadiness.tsx` — a headline funnel
+  *`<voters> loaded → <opted-in> textable → <scored> scored`* with a caption explaining the two
+  drop-offs (TCPA opt-in gate + name+ZIP match), above the existing status rows + Run enrichment now.
+- [updated] `web/lib/reports/smsInsights.test.ts` — `voterFileCount` sums agg counts; 0 when empty.
+- [updated] `web/docs/sms-operator-runbook.md` — documents the funnel.
+
+**Note:** Running enrichment stays a prod action (the button/cron) — this change only surfaces the
+relationship; it doesn't move the numbers.
+
+**Verifications Performed:**
+- `npm run test` — 1922 pass (incl. the new funnel assertion + the `voterfile-isolation` guard);
+  `npx tsc --noEmit` clean; `npm run lint` clean; production build succeeds.
+
+**Files Modified:**
+- web/lib/reports/smsInsights.ts, web/lib/reports/smsInsights.test.ts
+- web/components/dashboard/SmsInsightsReadiness.tsx, web/docs/sms-operator-runbook.md
+
+---
+
+## 2026-07-23 -- v1.x -- SMS composer: insight-freshness indicator by the priority dropdown
+
+**Context:** The priority-group dropdown ranks by voter scores, but the composer gave no signal of
+how much of the opted-in list is scored or how fresh those scores are — an operator could send an
+"insight-driven" blast on stale/sparse data unknowingly. This surfaces that, with a one-click path
+to refresh.
+
+**Changes:**
+- [added] `web/lib/relativeTime.ts` (+ test) — `relTime()` (server-safe, now-injectable) extracted
+  from the go-live panel, plus `isStale()`. `SmsInsightsReadiness.tsx` now imports it (de-duped).
+- [updated] `web/app/dashboard/sms/page.tsx` — fetches `smsInsightsReadiness()` (admin only) and
+  passes `insight={ scoredPct, lastEnrichedLabel, stale }` to the composer; the timestamp is
+  formatted on the server so the client component stays hydration-safe.
+- [updated] `web/components/dashboard/SmsComposer.tsx` — under the priority dropdown, a freshness
+  line: *"N% of opted-ins scored · voter scores updated <time> · Refresh →"*, tinting *(may be
+  stale)* when scores are >~2 days old; the empty-state hint now links to the go-live **Run
+  enrichment now** button instead of only naming the CLI.
+- [updated] `web/docs/sms-operator-runbook.md` — documents the freshness line.
+
+**Verifications Performed:**
+- `npm run test` — 1921 pass (incl. 9 new `relativeTime` tests + the `voterfile-isolation` guard);
+  `npx tsc --noEmit` clean; `npm run lint` clean; production build succeeds.
+
+**Files Modified:**
+- web/lib/relativeTime.ts (new), web/lib/relativeTime.test.ts (new)
+- web/components/dashboard/SmsInsightsReadiness.tsx, web/components/dashboard/SmsComposer.tsx
+- web/app/dashboard/sms/page.tsx, web/docs/sms-operator-runbook.md
+
+---
+
+## 2026-07-23 -- v1.x -- SMS go-live: one-click "Run enrichment now" button
+
+**Context:** The composer's priority-group dropdown stays disabled (all groups · 0) until the
+opted-in ledger carries voter-score tags. Enrichment previously needed the CLI or the nightly
+cron; this adds a dashboard button so staff can re-tag on demand once the voter file is loaded.
+
+**Changes:**
+- [added] `runEnrichmentNow()` server action in `web/app/dashboard/sms/go-live/actions.ts` —
+  admin-gated (`manageTeam`), calls the shared `runSmsEnrichment()`, revalidates
+  `/dashboard/sms/go-live` + `/dashboard/sms`, returns a counts-only summary.
+- [added] `web/components/dashboard/RunEnrichmentButton.tsx` (mirrors `GoLiveTestSend`), rendered
+  in the *Insight data* panel (`SmsInsightsReadiness.tsx`), disabled until the voter file is
+  ingested (enrichment has nothing to tag without it).
+- [updated] `web/app/dashboard/sms/go-live/actions.test.ts` — admin success, non-admin rejection,
+  and error-path coverage for the new action.
+- [updated] `web/docs/sms-operator-runbook.md` — the button as the no-CLI way to re-tag.
+
+**Note:** This only automates the *enrichment* step. The one-time voter-file ingest
+(`scripts/ingest-voters.ts --from-s3`) remains an operator/CLI step (large PII files in private
+S3), and the scored ceiling is still bounded by opt-in-list growth + name+ZIP match rate.
+
+**Verifications Performed:**
+- `npm run test` — 1912 pass (incl. 3 new action tests + the `voterfile-isolation` guard);
+  `npx tsc --noEmit` clean; `npm run lint` clean; production build succeeds.
+
+**Files Modified:**
+- web/app/dashboard/sms/go-live/actions.ts, web/app/dashboard/sms/go-live/actions.test.ts
+- web/components/dashboard/RunEnrichmentButton.tsx (new)
+- web/components/dashboard/SmsInsightsReadiness.tsx
+- web/docs/sms-operator-runbook.md
+
+---
+
 ## 2026-07-23 -- v1.x -- SMS go-live readiness: auto-enrichment cron, insights panel, throughput/ETA
 
 **Context:** Assessment of whether the campaign can send insight-driven SMS blasts today. Finding:

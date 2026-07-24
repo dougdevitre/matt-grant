@@ -23,11 +23,11 @@ beforeEach(() => {
 });
 
 describe("smsInsightsReadiness", () => {
-  it("empty everything → not ready, 0% scored", async () => {
+  it("empty everything → not ready, 0% scored, 0 voters", async () => {
     mockConsent.mockResolvedValue([]);
     mockAggs.mockResolvedValue([]);
     const r = await smsInsightsReadiness();
-    expect(r).toMatchObject({ configured: true, voterFileLoaded: false, optedIn: 0, scored: 0, scoredPct: 0, lastEnrichedAt: null, ready: false });
+    expect(r).toMatchObject({ configured: true, voterFileLoaded: false, voterFileCount: 0, optedIn: 0, scored: 0, scoredPct: 0, lastEnrichedAt: null, ready: false });
   });
 
   it("voter file loaded but nothing enriched → not ready", async () => {
@@ -41,6 +41,17 @@ describe("smsInsightsReadiness", () => {
     expect(r.optedIn).toBe(2);
     expect(r.scored).toBe(0);
     expect(r.ready).toBe(false); // loaded, but no scored rows yet
+  });
+
+  it("voterFileCount sums the per-precinct agg counts (the funnel top)", async () => {
+    mockConsent.mockResolvedValue([{ SK: "+13145550100", status: "opted_in" }]);
+    mockAggs.mockResolvedValue([
+      { precinctKey: "p1", count: 250_000 },
+      { precinctKey: "p2", count: 249_812 },
+    ]);
+    const r = await smsInsightsReadiness();
+    expect(r.voterFileCount).toBe(499_812);
+    expect(r.voterFileLoaded).toBe(true);
   });
 
   it("counts only opted-in rows as scored; opted-out ignored", async () => {
