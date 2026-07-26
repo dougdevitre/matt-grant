@@ -26,6 +26,79 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-26 -- v1.x -- Second voter-file source: overlay ingest + primary-propensity SMS targeting
+
+**Context:** The campaign obtained a new voter export (`broad_repub_individual_voter_2026-07-09`, ~138 MiB)
+to use as an updated registry for the SMS campaign, nine days before the Aug 4 primary. Two findings shaped
+the work. First, it cannot be the Sunshine-law file: Missouri has no party registration, so the Secretary
+of State cannot produce a "Republican voter" extract — this is a commercial or party-committee product in
+which party is **derived**, and vendor license terms apply on top of RSMo §115.157. Second, the
+`.csv.xlsx` double extension means a vendor CSV was re-saved through Excel, which caps a worksheet at
+1,048,576 rows and may have silently truncated it. The existing ingest would also have rejected the file
+outright (it validates a frozen 36-column header). The real prize is primary vote history: the official
+file records only a voter's single most recent election, so turnout scoring is a recency proxy, while
+actual August-primary participation is the sharpest predictor of an August-primary vote.
+
+**Changes:**
+- [added] `web/scripts/inspect-voter-source.ts` + `web/lib/voters/sourceInspect.ts` (+ test) — streaming
+  schema inspector for a file too large to open by hand. Reports ordered columns, inferred types, distinct
+  values for categorical columns, phone/consent/voter-ID/vote-history/party signals, an exact row count,
+  and an Excel-truncation warning. **Prints shapes, never row values** — masking is precise enough to
+  withhold `FirstName`/`CellPhone` while still surfacing `CountyName`/`PhoneType` distinct sets.
+- [added] `web/lib/voters/sources/vendorRepub.ts` + `sources/index.ts` (+ test) — a second source adapter
+  that maps by header **name** (vendor column order is unstable, unlike the official file's frozen order),
+  with an editable `FIELD_ALIASES` table and a resolver that names every unresolved field at once.
+  `detectSource` checks for a **drifted official export before** trying the vendor adapter, since the two
+  share field names and a drifted spine file would otherwise be silently loaded as an overlay.
+- [added] `web/lib/voters/party.ts` (+ test) — canonical party codes and normalization. Blank returns
+  `null`, never `OTH`: an unknown party is not "other", and collapsing them would let a filter sweep up the
+  ~90% of Missouri rows with no party value.
+- [added] `web/lib/voters/overlayStore.ts` + `PK.voterOverlay` — the `VOTEROVL#county#precinct` partition.
+  Deliberately separate from the spine: `VOTERAGG` is recomputed wholesale from the official files, so a
+  filtered universe must never be folded into it. Reversible, and every row records its source.
+- [added] `web/scripts/ingest-voter-overlay.ts` (`npm run ingest:voter-overlay`) — streaming overlay ingest
+  with `--dry-run`, precinct-match reconciliation against the spine, and a truncation warning. Reports
+  phone counts and loads **none** of them.
+- [updated] `web/lib/sms/consent.ts`, `web/lib/reports/smsEnrichment.ts`, `smsEnrichmentRun.ts`,
+  `web/scripts/enrich-sms-audience.ts` — new `voterPp` / `voterParty` denormalized tags, written only when
+  the overlay carries a value (absent stays absent, never a fabricated default).
+- [updated] `web/lib/sms/audiences.ts` (+ tests) — `pp:<0-5>` (a MINIMUM) and `party:<code>` target tokens,
+  chips, counts, labels, and an "August-primary regulars, not yet voted" preset.
+
+**Note:** This does not widen who can be texted. Broadcast SMS remains gated on the consent ledger; vendor
+phones are manual-dial/P2P only and are additionally gated on written license terms confirming political
+phone contact is permitted. The party-code list in `audiences.ts` is a hand-copied **mirror** of
+`lib/voters/party.ts` (the isolation guard forbids the import) with a test asserting it cannot drift.
+The overlay ingest cannot be run until the original CSV is in hand — the tooling is what shipped.
+
+**Verifications Performed:**
+- `npm run test` — 2028 pass, 1 skipped (incl. the voterfile-isolation guard); `npx tsc --noEmit` clean;
+  `npm run lint` clean (2 pre-existing warnings in untouched files); `npm run compliance` passed;
+  production build succeeds.
+- End-to-end dry run of the inspector and the overlay ingest against a synthetic 5,000-row vendor CSV:
+  columns/signals detected correctly, PII masked, blank party values correctly omitted (4,036 of 5,000
+  tagged, matching the fixture's 80.7% fill).
+
+**Known Gaps:**
+- The real export's schema is unconfirmed — Google Drive returns an empty payload for a file this size, so
+  `FIELD_ALIASES` holds candidate aliases that must be confirmed against the inspector's output before a
+  live load.
+- Row count unverified; if the file was truncated at Excel's cap the universe is incomplete.
+- Broadcast delivery receipts are still discarded by the Twilio status webhook (pre-existing) — blast
+  delivery rate must be read from Twilio Messaging Insights.
+
+**Files Modified:**
+- candidate/voter-registry-refresh-plan.md (new), candidate/voter-file-plan.md, candidate/sms-targeting-plan.md
+- docs/VOTER-FILE.md, SKILL.md, commands/commands.md, references/update-log.md
+- web/scripts/inspect-voter-source.ts (new), web/scripts/ingest-voter-overlay.ts (new)
+- web/lib/voters/sourceInspect.ts (new), sourceInspect.test.ts (new), party.ts (new), party.test.ts (new)
+- web/lib/voters/overlayStore.ts (new), web/lib/voters/sources/vendorRepub.ts (new), sources/index.ts (new), sources/vendorRepub.test.ts (new)
+- web/lib/db.ts, web/lib/sms/consent.ts, web/lib/sms/audiences.ts, web/lib/sms/audiences.test.ts, web/lib/sms/priorityPresets.test.ts
+- web/lib/reports/smsEnrichment.ts, smsEnrichment.test.ts, smsEnrichmentRun.ts
+- web/scripts/enrich-sms-audience.ts, web/app/dashboard/sms/page.tsx, web/app/dashboard/sms/go-live/actions.test.ts, web/package.json
+
+---
+
 ## 2026-07-23 -- v1.x -- Meta ads: Pixel config + tracking + campaign runbook
 
 **Context:** To run digital ads to voters the campaign can't text, it needs conversion tracking on

@@ -28,8 +28,16 @@ export type SmsConsentRow = {
   geoSource?: string; // "self" | "voterfile" | "contact"
   voterSegment?: string; // MOBILIZE/BANK/PERSUADE/PROSPECT/MONITOR (denormalized)
   voterT?: number; // turnout score 0-5 (denormalized)
+  voterPp?: number; // primary propensity 0-5 — recent August-primary participation
+  voterParty?: string; // REP/DEM/UNA/OTH — INFERRED, never registered (see below)
   banked?: boolean; // confirmed already voted (ballot returns, denormalized)
 };
+// `voterPp` is a sharper turnout signal than `voterT` for a primary: the official
+// file records only a voter's single most recent election, so `voterT` is a
+// recency proxy, whereas `voterPp` counts actual August-primary votes.
+// `voterParty` is ALWAYS inferred — Missouri has no party registration, so any
+// party label is derived from ballot-pull history or a vendor model. Label it as
+// such wherever it renders (lib/voters/party.ts).
 
 /** Record explicit opt-in (web checkbox, inbound keyword, START). Re-subscribes an opted-out number.
  *  `consentAt` overrides the stored first-consent timestamp — pass the ORIGINAL opt-in time when

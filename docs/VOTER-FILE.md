@@ -48,6 +48,40 @@ and chase-tier counts on each precinct rollup. Same commands as above - nothing
 changes operationally, but if you ingested with an older script, re-run the live
 ingest so the chase board and returns matching light up.
 
+## Second-source (vendor) exports — the overlay path
+
+A commercial or party-committee export is a **different kind of file** and takes a different path. It is
+never the registration spine: it is a filtered universe, so it can't define the district denominator.
+Canonical storage is a separate prefix:
+
+```
+s3://$S3_ASSETS_BUCKET/voters/raw/vendor/<export>.csv
+```
+
+**Prefer the original CSV over an xlsx.** Excel caps a worksheet at 1,048,576 rows, so a large vendor CSV
+re-saved through Excel is silently truncated — and a `.csv.xlsx` double extension is the tell that this
+happened. The tooling streams CSV (flat memory, exact row count) and warns when a count lands at the cap.
+
+```bash
+cd web
+# 1. See what columns the file actually has (shapes only — never row values).
+npm run inspect:voter-source -- --file /tmp/voters/vendor.csv --out /tmp/schema.md
+
+# 2. Confirm the FIELD_ALIASES mapping in lib/voters/sources/vendorRepub.ts, then dry-run.
+DYNAMODB_TABLE=$DYNAMODB_TABLE AWS_REGION=$AWS_REGION \
+  npm run ingest:voter-overlay -- --file /tmp/voters/vendor.csv --dry-run
+
+# 3. Live load, then re-enrich so the tags reach the SMS composer.
+DYNAMODB_TABLE=$DYNAMODB_TABLE AWS_REGION=$AWS_REGION \
+  npm run ingest:voter-overlay -- --file /tmp/voters/vendor.csv
+npm run enrich:sms -- --dry-run   # then without --dry-run
+```
+
+The overlay writes `VOTEROVL#<county>#<precinct>` only — never `VOTER#` rows, never `VOTERAGG`. Vendor
+phone numbers are **not loaded** by this script: they are manual-dial/P2P only and gated on written vendor
+license terms. Full rules in
+[`../candidate/voter-registry-refresh-plan.md`](../candidate/voter-registry-refresh-plan.md).
+
 ## Low-memory / low-throughput path (AWS CloudShell)
 
 The stock `web/scripts/ingest-voters.ts` reads all five workbooks in one process and

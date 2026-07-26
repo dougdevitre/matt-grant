@@ -219,6 +219,7 @@ is the authoritative census until refreshed.
 | **Phone** | ONLY matched (donor/volunteer records) or vendor-appended numbers | Manual-dial call sheets; append import ships (below) — the vendor purchase is the open decision |
 | **SMS** | Consent ledger ONLY | **Never from the voter file.** No exceptions |
 | **Email** | Not in file | Existing opt-in lists only |
+| **Vendor overlay** | Second-source export (`VOTEROVL`) | Primary vote history + **inferred** party only; scoring/targeting, never a new contact channel — see [`voter-registry-refresh-plan.md`](./voter-registry-refresh-plan.md) |
 
 ### Phone-append vendor brief (decision still the campaign's; plumbing ships 2026-07-11)
 
@@ -280,6 +281,8 @@ flowchart LR
 | Phone-append import | `VOTERPHONE` (vendor CSV, keyed by voter ID or name+ZIP) | Per-row | Numbers on call lists/sheets | Manual-dial only; license must permit political phone contact |
 | Ballot-chase board (`/dashboard/voters/chase`) | `VOTERAGG` tiers + `BALLOTAGG`; imports returns by voter ID | Aggregate (+ ID-keyed import) | Daily Chase Report: universe/banked/outstanding per tier | Admin; idempotent import; banked hidden from lists |
 | Learning loop (write-back) | Canvass IDs 1-5 → `VOTER#` rows | Per-row | Recomputed S/segment + re-aggregated rollups | `web/lib/voters/aggregate.ts` (exact ingest math) |
+| Vendor overlay (`VOTEROVL#county#precinct`) | Second-source export, joined by official Voter ID | Per-row | Primary propensity `pp` (0-5) + **inferred** party — nothing else | Separate partition; **never folded into `VOTERAGG`** (a filtered universe would corrupt the district denominators). Name+ZIP-only rows are reported, never written |
+| Overlay → SMS tags | `VOTEROVL` ⋈ `SMSCONSENT` (out-of-band job) | Aggregate write | `voterPp` / `voterParty` on opted-in consent rows | `web/scripts/enrich-sms-audience.ts`; lives outside `lib/sms/` so the wall holds |
 | Airtable turf sync | Cut-turf counts | **Summary only** | Canvass Turf + Contact Lists rows (counts) | **Never voter names/addresses**; fail-closed Front-End Access |
 | **SMS broadcasts** | **`SMSCONSENT` ledger ONLY** | — | Opted-in texts | **Reads NOTHING from the voter file** — TCPA (§2.3) |
 
@@ -292,6 +295,7 @@ exclusively from `optedInSet()` (`web/lib/sms/consent.ts`) intersected with name
 
 ## 8. See also
 
+- [`voter-registry-refresh-plan.md`](./voter-registry-refresh-plan.md) — adding a SECOND source (vendor/party-committee export) as an overlay: primary vote history, inferred party, and the SMS targeting it unlocks
 - [`../workflows/voter-targeting.md`](../workflows/voter-targeting.md) — the universes/matrix this engine computes
 - [`../tactics/voter-personas.md`](../tactics/voter-personas.md) — mail/creative variants per segment
 - [`../tactics/ballot-chase-program.md`](../tactics/ballot-chase-program.md) — chase tiers for Phase 5

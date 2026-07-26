@@ -57,6 +57,25 @@ describe("SMS_PRIORITY_PRESETS", () => {
     expect(presetTokens(top)).toEqual(["segment:MOBILIZE", "segment:BANK"]);
   });
 
+  it("gates the primary-regulars preset on propensity, not on a segment", () => {
+    // The point of this preset: the official file records only a voter's single
+    // most recent election, so segment/T can't express "reliably votes in August
+    // primaries". Overlay-sourced propensity can.
+    const p = SMS_PRIORITY_PRESETS.find((x) => x.value === "primary-regulars")!;
+    expect(p.segments).toEqual([]);
+    expect(p.minPp).toBe(2);
+    const tokens = presetTokens(p);
+    expect(tokens).toContain("pp:2");
+    expect(tokens).toContain(OUTSTANDING_TOKEN);
+    expect(tokens.some((t) => t.startsWith("segment:"))).toBe(false);
+  });
+
+  it("emits no pp token for a preset that doesn't set one", () => {
+    // An empty `segments` must not accidentally read as a propensity filter.
+    const all = SMS_PRIORITY_PRESETS.find((p) => p.value === "all")!;
+    expect(presetTokens(all).some((t) => t.startsWith("pp:"))).toBe(false);
+  });
+
   it("orders segments highest-likelihood first (MOBILIZE before BANK before PERSUADE)", () => {
     // VOTER_SEGMENT_NAMES is the send-path priority order; a preset's segments must
     // follow it so the dropdown label reads in the same order a cap cuts.

@@ -40,6 +40,8 @@ beforeEach(() => {
   runSmsEnrichment.mockResolvedValue({
     optedIn: 8,
     voterMatchedTags: 3,
+    ppTags: 0,
+    partyTags: 0,
     contactZipOnlyTags: 1,
     geoPreserved: 0,
     skippedNotOptedIn: 0,

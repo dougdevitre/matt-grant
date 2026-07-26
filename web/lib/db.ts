@@ -74,6 +74,14 @@ export const PK = {
   // 577k-row partition would OOM). Dashboards read VOTERAGG only.
   voterShard: (precinctKey: string) => `VOTER#${precinctKey}`, // SK = Voter ID
   voterAgg: "VOTERAGG", // per-precinct rollups (SK = precinctKey)
+  // Vendor-source OVERLAY on the official spine (candidate/voter-registry-refresh-plan.md):
+  // extra attributes a second-source export carries that the Sunshine-law file
+  // does not — primary vote history, inferred party. Sharded identically to
+  // voterShard so a precinct's spine and overlay are one query each; SK = Voter
+  // ID. Deliberately a SEPARATE partition: VOTERAGG is recomputed wholesale from
+  // the official file, so a partial (e.g. Republican-only) universe must never
+  // be folded into it. Dropping this partition reverts to the spine untouched.
+  voterOverlay: (precinctKey: string) => `VOTEROVL#${precinctKey}`,
   // Vendor phone-append rows (voter-file-plan.md §6): SK = voter id, or
   // "nz:<name>|<zip5>" for name+zip-keyed rows. Manual-dial CALL lists only — never SMS.
   voterPhones: "VOTERPHONE",
