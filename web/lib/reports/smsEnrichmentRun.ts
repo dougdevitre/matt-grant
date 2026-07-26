@@ -24,10 +24,13 @@ import type { StoredVoter } from "@/lib/voters/storeTypes";
 import { ZIP_TO_COUNTY, matchCountyName } from "@/lib/sms/geo";
 import { districtForZipUnambiguous } from "@/lib/sms/school-districts";
 import { buildEnrichmentPlan, type EnrichmentWrite, type MatchedVoterTag } from "@/lib/reports/smsEnrichment";
+import { overlayByPrecinct } from "@/lib/voters/overlayStore";
 
 export type EnrichmentSummary = {
   optedIn: number; // size of the opted-in ledger
   voterMatchedTags: number; // rows getting a voterSegment (name+ZIP → voter score)
+  ppTags: number; // rows getting a primary-propensity tag (0 until an overlay is ingested)
+  partyTags: number; // rows getting an INFERRED party tag (0 until an overlay is ingested)
   contactZipOnlyTags: number; // rows getting geography only (no voter match)
   geoPreserved: number; // rows whose self-reported geography was kept
   skippedNotOptedIn: number; // voter-matched numbers that aren't opted in (never tagged)
@@ -83,9 +86,13 @@ export async function runSmsEnrichment(opts: { dryRun?: boolean } = {}): Promise
   const precinctKeys = aggs.map((a) => String(a.SK ?? "")).filter(Boolean);
   const matched: MatchedVoterTag[] = [];
   for (const pk of precinctKeys) {
-    const [rows, returns] = await Promise.all([
+    // The vendor overlay is queried alongside the spine — same shard key, one
+    // extra query per precinct. It is empty until an overlay source is ingested,
+    // in which case no pp/party tags are written (never a fabricated default).
+    const [rows, returns, overlay] = await Promise.all([
       queryAllPages({ TableName: TABLE, KeyConditionExpression: "PK = :p", ExpressionAttributeValues: { ":p": PK.voterShard(pk) } }),
       queryAllPages({ TableName: TABLE, KeyConditionExpression: "PK = :p", ExpressionAttributeValues: { ":p": PK.ballotReturns(pk) } }),
+      overlayByPrecinct(pk),
     ]);
     const banked = new Set(returns.map((r) => String(r.SK ?? "")));
     const voters = rows
@@ -104,7 +111,18 @@ export async function runSmsEnrichment(opts: { dryRun?: boolean } = {}): Promise
     for (const [voterId, phone] of Object.entries(idToPhone)) {
       const e = toE164(phone);
       const v = byId.get(voterId);
-      if (e && v) matched.push({ phone: e, segment: v.segment, t: v.t, county: v.county, zip: v.zip, banked: banked.has(voterId) });
+      if (!e || !v) continue;
+      const ovl = overlay.get(voterId);
+      matched.push({
+        phone: e,
+        segment: v.segment,
+        t: v.t,
+        county: v.county,
+        zip: v.zip,
+        banked: banked.has(voterId),
+        ...(ovl?.pp !== undefined ? { pp: ovl.pp } : {}),
+        ...(ovl?.party ? { party: ovl.party } : {}),
+      });
     }
   }
 
@@ -135,6 +153,8 @@ export async function runSmsEnrichment(opts: { dryRun?: boolean } = {}): Promise
   return {
     optedIn: optedIn.size,
     voterMatchedTags: plan.writes.filter((w) => w.voterSegment).length,
+    ppTags: plan.writes.filter((w) => w.voterPp !== undefined).length,
+    partyTags: plan.writes.filter((w) => w.voterParty !== undefined).length,
     contactZipOnlyTags: plan.writes.filter((w) => !w.voterSegment).length,
     geoPreserved: plan.geoPreserved,
     skippedNotOptedIn: plan.skippedNotOptedIn,
@@ -150,6 +170,8 @@ async function writeTag(w: EnrichmentWrite): Promise<boolean> {
   const values: Record<string, unknown> = { ":u": new Date().toISOString() };
   if (w.voterSegment !== undefined) (sets.push("voterSegment = :vs"), (values[":vs"] = w.voterSegment));
   if (w.voterT !== undefined) (sets.push("voterT = :vt"), (values[":vt"] = w.voterT));
+  if (w.voterPp !== undefined) (sets.push("voterPp = :vp"), (values[":vp"] = w.voterPp));
+  if (w.voterParty !== undefined) (sets.push("voterParty = :vy"), (values[":vy"] = w.voterParty));
   if (w.banked !== undefined) (sets.push("banked = :b"), (values[":b"] = w.banked));
   if (w.county !== undefined) (sets.push("county = :c"), (values[":c"] = w.county));
   if (w.zip !== undefined) (sets.push("zip = :z"), (values[":z"] = w.zip));

@@ -122,8 +122,11 @@ automatically).
 Because reach is capped by opt-ins, the highest-ROI Twilio investment is **converting scored voters into
 opted-in supporters**. None of this texts the voter file; it invites people to opt in themselves.
 
-- **Doors & events:** a keyword-to-opt-in card ("Text GRANT to +1 844-314-7912") captains hand out — the
-  inbound keyword records consent in the ledger automatically.
+- **Doors & events:** a keyword-to-opt-in card (**"Text MATT to +1 844-314-7912"**) captains hand out — the
+  inbound keyword records consent in the ledger automatically. **Use the live keyword.** `MATT` is what the
+  webhook actually answers (`SMS_OPTIN_KEYWORD`, default `MATT`); a card printed with any other word falls
+  through to the staff inbox and records **no consent at all**. The other live keywords are `DONATE`,
+  `VOLUNTEER`, `EVENTS`, and `VOTE` — each also records an opt-in and drives its action.
 - **Website:** an SMS-consent checkbox on `/join` and the WinRed donation flow (a checked box records
   consent, source `winred`), so donors and volunteers become first-class opted-in subscribers.
 - **Ask captains to log volunteer phone + ZIP:** the more opted-in numbers carry a name + ZIP, the larger

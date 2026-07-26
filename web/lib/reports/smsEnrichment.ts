@@ -25,6 +25,13 @@ export type MatchedVoterTag = {
   phone: string; // E.164, already confirmed opted-in by the caller's data load
   segment: Segment;
   t: number;
+  /** Primary propensity 0-5 from the vendor overlay's August-primary history.
+   *  Absent until an overlay source is ingested — the composer's `pp:` filter
+   *  simply matches nothing until then, it never guesses. */
+  pp?: number;
+  /** Canonical party code (lib/voters/party.ts). ALWAYS INFERRED — Missouri has
+   *  no party registration. */
+  party?: string;
   county: string; // raw voter-file county name (normalized via countyKeyForName)
   zip: string;
   banked: boolean;
@@ -38,6 +45,8 @@ export type EnrichmentWrite = {
   phone: string;
   voterSegment?: Segment;
   voterT?: number;
+  voterPp?: number; // primary propensity 0-5 (overlay-sourced; omitted when unknown)
+  voterParty?: string; // canonical code — INFERRED, never registered
   banked?: boolean;
   county?: string; // CountyKey (lib/sms/geo.ts)
   zip?: string;
@@ -87,6 +96,10 @@ export function buildEnrichmentPlan(input: {
       continue;
     }
     const w: EnrichmentWrite = { phone: m.phone, voterSegment: m.segment, voterT: m.t, banked: m.banked };
+    // Overlay-only fields: written when the match carries them, omitted otherwise
+    // so a row is never tagged with a fabricated default.
+    if (m.pp !== undefined) w.voterPp = m.pp;
+    if (m.party) w.voterParty = m.party;
     if (selfReported(m.phone)) {
       geoPreserved++;
     } else {

@@ -184,6 +184,7 @@ Instant-generation triggers. When a user types any of these commands, generate t
 | `/printtracker` | Print production tracker — every letter-sized printable mapped to the template that produces it, its disclaimer/solicitation/internal flags, and production status, sourced from `tools/print-tracker.md` |
 | `/signplan` | MO-02 sign placement master plan — phased field ops, the scoring/allocation model + scorer tool, CSV schemas, and the §9 compliance rules (25-ft poll buffer, right-of-way ban, permission, per-municipality removal), sourced from `candidate/sign-placement-plan.md` |
 | `/voterfile` | The MO-02 voter-engine plan — file contents, custody + RSMo 115.157/TCPA rules, scoring model (T 0-5, support proxy, segments), channel rules, and reconciliation status, sourced from `candidate/voter-file-plan.md` |
+| `/voterregistry` | The second-source voter-registry plan — loading a new or purchased voter export as an overlay (never the registration spine), the Excel row-cap truncation trap, why a Missouri party value is inferred rather than registered, the inspect → ingest → enrich toolchain, the `pp:`/`party:` SMS targeting chips, and the operational limits on a blast, sourced from `candidate/voter-registry-refresh-plan.md` |
 | `/pollcoverage` | Election-Day & early-vote poll-coverage plan — greeter staffing at early-vote sites and precinct polls, coverage prioritization, and the at-the-poll conduct rules (greeter vs. credentialed watcher), sourced from `candidate/poll-coverage-plan.md` |
 
 ### Post-Election

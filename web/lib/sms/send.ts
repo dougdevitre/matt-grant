@@ -37,7 +37,14 @@ export async function smsEnabled(): Promise<boolean> {
 }
 
 /** Send one SMS through the Messaging Service. Graceful: returns sent:false (never throws). */
-export async function sendSms(o: { to: string; body: string }): Promise<{ sent: boolean; sid?: string; error?: string }> {
+export async function sendSms(o: {
+  to: string;
+  body: string;
+  /** Campaign SK, echoed back on the delivery receipt so a BROADCAST receipt can
+   *  be attributed. Without it the status webhook has no way to tell which send a
+   *  receipt belongs to (broadcasts create no 1:1 thread row) and drops it. */
+  campaignKey?: string;
+}): Promise<{ sent: boolean; sid?: string; error?: string }> {
   const to = toE164(o.to);
   if (!to) return { sent: false, error: "invalid phone number" };
   const c = await creds();
@@ -54,12 +61,15 @@ export async function sendSms(o: { to: string; body: string }): Promise<{ sent: 
         "content-type": "application/x-www-form-urlencoded",
       },
       // StatusCallback lets Twilio post delivery receipts (delivered/undelivered/failed)
-      // to our signed status webhook, which reflects them on the 1:1 thread bubble.
+      // to our signed status webhook, which reflects them on the 1:1 thread bubble
+      // and — when `campaignKey` is set — tallies them on the campaign row.
+      // Twilio preserves the query string and signs the FULL URL, so the webhook
+      // must validate against pathname + search (it does).
       body: new URLSearchParams({
         MessagingServiceSid: c.service,
         To: to,
         Body: o.body,
-        StatusCallback: `${SITE_URL}/api/webhooks/twilio/status`,
+        StatusCallback: `${SITE_URL}/api/webhooks/twilio/status${o.campaignKey ? `?c=${encodeURIComponent(o.campaignKey)}` : ""}`,
       }).toString(),
       timeoutMs: 10000,
       retries: 2,

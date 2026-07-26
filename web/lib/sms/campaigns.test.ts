@@ -1,5 +1,64 @@
 import { describe, it, expect } from "vitest";
-import { finalizeSmsUpdateExpression, withinSendWindow, drainSmsOnce, personalizeBody } from "./campaigns";
+import {
+  RECIPIENT_BYTES_BUDGET,
+  chunkRecipients,
+  finalizeSmsUpdateExpression,
+  withinSendWindow,
+  drainSmsOnce,
+  personalizeBody,
+  recipientBytes,
+} from "./campaigns";
+
+describe("chunkRecipients (DynamoDB 400 KB item ceiling)", () => {
+  const rec = (i: number) => ({ phone: `+1314555${String(i).padStart(4, "0")}`, first: "Sam" });
+  const many = (n: number) => Array.from({ length: n }, (_, i) => rec(i));
+
+  it("keeps a small audience in a single chunk", () => {
+    expect(chunkRecipients(many(500))).toHaveLength(1);
+  });
+
+  it("returns no chunks for an empty audience", () => {
+    expect(chunkRecipients([])).toEqual([]);
+  });
+
+  it("splits an audience that would exceed the item limit", () => {
+    // 100k recipients is far past what one item holds — the case that used to
+    // throw an unhandled ValidationException and write no campaign at all.
+    const chunks = chunkRecipients(many(100_000));
+    expect(chunks.length).toBeGreaterThan(1);
+    for (const c of chunks) {
+      expect(c.reduce((n, r) => n + recipientBytes(r), 0)).toBeLessThanOrEqual(RECIPIENT_BYTES_BUDGET);
+    }
+  });
+
+  it("loses nobody and preserves priority order across the split", () => {
+    // The upstream ranking (rankForBroadcast) is the whole point: chunk 1 must
+    // hold the highest-priority recipients, and concatenating chunks must
+    // reproduce the original order exactly.
+    const input = many(50_000);
+    const flat = chunkRecipients(input).flat();
+    expect(flat).toHaveLength(input.length);
+    expect(flat.map((r) => r.phone)).toEqual(input.map((r) => r.phone));
+  });
+
+  it("splits exactly at the boundary, not one recipient early or late", () => {
+    const budget = recipientBytes(rec(0)) * 10;
+    expect(chunkRecipients(many(10), budget)).toHaveLength(1);
+    expect(chunkRecipients(many(11), budget)).toHaveLength(2);
+    expect(chunkRecipients(many(11), budget)[0]).toHaveLength(10);
+  });
+
+  it("still emits an oversized single recipient rather than dropping it", () => {
+    // Losing a recipient silently is the one unacceptable outcome.
+    const huge = { phone: "+13145550000", first: "x".repeat(1000) };
+    expect(chunkRecipients([huge], 10)).toEqual([[huge]]);
+  });
+
+  it("handles legacy plain-string recipients", () => {
+    const legacy = Array.from({ length: 100 }, (_, i) => `+1314555${String(i).padStart(4, "0")}`);
+    expect(chunkRecipients(legacy).flat()).toEqual(legacy);
+  });
+});
 
 describe("personalizeBody (first-name merge)", () => {
   it("replaces the {first} token per recipient, falling back to 'there'", () => {

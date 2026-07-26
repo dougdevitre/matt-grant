@@ -75,6 +75,21 @@ function volMatches(v: { roles: string[]; door: string | null }, tokens: VolRole
 // these are just the strings the enrichment job denormalizes onto consent rows.
 export const VOTER_SEGMENT_NAMES = ["MOBILIZE", "BANK", "PERSUADE", "PROSPECT", "MONITOR"] as const;
 
+// Label mirror of lib/voters/party.ts VOTER_PARTY_CODES — same reason as above:
+// the isolation guard forbids importing it. party.test.ts / audiences.test.ts
+// assert the two lists stay identical.
+//
+// ALWAYS INFERRED, NEVER REGISTERED. Missouri has no party registration, so a
+// party value is derived from primary-ballot-pull history or a vendor model.
+// Every surface that shows this must say so.
+export const VOTER_PARTY_CODES = ["REP", "DEM", "UNA", "OTH"] as const;
+
+/** Primary propensity is a 0-5 count of recent August primaries voted. The
+ *  `pp:<n>` token means "at least n" — a MINIMUM, not an exact match, because
+ *  the useful question is "who reliably votes in primaries", not "who voted in
+ *  exactly three". */
+export const MAX_PRIMARY_PROPENSITY = 5;
+
 export const OUTSTANDING_TOKEN = "outstanding";
 
 export type TargetOption = { value: string; label: string };
@@ -93,6 +108,28 @@ export const TARGET_DISTRICT_OPTIONS: TargetOption[] = Object.values(SCHOOL_DIST
   label: d.name,
 }));
 
+export const PARTY_LABELS: Record<string, string> = {
+  REP: "Republican",
+  DEM: "Democratic",
+  UNA: "Unaffiliated",
+  OTH: "Other party",
+};
+// Every label carries "(inferred)" — see VOTER_PARTY_CODES above. This is the
+// same honesty convention the S support proxy follows on the voter surfaces.
+export const TARGET_PARTY_OPTIONS: TargetOption[] = VOTER_PARTY_CODES.map((c) => ({
+  value: `party:${c}`,
+  label: `${PARTY_LABELS[c]} (inferred)`,
+}));
+
+// Primary-propensity chips. Offered as thresholds rather than every 0-5 value —
+// "votes in primaries at all" and "votes in most primaries" are the decisions an
+// operator actually makes in a GOTV week.
+export const TARGET_PP_OPTIONS: TargetOption[] = [
+  { value: "pp:1", label: "Voted a recent primary" },
+  { value: "pp:2", label: "2+ recent primaries" },
+  { value: "pp:3", label: "3+ recent primaries" },
+];
+
 // ── Voter-priority presets (composer "Who to reach — by likelihood to vote") ───
 // Bundled, likelihood-ordered tiers over the voter segments, surfaced as a single
 // dropdown in the composer. Each preset expands to existing target tokens
@@ -106,6 +143,7 @@ export type SmsPriorityPreset = {
   label: string;
   segments: string[]; // subset of VOTER_SEGMENT_NAMES; [] = whole opted-in list, ranked
   outstanding?: boolean; // GOTV chase: also drop numbers confirmed already voted
+  minPp?: number; // require at least N recent August primaries (overlay-sourced)
 };
 
 export const SMS_PRIORITY_PRESETS: SmsPriorityPreset[] = [
@@ -117,6 +155,15 @@ export const SMS_PRIORITY_PRESETS: SmsPriorityPreset[] = [
   { value: "persuade", label: "Persuadable habitual voters (PERSUADE)", segments: ["PERSUADE"] },
   { value: "prospect", label: "Prospects (PROSPECT)", segments: ["PROSPECT"] },
   { value: "gotv-chase", label: "GOTV chase — top priority, not yet voted", segments: ["MOBILIZE", "BANK"], outstanding: true },
+  // Needs an ingested overlay source for primary history; shows a 0 reach until
+  // then, exactly like the segment presets do before enrichment runs.
+  {
+    value: "primary-regulars",
+    label: "August-primary regulars, not yet voted",
+    segments: [],
+    outstanding: true,
+    minPp: 2,
+  },
 ];
 
 export function isSmsPriorityPreset(v: string): boolean {
@@ -129,11 +176,15 @@ export function isSmsPriorityPreset(v: string): boolean {
  *  nothing — the whole opted-in list, ranked highest-likelihood-first at send. */
 export function presetTokens(p: SmsPriorityPreset): string[] {
   const tokens = p.segments.map((s) => `segment:${s}`);
+  if (p.minPp !== undefined) tokens.push(`pp:${p.minPp}`);
   if (p.outstanding) tokens.push(OUTSTANDING_TOKEN);
   return tokens;
 }
 
-export type TargetToken = { kind: "county" | "zip" | "segment" | "district"; value: string } | { kind: "outstanding" };
+export type TargetToken =
+  | { kind: "county" | "zip" | "segment" | "district" | "party"; value: string }
+  | { kind: "pp"; min: number }
+  | { kind: "outstanding" };
 
 /** Parse+validate a targeting token, or null (invalid tokens are ignored, never widen). */
 export function parseTargetToken(token: string): TargetToken | null {
@@ -146,6 +197,11 @@ export function parseTargetToken(token: string): TargetToken | null {
   if (kind === "zip" && /^\d{5}$/.test(value)) return { kind: "zip", value };
   if (kind === "segment" && (VOTER_SEGMENT_NAMES as readonly string[]).includes(value)) return { kind: "segment", value };
   if (kind === "district" && districtById(value)) return { kind: "district", value };
+  if (kind === "party" && (VOTER_PARTY_CODES as readonly string[]).includes(value)) return { kind: "party", value };
+  if (kind === "pp" && /^[0-9]+$/.test(value)) {
+    const min = Number(value);
+    if (min >= 0 && min <= MAX_PRIMARY_PROPENSITY) return { kind: "pp", min };
+  }
   return null;
 }
 
@@ -154,11 +210,18 @@ function rowMatchesTargets(row: SmsConsentRow | undefined, tokens: TargetToken[]
   const zips = tokens.filter((t) => t.kind === "zip").map((t) => (t as { value: string }).value);
   const segments = tokens.filter((t) => t.kind === "segment").map((t) => (t as { value: string }).value);
   const districts = tokens.filter((t) => t.kind === "district").map((t) => (t as { value: string }).value);
+  const parties = tokens.filter((t) => t.kind === "party").map((t) => (t as { value: string }).value);
+  // OR within a kind means the LOWEST threshold wins if several are somehow set.
+  const ppMins = tokens.filter((t) => t.kind === "pp").map((t) => (t as { min: number }).min);
   const outstanding = tokens.some((t) => t.kind === "outstanding");
   if (counties.length && !(row?.county && counties.includes(row.county))) return false;
   if (zips.length && !(row?.zip && zips.includes(row.zip))) return false;
   if (segments.length && !(row?.voterSegment && segments.includes(row.voterSegment))) return false;
   if (districts.length && !(row?.schoolDistrict && districts.includes(row.schoolDistrict))) return false;
+  if (parties.length && !(row?.voterParty && parties.includes(row.voterParty))) return false;
+  // pp is a MINIMUM. An unenriched row has no propensity at all — it is unknown,
+  // not zero, so it fails the filter rather than being treated as a non-voter.
+  if (ppMins.length && !(typeof row?.voterPp === "number" && row.voterPp >= Math.min(...ppMins))) return false;
   // "outstanding" drops only CONFIRMED-banked rows; unenriched rows stay in —
   // never silently exclude someone just because we don't know their status.
   if (outstanding && row?.banked === true) return false;
@@ -180,6 +243,10 @@ export function smsAudienceLabel(groups: SmsGroup[], roles: Role[] = [], volRole
     else if (p.kind === "zip") filters.push(`ZIP ${p.value}`);
     else if (p.kind === "segment") filters.push(p.value);
     else if (p.kind === "district") filters.push(districtById(p.value)?.name ?? p.value);
+    // "inferred" is not decoration — Missouri has no party registration, and the
+    // label must say so wherever an operator reads it back.
+    else if (p.kind === "party") filters.push(`${PARTY_LABELS[p.value] ?? p.value} (inferred)`);
+    else if (p.kind === "pp") filters.push(p.min === 1 ? "voted a recent primary" : `${p.min}+ recent primaries`);
     else filters.push("not yet voted");
   }
   const base = parts.join(" + ");
@@ -281,7 +348,15 @@ export async function resolveSmsRecipients(
 // the resolver uses, so a chip's count is exactly the most that token can reach.
 export async function smsTargetCounts(): Promise<Record<string, number>> {
   const counts: Record<string, number> = {};
-  for (const o of [...TARGET_COUNTY_OPTIONS, ...TARGET_SEGMENT_OPTIONS, ...TARGET_DISTRICT_OPTIONS]) counts[o.value] = 0;
+  for (const o of [
+    ...TARGET_COUNTY_OPTIONS,
+    ...TARGET_SEGMENT_OPTIONS,
+    ...TARGET_DISTRICT_OPTIONS,
+    ...TARGET_PARTY_OPTIONS,
+    ...TARGET_PP_OPTIONS,
+  ]) {
+    counts[o.value] = 0;
+  }
   counts[OUTSTANDING_TOKEN] = 0;
   try {
     for (const row of await listConsent()) {
@@ -297,6 +372,19 @@ export async function smsTargetCounts(): Promise<Record<string, number>> {
       if (row.schoolDistrict) {
         const key = `district:${row.schoolDistrict}`;
         if (key in counts) counts[key]++;
+      }
+      if (row.voterParty) {
+        const key = `party:${row.voterParty}`;
+        if (key in counts) counts[key]++;
+      }
+      // pp chips are THRESHOLDS, so one row counts toward every threshold it
+      // clears — the chip's number is "how many the send would reach", which is
+      // what the operator is reading.
+      if (typeof row.voterPp === "number") {
+        for (const o of TARGET_PP_OPTIONS) {
+          const p = parseTargetToken(o.value);
+          if (p?.kind === "pp" && row.voterPp >= p.min) counts[o.value]++;
+        }
       }
       if (row.banked !== true) counts[OUTSTANDING_TOKEN]++;
     }

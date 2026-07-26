@@ -129,4 +129,41 @@ describe("buildEnrichmentPlan", () => {
       expect(by.has("+13145550102")).toBe(false);
     });
   });
+
+  // Overlay-sourced tags (candidate/voter-registry-refresh-plan.md §4/§6). These
+  // come from a SECOND source file; the official Sunshine-law file carries
+  // neither a usable party nor a full primary history.
+  describe("overlay tags — primary propensity and inferred party", () => {
+    it("writes voterPp and voterParty when the match carries them", () => {
+      const plan = buildEnrichmentPlan({
+        ...base(),
+        matched: [matchedVoter({ pp: 3, party: "REP" })],
+      });
+      expect(plan.writes[0]).toMatchObject({ voterPp: 3, voterParty: "REP" });
+    });
+
+    it("omits them entirely when the overlay has no value — never a fabricated default", () => {
+      // This is the pre-ingest state, and the distinction matters: an absent
+      // primary propensity is UNKNOWN, not zero, and must not be swept up by a
+      // `pp:0` filter or presented as "never votes in primaries".
+      const plan = buildEnrichmentPlan({ ...base(), matched: [matchedVoter()] });
+      expect(plan.writes[0]).not.toHaveProperty("voterPp");
+      expect(plan.writes[0]).not.toHaveProperty("voterParty");
+    });
+
+    it("writes a zero propensity when the overlay genuinely says zero", () => {
+      const plan = buildEnrichmentPlan({ ...base(), matched: [matchedVoter({ pp: 0 })] });
+      expect(plan.writes[0].voterPp).toBe(0);
+    });
+
+    it("still refuses to tag a number that isn't opted in", () => {
+      const plan = buildEnrichmentPlan({
+        ...base(),
+        optedIn: new Set<string>(),
+        matched: [matchedVoter({ pp: 5, party: "REP" })],
+      });
+      expect(plan.writes).toEqual([]);
+      expect(plan.skippedNotOptedIn).toBe(1);
+    });
+  });
 });

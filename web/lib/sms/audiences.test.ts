@@ -29,6 +29,10 @@ import {
   parseVolRole,
   parseTargetToken,
   OUTSTANDING_TOKEN,
+  PARTY_LABELS,
+  TARGET_PARTY_OPTIONS,
+  TARGET_PP_OPTIONS,
+  VOTER_PARTY_CODES,
 } from "./audiences";
 import { optedInSet, listConsent } from "@/lib/sms/consent";
 import { getVolunteers } from "@/lib/queries";
@@ -114,6 +118,93 @@ describe("targeting filters (county / zip / segment / outstanding)", () => {
     for (const bad of ["county:st-charles", "zip:6301", "segment:nope", "district:0000000", "franklin", ""]) {
       expect(parseTargetToken(bad), bad).toBeNull();
     }
+  });
+
+  // ── Overlay-sourced dimensions: primary propensity + inferred party ─────────
+  // (candidate/voter-registry-refresh-plan.md §7). Both tags come from a SECOND
+  // source file; the official Sunshine-law file carries neither.
+  describe("primary propensity (pp:) and inferred party (party:)", () => {
+    const OVERLAY_LEDGER = [
+      { phone: "+13145550200", status: "opted_in" as const, voterPp: 3, voterParty: "REP", banked: false },
+      { phone: "+13145550201", status: "opted_in" as const, voterPp: 1, voterParty: "REP", banked: false },
+      { phone: "+13145550202", status: "opted_in" as const, voterPp: 0, voterParty: "DEM", banked: false },
+      { phone: "+13145550203", status: "opted_in" as const }, // unenriched — no overlay tags
+    ];
+    beforeEach(() => {
+      mockOpted.mockResolvedValue(new Set(OVERLAY_LEDGER.map((r) => r.phone)));
+      mockListConsent.mockResolvedValue(OVERLAY_LEDGER);
+    });
+
+    it("parses valid pp/party tokens and rejects out-of-range or unknown values", () => {
+      expect(parseTargetToken("pp:0")).toEqual({ kind: "pp", min: 0 });
+      expect(parseTargetToken("pp:5")).toEqual({ kind: "pp", min: 5 });
+      expect(parseTargetToken("party:REP")).toEqual({ kind: "party", value: "REP" });
+      expect(parseTargetToken("party:UNA")).toEqual({ kind: "party", value: "UNA" });
+      for (const bad of ["pp:6", "pp:-1", "pp:", "pp:two", "party:Republican", "party:rep", "party:XYZ"]) {
+        expect(parseTargetToken(bad), bad).toBeNull();
+      }
+    });
+
+    it("pp is a MINIMUM — it keeps everyone at or above the threshold", async () => {
+      const out = await resolveSmsRecipients(["subscribers"], [], [], { targets: ["pp:1"] });
+      expect(out.map((r) => r.phone).sort()).toEqual(["+13145550200", "+13145550201"]);
+    });
+
+    it("drops unenriched rows — an unknown propensity is not a zero", async () => {
+      // The distinction matters: pp:0 must not become a backdoor to "everyone",
+      // and an untagged person must not be labelled a primary non-voter.
+      const out = await resolveSmsRecipients(["subscribers"], [], [], { targets: ["pp:0"] });
+      expect(out.map((r) => r.phone).sort()).toEqual(["+13145550200", "+13145550201", "+13145550202"]);
+      expect(out.map((r) => r.phone)).not.toContain("+13145550203");
+    });
+
+    it("a party filter narrows to that inferred code only", async () => {
+      const out = await resolveSmsRecipients(["subscribers"], [], [], { targets: ["party:REP"] });
+      expect(out.map((r) => r.phone).sort()).toEqual(["+13145550200", "+13145550201"]);
+    });
+
+    it("ANDs across kinds — party and propensity both have to hold", async () => {
+      const out = await resolveSmsRecipients(["subscribers"], [], [], { targets: ["party:REP", "pp:2"] });
+      expect(out.map((r) => r.phone)).toEqual(["+13145550200"]);
+    });
+
+    it("counts every threshold a row clears, so each chip reads as its own reach", async () => {
+      const counts = await smsTargetCounts();
+      expect(counts["pp:1"]).toBe(2); // pp 3 and pp 1
+      expect(counts["pp:2"]).toBe(1); // pp 3 only
+      expect(counts["pp:3"]).toBe(1);
+      expect(counts["party:REP"]).toBe(2);
+      expect(counts["party:DEM"]).toBe(1);
+      expect(counts["party:UNA"]).toBe(0);
+    });
+
+    it("labels a party filter as inferred — Missouri has no party registration", () => {
+      expect(smsAudienceLabel(["subscribers"], [], [], ["party:REP"])).toContain("Republican (inferred)");
+    });
+
+    it("labels a propensity filter in plain language", () => {
+      expect(smsAudienceLabel(["subscribers"], [], [], ["pp:1"])).toContain("voted a recent primary");
+      expect(smsAudienceLabel(["subscribers"], [], [], ["pp:3"])).toContain("3+ recent primaries");
+    });
+
+    it("mirrors lib/voters/party.ts exactly — the copy can't silently drift", async () => {
+      // audiences.ts may not IMPORT lib/voters (the isolation guard), so the code
+      // list is a hand-copied mirror. This test is what keeps the copy honest.
+      // Test files are excluded from the guard's scan, so the import is safe here.
+      const { VOTER_PARTY_CODES: canonical } = await import("@/lib/voters/party");
+      expect([...VOTER_PARTY_CODES]).toEqual([...canonical]);
+    });
+
+    it("labels every mirrored party code — no chip can render as a bare code", () => {
+      for (const code of VOTER_PARTY_CODES) {
+        expect(PARTY_LABELS[code], code).toBeTruthy();
+      }
+      expect(TARGET_PARTY_OPTIONS.every((o) => o.label.includes("(inferred)"))).toBe(true);
+    });
+
+    it("only offers propensity chips the parser accepts", () => {
+      for (const o of TARGET_PP_OPTIONS) expect(parseTargetToken(o.value), o.value).not.toBeNull();
+    });
   });
 
   it("a district filter narrows to rows tagged with that district", async () => {

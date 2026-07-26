@@ -14,6 +14,8 @@ import {
   VOL_ROLE_OPTIONS,
   TARGET_COUNTY_OPTIONS,
   TARGET_DISTRICT_OPTIONS,
+  TARGET_PARTY_OPTIONS,
+  TARGET_PP_OPTIONS,
   OUTSTANDING_TOKEN,
   VOTER_SEGMENT_NAMES,
   SMS_PRIORITY_PRESETS,
@@ -70,10 +72,16 @@ export default async function SmsPage() {
   // Voter SEGMENTS are no longer chips here — they're owned by the priority-tier
   // preset dropdown below (built from SMS_PRIORITY_PRESETS); the chips stay as
   // optional geographic fine-tuning that narrows the chosen priority group.
+  // Party and primary-propensity chips come from a vendor OVERLAY source
+  // (candidate/voter-registry-refresh-plan.md); like the county/district chips
+  // they stay hidden until enrichment has actually tagged someone, so the
+  // composer never offers a filter that would resolve to nobody.
   const targets = isAdmin
     ? [
         ...TARGET_COUNTY_OPTIONS.map((o) => ({ ...o, count: targetCounts[o.value] ?? 0 })).filter((o) => o.count > 0),
         ...TARGET_DISTRICT_OPTIONS.map((o) => ({ ...o, count: targetCounts[o.value] ?? 0 })).filter((o) => o.count > 0),
+        ...TARGET_PP_OPTIONS.map((o) => ({ ...o, count: targetCounts[o.value] ?? 0 })).filter((o) => o.count > 0),
+        ...TARGET_PARTY_OPTIONS.map((o) => ({ ...o, count: targetCounts[o.value] ?? 0 })).filter((o) => o.count > 0),
       ]
     : [];
   if (targets.length > 0) targets.push({ value: OUTSTANDING_TOKEN, label: "Not yet voted", count: targetCounts[OUTSTANDING_TOKEN] ?? 0 });
@@ -99,7 +107,14 @@ export default async function SmsPage() {
         value: p.value,
         label: p.label,
         tokens: presetTokens(p),
-        count: p.segments.length === 0 ? counts.subscribers : p.segments.reduce((n, s) => n + (segmentCounts[s] ?? 0), 0),
+        // A propensity-gated preset's reach is the pp chip's count, NOT the whole
+        // opted-in list — an empty `segments` alone would otherwise read as "all".
+        count:
+          p.minPp !== undefined
+            ? targetCounts[`pp:${p.minPp}`] ?? 0
+            : p.segments.length === 0
+              ? counts.subscribers
+              : p.segments.reduce((n, s) => n + (segmentCounts[s] ?? 0), 0),
       }))
     : [];
   // Insight freshness shown beside the priority dropdown: what share of the opted-in
@@ -160,8 +175,13 @@ export default async function SmsPage() {
                   <span className="text-ink">{c.body.length > 60 ? `${c.body.slice(0, 60)}…` : c.body}</span>{" "}
                   <span className="text-slate">
                     → {c.audience} · {c.sentCount}/{c.total} sent
+                    {/* "sent" = Twilio accepted it; "delivered" = the carrier confirmed
+                        it reached a handset. Only shown once receipts start arriving. */}
+                    {c.deliveredCount ? ` · ${c.deliveredCount} delivered` : ""}
+                    {c.undeliveredCount ? ` · ${c.undeliveredCount} undelivered` : ""}
                     {c.failedCount ? ` · ${c.failedCount} failed` : ""}
-                    {c.skippedCount ? ` · ${c.skippedCount} skipped` : ""}{etaNote} · by {c.createdBy}
+                    {c.skippedCount ? ` · ${c.skippedCount} skipped` : ""}
+                    {c.chunkOf ? ` · batch ${c.chunkIndex}/${c.chunkOf}` : ""}{etaNote} · by {c.createdBy}
                   </span>
                 </span>
                 <span className="flex shrink-0 items-center gap-2">

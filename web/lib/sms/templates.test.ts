@@ -115,3 +115,52 @@ describe("templates", () => {
     expect(smsSegments(withCompliance(francois)).encoding).toBe("GSM-7");
   });
 });
+
+describe("every template stays one GSM-7 segment (the cost guard)", () => {
+  // A second segment doubles the cost of an ENTIRE blast, and one curly quote or
+  // em dash flips the encoding to UCS-2 (160 chars/segment -> 70), which does the
+  // same. These are the two ways a copy edit silently doubles the bill, so lock
+  // both down for every template as the composer would actually render it.
+  const rendered = (t: (typeof SMS_TEMPLATES)[number], over: Record<string, string> = {}) => {
+    const v: Record<string, string> = {};
+    for (const f of t.fields) v[f.name] = over[f.name] ?? f.placeholder ?? "";
+    return withCompliance(t.build(v));
+  };
+
+  // issue-update carries a full UTM-tagged campaign URL, which alone is ~120
+  // characters — it cannot fit one segment without a short link (which
+  // messaging/sms-texting.md §3 already tells operators to use). Exempted
+  // deliberately and bounded below, not quietly excluded.
+  const MULTI_SEGMENT_OK = new Set(["issue-update"]);
+
+  for (const t of SMS_TEMPLATES) {
+    if (t.key === "custom") continue; // operator-authored; the composer warns live
+    it(`${t.key} is GSM-7${MULTI_SEGMENT_OK.has(t.key) ? "" : " and one segment"}`, () => {
+      const body = rendered(t);
+      expect(nonGsmChars(body), `non-GSM characters in "${t.key}"`).toEqual([]);
+      if (!MULTI_SEGMENT_OK.has(t.key)) {
+        expect(smsSegments(body).segments, `"${t.key}" body: ${body}`).toBe(1);
+      }
+    });
+  }
+
+  it("issue-update stays within two segments even with its tracked URL", () => {
+    // Bounded so the copy can't drift to three. Shorten the link to reach one.
+    const t = SMS_TEMPLATES.find((x) => x.key === "issue-update")!;
+    expect(smsSegments(rendered(t)).segments).toBeLessThanOrEqual(2);
+  });
+
+  it("the election-day closing variant also fits one segment", () => {
+    const t = SMS_TEMPLATES.find((x) => x.key === "election-day")!;
+    const body = rendered(t, { phase: "closing" });
+    expect(body).toContain("7pm");
+    expect(nonGsmChars(body)).toEqual([]);
+    expect(smsSegments(body).segments).toBe(1);
+  });
+
+  it("the compliance suffix leaves usable headroom", () => {
+    // 160 - suffix = the budget every body above is written against.
+    expect(SMS_COMPLIANCE_SUFFIX.length).toBeLessThan(70);
+    expect(nonGsmChars(SMS_COMPLIANCE_SUFFIX)).toEqual([]);
+  });
+});

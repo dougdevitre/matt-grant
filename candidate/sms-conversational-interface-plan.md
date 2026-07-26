@@ -48,23 +48,31 @@ flowchart LR
 
 ---
 
-## 3. Phase 0 — Send Today (July 20): Early-Vote Alert Broadcast
+## 3. Phase 0 — The Send Today (July 26)
 
 Uses only shipped machinery — no code required. Send during the 9am–8pm CT window via `/dashboard/sms`.
 
-**Today (July 20) — "starts tomorrow" alert.** Template: Custom, `{first}` personalization on. Body (compliance suffix ` - Paid for by Matt Grant for Congress. Reply STOP to opt out.` is auto-appended; keep body GSM-7):
+> **Two deadlines have PASSED and must never appear in copy again:** voter registration (Jul 8) and the
+> by-mail ballot application (5pm Wed Jul 22). Earlier drafts of this section pushed the mail deadline —
+> sending that now would misinform voters. What remains: **in-person early voting through 5pm Mon Aug 3**
+> and **Election Day Tue Aug 4, polls 6am–7pm**.
 
-> {first}, early voting in the MO-02 primary starts TOMORROW. Vote in person at your county election office July 21-Aug 3, no excuse needed. Mail-ballot applications are due Wed July 22 by 5pm. Reply VOTE for where to go.
+**Run the pre-flight first** — it prints the real opted-in count, cost, chunk count, and completion ETA:
 
-**Tomorrow (July 21, ~9:05am CT) — "polls are open."** Schedule tonight via the composer's `scheduledAt`:
+```bash
+cd web && DYNAMODB_TABLE=matt-grant AWS_REGION=us-east-1 npm run sms:preflight -- --budget 250
+```
 
-> {first}, early voting is OPEN. Skip the Aug 4 lines - vote today through Aug 3 at your county election office. Reply VOTE for your location and hours.
+**Today's send.** Template: **Early-vote push** (its phrasing tracks the calendar automatically), audience
+**All opted-in**, `{first}` personalization on. Rendered body — one GSM-7 segment including the suffix:
+
+> Vote early through 5pm Mon Aug 3. Photo ID, no excuse needed. Reply VOTE for where to go. - Paid for by Matt Grant for Congress. Reply STOP to opt out.
 
 **Ops checklist (from `web/docs/sms-operator-runbook.md` / `sms-go-live.md`):**
-1. Confirm `smsReadiness()` shows `live` and Toll-Free Verification is approved (error 30032 otherwise).
-2. Audience: **subscribers** (all opted-in). If the list has grown past budget, rank with `buildSendList()` (MOBILIZE → BANK → PERSUADE → PROSPECT; MONITOR excluded) per `candidate/sms-targeting-plan.md` §4 — but an early-vote *information* message should default to the full opted-in list; it is our cheapest banked-vote generator.
-3. Mandatory self-test send; check segment counter (each body above + suffix ≈ 2 segments).
-4. Watch the inbox: every "Reply VOTE" response today lands as a 1:1 conversation — staff the inbox through the evening and use the reply-link chips (`/vote/absentee`) until the Phase-1 agent ships. Watch opt-out rate (<2% healthy, >5% stop — `messaging/sms-texting.md` §8).
+1. Confirm the three Twilio secrets are present and Toll-Free Verification reads **Verified** (error 30032 otherwise). The pre-flight reports the secrets; verification status must be checked in the Twilio console.
+2. Audience: **All opted-in**. An early-vote *information* message should reach the whole list — it is the cheapest banked-vote generator we have. Ranking still queues the highest-likelihood voters first, and a budget cap trims only the lowest-priority tail.
+3. Mandatory self-test send. Confirm the composer's segment counter reads **1 segment** and flags no non-GSM characters — a single curly quote or em dash doubles the cost of the entire blast.
+4. Staff the inbox: every "Reply VOTE" lands as a 1:1 conversation with the county-aware agent. Watch opt-out rate between sends (<2% healthy, >5% stop — `messaging/sms-texting.md` §8).
 
 ---
 
@@ -120,19 +128,40 @@ Today freeform texts go to the human inbox — correct for a campaign. If conver
 
 ---
 
-## 8. Send Calendar — July 20 → August 4 (4-3-2-1 Aligned)
+## 8. Send Calendar — July 26 → August 4 (4-3-2-1 Aligned)
 
-Cadence per `workflows/gotv-plan.md` and `candidate/twilio-fund-plan.md` §4 (MOBILIZE 4 / BANK 3 / PERSUADE 2 / PROSPECT 1 touches). Daily GOTV messaging in the final week is within `messaging/sms-texting.md` §8 guidance.
+Cadence per [`../workflows/gotv-plan.md`](../workflows/gotv-plan.md) (4 days out → Election Day) and the
+chase waves in [`../tactics/ballot-chase-program.md`](../tactics/ballot-chase-program.md). Daily GOTV in the
+final week is explicitly within `messaging/sms-texting.md` §8 guidance. Every template below renders as
+**one GSM-7 segment** including the compliance suffix — verified by
+`web/lib/sms/templates.test.ts`.
 
-| Date | Message | Audience |
-|---|---|---|
-| **Mon Jul 20 (today)** | Early voting starts tomorrow + Jul 22 mail-application deadline + "Reply VOTE" | All subscribers |
-| **Tue Jul 21** | "Early voting is OPEN" (scheduled ~9:05am CT) | All subscribers |
-| **Wed Jul 22 (morning)** | Last-day mail-application reminder (received by 5pm) | All subscribers |
-| Jul 23–27 | One early-vote nudge with county-aware reply hook; volunteer shift asks | Segment-ranked (MOBILIZE/BANK first); volunteers |
-| Jul 28–Aug 1 | Early-vote closing-window push ("ends Mon Aug 3, 5pm") | Not-yet-banked (chase mode, Phase 2.3) |
-| **Mon Aug 3** | Final early-vote day alert (morning) | Not-yet-banked |
-| **Tue Aug 4** | "TODAY is Election Day, polls 6am–7pm" + polling-place hook | Not-yet-banked |
+| Date | Template | Preset / audience | Why |
+|---|---|---|---|
+| **Sun Jul 26 (today)** | Early-vote push | All opted-in | Widest reach on the cheapest banked-vote message |
+| Mon Jul 27 | *(hold)* | — | Don't stack two sends back-to-back; let opt-out rate settle |
+| Tue Jul 28 | Shift reminder | Volunteers | Field logistics, not GOTV — keep it off the main list |
+| Wed Jul 29 | Early-vote push | GOTV chase (`gotv-chase`) | Second early-vote touch, already-voted suppressed |
+| **Thu Jul 30** (4 days) | GOTV reminder | GOTV chase | 4-3-2-1 begins — "make your plan" |
+| **Fri Jul 31** (3 days) | Early-vote push | Top priority, not yet voted | Weekend is the last realistic early-vote window for working voters |
+| **Sat Aug 1** (2 days) | Early-vote push | Not yet voted, ranked | Saturday hours vary by county — the VOTE reply carries specifics |
+| Sun Aug 2 | *(hold)* | — | Most county offices closed; save the touch |
+| **Mon Aug 3** (1 day, morning) | **Last day of early voting** | Not yet voted | Hard 5pm cutoff — the last chance to bank a vote |
+| **Tue Aug 4 (morning)** | **Election Day chase** (blank phase) | Not yet voted | Polls open 6am–7pm |
+| **Tue Aug 4 (after 4pm)** | **Election Day chase** (`closing`) | Not yet voted | "The last two hours matter most" (`gotv-plan.md`) |
+
+**Two things to check before each send**, both from `npm run sms:preflight`:
+
+- **The completion ETA.** At the default ~30/min inside a 9am–8pm CT window, a large audience can run past
+  8pm and finish the *next* day. On Aug 4 that means arriving after polls close. Cut the audience, raise
+  `SMS_DRAIN_BATCH` / `SMS_DRAIN_BATCHES_PER_RUN`, or start earlier.
+- **Opt-out rate since the last send.** Under ~2% healthy · 2–5% review targeting and frequency · over ~5%
+  stop and diagnose before sending again.
+
+Suppression matters more each day: from Jul 29 on, every send uses a **not-yet-voted** preset so a text is
+never spent on someone whose ballot is already banked. That requires the daily county returns import at
+`/dashboard/voters/chase` — without it, `banked` is never set and the chase presets fall back to the full
+list.
 
 ---
 

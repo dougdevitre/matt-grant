@@ -15,7 +15,7 @@ vi.mock("@/lib/db", () => ({
 }));
 vi.mock("@/lib/sms/send", () => ({ toE164 }));
 
-import { isOptedIn, consentStatus, recordConsent, recordOptOut, optedInSet } from "./consent";
+import { isOptedIn, consentStatus, recordConsent, recordOptOut, optedInSet, listConsent } from "./consent";
 
 const E = "+15555550123";
 beforeEach(() => {
@@ -109,5 +109,63 @@ describe("optedInSet", () => {
     const set = await optedInSet();
     expect([...set].sort()).toEqual(["+15555550001", "+15555550003"]);
     expect(set.has("+15555550002")).toBe(false);
+  });
+});
+
+describe("listConsent — the projection the composer targets on", () => {
+  // Every targeting dimension is read off THIS mapping. A field the composer
+  // filters on but listConsent drops matches nobody against real data while every
+  // mocked unit test still passes — so assert the raw item → row mapping directly.
+  it("carries every targeting field through from the stored item", async () => {
+    send.mockResolvedValue({
+      Items: [
+        {
+          SK: "+15555550001",
+          status: "opted_in",
+          source: "sms-keyword",
+          consentAt: "2026-07-01T00:00:00.000Z",
+          county: "franklin",
+          zip: "63084",
+          schoolDistrict: "2900001",
+          geoSource: "voterfile",
+          voterSegment: "MOBILIZE",
+          voterT: 4,
+          voterPp: 3,
+          voterParty: "REP",
+          banked: false,
+        },
+      ],
+    });
+    const [row] = await listConsent();
+    expect(row).toMatchObject({
+      phone: "+15555550001",
+      status: "opted_in",
+      county: "franklin",
+      zip: "63084",
+      schoolDistrict: "2900001",
+      voterSegment: "MOBILIZE",
+      voterT: 4,
+      voterPp: 3,
+      voterParty: "REP",
+      banked: false,
+    });
+  });
+
+  it("surfaces optedOutAt so opt-out rate is measurable", async () => {
+    send.mockResolvedValue({
+      Items: [{ SK: "+15555550002", status: "opted_out", optedOutAt: "2026-07-25T14:00:00.000Z" }],
+    });
+    const [row] = await listConsent();
+    expect(row.optedOutAt).toBe("2026-07-25T14:00:00.000Z");
+  });
+
+  it("leaves absent tags undefined rather than defaulting them", async () => {
+    // An unenriched row must stay UNKNOWN — a defaulted 0 propensity would read
+    // as "never votes in primaries" and be swept up by a pp: filter.
+    send.mockResolvedValue({ Items: [{ SK: "+15555550003", status: "opted_in" }] });
+    const [row] = await listConsent();
+    expect(row.voterPp).toBeUndefined();
+    expect(row.voterParty).toBeUndefined();
+    expect(row.banked).toBeUndefined();
   });
 });

@@ -24,6 +24,10 @@ async function main() {
   const s = await runSmsEnrichment({ dryRun: DRY });
   console.log(`Opted-in ledger: ${s.optedIn}`);
   console.log(`Voter-matched tags: ${s.voterMatchedTags}`);
+  // Both stay 0 until a vendor overlay source is ingested — that is expected,
+  // not a failure (candidate/voter-registry-refresh-plan.md §3).
+  console.log(`Primary-propensity tags: ${s.ppTags}`);
+  console.log(`Party tags (INFERRED, never registered): ${s.partyTags}`);
   console.log(`Contact-ZIP-only tags: ${s.contactZipOnlyTags}`);
   console.log(`Self-reported geography preserved: ${s.geoPreserved}`);
   console.log(`Not opted in (never tagged): ${s.skippedNotOptedIn}`);

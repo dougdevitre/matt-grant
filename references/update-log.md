@@ -26,6 +26,151 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-26 -- v1.x -- Blast readiness: pre-flight, audience chunking, GOTV copy, delivery receipts
+
+**Context:** The campaign wanted to send a blast the same day, nine days out from the Aug 4 primary, and
+asked to reach 100,000 people. That is not possible by SMS: the textable universe is the `SMSCONSENT`
+ledger, and the voter file's ~100k are not in it (TCPA; `candidate/voter-file-plan.md` §2.3, enforced by
+`audiences.voterfile-isolation.test.ts`). Two further walls sit behind the legal one — at the default
+30 msg/min inside a 9am-8pm CT window a 100k send takes ~5 days, and a sudden toll-free burst that size
+invites carrier filtering mid-GOTV. So this ships what makes a real send possible today, removes the
+failure modes that would have broken it, and documents the compliant paths to the wider universe.
+
+**Changes:**
+- [added] `web/scripts/sms-preflight.ts` (`npm run sms:preflight`) — read-only, counts-only: opted-in
+  total, opt-out rate, scored split, enrichment freshness, opt-in growth by source, reach per preset,
+  cost and budget cap, campaign-row count, and the drain ETA **with an explicit warning when a send
+  spans past 8pm CT into the next day**. This is the durable answer to "how do I know who's opted in".
+- [added] **Audience chunking** (`lib/sms/campaigns.ts`) — recipients live inside one DynamoDB item
+  (400 KB), so anything past ~10k previously threw an unhandled `ValidationException`: no campaign row,
+  no partial send, and a generic server error that named neither the cause nor the fix. Audiences now
+  split across sequential campaign rows, timestamps nudged per chunk so they drain back-to-back **in
+  priority order**; the create call reports the real cause on failure.
+- [added] Two GOTV templates — **last day of early voting** (the 5pm Aug 3 cutoff) and **Election Day
+  chase** (morning / after-4pm closing variants) — plus `isLastEarlyVoteDay` / `isElectionDay` /
+  `earlyVotePhraseShort` in `lib/electionDates.ts`.
+- [updated] Tightened the `early-vote` template from 2 segments to 1, **halving the cost of the most-sent
+  message**, with a test asserting every template stays one GSM-7 segment (`issue-update` exempted for its
+  tracked URL and bounded at two).
+- [added] **Broadcast delivery receipts** — `sendSms` accepts a `campaignKey` echoed on the
+  `StatusCallback`; the status webhook now validates against pathname **and query string** (Twilio signs
+  the full URL, so this was required) and tallies `deliveredCount` / `undeliveredCount`. Previously every
+  broadcast receipt was dropped: broadcasts create no 1:1 thread row, so the SID lookup found nothing.
+- [fixed] **`listConsent()` never mapped `voterPp` / `voterParty`** — added in the prior entry's work, so
+  the new `pp:` and `party:` composer filters would have matched **nobody** against real data while every
+  mocked unit test passed. Added a test that asserts the raw item to row mapping directly.
+- [fixed] **`allSmsCampaigns()` pulled every historical campaign's full recipients array** on every drain
+  tick (3x/min, forever) and every dashboard render. Replaced with a projection that omits recipients; the
+  drain fetches only the selected campaign's row.
+- [fixed] **`GRANT` is not a live keyword** — `twilio-fund-plan.md` and `voter-registry-refresh-plan.md`
+  both told captains to print "Text GRANT"; the webhook answers `MATT`. A card printed from either would
+  have recorded zero consents.
+- [updated] `candidate/sms-conversational-interface-plan.md` §3 and §8 — the drafted copy was for Jul 20-21
+  and pushed the **Jul 22 by-mail deadline, which has passed**. Replaced with today's send and a day-by-day
+  Jul 26 to Aug 4 calendar mapped to the 4-3-2-1 cadence and the chase waves.
+- [updated] `surfaced optedOutAt` and `enrichedAt` on consent rows so opt-out rate and enrichment staleness
+  are measurable; delivery counts and batch position now render in Recent sends.
+
+**Note:** None of this widens who can be texted. It makes a send to the *existing* opted-in list correct,
+affordable, measurable, and possible at any list size.
+
+**Verifications Performed:**
+- `npm run test` — 2055 pass, 1 skipped (incl. the voterfile-isolation guard); `npx tsc --noEmit` clean;
+  `npm run lint` clean (2 pre-existing warnings in untouched files); `npm run compliance` passed;
+  production build succeeds (238 static pages).
+- Pre-flight executed end-to-end against a non-existent table: degrades to zeros without throwing.
+- Every template body measured through `withCompliance()` + `smsSegments()`: all GSM-7, all one segment.
+
+**Known Gaps:**
+- **Toll-Free Verification is still not checked in code** — all-green credentials can coexist with 100%
+  carrier rejection (error 30032). Confirm in the Twilio console before sending.
+- Sends serialize and cannot be cancelled or paused from the UI; a stuck campaign blocks newer ones.
+- Per-send opt-out rate needs send-window attribution; only the lifetime rate is computed today.
+- No per-campaign detail view.
+
+**Files Modified:**
+- candidate/sms-conversational-interface-plan.md, candidate/twilio-fund-plan.md, candidate/voter-registry-refresh-plan.md, references/update-log.md
+- web/scripts/sms-preflight.ts (new), web/package.json
+- web/lib/sms/campaigns.ts, campaigns.test.ts, consent.ts, consent.test.ts, send.ts, templates.ts, templates.test.ts
+- web/lib/electionDates.ts
+- web/app/api/webhooks/twilio/status/route.ts, route.test.ts
+- web/app/dashboard/sms/page.tsx, web/app/dashboard/sms/actions.ts
+
+---
+
+## 2026-07-26 -- v1.x -- Second voter-file source: overlay ingest + primary-propensity SMS targeting
+
+**Context:** The campaign obtained a new voter export (`broad_repub_individual_voter_2026-07-09`, ~138 MiB)
+to use as an updated registry for the SMS campaign, nine days before the Aug 4 primary. Two findings shaped
+the work. First, it cannot be the Sunshine-law file: Missouri has no party registration, so the Secretary
+of State cannot produce a "Republican voter" extract — this is a commercial or party-committee product in
+which party is **derived**, and vendor license terms apply on top of RSMo §115.157. Second, the
+`.csv.xlsx` double extension means a vendor CSV was re-saved through Excel, which caps a worksheet at
+1,048,576 rows and may have silently truncated it. The existing ingest would also have rejected the file
+outright (it validates a frozen 36-column header). The real prize is primary vote history: the official
+file records only a voter's single most recent election, so turnout scoring is a recency proxy, while
+actual August-primary participation is the sharpest predictor of an August-primary vote.
+
+**Changes:**
+- [added] `web/scripts/inspect-voter-source.ts` + `web/lib/voters/sourceInspect.ts` (+ test) — streaming
+  schema inspector for a file too large to open by hand. Reports ordered columns, inferred types, distinct
+  values for categorical columns, phone/consent/voter-ID/vote-history/party signals, an exact row count,
+  and an Excel-truncation warning. **Prints shapes, never row values** — masking is precise enough to
+  withhold `FirstName`/`CellPhone` while still surfacing `CountyName`/`PhoneType` distinct sets.
+- [added] `web/lib/voters/sources/vendorRepub.ts` + `sources/index.ts` (+ test) — a second source adapter
+  that maps by header **name** (vendor column order is unstable, unlike the official file's frozen order),
+  with an editable `FIELD_ALIASES` table and a resolver that names every unresolved field at once.
+  `detectSource` checks for a **drifted official export before** trying the vendor adapter, since the two
+  share field names and a drifted spine file would otherwise be silently loaded as an overlay.
+- [added] `web/lib/voters/party.ts` (+ test) — canonical party codes and normalization. Blank returns
+  `null`, never `OTH`: an unknown party is not "other", and collapsing them would let a filter sweep up the
+  ~90% of Missouri rows with no party value.
+- [added] `web/lib/voters/overlayStore.ts` + `PK.voterOverlay` — the `VOTEROVL#county#precinct` partition.
+  Deliberately separate from the spine: `VOTERAGG` is recomputed wholesale from the official files, so a
+  filtered universe must never be folded into it. Reversible, and every row records its source.
+- [added] `web/scripts/ingest-voter-overlay.ts` (`npm run ingest:voter-overlay`) — streaming overlay ingest
+  with `--dry-run`, precinct-match reconciliation against the spine, and a truncation warning. Reports
+  phone counts and loads **none** of them.
+- [updated] `web/lib/sms/consent.ts`, `web/lib/reports/smsEnrichment.ts`, `smsEnrichmentRun.ts`,
+  `web/scripts/enrich-sms-audience.ts` — new `voterPp` / `voterParty` denormalized tags, written only when
+  the overlay carries a value (absent stays absent, never a fabricated default).
+- [updated] `web/lib/sms/audiences.ts` (+ tests) — `pp:<0-5>` (a MINIMUM) and `party:<code>` target tokens,
+  chips, counts, labels, and an "August-primary regulars, not yet voted" preset.
+
+**Note:** This does not widen who can be texted. Broadcast SMS remains gated on the consent ledger; vendor
+phones are manual-dial/P2P only and are additionally gated on written license terms confirming political
+phone contact is permitted. The party-code list in `audiences.ts` is a hand-copied **mirror** of
+`lib/voters/party.ts` (the isolation guard forbids the import) with a test asserting it cannot drift.
+The overlay ingest cannot be run until the original CSV is in hand — the tooling is what shipped.
+
+**Verifications Performed:**
+- `npm run test` — 2028 pass, 1 skipped (incl. the voterfile-isolation guard); `npx tsc --noEmit` clean;
+  `npm run lint` clean (2 pre-existing warnings in untouched files); `npm run compliance` passed;
+  production build succeeds.
+- End-to-end dry run of the inspector and the overlay ingest against a synthetic 5,000-row vendor CSV:
+  columns/signals detected correctly, PII masked, blank party values correctly omitted (4,036 of 5,000
+  tagged, matching the fixture's 80.7% fill).
+
+**Known Gaps:**
+- The real export's schema is unconfirmed — Google Drive returns an empty payload for a file this size, so
+  `FIELD_ALIASES` holds candidate aliases that must be confirmed against the inspector's output before a
+  live load.
+- Row count unverified; if the file was truncated at Excel's cap the universe is incomplete.
+- Broadcast delivery receipts are still discarded by the Twilio status webhook (pre-existing) — blast
+  delivery rate must be read from Twilio Messaging Insights.
+
+**Files Modified:**
+- candidate/voter-registry-refresh-plan.md (new), candidate/voter-file-plan.md, candidate/sms-targeting-plan.md
+- docs/VOTER-FILE.md, SKILL.md, commands/commands.md, references/update-log.md
+- web/scripts/inspect-voter-source.ts (new), web/scripts/ingest-voter-overlay.ts (new)
+- web/lib/voters/sourceInspect.ts (new), sourceInspect.test.ts (new), party.ts (new), party.test.ts (new)
+- web/lib/voters/overlayStore.ts (new), web/lib/voters/sources/vendorRepub.ts (new), sources/index.ts (new), sources/vendorRepub.test.ts (new)
+- web/lib/db.ts, web/lib/sms/consent.ts, web/lib/sms/audiences.ts, web/lib/sms/audiences.test.ts, web/lib/sms/priorityPresets.test.ts
+- web/lib/reports/smsEnrichment.ts, smsEnrichment.test.ts, smsEnrichmentRun.ts
+- web/scripts/enrich-sms-audience.ts, web/app/dashboard/sms/page.tsx, web/app/dashboard/sms/go-live/actions.test.ts, web/package.json
+
+---
+
 ## 2026-07-23 -- v1.x -- Meta ads: Pixel config + tracking + campaign runbook
 
 **Context:** To run digital ads to voters the campaign can't text, it needs conversion tracking on
