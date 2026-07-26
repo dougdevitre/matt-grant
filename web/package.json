@@ -18,6 +18,7 @@
     "backfill:roles": "tsx scripts/backfill-clerk-roles.ts",
     "backfill:sms-consent": "tsx scripts/backfill-sms-consent.ts",
     "enrich:sms": "tsx scripts/enrich-sms-audience.ts",
+    "sms:preflight": "tsx scripts/sms-preflight.ts",
     "build:district-crosswalk": "tsx scripts/build-school-district-crosswalk.ts",
     "brand": "node scripts/brand-assets.mjs",
     "cta": "node scripts/cta-images.mjs",

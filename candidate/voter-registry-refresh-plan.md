@@ -147,8 +147,26 @@ many numbers it saw and loads none of them.
 **The real lever remains the opt-in list.** Broadcast reach is capped by the consent ledger, not by the
 voter file — a bigger registry does not add a single textable number. What this file expands is the *call*
 universe, so every call, door, and event in the final week should carry the keyword ask
-(*Text GRANT to +1 844-314-7912*), which records consent automatically through the inbound webhook. Track
+(**Text MATT to +1 844-314-7912**), which records consent automatically through the inbound webhook. Track
 the curve with `web/lib/reports/optinGrowth.ts`.
+
+> **Use the live keyword.** `MATT` is the word the webhook answers (`SMS_OPTIN_KEYWORD`). Anything else —
+> including the candidate's surname — falls through to the staff inbox and records **no consent**. `DONATE`,
+> `VOLUNTEER`, `EVENTS`, and `VOTE` also opt a person in while driving their action.
+
+### Reaching the wider universe without texting it
+
+The voter file's ~100k people are not textable, and no amount of engineering changes that. Three channels
+do reach them, and all three already ship:
+
+| Channel | How | Constraint |
+|---|---|---|
+| **Digital ads** | `web/scripts/export-digital-audience.ts` builds a **SHA-256-hashed** Meta Custom Audience from scored segments (`--segment MOBILIZE,BANK --exclude-banked`) | No plaintext PII leaves the system. The fastest way to put a message in front of the whole universe today |
+| **Manual dial** | Matched + appended phones → call sheets (`web/lib/voters/phones.ts`, `phoneAppend.ts`) | Human-initiated only; vendor phones need the license gate cleared first |
+| **Peer-to-peer texting** | A volunteer sends and reviews each message individually — `../messaging/sms-texting.md` §9 has the scripts and volunteer rules | Not a broadcast, and not the Twilio pipeline. Confirm the platform and consent posture with counsel |
+
+Broadcast SMS stays what it is: the opted-in list, aimed by voter data. Growing that list is the only thing
+that raises its ceiling.
 
 ## 8. Operational limits that shape a blast
 

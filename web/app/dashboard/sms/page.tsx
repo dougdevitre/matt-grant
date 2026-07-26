@@ -175,8 +175,13 @@ export default async function SmsPage() {
                   <span className="text-ink">{c.body.length > 60 ? `${c.body.slice(0, 60)}…` : c.body}</span>{" "}
                   <span className="text-slate">
                     → {c.audience} · {c.sentCount}/{c.total} sent
+                    {/* "sent" = Twilio accepted it; "delivered" = the carrier confirmed
+                        it reached a handset. Only shown once receipts start arriving. */}
+                    {c.deliveredCount ? ` · ${c.deliveredCount} delivered` : ""}
+                    {c.undeliveredCount ? ` · ${c.undeliveredCount} undelivered` : ""}
                     {c.failedCount ? ` · ${c.failedCount} failed` : ""}
-                    {c.skippedCount ? ` · ${c.skippedCount} skipped` : ""}{etaNote} · by {c.createdBy}
+                    {c.skippedCount ? ` · ${c.skippedCount} skipped` : ""}
+                    {c.chunkOf ? ` · batch ${c.chunkIndex}/${c.chunkOf}` : ""}{etaNote} · by {c.createdBy}
                   </span>
                 </span>
                 <span className="flex shrink-0 items-center gap-2">

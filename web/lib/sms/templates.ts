@@ -4,7 +4,6 @@
 import { CAMPAIGN, SITE_URL } from "@/lib/site";
 import { ISSUES } from "@/lib/issues";
 import { ctaLink } from "@/lib/sms/ctas";
-import { earlyVotePhrase } from "@/lib/sms/votebot";
 
 export type SmsField = { name: string; label: string; placeholder?: string };
 export type SmsTemplateDef = {
@@ -88,7 +87,7 @@ const tidy = (s: string) => s.replace(/\s+/g, " ").trim();
 // The election countdown is shared with email via lib/electionDates.ts (single
 // source of truth). Imported for local use (the gotv template) AND re-exported so
 // existing importers of sms/templates keep working.
-import { daysUntilElection } from "@/lib/electionDates";
+import { daysUntilElection, earlyVotePhraseShort } from "@/lib/electionDates";
 export { daysUntilElection };
 
 // Fuzzy-match a typed priority ("family courts", "taxes", "term limits") to a canonical ISSUE,
@@ -132,12 +131,32 @@ export const SMS_TEMPLATES: SmsTemplateDef[] = [
     key: "early-vote",
     label: "Early-vote push",
     description:
-      "No-excuse early voting for the Aug 4 primary (July 21 - Aug 3) — the phrasing tracks the calendar automatically, and Reply VOTE hands off to the county-aware vote agent.",
+      "No-excuse early voting for the Aug 4 primary (July 21 - Aug 3) — the phrasing tracks the calendar automatically, and Reply VOTE hands off to the county-aware vote agent. Kept to one segment: the detail lives in the VOTE reply, which costs nothing to send.",
     fields: [],
-    build: () =>
-      tidy(
-        `Early voting for the Aug 4 primary ${earlyVotePhrase()}. Vote in person at your county election office - bring photo ID, no excuse needed. Reply VOTE for your county's location and info.`,
-      ),
+    build: () => tidy(`Vote early ${earlyVotePhraseShort()}. Photo ID, no excuse needed. Reply VOTE for where to go.`),
+  },
+  {
+    key: "last-early-day",
+    label: "Last day of early voting (Aug 3)",
+    description:
+      "The 5pm Mon Aug 3 cutoff — the last moment to bank a vote before Election Day. Pair with the 'not yet voted' chip so it only reaches people whose ballot isn't in.",
+    fields: [],
+    build: () => tidy(`TODAY is the last day to vote early - county offices close at 5pm. Reply VOTE for where to go.`),
+  },
+  {
+    key: "election-day",
+    label: "Election Day chase (Aug 4)",
+    description:
+      "Election Day GOTV. Leave the phase blank for the morning 'polls are open' push; enter 'closing' for the after-4pm final call. Pair with the 'not yet voted' chip - never spend a text on someone who already voted.",
+    fields: [{ name: "phase", label: "Phase (blank = morning, or 'closing')", placeholder: "morning" }],
+    build: (v) => {
+      const closing = (v.phase ?? "").trim().toLowerCase().startsWith("clos");
+      return tidy(
+        closing
+          ? `Polls close at 7pm TONIGHT. Not voted yet? Go now. Reply VOTE for your polling place.`
+          : `TODAY is Election Day. Polls open 6am-7pm. Reply VOTE for your polling place.`,
+      );
+    },
   },
   {
     key: "issue-update",

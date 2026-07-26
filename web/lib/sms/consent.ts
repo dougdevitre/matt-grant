@@ -31,6 +31,8 @@ export type SmsConsentRow = {
   voterPp?: number; // primary propensity 0-5 — recent August-primary participation
   voterParty?: string; // REP/DEM/UNA/OTH — INFERRED, never registered (see below)
   banked?: boolean; // confirmed already voted (ballot returns, denormalized)
+  optedOutAt?: string; // when STOP was honored — the input to per-send opt-out rate
+  enrichedAt?: string; // last time the enrichment job tagged this row (staleness check)
 };
 // `voterPp` is a sharper turnout signal than `voterT` for a primary: the official
 // file records only a voter's single most recent election, so `voterT` is a
@@ -152,7 +154,16 @@ export async function listConsent(): Promise<SmsConsentRow[]> {
       geoSource: i.geoSource ? String(i.geoSource) : undefined,
       voterSegment: i.voterSegment ? String(i.voterSegment) : undefined,
       voterT: typeof i.voterT === "number" ? i.voterT : undefined,
+      // Overlay-sourced tags. These MUST be mapped here: the composer's pp:/party:
+      // filters read them off this row, so omitting them makes those filters
+      // silently match nobody against real data.
+      voterPp: typeof i.voterPp === "number" ? i.voterPp : undefined,
+      voterParty: i.voterParty ? String(i.voterParty) : undefined,
       banked: typeof i.banked === "boolean" ? i.banked : undefined,
+      // Written on every STOP; surfaced so opt-out rate can actually be measured
+      // against the §8 guardrails (under ~2% healthy, over ~5% stop).
+      optedOutAt: i.optedOutAt ? String(i.optedOutAt) : undefined,
+      enrichedAt: i.enrichedAt ? String(i.enrichedAt) : undefined,
     }));
   } catch {
     return [];

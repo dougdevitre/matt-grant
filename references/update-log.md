@@ -26,6 +26,78 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-26 -- v1.x -- Blast readiness: pre-flight, audience chunking, GOTV copy, delivery receipts
+
+**Context:** The campaign wanted to send a blast the same day, nine days out from the Aug 4 primary, and
+asked to reach 100,000 people. That is not possible by SMS: the textable universe is the `SMSCONSENT`
+ledger, and the voter file's ~100k are not in it (TCPA; `candidate/voter-file-plan.md` §2.3, enforced by
+`audiences.voterfile-isolation.test.ts`). Two further walls sit behind the legal one — at the default
+30 msg/min inside a 9am-8pm CT window a 100k send takes ~5 days, and a sudden toll-free burst that size
+invites carrier filtering mid-GOTV. So this ships what makes a real send possible today, removes the
+failure modes that would have broken it, and documents the compliant paths to the wider universe.
+
+**Changes:**
+- [added] `web/scripts/sms-preflight.ts` (`npm run sms:preflight`) — read-only, counts-only: opted-in
+  total, opt-out rate, scored split, enrichment freshness, opt-in growth by source, reach per preset,
+  cost and budget cap, campaign-row count, and the drain ETA **with an explicit warning when a send
+  spans past 8pm CT into the next day**. This is the durable answer to "how do I know who's opted in".
+- [added] **Audience chunking** (`lib/sms/campaigns.ts`) — recipients live inside one DynamoDB item
+  (400 KB), so anything past ~10k previously threw an unhandled `ValidationException`: no campaign row,
+  no partial send, and a generic server error that named neither the cause nor the fix. Audiences now
+  split across sequential campaign rows, timestamps nudged per chunk so they drain back-to-back **in
+  priority order**; the create call reports the real cause on failure.
+- [added] Two GOTV templates — **last day of early voting** (the 5pm Aug 3 cutoff) and **Election Day
+  chase** (morning / after-4pm closing variants) — plus `isLastEarlyVoteDay` / `isElectionDay` /
+  `earlyVotePhraseShort` in `lib/electionDates.ts`.
+- [updated] Tightened the `early-vote` template from 2 segments to 1, **halving the cost of the most-sent
+  message**, with a test asserting every template stays one GSM-7 segment (`issue-update` exempted for its
+  tracked URL and bounded at two).
+- [added] **Broadcast delivery receipts** — `sendSms` accepts a `campaignKey` echoed on the
+  `StatusCallback`; the status webhook now validates against pathname **and query string** (Twilio signs
+  the full URL, so this was required) and tallies `deliveredCount` / `undeliveredCount`. Previously every
+  broadcast receipt was dropped: broadcasts create no 1:1 thread row, so the SID lookup found nothing.
+- [fixed] **`listConsent()` never mapped `voterPp` / `voterParty`** — added in the prior entry's work, so
+  the new `pp:` and `party:` composer filters would have matched **nobody** against real data while every
+  mocked unit test passed. Added a test that asserts the raw item to row mapping directly.
+- [fixed] **`allSmsCampaigns()` pulled every historical campaign's full recipients array** on every drain
+  tick (3x/min, forever) and every dashboard render. Replaced with a projection that omits recipients; the
+  drain fetches only the selected campaign's row.
+- [fixed] **`GRANT` is not a live keyword** — `twilio-fund-plan.md` and `voter-registry-refresh-plan.md`
+  both told captains to print "Text GRANT"; the webhook answers `MATT`. A card printed from either would
+  have recorded zero consents.
+- [updated] `candidate/sms-conversational-interface-plan.md` §3 and §8 — the drafted copy was for Jul 20-21
+  and pushed the **Jul 22 by-mail deadline, which has passed**. Replaced with today's send and a day-by-day
+  Jul 26 to Aug 4 calendar mapped to the 4-3-2-1 cadence and the chase waves.
+- [updated] `surfaced optedOutAt` and `enrichedAt` on consent rows so opt-out rate and enrichment staleness
+  are measurable; delivery counts and batch position now render in Recent sends.
+
+**Note:** None of this widens who can be texted. It makes a send to the *existing* opted-in list correct,
+affordable, measurable, and possible at any list size.
+
+**Verifications Performed:**
+- `npm run test` — 2055 pass, 1 skipped (incl. the voterfile-isolation guard); `npx tsc --noEmit` clean;
+  `npm run lint` clean (2 pre-existing warnings in untouched files); `npm run compliance` passed;
+  production build succeeds (238 static pages).
+- Pre-flight executed end-to-end against a non-existent table: degrades to zeros without throwing.
+- Every template body measured through `withCompliance()` + `smsSegments()`: all GSM-7, all one segment.
+
+**Known Gaps:**
+- **Toll-Free Verification is still not checked in code** — all-green credentials can coexist with 100%
+  carrier rejection (error 30032). Confirm in the Twilio console before sending.
+- Sends serialize and cannot be cancelled or paused from the UI; a stuck campaign blocks newer ones.
+- Per-send opt-out rate needs send-window attribution; only the lifetime rate is computed today.
+- No per-campaign detail view.
+
+**Files Modified:**
+- candidate/sms-conversational-interface-plan.md, candidate/twilio-fund-plan.md, candidate/voter-registry-refresh-plan.md, references/update-log.md
+- web/scripts/sms-preflight.ts (new), web/package.json
+- web/lib/sms/campaigns.ts, campaigns.test.ts, consent.ts, consent.test.ts, send.ts, templates.ts, templates.test.ts
+- web/lib/electionDates.ts
+- web/app/api/webhooks/twilio/status/route.ts, route.test.ts
+- web/app/dashboard/sms/page.tsx, web/app/dashboard/sms/actions.ts
+
+---
+
 ## 2026-07-26 -- v1.x -- Second voter-file source: overlay ingest + primary-propensity SMS targeting
 
 **Context:** The campaign obtained a new voter export (`broad_repub_individual_voter_2026-07-09`, ~138 MiB)

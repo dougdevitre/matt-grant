@@ -102,17 +102,30 @@ export async function sendSmsCampaign(formData: FormData): Promise<SmsSendState>
   const audience = isCaptain
     ? `My team${volRoles.length || targets.length ? ` · ${smsAudienceLabel([], [], volRoles, targets)}` : ""}`
     : smsAudienceLabel(groups, roles, volRoles, targets);
-  await createSmsCampaign({
-    body,
-    audience,
-    recipients,
-    createdBy: g.email ?? "system",
-    scheduledAt: future ? scheduledAt : undefined,
-  });
+  let created: Awaited<ReturnType<typeof createSmsCampaign>>;
+  try {
+    created = await createSmsCampaign({
+      body,
+      audience,
+      recipients,
+      createdBy: g.email ?? "system",
+      scheduledAt: future ? scheduledAt : undefined,
+    });
+  } catch (e) {
+    // Queueing failed — say why. This used to surface as a generic server-action
+    // error with no indication of the cause or the fix.
+    return { ok: false, message: e instanceof Error ? e.message : "Could not queue the send." };
+  }
+  // A large audience is split across several campaign rows (DynamoDB caps an item
+  // at 400 KB). They drain back-to-back in priority order, so this is a storage
+  // detail, not a change in who gets reached first — but the operator should see
+  // it, because the send appears as several rows in Recent sends.
+  const chunkNote =
+    created.chunks > 1 ? ` Split into ${created.chunks} batches that send back-to-back, highest priority first.` : "";
 
   if (future) {
     revalidatePath("/dashboard/sms");
-    return { ok: true, message: `Scheduled for ${rawWhen.replace("T", " ")} — ${recipients.length} opted-in recipients, highest-likelihood voters first.${cappedNote} It sends automatically.` };
+    return { ok: true, message: `Scheduled for ${rawWhen.replace("T", " ")} — ${recipients.length} opted-in recipients, highest-likelihood voters first.${cappedNote}${chunkNote} It sends automatically.` };
   }
   let progressed: Awaited<ReturnType<typeof drainSmsOnce>> = null;
   try {
@@ -131,6 +144,6 @@ export async function sendSmsCampaign(formData: FormData): Promise<SmsSendState>
   const eta = est.sendMinutes > 0 ? ` Sending ~${SMS_DRAIN_PER_MINUTE}/min — done ~${formatEtaCT(est.eta)}.` : "";
   return {
     ok: true,
-    message: `Queued ${recipients.length} opted-in recipients, highest-likelihood voters first.${cappedNote} Sending in the background (respects quiet hours, 9am–8pm CT).${eta} Track progress below.`,
+    message: `Queued ${recipients.length} opted-in recipients, highest-likelihood voters first.${cappedNote}${chunkNote} Sending in the background (respects quiet hours, 9am–8pm CT).${eta} Track progress below.`,
   };
 }
