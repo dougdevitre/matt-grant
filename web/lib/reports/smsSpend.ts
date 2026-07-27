@@ -96,6 +96,44 @@ export function coverageRows(
   });
 }
 
+// ── Account balance ─────────────────────────────────────────────────────────
+// A budget is what the campaign INTENDS to spend; the Twilio balance is what it
+// CAN spend. They are different ceilings and the balance is the harder one — a
+// blast that outruns it stops mid-drain with carrier failures, leaving the
+// lowest-priority tail unsent and the campaign row short. Read the balance off
+// the Twilio console (it isn't in this app) and pass it to `npm run
+// sms:preflight -- --balance <dollars>`.
+
+export type BalanceCheck = {
+  affordable: number; // texts the balance covers, at perTextCents
+  costCents: number; // cost of the intended send
+  covers: boolean; // balance >= costCents
+  shortfallCents: number; // 0 when covered
+  coveragePct: number; // share of the intended send the balance reaches (0-100)
+};
+
+/** Can this balance pay for `texts` at `perTextCents`? Pure; cents throughout.
+ *  A non-positive per-text rate means nothing is billable, so everything is
+ *  affordable — never divide by it. */
+export function balanceCheck(args: { balanceCents: number; perTextCents: number; texts: number }): BalanceCheck {
+  const balance = Math.max(0, args.balanceCents);
+  const perText = Math.max(0, args.perTextCents);
+  const texts = Math.max(0, Math.floor(args.texts));
+  if (perText === 0) {
+    return { affordable: texts, costCents: 0, covers: true, shortfallCents: 0, coveragePct: 100 };
+  }
+  const costCents = texts * perText;
+  const affordable = Math.floor(balance / perText);
+  const covers = balance >= costCents;
+  return {
+    affordable,
+    costCents,
+    covers,
+    shortfallCents: covers ? 0 : costCents - balance,
+    coveragePct: texts === 0 ? 100 : Math.min(100, (affordable / texts) * 100),
+  };
+}
+
 /** Illustrative fallback counts (candidate/twilio-fund-plan.md §3) for when the
  *  consent ledger has no enrichment tags yet. The UI labels these clearly. */
 export const ILLUSTRATIVE_COUNTS: Record<string, number> = {

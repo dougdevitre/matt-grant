@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { spendModel, coverageRows, replyCostCents, COVERAGE_ORDER, ILLUSTRATIVE_COUNTS, UNSCORED_KEY } from "./smsSpend";
+import { spendModel, coverageRows, replyCostCents, balanceCheck, COVERAGE_ORDER, ILLUSTRATIVE_COUNTS, UNSCORED_KEY } from "./smsSpend";
 
 // Cents throughout: base 0.79¢/seg + 0.45¢/seg carrier ≈ Twilio toll-free planning figures.
 const PRICING = { basePerSegCents: 0.79, carrierPerSegCents: 0.45 };
@@ -73,5 +73,52 @@ describe("coverageRows", () => {
     const rows = coverageRows({ MOBILIZE: 500, BANK: 500 }, 1, 500);
     expect(rows.find((r) => r.key === "MOBILIZE")?.status).toBe("within");
     expect(rows.find((r) => r.key === "BANK")?.status).toBe("beyond");
+  });
+});
+
+describe("balanceCheck", () => {
+  // 1-segment message at the toll-free planning rate with 5% replies:
+  // 1.24¢ + 0.05 x 3.27¢ = 1.4035¢ per recipient.
+  const perText = 1.24 + 0.05 * 3.27;
+
+  it("reports how far a real Twilio balance stretches", () => {
+    // The account balance that prompted this: $46.35.
+    const b = balanceCheck({ balanceCents: 4635, perTextCents: perText, texts: 10000 });
+    expect(b.affordable).toBe(3302);
+    expect(b.covers).toBe(false);
+    expect(b.coveragePct).toBeCloseTo(33.02, 1);
+  });
+
+  it("a covered send reports no shortfall and 100% coverage", () => {
+    const b = balanceCheck({ balanceCents: 4635, perTextCents: perText, texts: 1000 });
+    expect(b.covers).toBe(true);
+    expect(b.shortfallCents).toBe(0);
+    expect(b.coveragePct).toBe(100);
+    expect(b.costCents).toBeCloseTo(1000 * perText, 6);
+  });
+
+  it("quantifies the shortfall when the blast outruns the balance", () => {
+    const b = balanceCheck({ balanceCents: 1000, perTextCents: 2, texts: 1000 });
+    expect(b.costCents).toBe(2000);
+    expect(b.shortfallCents).toBe(1000);
+    expect(b.affordable).toBe(500);
+  });
+
+  it("exact coverage counts as covered", () => {
+    const b = balanceCheck({ balanceCents: 2000, perTextCents: 2, texts: 1000 });
+    expect(b.covers).toBe(true);
+    expect(b.affordable).toBe(1000);
+  });
+
+  it("never divides by a zero rate, and clamps junk inputs", () => {
+    expect(balanceCheck({ balanceCents: 100, perTextCents: 0, texts: 50 })).toMatchObject({
+      affordable: 50,
+      covers: true,
+      coveragePct: 100,
+    });
+    const neg = balanceCheck({ balanceCents: -5, perTextCents: 2, texts: -3 });
+    expect(neg.affordable).toBe(0);
+    expect(neg.costCents).toBe(0);
+    expect(neg.coveragePct).toBe(100); // nothing intended → nothing uncovered
   });
 });

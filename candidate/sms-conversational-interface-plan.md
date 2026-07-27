@@ -57,10 +57,13 @@ Uses only shipped machinery — no code required. Send during the 9am–8pm CT w
 > sending that now would misinform voters. What remains: **in-person early voting through 5pm Mon Aug 3**
 > and **Election Day Tue Aug 4, polls 6am–7pm**.
 
-**Run the pre-flight first** — it prints the real opted-in count, cost, chunk count, and completion ETA:
+**Run the pre-flight first** — it prints the real opted-in count, cost, chunk count, and completion ETA.
+Pass `--balance` with the figure from the Twilio console so it can tell you whether the account actually
+holds enough to finish the send:
 
 ```bash
-cd web && DYNAMODB_TABLE=matt-grant AWS_REGION=us-east-1 npm run sms:preflight -- --budget 250
+cd web && DYNAMODB_TABLE=matt-grant AWS_REGION=us-east-1 \
+  npm run sms:preflight -- --budget 250 --balance 46.35
 ```
 
 **Today's send.** Template: **Early-vote push** (its phrasing tracks the calendar automatically), audience
@@ -150,11 +153,14 @@ final week is explicitly within `messaging/sms-texting.md` §8 guidance. Every t
 | **Tue Aug 4 (morning)** | **Election Day chase** (blank phase) | Not yet voted | Polls open 6am–7pm |
 | **Tue Aug 4 (after 4pm)** | **Election Day chase** (`closing`) | Not yet voted | "The last two hours matter most" (`gotv-plan.md`) |
 
-**Two things to check before each send**, both from `npm run sms:preflight`:
+**Three things to check before each send**, all from `npm run sms:preflight`:
 
 - **The completion ETA.** At the default ~30/min inside a 9am–8pm CT window, a large audience can run past
   8pm and finish the *next* day. On Aug 4 that means arriving after polls close. Cut the audience, raise
   `SMS_DRAIN_BATCH` / `SMS_DRAIN_BATCHES_PER_RUN`, or start earlier.
+- **The Twilio balance** (`--balance`). A budget is what the campaign means to spend; the balance is what it
+  can. An underfunded blast does not stop cleanly — it fails at the carrier mid-drain and strands the
+  lowest-priority tail half-sent. Top up before a GOTV push rather than during one.
 - **Opt-out rate since the last send.** Under ~2% healthy · 2–5% review targeting and frequency · over ~5%
   stop and diagnose before sending again.
 

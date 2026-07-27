@@ -2,14 +2,21 @@
  * SMS pre-flight report — run with tsx:
  *
  *   DYNAMODB_TABLE=matt-grant AWS_REGION=us-east-1 \
- *     npm run sms:preflight -- [--budget 500] [--segments 1] [--preset gotv-chase]
+ *     npm run sms:preflight -- [--budget 500] [--balance 46.35] [--segments 1] [--preset gotv-chase]
  *
  * READ-ONLY. Sends nothing, writes nothing. Answers the questions you need
  * answered BEFORE pressing send:
  *
  *   • How many people can we actually text?  (the consent ledger IS the ceiling)
  *   • What will this cost, and when will it finish?
+ *   • Does the Twilio account actually hold enough money to finish it?
  *   • Will it split into multiple campaign rows, and is the audience healthy?
+ *
+ * On --balance: Twilio's account balance is NOT exposed to this app, so read it
+ * off the Twilio console and pass it in. It is a HARDER ceiling than --budget —
+ * a budget is what the campaign means to spend, the balance is what it can. A
+ * blast that outruns the balance dies mid-drain on carrier failures, stranding
+ * the lowest-priority tail and leaving a half-sent campaign row.
  *
  * On "how do I know who's opted in": the SMSCONSENT partition, SK = the E.164
  * phone, attribute `status`. It is DEFAULT-DENY — `isOptedIn()` returns true only
@@ -25,7 +32,7 @@
 import { listConsent } from "../lib/sms/consent";
 import { getSecret } from "../lib/ssm";
 import { optinGrowth } from "../lib/reports/optinGrowth";
-import { SMS_PRICING_DEFAULTS, spendModel } from "../lib/reports/smsSpend";
+import { SMS_PRICING_DEFAULTS, spendModel, balanceCheck } from "../lib/reports/smsSpend";
 import { SMS_DRAIN_PER_MINUTE, estimateDrainCompletion, formatEtaCT } from "../lib/sms/pacing";
 import { SMS_PRIORITY_PRESETS, presetTokens, parseTargetToken, OUTSTANDING_TOKEN } from "../lib/sms/audiences";
 import { chunkRecipients } from "../lib/sms/campaigns";
@@ -80,6 +87,7 @@ async function main() {
     process.exit(1);
   }
   const budgetDollars = Number(opt("--budget", "0"));
+  const balanceDollars = Number(opt("--balance", "0"));
   const segments = Math.max(1, Number(opt("--segments", "1")));
   const growthDays = Math.max(1, Number(opt("--days", "9")));
 
@@ -157,7 +165,14 @@ async function main() {
   const listSize = reach.get(presetArg) ?? optedIn.length;
   const budgetCents = Math.round(budgetDollars * 100);
   const spend = spendModel({ ...SMS_PRICING_DEFAULTS, segments, listSize, sends: 1, budgetCents });
-  const willSend = spend.capPerBlast !== null ? Math.min(spend.capPerBlast, listSize) : listSize;
+  const budgetCap = spend.capPerBlast !== null ? Math.min(spend.capPerBlast, listSize) : listSize;
+
+  // The balance is applied AFTER the budget cap: whichever ceiling is lower is
+  // the one the send actually hits, and it's the number the ETA/chunking below
+  // must be based on.
+  const balanceCents = Math.round(balanceDollars * 100);
+  const bal = balanceCents > 0 ? balanceCheck({ balanceCents, perTextCents: spend.perTextCents, texts: budgetCap }) : null;
+  const willSend = bal ? Math.min(budgetCap, bal.affordable) : budgetCap;
 
   console.log(`\n=== THIS SEND — preset "${presetArg}", ${segments} segment(s) ===`);
   console.log(`Audience:        ${num(listSize)}`);
@@ -172,6 +187,30 @@ async function main() {
     );
   } else {
     console.log("Budget:          not set (pass --budget to see the cap and coverage).");
+  }
+
+  // ── Twilio account balance — the ceiling that money, not policy, imposes ────
+  if (bal) {
+    console.log(`\nTwilio balance:  ${money(balanceCents)} — funds ${num(bal.affordable)} texts at this length.`);
+    if (bal.covers) {
+      console.log(`  Covers this send (${money(bal.costCents)}); ${money(balanceCents - bal.costCents)} left over.`);
+    } else {
+      console.log(
+        `  ** SHORT BY ${money(bal.shortfallCents)}. ** This send needs ${money(bal.costCents)} and reaches only\n` +
+          `  ${bal.coveragePct.toFixed(1)}% of the intended ${num(budgetCap)} before the balance runs out.\n` +
+          "  Add funds, shorten the message, or cut the audience — an underfunded blast does not\n" +
+          "  stop cleanly: it fails at the carrier mid-drain and strands the tail half-sent.",
+      );
+    }
+    if (budgetCents > balanceCents) {
+      console.log(`  NOTE: the --budget ${money(budgetCents)} exceeds the balance — the balance is the real cap.`);
+    }
+    console.log("  (Balance is read off the Twilio console; this app has no API for it. Re-check before sending.)");
+  } else {
+    console.log("Twilio balance:  not set (pass --balance with the figure from the Twilio console).");
+  }
+  if (willSend < listSize) {
+    console.log(`\nWill actually send: ${num(willSend)} of ${num(listSize)} — the top ${pct(willSend, listSize)} by voter priority.`);
   }
 
   // Chunking: how many campaign rows this becomes.

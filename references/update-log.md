@@ -26,6 +26,50 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-27 -- v1.x -- Pre-flight knows the Twilio balance
+
+**Context:** With eight days to the Aug 4 primary the Twilio account balance read **$46.35**. The
+pre-flight priced a send and applied a `--budget` cap, but had no idea whether the account could
+actually pay for it — so a blast could be approved on paper and still die mid-drain on carrier
+failures, stranding the lowest-priority tail half-sent. A budget is what the campaign *intends* to
+spend; the balance is what it *can*. The balance is the harder ceiling and was invisible.
+
+Separately, the campaign asked to send "using" the A2P 10DLC brand page (trust score 16/100, T-Mobile
+2,000 segment/day cap). It does not apply: the campaign sends from **toll-free +1 844-314-7912**, whose
+gate is Toll-Free Verification, not 10DLC brand/campaign registration. `web/docs/sms-go-live.md` §"Toll-free
+≠ A2P 10DLC" already documents this and needed no change — no Campaign Verify purchase or trust-score
+appeal should be made for the toll-free program.
+
+**Changes:**
+- [added] `balanceCheck()` in `web/lib/reports/smsSpend.ts` — pure, cents-throughout: affordable texts,
+  cost of the intended send, covers/shortfall, and coverage %. Never divides by a zero rate; clamps
+  negative inputs.
+- [added] `--balance <dollars>` to `web/scripts/sms-preflight.ts`. Applied **after** the budget cap so the
+  lower of the two ceilings drives the reported send size, the campaign-row chunking, and the drain ETA.
+  Warns when `--budget` exceeds the balance, and prints the dollar shortfall plus the share of the
+  intended audience the balance actually reaches.
+- [updated] `candidate/sms-conversational-interface-plan.md` — pre-flight invocation now passes
+  `--balance`; the pre-send checklist goes from two items to three.
+
+**Verifications Performed:**
+- Full suite green: 2,060 passed / 1 skipped (246 files); `tsc --noEmit` clean.
+- Balance math checked against the pricing defaults already in `smsSpend.ts` (base $0.0079/seg +
+  carrier $0.0045/seg, 5% reply loading = 1.4035¢ per 1-segment recipient): $46.35 funds **3,302** texts.
+
+**Known Gaps:**
+- The balance is entered by hand. Twilio's balance is not exposed to this app, so the figure is only as
+  fresh as the console read that produced it — it is not reconciled against actual spend.
+- Per-segment rates are planning defaults and go stale; re-verify at twilio.com/en-us/sms/pricing/us.
+- Toll-Free Verification status is still not checked anywhere in code (no API for it in this app).
+
+**Files Modified:**
+- web/lib/reports/smsSpend.ts
+- web/lib/reports/smsSpend.test.ts
+- web/scripts/sms-preflight.ts
+- candidate/sms-conversational-interface-plan.md
+
+---
+
 ## 2026-07-26 -- v1.x -- Blast readiness: pre-flight, audience chunking, GOTV copy, delivery receipts
 
 **Context:** The campaign wanted to send a blast the same day, nine days out from the Aug 4 primary, and
