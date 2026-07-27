@@ -46,10 +46,54 @@ function die(msg: string): never {
 
 type Source = { label: string; source: string; baseId: string; tableId: string };
 
-type Tally = { consented: number; skippedNoOptIn: number; skippedBadPhone: number };
+type Tally = { consented: number; skippedNoOptIn: number; skippedBadPhone: number; unreadable?: string };
 
-async function backfillSource(s: Source): Promise<Tally> {
+const API_ROOT = "https://api.airtable.com/v0";
+
+/**
+ * Ask Airtable whether this table is READABLE, separately from what it contains.
+ *
+ * listRecords() degrades to [] on any non-ok response — deliberate, so keyless
+ * builds render empty instead of crashing. The cost is that "the token cannot
+ * see this base" (403), "this ID is wrong" (404), and "this table is empty" are
+ * one indistinguishable outcome: `0 record(s)`.
+ *
+ * That ambiguity is unacceptable here. This script's count is the evidence for
+ * whether the campaign has an SMS list at all, and reading a 403 as "nobody ever
+ * opted in" would retire a live channel on a permissions error. Probe, and say
+ * which one it is. Returns null when readable.
+ */
+async function probeReadable(s: Source, key: string): Promise<string | null> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_ROOT}/${s.baseId}/${s.tableId}?maxRecords=1`, {
+      headers: { Authorization: `Bearer ${key}` },
+    });
+  } catch (e) {
+    return `could not reach Airtable — ${(e as Error).message}`;
+  }
+  if (res.ok) return null;
+  if (res.status === 401 || res.status === 403) {
+    return `HTTP ${res.status} — the workspace token cannot read this base. Add it to the ` +
+      "personal access token's base allowlist in Airtable (a PAT only sees bases explicitly granted to it).";
+  }
+  if (res.status === 404) {
+    return `HTTP 404 — base ${s.baseId} / table ${s.tableId} not found. Check the ID.`;
+  }
+  return `HTTP ${res.status} — unexpected response from Airtable.`;
+}
+
+async function backfillSource(s: Source, key: string): Promise<Tally> {
   const t: Tally = { consented: 0, skippedNoOptIn: 0, skippedBadPhone: 0 };
+
+  const unreadable = await probeReadable(s, key);
+  if (unreadable) {
+    console.warn(`\n▶ ${s.label} — UNREADABLE, not empty`);
+    console.warn(`  ${unreadable}`);
+    console.warn("  This is NOT evidence that nobody opted in — the table was never read.");
+    return { ...t, unreadable };
+  }
+
   const records = await listRecords(s.baseId, s.tableId, {
     fields: ["Phone", "SMS Opt-In"],
     maxRecords: 100_000,
@@ -84,7 +128,8 @@ async function backfillSource(s: Source): Promise<Tally> {
 async function main() {
   console.log(`Backfill SMS consent — ${APPLY ? "APPLY (writing to SMSCONSENT)" : "DRY RUN (no writes; pass --apply to write)"}`);
 
-  if (!(await getSecret("AIRTABLE_API_KEY"))) {
+  const key = await getSecret("AIRTABLE_API_KEY");
+  if (!key) {
     die("AIRTABLE_API_KEY is not set. The sources are Airtable bases; set the workspace token (env or SSM /matt-grant/AIRTABLE_API_KEY) and re-run.");
   }
   if (APPLY && !process.env.DYNAMODB_TABLE) {
@@ -109,21 +154,36 @@ async function main() {
   });
 
   const totals: Tally = { consented: 0, skippedNoOptIn: 0, skippedBadPhone: 0 };
+  const unreadable: string[] = [];
   for (const s of sources) {
-    const t = await backfillSource(s);
+    const t = await backfillSource(s, key);
     totals.consented += t.consented;
     totals.skippedNoOptIn += t.skippedNoOptIn;
     totals.skippedBadPhone += t.skippedBadPhone;
+    if (t.unreadable) unreadable.push(s.label);
   }
 
   console.log("\n── Summary ──────────────────────────────────────────");
   console.log(`  ${APPLY ? "consented" : "would consent"}        : ${totals.consented}`);
   console.log(`  skipped (no opt-in)     : ${totals.skippedNoOptIn}`);
   console.log(`  skipped (bad phone)     : ${totals.skippedBadPhone}`);
+  if (unreadable.length) {
+    console.log(`  UNREADABLE sources      : ${unreadable.length} — ${unreadable.join(", ")}`);
+  }
   if (!APPLY && totals.consented > 0) {
     console.log("\n  Dry run only — re-run with `-- --apply` to write these to the consent ledger.");
   }
   console.log("─────────────────────────────────────────────────────");
+
+  if (unreadable.length) {
+    // A zero here is not a finding. Exit non-zero so this can never be mistaken
+    // for "the campaign has no consented contacts" in a log or a CI step.
+    console.error(
+      `\n✗ ${unreadable.length} source(s) could not be read, so this run proves nothing about who has opted in.\n` +
+        "  Fix the access above and re-run before drawing any conclusion from the count.",
+    );
+    process.exit(1);
+  }
 }
 
 main().catch((e) => {
