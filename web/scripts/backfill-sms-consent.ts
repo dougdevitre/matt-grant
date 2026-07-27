@@ -23,6 +23,14 @@
 //     GAMES_LEAD_BASE_ID=app... GAMES_LEAD_TABLE_ID=tbl... \
 //     npm run backfill:sms-consent            # dry run
 //   ... npm run backfill:sms-consent -- --apply   # actually write
+//
+// Run it through the npm script, NOT `npx tsx` directly. lib/airtable/client.ts
+// imports "server-only", which resolves to an empty module under the
+// `react-server` export condition (what Next.js sets on the server) and to one
+// that THROWS under every other condition. A plain tsx run therefore dies at
+// import time, before a single line of this file executes, with a "cannot be
+// imported from a Client Component" error that names neither this script nor the
+// real cause. The npm script passes `--conditions=react-server`.
 import { listRecords } from "../lib/airtable/client";
 import { AIRTABLE_BASES } from "../lib/airtable/registry";
 import { recordConsent } from "../lib/sms/consent";

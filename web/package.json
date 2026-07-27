@@ -16,7 +16,7 @@
     "ingest:voter-overlay": "tsx scripts/ingest-voter-overlay.ts",
     "bundle:loadvoters": "npx esbuild scripts/ingest-voters-lowmem.ts --bundle --platform=node --format=cjs --target=node18 --outfile=scripts/loadvoters.cjs",
     "backfill:roles": "tsx scripts/backfill-clerk-roles.ts",
-    "backfill:sms-consent": "tsx scripts/backfill-sms-consent.ts",
+    "backfill:sms-consent": "tsx --conditions=react-server scripts/backfill-sms-consent.ts",
     "enrich:sms": "tsx scripts/enrich-sms-audience.ts",
     "sms:preflight": "tsx scripts/sms-preflight.ts",
     "build:district-crosswalk": "tsx scripts/build-school-district-crosswalk.ts",
