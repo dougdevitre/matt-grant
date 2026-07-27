@@ -175,10 +175,18 @@ export function isMasked(header: string, kind: Kind): boolean {
  *  TCPA / join-key warnings. */
 export const SIGNAL = {
   phone: /(phone|cell|mobile|tel|landline|wireless)/i,
-  consent: /(dnc|do_?not_?call|opt_?out|opt_?in|consent|litigator|tcpa)/i,
+  // `[\s_]?` throughout, not `_?`: a header is as likely to be "Do not text" as
+  // "do_not_text", and the underscore-only form silently missed BOTH the spaced
+  // variants and the "text" wording the RNC/Numinar export actually uses. A
+  // suppression column the inspector fails to name is the worst kind of miss —
+  // the operator reads "none detected" and concludes the file carries no flag.
+  consent: /(dnc|do[\s_]?not[\s_]?(call|text)|opt[\s_]?out|opt[\s_]?in|consent|litigator|tcpa)/i,
   lineType: /(wireless|landline|line_?type|phone_?type)/i,
   voterId: /(voter_?id|statevoterid|state_?file|regi?strant_?id|lalvoterid|rnc_?id)/i,
-  voteHistory: /(primary|general|municipal|pp?\d{2}|gen\d{2}|20\d\d|election|vote_?hist|turnout)/i,
+  // `vh[\s_]?\d{2}` covers the vh_<yy>_<election> convention (vh_24_p). Without
+  // it the Signals table reported "none detected" for a file whose vote history
+  // is the entire reason to ingest it — see sources/vendorRepub.ts.
+  voteHistory: /(primary|general|municipal|pp?\d{2}|gen\d{2}|vh[\s_]?\d{2}|20\d\d|election|vote_?hist|turnout)/i,
   party: /(party|partisan|affiliation|rep_?score|gop|political)/i,
   district: /(congress|district|precinct|ward|township|county|cd$|sd$|hd$|leg)/i,
   score: /(score|model|likelihood|propensity|probability|percentile|decile)/i,

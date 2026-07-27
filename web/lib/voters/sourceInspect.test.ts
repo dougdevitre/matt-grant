@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   EXCEL_ROW_CAP,
+  SIGNAL,
   classify,
   dominantKind,
   isMasked,
@@ -243,5 +244,29 @@ describe("renderReport", () => {
     const out = build(["Note"], [["a|b"], ["c\nd"]]);
     expect(out).toContain("a\\|b");
     expect(out).toContain("c⏎d");
+  });
+});
+
+describe("SIGNAL detection for the RNC/Numinar header", () => {
+  // The inspector is what an operator reads to CONFIRM a mapping before
+  // ingesting. A signal it fails to name reads as "this file doesn't have one",
+  // which is how a suppression column or a whole vote history gets overlooked.
+  it("names the vh_<yy>_<election> columns as vote history", () => {
+    for (const h of ["vh_24_p", "vh_22_p", "vh_20_p", "vh_24_pp", "vh_25_mg"]) {
+      expect(SIGNAL.voteHistory.test(h), h).toBe(true);
+    }
+  });
+
+  it("names 'Do not text' as a consent/suppression column", () => {
+    for (const h of ["Do not text", "do_not_text", "donottext", "Do not call", "do_not_call"]) {
+      expect(SIGNAL.consent.test(h), h).toBe(true);
+    }
+  });
+
+  it("does not mistake ordinary columns for signals", () => {
+    for (const h of ["first_name", "registration_address_city", "age_range", "media_market"]) {
+      expect(SIGNAL.consent.test(h), h).toBe(false);
+      expect(SIGNAL.voteHistory.test(h), h).toBe(false);
+    }
   });
 });
