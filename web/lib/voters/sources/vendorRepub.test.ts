@@ -252,3 +252,160 @@ describe("detectSource", () => {
     if (!res.ok) expect(res.problems.join(" ")).toContain("no join key");
   });
 });
+
+// ---------------------------------------------------------------------------
+// The RNC / Numinar MO-02 export (candidate/voter-registry-refresh-plan.md §5)
+// ---------------------------------------------------------------------------
+//
+// The real 68-column header row of the three primary-propensity exports. The
+// HEADER is not voter data, so it is safe in git — no row values ever are
+// (candidate/voter-file-plan.md §2). This fixture is what makes the mapping a
+// regression guard instead of a one-time hand-check: this export is the source
+// the `primary-regulars` SMS preset needs, and every failure mode below is
+// SILENT — the adapter would resolve, ingest, and write a useless overlay.
+
+const RNC_HEADERS = [
+  "rnc_reg_id", "state_voter_id", "first_name", "last_name",
+  "registration_address_1", "registration_address_2", "registration_address_city",
+  "registration_address_state", "registration_address_zip_5", "household_id",
+  "age", "age_range", "sex", "ethnicity_reported", "ethnic_group_name_modeled",
+  "education_modeled", "congressional_district", "state_leg_upper_district",
+  "state_leg_lower_district", "mailing_address_1", "mailing_address_2",
+  "mailing_address_city", "mailing_address_state", "mailing_address_zip_5",
+  "county_name", "precinct_name", "media_market", "metro_type",
+  "rnc_calc_party", "official_party", "registered_party_roll_up",
+  "voter_frequency_general", "voter_frequency_primary", "turnout_general_score",
+  "cell", "landline", "registration_date", "voter_status", "permanent_absentee",
+  "vh_25_g", "vh_25_p", "vh_25_mg", "vh_25_mp",
+  "vh_24_g", "vh_24_p", "vh_24_pp",
+  "vh_23_g", "vh_23_p", "vh_22_g", "vh_22_p", "vh_21_g", "vh_21_p",
+  "vh_20_g", "vh_20_p", "vh_20_pp", "vh_19_g", "vh_19_p",
+  "vh_18_g", "vh_18_p", "vh_17_g", "vh_17_p",
+  "vh_16_g", "vh_16_p", "vh_16_pp",
+  "numinar_id", "Do not text", "Notes", "email",
+];
+
+const at = (header: string): number => {
+  const i = RNC_HEADERS.indexOf(header);
+  if (i < 0) throw new Error(`fixture is missing ${header}`);
+  return i;
+};
+
+describe("RNC/Numinar export mapping", () => {
+  it("resolves every required field, including zip and party", () => {
+    const res = resolveColumns(RNC_HEADERS);
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.map.voterId).toBe(at("state_voter_id"));
+    expect(res.map.zip).toBe(at("registration_address_zip_5"));
+    // official_party, NOT the modeled rnc_calc_party.
+    expect(res.map.party).toBe(at("official_party"));
+  });
+
+  it("maps party from official_party, never the modeled rnc_calc_party", () => {
+    const res = resolveColumns(RNC_HEADERS);
+    if (!res.ok) throw new Error("fixture should resolve");
+    expect(res.map.party).not.toBe(at("rnc_calc_party"));
+  });
+
+  it("detects exactly the even-year August primaries, most recent first", () => {
+    // Exactly MAX_PP columns, so primaryPropensity's window covers all of them —
+    // and the three source files (2024/2022/2020) are all inside it.
+    const cols = detectPrimaryColumns(RNC_HEADERS);
+    expect(cols.map((c) => c.header)).toEqual([
+      "vh_24_p", "vh_22_p", "vh_20_p", "vh_18_p", "vh_16_p",
+    ]);
+    expect(cols).toHaveLength(MAX_PP);
+    expect(cols.map((c) => c.year)).toEqual([2024, 2022, 2020, 2018, 2016]);
+  });
+
+  it("excludes odd-year, presidential, municipal, and general columns", () => {
+    const headers = detectPrimaryColumns(RNC_HEADERS).map((c) => c.header);
+    // Each of these would corrupt an AUGUST-primary propensity score. The
+    // odd years matter most: they are not Missouri state primaries, and
+    // keeping them would push 2020 out of the MAX_PP recency window.
+    for (const excluded of [
+      "vh_25_p", "vh_23_p", "vh_21_p", "vh_19_p", "vh_17_p",
+      "vh_24_pp", "vh_20_pp", "vh_16_pp", "vh_25_mp", "vh_25_mg", "vh_24_g",
+    ]) {
+      expect(headers).not.toContain(excluded);
+    }
+  });
+
+  it("keeps 2020 inside the scoring window", () => {
+    // The regression this guards: with odd years included the window was
+    // 2025-2021 and the 2020 source file scored nothing at all.
+    const res = resolveColumns(RNC_HEADERS);
+    if (!res.ok) throw new Error("fixture should resolve");
+    const r = Array(RNC_HEADERS.length).fill("");
+    r[at("vh_20_p")] = "Voted";
+    expect(primaryPropensity(r, res.primaryColumns)).toBe(1);
+  });
+
+  it("scores propensity across the three source files' primaries", () => {
+    const res = resolveColumns(RNC_HEADERS);
+    if (!res.ok) throw new Error("fixture should resolve");
+    const r = Array(RNC_HEADERS.length).fill("");
+    r[at("vh_24_p")] = "Voted";
+    r[at("vh_22_p")] = "Voted";
+    r[at("vh_20_p")] = "Voted";
+    // Must NOT count: a presidential primary and a general.
+    r[at("vh_24_pp")] = "Voted";
+    r[at("vh_24_g")] = "Voted";
+    expect(primaryPropensity(r, res.primaryColumns)).toBe(3);
+  });
+
+  it("counts a pulled party ballot as a vote", () => {
+    // This export records WHICH ballot was pulled in some cycles. Reading
+    // "Democrat Ballot" as a non-vote undercounts the most habitual voters.
+    expect(votedInElection("Democrat Ballot")).toBe(true);
+    expect(votedInElection("Republican Ballot")).toBe(true);
+    expect(votedInElection("Voted")).toBe(true);
+    expect(votedInElection("")).toBe(false);
+    // Refuse, don't guess: a negation is not a vote.
+    expect(votedInElection("No Ballot Pulled")).toBe(false);
+  });
+
+  it("honors the file's own 'Do not text' suppression column", () => {
+    expect(detectDncColumn(RNC_HEADERS)).toBe(at("Do not text"));
+  });
+
+  it("reads cell and landline as phones, and the suppression column as neither", () => {
+    const phones = detectPhoneColumns(RNC_HEADERS);
+    expect(phones).toEqual([
+      { index: at("cell"), header: "cell", lineType: "wireless" },
+      { index: at("landline"), header: "landline", lineType: "landline" },
+    ]);
+  });
+
+  it("flags a suppressed row's numbers as do-not-contact", () => {
+    const res = resolveColumns(RNC_HEADERS);
+    if (!res.ok) throw new Error("fixture should resolve");
+    const r = Array(RNC_HEADERS.length).fill("");
+    r[at("state_voter_id")] = "16548054";
+    r[at("county_name")] = "ST LOUIS";
+    r[at("precinct_name")] = "CREVE COEUR 34";
+    r[at("registration_address_zip_5")] = "63131";
+    r[at("official_party")] = "U";
+    r[at("cell")] = "3145550101";
+    r[at("Do not text")] = "Y";
+
+    const mapped = mapVendorRow(r, res, { dncColumn: detectDncColumn(RNC_HEADERS) });
+    expect(mapped).not.toBeNull();
+    // Missouri has no party registration — "U" is the honest value here.
+    expect(mapped!.party).toBe("UNA");
+    expect(mapped!.phones).toHaveLength(1);
+    expect(mapped!.phones[0].doNotCall).toBe(true);
+  });
+
+  it("is identified as a vendor export", () => {
+    expect(detectSource(RNC_HEADERS)).toEqual({ ok: true, source: "vendorRepub" });
+  });
+
+  it("never exceeds MAX_PP", () => {
+    const res = resolveColumns(RNC_HEADERS);
+    if (!res.ok) throw new Error("fixture should resolve");
+    const r = Array(RNC_HEADERS.length).fill("Voted");
+    expect(primaryPropensity(r, res.primaryColumns)).toBe(MAX_PP);
+  });
+});

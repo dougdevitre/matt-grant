@@ -26,6 +26,62 @@ Version history and change tracking for the get-elected skill reference files.
 
 ---
 
+## 2026-07-27 -- v1.x -- RNC/Numinar overlay mapping + primary-propensity SMS copy
+
+**Context:** Three voter-file exports arrived in Drive -- senior Republican/unknown MO-02 voters cut by
+August-primary participation (2024 · 2022 · 2020) -- with the request to "send an SMS to each of these
+groups." Those `cell` columns cannot be broadcast-texted: `candidate/voter-file-plan.md` §2.3 is absolute
+("**SMS** | Consent ledger ONLY | Never from the voter file. No exceptions") and
+`web/lib/sms/audiences.voterfile-isolation.test.ts` fails the build on any violation. What the files *can*
+do is switch on the `primary-regulars` preset, which has shipped reading 0 reach while waiting for exactly
+this source. Eight days out, that is the available lever: sharper aim at the opted-in list.
+
+**Changes:**
+- [updated] `web/lib/voters/sources/vendorRepub.ts` -- taught the adapter this export's header. Added the
+  `vh_<yy>_p` primary pattern (previously unmatched, so `pp` was **never written**); restricted it to even
+  years so the `MAX_PP` window is 2024/2022/2020/2018/2016 instead of 2025-2021, which had silently
+  excluded the entire 2020 file; counted a pulled party ballot (`Democrat Ballot`) as a vote; added the
+  `registration_address_zip_5` and `official_party` aliases; and extended `DNC_HEADER` to match the file's
+  own `Do not text` suppression column.
+- [added] Regression fixtures in `web/lib/voters/sources/vendorRepub.test.ts` built on the real 68-column
+  header row (header only -- no voter rows in git, per `voter-file-plan.md` §2). Every failure above was
+  silent, so each now has a named test.
+- [added] Three primary-propensity templates in `web/lib/sms/templates.ts` -- `primary-regular` (pp:3+),
+  `primary-plan` (pp:2+), `primary-lapsed` (pp:1). The tier changes the *ask*, not the issue: a habitual
+  primary voter needs a date, a lapsed one needs a reason. All three render as one GSM-7 segment including
+  the "Paid for by Matt Grant for Congress. Reply STOP to opt out." suffix.
+- [updated] `candidate/voter-registry-refresh-plan.md` -- G1 records the identified source; new §5.1
+  documents the mapping and why each gap mattered.
+
+**Verifications Performed:**
+- Full suite green: 2070 passed / 1 skipped, `tsc --noEmit` clean.
+- `audiences.voterfile-isolation.test.ts` passes -- the TCPA wall is untouched; no voter-file surface
+  entered `lib/sms/`.
+- Rendered segment counts measured, not assumed: 153 / 151 / 148 chars, one GSM-7 segment each.
+- Copy drawn only from `candidate/platform.md` and `candidate/profile.md`; no new policy positions,
+  poll numbers, or endorsements.
+
+**Known Gaps:**
+- The ingest has **not run**. drive.google.com is blocked by the session network policy and the files are
+  43/49/11 MB, so `inspect:voter-source`, `ingest:voter-overlay`, and `enrich:sms` are for the campaign to
+  run locally against the originals.
+- Party is mapped from `official_party`, which is `U` for most Missouri records -- so the overlay adds
+  primary history, not a usable party cut. The ballot-pull values in the `vh_*_p` columns are a better
+  party signal and are currently read only as "voted"; using them would be a separate, deliberate change.
+- **G2 (vendor license permitting political phone contact) is still open.** Until it clears in writing, do
+  not pass `--with-phones`; no call-sheet or P2P work should begin.
+- Odd-year `vh_*_p` columns are dropped on the reading that Missouri's state primary is even-year August.
+  Confirm against the vendor's data dictionary before relying on it elsewhere.
+
+**Files Modified:**
+- web/lib/voters/sources/vendorRepub.ts
+- web/lib/voters/sources/vendorRepub.test.ts
+- web/lib/sms/templates.ts
+- candidate/voter-registry-refresh-plan.md
+- references/update-log.md
+
+---
+
 ## 2026-07-26 -- v1.x -- Blast readiness: pre-flight, audience chunking, GOTV copy, delivery receipts
 
 **Context:** The campaign wanted to send a blast the same day, nine days out from the Aug 4 primary, and

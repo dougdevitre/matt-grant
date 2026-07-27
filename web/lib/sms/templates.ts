@@ -158,6 +158,40 @@ export const SMS_TEMPLATES: SmsTemplateDef[] = [
       );
     },
   },
+  // Primary-propensity tiers (candidate/voter-registry-refresh-plan.md §6).
+  // Once the vendor overlay is ingested and `npm run enrich:sms` has tagged the
+  // consent rows, `voterPp` splits the opted-in list by how many recent August
+  // primaries a subscriber has voted in. These three say the same thing in three
+  // registers, because the useful difference between the tiers is the ASK, not
+  // the issue: a habitual primary voter needs a date, a lapsed one needs a reason.
+  //
+  // These are still consent-ledger sends. `pp:` only ranks and narrows the
+  // opted-in audience — it never widens it, and no voter-file number is ever a
+  // recipient (lib/sms/audiences.voterfile-isolation.test.ts).
+  {
+    key: "primary-regular",
+    label: "Primary regular (pp:3+)",
+    description:
+      "For subscribers who vote in nearly every August primary. They do not need convincing that the primary matters - they need the date and their polling place. Pair with the 'pp:3' chip and 'not yet voted'.",
+    fields: [],
+    build: () => tidy(`You never miss an August primary. Aug 4 is the next one. Reply VOTE for your polling place.`),
+  },
+  {
+    key: "primary-plan",
+    label: "Primary voter - make a plan (pp:2+)",
+    description:
+      "For reliable but not automatic August-primary voters. The lever here is plan-making: date, hours, and a hook into the county-aware VOTE agent. Pair with the 'pp:2' chip, or the 'August-primary regulars, not yet voted' preset.",
+    fields: [],
+    build: () => tidy(`The primary is Tue Aug 4, polls open 6am-7pm. Make your plan now. Reply VOTE for details.`),
+  },
+  {
+    key: "primary-lapsed",
+    label: "Lapsed primary voter (pp:1)",
+    description:
+      "For subscribers whose last August primary was years ago. They need a reason before mechanics, so this leads with why Matt is running (candidate/profile.md) and closes on the date. Pair with the 'pp:1' chip.",
+    fields: [],
+    build: () => tidy(`Matt Grant is running to put Missouri's children first. Primary Tue Aug 4. Reply VOTE.`),
+  },
   {
     key: "issue-update",
     label: "Priority spotlight",

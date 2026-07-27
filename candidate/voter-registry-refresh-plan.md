@@ -42,7 +42,7 @@ truncation warning when the row count lands at or near it.
 
 | Gate | Blocks | Resolution |
 |---|---|---|
-| **G1 — the original CSV** | §4, §5 | Locate or re-export the pre-Excel CSV; upload to `s3://$S3_ASSETS_BUCKET/voters/raw/vendor/` with `--sse AES256`. Never git, never the `public/` CDN prefix (`../docs/VOTER-FILE.md`). |
+| **G1 — the original CSV** | §4, §5 | **Source identified 2026-07-27:** three RNC/Numinar MO-02 exports of senior Republican/unknown voters, cut by August-primary participation (2024 · 2022 · 2020). The adapter now resolves their 68-column header (§5.1). Still to do: upload to `s3://$S3_ASSETS_BUCKET/voters/raw/vendor/` with `--sse AES256` and run the ingest. Never git, never the `public/` CDN prefix (`../docs/VOTER-FILE.md`). |
 | **G2 — vendor license terms, in writing** | Phone loading only | Confirm the license permits political phone contact for this committee, and note retention/resale limits. Everything else proceeds without it. |
 | **G3 — toll-free number Verified in Twilio** | The send (§7) | Unverified sends fail with carrier error 30032 (`web/docs/sms-go-live.md`). |
 
@@ -109,6 +109,32 @@ and let a filter sweep up the entire unmatched mass.
 
 Segment definitions (**MOBILIZE / BANK / PERSUADE / PROSPECT / MONITOR**) are unchanged — this sharpens an
 input, it does not move the goalposts.
+
+### 5.1 The RNC / Numinar export (mapping confirmed 2026-07-27)
+
+The three source files encode vote history as `vh_<yy>_<election>`. Four things about that convention had
+to be taught to `web/lib/voters/sources/vendorRepub.ts`, and **each failure was silent** — the adapter
+would have resolved, ingested, and written an overlay that scored nothing:
+
+| What | Why it matters |
+|---|---|
+| `vh_<yy>_p` is the August primary | No existing pattern matched it, so `pp` was never written at all — the entire point of the ingest |
+| Only **even** years count | Missouri's state primary is the even-year August one. `pp` reads only the `MAX_PP` (5) most recent columns, so keeping `vh_25_p` / `vh_23_p` / `vh_21_p` made the window 2025–2021 and **pushed the 2020 file out entirely**. Filtered, the window is exactly 2024/2022/2020/2018/2016 |
+| `_pp` and `_mp` are excluded | `_pp` is the March presidential preference primary, `_mp` municipal — neither is the August primary this score is defined against |
+| A pulled ballot is a vote | Some cycles record `Democrat Ballot` / `Republican Ballot` instead of `Voted`. Read as non-votes, this undercounts precisely the most habitual voters |
+
+Two more mapping notes:
+
+- **Party comes from `official_party`, never `rnc_calc_party`.** The latter holds modeled partisanship
+  strings (`Strong GOP`, `Lean Democrat`, `Swing`) that `normalizePartyCode` falls through to `OTH` —
+  labeling the whole file "other" while appearing to work. Missouri has no party registration, so
+  `official_party` (`U` → `UNA`) is the honest value, and a vendor model does not belong in a field named
+  "party".
+- **The file's own `Do not text` column is honored.** `DNC_HEADER` previously matched only "do not call",
+  so the vendor's suppression flag was dropped and every number mapped without it.
+
+Regression fixtures for all of the above live in `web/lib/voters/sources/vendorRepub.test.ts`, keyed off the
+real header row (header only — no voter rows in git, per `voter-file-plan.md` §2).
 
 ## 6. Targeting parameters for the blast
 

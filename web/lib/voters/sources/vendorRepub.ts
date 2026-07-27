@@ -67,10 +67,15 @@ export const FIELD_ALIASES: Record<string, string[]> = {
   voterId: ["voterid", "statevoterid", "state voter id", "sos voter id", "statefileid", "registrantid", "voter_id"],
   firstName: ["firstname", "first name", "fname", "first"],
   lastName: ["lastname", "last name", "lname", "last", "surname"],
-  zip: ["zip", "zip5", "zipcode", "zip code", "residentialzipcode", "residential zipcode", "postalcode"],
+  zip: ["zip", "zip5", "zipcode", "zip code", "residentialzipcode", "residential zipcode", "postalcode", "registration address zip 5"],
   county: ["county", "countyname", "county name", "residentialcounty"],
   precinct: ["precinct", "precinctname", "precinct name", "precinctcode", "votingprecinct"],
-  party: ["party", "partycode", "party code", "politicalparty", "political party", "partyaffiliation", "affiliation"],
+  // "official party" is the RNC/Numinar export's recorded value. Deliberately NOT
+  // "rnc calc party": that column holds a MODELED partisanship score ("Strong GOP",
+  // "Lean Democrat", "Swing"), and normalizePartyCode falls those through to "OTH"
+  // — silently labeling the whole file "other" while looking like it worked. A
+  // vendor model also must not be laundered into a field named "party".
+  party: ["party", "partycode", "party code", "politicalparty", "political party", "partyaffiliation", "affiliation", "official party"],
 };
 
 /** Fields without which an overlay row cannot be written at all. The join key is
@@ -147,7 +152,18 @@ const PRIMARY_PATTERNS: RegExp[] = [
   /^(?:aug|august)[\s_-]?((?:19|20)\d{2})$/i, // Aug2024
   /^primary[\s_-]?((?:19|20)\d{2})$/i, // Primary2024
   /^((?:19|20)\d{2})[\s_-]?primary$/i, // 2024 Primary
+  // RNC/Numinar vote-history convention: vh_<yy>_<election>. Only the bare "_p"
+  // suffix is the August primary, and the trailing anchor is what keeps the other
+  // three suffixes out — each of which would corrupt the score if counted:
+  //   vh_24_pp → PRESIDENTIAL preference primary (March), not the August primary
+  //   vh_25_mp → MUNICIPAL primary (NOT_PRIMARY only matches the spelled-out word,
+  //              so the "mp" abbreviation would otherwise slip through)
+  //   vh_24_g / vh_25_mg → generals, which say little about August behavior
+  /^vh[\s_-]?((?:19|20)?\d{2})[\s_-]?p$/i, // vh_24_p, vh24p
 ];
+
+/** Index of the `vh_<yy>_p` pattern above, which needs the even-year rule below. */
+const VH_PATTERN_INDEX = PRIMARY_PATTERNS.length - 1;
 
 const NOT_PRIMARY = /(general|municipal|special|runoff|presidential\s*general)/i;
 
@@ -159,11 +175,24 @@ export function detectPrimaryColumns(headers: string[]): PrimaryColumn[] {
   headers.forEach((header, index) => {
     const h = header.trim();
     if (!h || NOT_PRIMARY.test(h)) return;
-    for (const re of PRIMARY_PATTERNS) {
+    for (const [patternIndex, re] of PRIMARY_PATTERNS.entries()) {
       const m = re.exec(h);
       if (!m) continue;
       let year = Number(m[1]);
       if (year < 100) year += year <= 79 ? 2000 : 1900; // 2-digit year
+      // Missouri's state primary is the EVEN-year August one — the election this
+      // score is defined against. A vh_ export carries an odd-year "_p" column
+      // too (vh_25_p, vh_23_p, vh_21_p), which is not that election.
+      //
+      // Dropping them is not cosmetic. primaryPropensity() reads only the
+      // MAX_PP (5) most recent columns, so keeping the odd years makes the
+      // window 2025-2021 and silently excludes 2020 — the largest of the three
+      // source files would contribute nothing to any voter's score. Filtered,
+      // the window is exactly 2024/2022/2020/2018/2016: the August primaries.
+      //
+      // Scoped to this pattern on purpose. The other four conventions are used
+      // by other vendors and states, some of which do hold odd-year primaries.
+      if (patternIndex === VH_PATTERN_INDEX && year % 2 !== 0) break;
       if (year >= 1990 && year <= 2100) out.push({ index, year, header: h });
       break;
     }
@@ -175,12 +204,25 @@ export function detectPrimaryColumns(headers: string[]): PrimaryColumn[] {
 
 const VOTED = /^(y|yes|t|true|x|1|a|e|p|ab|ev|absentee|early|polls|voted)$/i;
 
+// In an open-primary state a vendor may record WHICH ballot the voter pulled
+// instead of a plain "Voted" — the RNC/Numinar export carries e.g. "Democrat
+// Ballot" in vh_18_p. Pulling a ballot IS voting in that primary, and reading
+// these as non-votes undercounts propensity for the most habitual voters, who
+// are exactly the ones a primary GOTV send must reach.
+//
+// Enumerated rather than a loose /ballot/ test: that would also swallow a
+// negation like "No Ballot Pulled" and silently invent votes. An unrecognized
+// value stays a non-vote — the adapter's standing rule is refuse, don't guess.
+const BALLOT_PULLED =
+  /^(democrat|democratic|republican|libertarian|green|constitution|nonpartisan|non-partisan|independent|unaffiliated|other)\s+ballot$/i;
+
 /** True when a per-election cell means "this person voted".
- *  Vendors encode this variously: Y/N, X/blank, or a method code
- *  (A absentee / E early / P polls) — all of which mean voted. */
+ *  Vendors encode this variously: Y/N, X/blank, a method code
+ *  (A absentee / E early / P polls), or the party ballot pulled — all of which
+ *  mean voted. */
 export function votedInElection(cell: string | null | undefined): boolean {
   const v = (cell ?? "").trim();
-  return v !== "" && VOTED.test(v);
+  return v !== "" && (VOTED.test(v) || BALLOT_PULLED.test(v));
 }
 
 /** Primary propensity 0-MAX_PP: how many of the most recent primaries this
@@ -203,7 +245,12 @@ export type PhoneColumn = { index: number; header: string; lineType?: "wireless"
 
 const PHONE_HEADER = /(phone|cell|mobile|landline|^tel)/i;
 const PHONE_DESCRIPTOR = /(type|status|flag|code|score|source|count)$/i;
-const DNC_HEADER = /(dnc|do not call|donotcall|opt.?out|litigator)/i;
+// "do not text" is the RNC/Numinar export's own suppression column. It must be
+// honored: missing it drops the vendor's flag and maps every number without
+// doNotCall, so a suppressed contact would reach a call sheet. Kept in the same
+// constant that detectPhoneColumns skips on, so a suppression column can never
+// also be read as a phone number.
+const DNC_HEADER = /(dnc|do not (call|text)|donot(call|text)|opt.?out|litigator)/i;
 
 export function detectPhoneColumns(headers: string[]): PhoneColumn[] {
   const out: PhoneColumn[] = [];
