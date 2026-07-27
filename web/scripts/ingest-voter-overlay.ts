@@ -235,7 +235,20 @@ async function main() {
     });
     const known = new Set(aggs.map((a) => String(a.SK ?? "")));
     const missing = [...byPrecinct.keys()].filter((k) => !known.has(k));
-    if (missing.length) {
+    if (known.size === 0) {
+      // Distinguish "spine is empty" from "names disagree". Both surface as a
+      // 100% miss, but the fix is completely different, and reporting an empty
+      // spine as a naming problem sends the operator hunting a crosswalk bug
+      // that isn't there. The catch below only fires on a query ERROR — an
+      // empty result is a successful query returning nothing.
+      console.warn(
+        "\nThe spine has NO precinct rollups (VOTERAGG is empty) — the official voter file has not been\n" +
+          "  ingested into this table. The overlay rows above are written and safe, but nothing can join to\n" +
+          "  them yet: enrichment reads overlay rows by the SPINE's precinct keys, so `pp` tags would come\n" +
+          "  back 0 and the composer's pp: filters would show no reach.\n" +
+          "  Load the official file first (npm run ingest:voters), then re-run the enrichment.",
+      );
+    } else if (missing.length) {
       console.warn(
         `\n${missing.length} of ${stats.precincts} overlay precincts don't match a spine precinct — ` +
           "the vendor's precinct naming may differ. Sample: " +
