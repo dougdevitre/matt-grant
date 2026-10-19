@@ -1,7 +1,7 @@
 {
   "pillar": "education",
   "repo": "dougdevitre/access-to-education",
-  "syncedAt": "abb33f4",
+  "syncedAt": "bd05c37",
   "docs": [
     {
       "slug": "index",
@@ -267,6 +267,11 @@
       "slug": "changelog",
       "title": "Changelog — Access to Education",
       "file": "changelog.md"
+    },
+    {
+      "slug": "disclaimer",
+      "title": "Disclaimer — Access to Education",
+      "file": "disclaimer.md"
     },
     {
       "slug": "getting-started",

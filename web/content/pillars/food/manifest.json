@@ -1,8 +1,14 @@
 {
   "pillar": "food",
   "repo": "dougdevitre/access-to-food",
-  "syncedAt": "60a108f",
-  "docs": [],
+  "syncedAt": "87f46dc",
+  "docs": [
+    {
+      "slug": "disclaimer",
+      "title": "Disclaimer — Access to Food",
+      "file": "disclaimer.md"
+    }
+  ],
   "tools": [],
   "skippedTools": [
     {

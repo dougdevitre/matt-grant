@@ -213,7 +213,7 @@ Set by individual districts. Missouri does not mandate a minimum substitute teac
 
 ### Missouri Incentives
 - Missouri provides a salary supplement for National Board Certified Teachers (NBCT)
-- RSMo 168.345 authorizes up to $2,000/year additional compensation (subject to appropriation)
+- No statewide supplement could be confirmed; incentives are set by districts (DESE keeps a partial list)
 - Some districts provide additional local incentives
 - NBCT is recognized as evidence of advanced professional practice under MEES Standard 8
 

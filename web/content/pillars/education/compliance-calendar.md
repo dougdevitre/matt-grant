@@ -130,7 +130,7 @@ gantt
 - Title I program review
 
 ### April
-- **School board elections** (first Tuesday in April)
+- **School board elections** (first Tuesday after the first Monday in April)
 - **April 15: Non-renewal notification deadline** for non-tenured teachers (RSMo 168.126)
 - MAP/EOC testing continues
 - ACT statewide administration for juniors
@@ -187,7 +187,7 @@ gantt
 | Publish school report cards | ESSA | District / DESE |
 | File CRDC data | OCR | District data coordinator |
 | Submit EDFacts data | ESSA | DESE (via MOSIS) |
-| Single Audit (if >$750K federal expenditures) | 2 CFR Part 200 | District CFO / auditor |
+| Single Audit (if ≥$1M federal expenditures; $750K for fiscal years before Oct 1, 2024) | 2 CFR Part 200 | District CFO / auditor |
 | Conduct annual FRPM verification | USDA | Food service |
 | Update Title I parent engagement policy | ESSA | Title I coordinator |
 | Ensure ELL identification for new enrollees | Title VI / EEOA / Title III | Building enrollment staff |
@@ -279,7 +279,7 @@ gantt
 - [ ] Minutes taken at all open meetings and available for public inspection
 - [ ] Closed sessions properly motioned with specific RSMo 610.021 citation
 - [ ] Votes recorded by roll call
-- [ ] Conflict of interest disclosures made (RSMo 162.215)
+- [ ] Conflict of interest disclosures made
 - [ ] Financial disclosures filed (if applicable — RSMo 105.483)
 - [ ] Policies reviewed on cycle (3-5 years; critical policies annually)
 - [ ] Superintendent evaluated annually
@@ -295,7 +295,7 @@ gantt
 - [ ] Non-renewal notices sent by April 15 for non-tenured teachers (RSMo 168.126)
 - [ ] Tenure determinations made after 5 consecutive years (RSMo 168.104)
 - [ ] MEES evaluations completed per schedule (non-tenured: annually; tenured: per district schedule)
-- [ ] Mentoring program provided for new teachers (RSMo 168.028)
+- [ ] Mentoring program provided for new teachers
 - [ ] Substitute certificates verified (60+ credit hours; background check)
 - [ ] Paraprofessional qualifications verified (ESSA requirements for Title I schools)
 - [ ] Workers' compensation coverage maintained
@@ -309,7 +309,7 @@ gantt
 - [ ] Annual budget adopted before July 1
 - [ ] Public budget hearing held
 - [ ] Independent financial audit completed annually (RSMo 165.121)
-- [ ] Single Audit completed if federal expenditures exceed $750,000
+- [ ] Single Audit completed if federal expenditures reach $1,000,000 (fiscal years starting on or after Oct 1, 2024)
 - [ ] ASBR submitted to DESE
 - [ ] Tax levy set and certified
 - [ ] Bond compliance (if applicable — arbitrage, continuing disclosure, use of proceeds)

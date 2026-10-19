@@ -160,7 +160,7 @@ Through WIOA partners and co-enrollment:
 | MoJobs (case management portal) | jobs.mo.gov |
 | MyDSS (SNAP/TANF/Medicaid) | mydss.mo.gov |
 | Missouri Connections (career exploration) | missouriconnections.org |
-| Fast Track Scholarship | dhe.mo.gov/fasttrack |
+| Fast Track Scholarship | dhewd.mo.gov/initiatives/fast-track-workforce-incentive-grant |
 | MOLearns (virtual AEL) | molearns.org |
 | OWCI LISTSERV (job fair emails) | Opt-in through DSS |
 

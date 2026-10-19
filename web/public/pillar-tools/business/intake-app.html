@@ -17,9 +17,13 @@
     --warning: #d97706;
     --danger: #dc2626;
     --accent: #7c3aed;
+    /* Form control edges: 3.6:1 on white (WCAG 1.4.11 needs 3:1) */
+    --control-border: #7c8798;
+    /* Focus ring: 6.7:1 on white, 6.4:1 on --bg, 6.1:1 on the notice */
+    --focus: #1d4ed8;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; overflow-wrap: break-word; }
   .container { max-width: 640px; margin: 0 auto; padding: 24px 16px; }
   .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
   h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
@@ -30,26 +34,43 @@
   .progress-dot.active { background: var(--primary); }
   .progress-dot.done { background: var(--success); }
   label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px; }
-  input, textarea, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; font-family: inherit; outline: none; transition: border-color 0.2s; }
+  /* 16px text so iOS does not zoom on focus; 44px minimum touch height */
+  input, textarea, select { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--control-border); border-radius: 8px; font-size: 1rem; font-family: inherit; color: inherit; background: var(--card); transition: border-color 0.2s; }
   input:focus, textarea:focus, select:focus { border-color: var(--primary); }
+  input:focus-visible, textarea:focus-visible, select:focus-visible,
+  .btn:focus-visible, .copy-btn:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
   textarea { resize: vertical; min-height: 80px; }
-  .option-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .radio-group { margin: 0; padding: 0; border: 0; }
+  /* Two columns; one when the text is large or the screen is narrow */
+  .option-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, max(6.5rem, calc(50% - 4px))), 1fr)); gap: 8px; }
   .option-list { display: flex; flex-direction: column; gap: 8px; }
-  .option-btn { padding: 12px; border: 2px solid var(--border); border-radius: 8px; background: var(--card); cursor: pointer; text-align: center; font-size: 0.85rem; font-weight: 500; transition: all 0.2s; }
+  .option-btn { position: relative; display: block; min-height: 44px; margin: 0; padding: 12px; border: 2px solid var(--control-border); border-radius: 8px; background: var(--card); cursor: pointer; text-align: center; font-size: 0.85rem; font-weight: 500; overflow-wrap: anywhere; transition: all 0.2s; }
   .option-btn:hover { border-color: var(--primary); background: #eff6ff; }
-  .option-btn.selected { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
+  .option-btn.selected { border-color: var(--primary); background: #eff6ff; color: var(--primary-hover); }
+  /* The native radio does the work (Tab into the group, arrows to choose); the card is its label */
+  .option-btn .opt-input { position: absolute; top: 0; left: 0; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+  .option-btn:has(.opt-input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
+  @supports not selector(:has(*)) {
+    .option-btn:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }
+  }
+  .option-btn.selected::after { content: "\2713"; position: absolute; top: 6px; right: 10px; font-weight: 700; color: var(--primary-hover); }
   .option-btn .icon { font-size: 1.3rem; display: block; margin-bottom: 4px; }
-  .option-btn.stage-btn { text-align: left; display: flex; align-items: center; gap: 10px; }
+  .option-btn.stage-btn { text-align: left; display: flex; align-items: center; gap: 10px; padding-right: 28px; }
   .option-btn.stage-btn .stage-icon { font-size: 1.3rem; }
   .option-btn.stage-btn .stage-desc { font-weight: 400; color: var(--text-muted); }
-  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .option-btn.selected .stage-desc { color: #475569; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 20px; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
   .btn-primary { background: var(--primary); color: white; }
   .btn-primary:hover { background: var(--primary-hover); }
   .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-outline { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+  .btn-outline { background: transparent; color: var(--text-muted); border: 1px solid var(--control-border); }
   .btn-outline:hover { background: var(--bg); }
-  .btn-row { display: flex; justify-content: space-between; margin-top: 20px; }
+  .btn-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 20px; }
   .field-group { margin-bottom: 16px; }
+  .field-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
   .result-section { margin-bottom: 16px; }
   .result-section h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 6px; }
   .result-section p { font-size: 0.875rem; color: var(--text-muted); }
@@ -60,13 +81,97 @@
   .badge-purple { background: #ede9fe; color: #5b21b6; }
   .command-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .command { background: var(--bg); padding: 4px 10px; border-radius: 6px; font-family: monospace; font-size: 0.8rem; color: var(--primary); }
-  .copy-block { background: #f1f5f9; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 0.8rem; white-space: pre-wrap; position: relative; margin-top: 8px; }
-  .copy-btn { position: absolute; top: 8px; right: 8px; background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px; font-size: 0.7rem; cursor: pointer; }
+  .copy-block { background: #f1f5f9; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 0.8rem; white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 8px; }
+  .copy-btn { margin-top: 8px; min-width: 88px; justify-content: center; }
   .hidden { display: none; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .step-title:focus { outline: none; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+  }
+  /* Disclaimer notice (every page) and one-time acknowledgment dialog */
+  .atd-notice {
+    margin: 0;
+    padding: 10px 16px;
+    background: #f1f5f9;
+    color: #1e293b;
+    border-bottom: 1px solid #cbd5e1;
+    font-size: 0.8rem;
+    line-height: 1.55;
+    text-align: left;
+  }
+  .atd-notice p { max-width: 608px; margin: 0 auto; }
+  .atd-notice a { color: #1d4ed8; font-weight: 700; text-decoration: underline; text-underline-offset: 0.15em; }
+  /* 44px touch targets without spreading the sentence apart */
+  .atd-tel, .atd-more { position: relative; }
+  .atd-tel::after, .atd-more::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+  .atd-notice a:focus-visible, .atd-ack a:focus-visible, .atd-ack button:focus-visible {
+    outline: 2px solid #1d4ed8;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  .atd-ack {
+    width: min(36rem, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    margin: auto;
+    padding: 20px 20px 0;
+    overflow: auto;
+    background: #ffffff;
+    color: #1e293b;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    text-align: left;
+    line-height: 1.55;
+  }
+  .atd-ack::backdrop { background: rgba(0, 0, 0, 0.6); }
+  .atd-ack h2 { font-size: 1.15rem; font-weight: 700; margin: 0 0 12px; color: #1e293b; }
+  .atd-ack h2:focus { outline: none; }
+  .atd-ack ul { margin: 0 0 0 1.1em; padding: 0; font-size: 0.9rem; }
+  .atd-ack li { margin-bottom: 8px; }
+  .atd-ack a { color: #1d4ed8; font-weight: 700; }
+  .atd-ack-actions {
+    position: sticky;
+    bottom: 0;
+    padding: 12px 0 16px;
+    background: #ffffff;
+  }
+  #atd-ack-accept {
+    min-height: 44px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #atd-ack-accept:hover { background: #1d4ed8; }
+  @media (prefers-reduced-motion: reduce) {
+    .atd-ack, .atd-ack::backdrop { animation: none; transition: none; }
+  }
+  @media (prefers-color-scheme: dark) {
+    .atd-ack, .atd-ack-actions { background: #1e293b; }
+    .atd-ack { color: #f1f5f9; border-color: #334155; }
+    .atd-ack h2 { color: #f1f5f9; }
+    .atd-ack a { color: #bfdbfe; }
+    .atd-ack a:focus-visible, .atd-ack button:focus-visible { outline-color: #bfdbfe; }
+  }
 </style>
 </head>
 <body>
-<div class="container">
+<aside class="atd-notice" aria-label="Disclaimer">
+  <p>Educational information only. Access to Business is not legal, medical, mental health, financial or safety advice, and using it creates no professional relationship. In danger now? Call <a class="atd-tel" href="tel:911">911</a>. For crisis support, call or text <a class="atd-tel" href="tel:988">988</a>. Confirm anything important with the official source or a licensed professional. <a class="atd-more" href="https://github.com/dougdevitre/access-to-business/blob/main/DISCLAIMER.md">Read the full disclaimer</a></p>
+</aside>
+<main class="container">
   <h1>Access to Business</h1>
   <p class="subtitle">Startup Intake Assessment — let's figure out where to focus</p>
   <div class="progress" id="progress"></div>
@@ -75,7 +180,7 @@
     <div id="back-container"></div>
     <div id="next-container"></div>
   </div>
-</div>
+</main>
 
 <script>
 (function() {
@@ -105,10 +210,16 @@
   var step = 0;
   var data = { name: "", startup: "", stage: null, priority: null, time: null, challenge: "" };
 
-  function render() {
+  // moveFocus: after Next, Back or Start Over the old button is gone, so put
+  // keyboard and screen reader focus on the new step's heading.
+  function render(moveFocus) {
     renderProgress();
     renderStep();
     renderButtons();
+    if (moveFocus) {
+      var title = document.querySelector("#step-content .step-title");
+      if (title) title.focus();
+    }
   }
 
   function renderProgress() {
@@ -117,75 +228,78 @@
       var cls = "progress-dot";
       if (i === step) cls += " active";
       else if (i < step) cls += " done";
-      html += '<div class="' + cls + '"></div>';
+      html += '<div class="' + cls + '" aria-hidden="true"></div>';
     }
+    html += '<span class="sr-only">Step ' + (step + 1) + ' of ' + totalSteps + '</span>';
     document.getElementById("progress").innerHTML = html;
+  }
+
+  // A labelled group of native radio buttons. Tab reaches the group, arrow keys
+  // move the choice, and each card is the radio's label.
+  function radioGroup(name, titleId, layout, items, selected, inner) {
+    var html = '<div class="' + layout + ' radio-group" role="radiogroup" aria-labelledby="' + titleId + '">';
+    items.forEach(function(item) {
+      var on = selected === item.id;
+      html += '<label class="option-btn' + (name === "stage" ? " stage-btn" : "") + (on ? " selected" : "") + '">' +
+        '<input class="opt-input" type="radio" name="' + name + '" value="' + item.id + '"' + (on ? " checked" : "") + ' />' +
+        inner(item) + '</label>';
+    });
+    return html + '</div>';
+  }
+
+  function bindRadioGroup(name, onPick) {
+    var inputs = document.querySelectorAll('input[type="radio"][name="' + name + '"]');
+    inputs.forEach(function(input) {
+      input.addEventListener("change", function() {
+        onPick(this.value);
+        inputs.forEach(function(other) { other.parentNode.classList.toggle("selected", other.checked); });
+        renderButtons();
+      });
+    });
   }
 
   function renderStep() {
     var el = document.getElementById("step-content");
     if (step === 0) {
       el.innerHTML =
-        '<div class="card"><h2>Tell me about your startup</h2>' +
-        '<div class="field-group"><label>Your name</label>' +
-        '<input id="inp-name" value="' + esc(data.name) + '" placeholder="First name" /></div>' +
-        '<div class="field-group"><label>What\'s your startup? (one sentence)</label>' +
+        '<div class="card"><h2 class="step-title" tabindex="-1">Tell me about your startup</h2>' +
+        '<div class="field-group"><label for="inp-name">First name or initials (optional)</label>' +
+        '<input id="inp-name" value="' + esc(data.name) + '" autocomplete="off" aria-describedby="inp-name-hint" />' +
+        '<p class="field-hint" id="inp-name-hint">Leave blank to stay anonymous. Only shown on this screen, never in the text you copy.</p></div>' +
+        '<div class="field-group"><label for="inp-startup">What\'s your startup? (one sentence)</label>' +
         '<input id="inp-startup" value="' + esc(data.startup) + '" placeholder="e.g. A platform that helps co-parents document safely" /></div></div>';
       document.getElementById("inp-name").addEventListener("input", function(e) { data.name = e.target.value; renderButtons(); });
       document.getElementById("inp-startup").addEventListener("input", function(e) { data.startup = e.target.value; renderButtons(); });
     } else if (step === 1) {
-      var html = '<div class="card"><h2>What stage are you at?</h2><div class="option-list">';
-      STAGES.forEach(function(s) {
-        var sel = data.stage === s.id ? " selected" : "";
-        html += '<div class="option-btn stage-btn' + sel + '" data-stage="' + s.id + '">' +
-          '<span class="stage-icon">' + s.icon + '</span>' +
-          '<div><strong>' + s.label + '</strong><br><span class="stage-desc">' + s.desc + '</span></div></div>';
-      });
-      html += '</div></div>';
-      el.innerHTML = html;
-      el.querySelectorAll("[data-stage]").forEach(function(btn) {
-        btn.addEventListener("click", function() {
-          data.stage = parseInt(this.getAttribute("data-stage"));
-          render();
-        });
-      });
+      el.innerHTML = '<div class="card"><h2 class="step-title" id="q-stage" tabindex="-1">What stage are you at?</h2>' +
+        radioGroup("stage", "q-stage", "option-list", STAGES, data.stage, function(s) {
+          return '<span class="stage-icon" aria-hidden="true">' + s.icon + '</span>' +
+            '<span><strong>' + s.label + '</strong><br><span class="stage-desc">' + s.desc + '</span></span>';
+        }) + '</div>';
+      bindRadioGroup("stage", function(v) { data.stage = parseInt(v, 10); });
     } else if (step === 2) {
-      var html = '<div class="card"><h2>What matters most right now?</h2><div class="option-grid">';
-      PRIORITIES.forEach(function(p) {
-        var sel = data.priority === p.id ? " selected" : "";
-        html += '<div class="option-btn' + sel + '" data-priority="' + p.id + '"><span class="icon">' + p.icon + '</span>' + p.label + '</div>';
-      });
-      html += '</div></div>';
-      el.innerHTML = html;
-      el.querySelectorAll("[data-priority]").forEach(function(btn) {
-        btn.addEventListener("click", function() {
-          data.priority = this.getAttribute("data-priority");
-          render();
-        });
-      });
+      el.innerHTML = '<div class="card"><h2 class="step-title" id="q-priority" tabindex="-1">What matters most right now?</h2>' +
+        radioGroup("priority", "q-priority", "option-grid", PRIORITIES, data.priority, function(p) {
+          return '<span class="icon" aria-hidden="true">' + p.icon + '</span>' + p.label;
+        }) + '</div>';
+      bindRadioGroup("priority", function(v) { data.priority = v; });
     } else if (step === 3) {
-      var html = '<div class="card"><h2>How much time do you have?</h2><div class="option-grid">';
-      TIME_OPTIONS.forEach(function(t) {
-        var sel = data.time === t.id ? " selected" : "";
-        html += '<div class="option-btn' + sel + '" data-time="' + t.id + '"><span class="icon">' + t.icon + '</span>' + t.label + '</div>';
-      });
-      html += '</div>' +
-        '<div class="field-group" style="margin-top:16px"><label>Biggest challenge right now (optional)</label>' +
+      el.innerHTML = '<div class="card"><h2 class="step-title" id="q-time" tabindex="-1">How much time do you have?</h2>' +
+        radioGroup("time", "q-time", "option-grid", TIME_OPTIONS, data.time, function(t) {
+          return '<span class="icon" aria-hidden="true">' + t.icon + '</span>' + t.label;
+        }) +
+        '<div class="field-group" style="margin-top:16px"><label for="inp-challenge">Biggest challenge right now (optional)</label>' +
         '<textarea id="inp-challenge" placeholder="e.g. I can\'t figure out pricing, I\'m scared to reach out to investors...">' + esc(data.challenge) + '</textarea></div></div>';
-      el.innerHTML = html;
-      el.querySelectorAll("[data-time]").forEach(function(btn) {
-        btn.addEventListener("click", function() {
-          data.time = this.getAttribute("data-time");
-          render();
-        });
-      });
+      bindRadioGroup("time", function(v) { data.time = v; });
       document.getElementById("inp-challenge").addEventListener("input", function(e) { data.challenge = e.target.value; });
     } else if (step === 4) {
       var routing = getRouting();
       var stageInfo = STAGES.filter(function(s) { return s.id === data.stage; })[0];
       var priorityInfo = PRIORITIES.filter(function(p) { return p.id === data.priority; })[0];
       var timeInfo = TIME_OPTIONS.filter(function(t) { return t.id === data.time; })[0];
+      // The name is a greeting on this screen only; getCopyText() never includes it.
       var copyText = getCopyText();
+      var who = data.name.trim();
 
       var routeHtml = "";
       routing.routes.forEach(function(r) {
@@ -197,8 +311,8 @@
       });
 
       el.innerHTML =
-        '<div class="card"><h2>Your Startup Profile</h2>' +
-        '<div class="result-section"><p><strong>' + esc(data.name) + '</strong> — ' + esc(data.startup) + '</p>' +
+        '<div class="card"><h2 class="step-title" tabindex="-1">Your Startup Profile</h2>' +
+        '<div class="result-section"><p>' + (who ? '<strong>' + esc(who) + '</strong> — ' : '') + esc(data.startup) + '</p>' +
         '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">' +
         '<span class="badge badge-blue">' + stageInfo.icon + ' Stage ' + data.stage + ': ' + stageInfo.label + '</span>' +
         '<span class="badge badge-green">' + priorityInfo.icon + ' ' + priorityInfo.label + '</span>' +
@@ -209,12 +323,15 @@
         '<div class="command-list">' + cmdHtml + '</div></div></div>' +
         '<div class="card"><h2>Copy to Claude</h2>' +
         '<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:8px">Paste this into a new Claude conversation with Access to Business:</p>' +
-        '<div class="copy-block"><button class="copy-btn" id="copy-btn">Copy</button>' + esc(copyText) + '</div></div>';
+        '<div class="copy-block" id="copy-text">' + esc(copyText) + '</div>' +
+        '<button type="button" class="btn btn-outline copy-btn" id="copy-btn" aria-describedby="copy-text">Copy</button>' +
+        '<span class="sr-only" role="status" id="copy-status"></span></div>';
 
       document.getElementById("copy-btn").addEventListener("click", function() {
         if (navigator.clipboard) {
           navigator.clipboard.writeText(copyText);
           this.textContent = "Copied!";
+          document.getElementById("copy-status").textContent = "Copied to clipboard";
           var btn = this;
           setTimeout(function() { btn.textContent = "Copy"; }, 1500);
         }
@@ -227,32 +344,32 @@
     var nextEl = document.getElementById("next-container");
 
     if (step > 0 && step < totalSteps) {
-      backEl.innerHTML = '<button class="btn btn-outline" id="btn-back">Back</button>';
-      document.getElementById("btn-back").addEventListener("click", function() { step--; render(); });
+      backEl.innerHTML = '<button type="button" class="btn btn-outline" id="btn-back">Back</button>';
+      document.getElementById("btn-back").addEventListener("click", function() { step--; render(true); });
     } else {
       backEl.innerHTML = "";
     }
 
     if (step < totalSteps - 1) {
       var disabled = !canNext();
-      nextEl.innerHTML = '<button class="btn btn-primary" id="btn-next"' + (disabled ? ' disabled' : '') + '>Next \u2192</button>';
+      nextEl.innerHTML = '<button type="button" class="btn btn-primary" id="btn-next"' + (disabled ? ' disabled' : '') + '>Next <span aria-hidden="true">\u2192</span></button>';
       document.getElementById("btn-next").addEventListener("click", function() {
-        if (canNext()) { step++; render(); }
+        if (canNext()) { step++; render(true); }
       });
     } else if (step === totalSteps - 1) {
       nextEl.innerHTML = "";
     } else {
-      nextEl.innerHTML = '<button class="btn btn-primary" id="btn-restart">Start Over</button>';
+      nextEl.innerHTML = '<button type="button" class="btn btn-primary" id="btn-restart">Start Over</button>';
       document.getElementById("btn-restart").addEventListener("click", function() {
         step = 0;
         data = { name: "", startup: "", stage: null, priority: null, time: null, challenge: "" };
-        render();
+        render(true);
       });
     }
   }
 
   function canNext() {
-    if (step === 0) return data.name && data.startup;
+    if (step === 0) return !!data.startup;
     if (step === 1) return data.stage !== null;
     if (step === 2) return data.priority !== null;
     if (step === 3) return data.time !== null;
@@ -299,10 +416,11 @@
   function getCopyText() {
     var stageLabel = STAGES.filter(function(s) { return s.id === data.stage; })[0];
     var priorityLabel = PRIORITIES.filter(function(p) { return p.id === data.priority; })[0];
+    var timeLabel = TIME_OPTIONS.filter(function(t) { return t.id === data.time; })[0];
     return "/start\nStartup: " + data.startup +
       "\nStage: " + (stageLabel ? stageLabel.label : "Unknown") +
       "\nPriority: " + (priorityLabel ? priorityLabel.label : "Unknown") +
-      "\nTime: " + data.time +
+      "\nTime: " + (timeLabel ? timeLabel.label : "Unknown") +
       "\nChallenge: " + (data.challenge || "None specified");
   }
 
@@ -313,6 +431,72 @@
   }
 
   render();
+})();
+</script>
+<!-- One-time acknowledgment (interim wording, pending attorney review) -->
+<dialog class="atd-ack" id="atd-ack" aria-labelledby="atd-ack-title" aria-describedby="atd-ack-body">
+  <h2 id="atd-ack-title" tabindex="-1">Before you use this tool</h2>
+  <div id="atd-ack-body">
+    <ul>
+      <li>Access to Business provides general educational information only. It is not legal, medical, mental health, financial or safety advice. Using it does not create an attorney-client, clinician-patient or any other professional relationship with Doug Devitre, CoTrackPro or any contributor.</li>
+      <li><strong>Not for emergencies.</strong> If anyone is in danger, call <a class="atd-tel" href="tel:911">911</a>. For crisis support, call or text <a class="atd-tel" href="tel:988">988</a>.</li>
+      <li><strong>Not a substitute for a professional.</strong> Talk with a licensed attorney, clinician or trained advocate about your situation.</li>
+      <li><strong>Information can be wrong or out of date.</strong> Laws, programs, phone numbers, eligibility rules and deadlines change. Confirm everything with the official source before you rely on it.</li>
+      <li><strong>AI output can be incorrect.</strong> Review everything it produces. You are responsible for the decisions you make and anything you file or send.</li>
+      <li><strong>Protect privacy.</strong> Do not enter names, case numbers, addresses or other details that identify a person.</li>
+      <li><strong>No endorsement.</strong> Not affiliated with or endorsed by any court, agency or organization it mentions.</li>
+      <li><strong>No warranty.</strong> Provided "as is," without warranties of any kind. To the fullest extent the law allows, the maintainers and contributors are not liable for damages arising from its use.</li>
+    </ul>
+  </div>
+  <div class="atd-ack-actions">
+    <button type="button" id="atd-ack-accept">I understand</button>
+  </div>
+</dialog>
+<script>
+/* Shown once per browser before first use. Remembered under a versioned key
+   (bump it when the wording changes). Every storage read and write is guarded:
+   if storage is unavailable the dialog simply appears again next time. */
+(function () {
+  var KEY = "disclaimer-ack-v1";
+  var dialog = document.getElementById("atd-ack");
+  var accept = document.getElementById("atd-ack-accept");
+  var title = document.getElementById("atd-ack-title");
+  var accepted = false;
+  var store = null;
+  try { store = window.localStorage; } catch (e) { store = null; }
+
+  function hasAcknowledged() {
+    try { return !!store && store.getItem(KEY) === "yes"; } catch (e) { return false; }
+  }
+  function remember() {
+    try { if (store) store.setItem(KEY, "yes"); } catch (e) { /* show again next time */ }
+  }
+  function open() {
+    if (typeof dialog.showModal === "function") {
+      if (!dialog.open) dialog.showModal();
+    } else {
+      dialog.setAttribute("open", "");
+    }
+    title.focus();
+  }
+
+  if (!dialog || hasAcknowledged()) return;
+
+  accept.addEventListener("click", function () {
+    accepted = true;
+    remember();
+    if (typeof dialog.close === "function") dialog.close();
+    else dialog.removeAttribute("open");
+  });
+  // Esc must not dismiss the notice without an acknowledgment.
+  dialog.addEventListener("cancel", function (event) {
+    event.preventDefault();
+    accept.focus();
+  });
+  dialog.addEventListener("close", function () {
+    if (!accepted) open();
+  });
+  open();
 })();
 </script>
 </body>

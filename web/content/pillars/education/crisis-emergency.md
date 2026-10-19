@@ -45,7 +45,6 @@ flowchart TD
 ### Legal Basis
 - **RSMo 160.660:** every school building must have a safety plan
 - **RSMo 160.665:** School Safety and Security Act provisions
-- **RSMo 161.215:** DESE authority to establish school safety standards
 - **RSMo 170.315:** active threat drills and training requirements
 
 ### Key Components

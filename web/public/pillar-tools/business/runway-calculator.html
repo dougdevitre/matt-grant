@@ -12,6 +12,7 @@
     color: #e2e4e9;
     min-height: 100vh;
     padding: 20px;
+    overflow-wrap: break-word;
   }
   .container { max-width: 640px; margin: 0 auto; }
   h1 {
@@ -47,21 +48,27 @@
     color: #8b8fa3;
     margin-bottom: 6px;
   }
+  /* Border #6b7084: 3.4:1 on the card, so the box edge is visible (WCAG 1.4.11) */
   .input-group input[type="number"] {
     width: 100%;
+    min-height: 44px;
     padding: 12px 14px;
     background: #12141c;
-    border: 1px solid #2a2d3a;
+    border: 1px solid #6b7084;
     border-radius: 8px;
     color: #e2e4e9;
     font-size: 1rem;
-    outline: none;
     transition: border-color 0.2s;
   }
-  .input-group input[type="number"]:focus { border-color: #6366f1; }
+  .input-group input[type="number"]:focus { border-color: #818cf8; }
+  input:focus-visible {
+    outline: 3px solid #c7c8ff;
+    outline-offset: 2px;
+  }
+  /* Two columns; one when the text is large or the screen is narrow */
   .results-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, max(6.5rem, calc(50% - 8px))), 1fr));
     gap: 16px;
     margin-bottom: 20px;
   }
@@ -83,6 +90,7 @@
     font-size: 1.5rem;
     font-weight: 700;
     color: #fff;
+    overflow-wrap: anywhere;
   }
   .runway-bar-container {
     background: #12141c;
@@ -121,27 +129,41 @@
     color: #8b8fa3;
     margin-bottom: 8px;
   }
-  .slider-group label span { color: #6366f1; font-weight: 600; }
+  .slider-group label span { color: #818cf8; font-weight: 600; }
+  /* 44px tall touch area; the visible track stays 6px */
   input[type="range"] {
     -webkit-appearance: none;
+    appearance: none;
+    display: block;
     width: 100%;
+    height: 44px;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
     height: 6px;
-    background: #2a2d3a;
+    background: #6b7084;
     border-radius: 3px;
-    outline: none;
+  }
+  input[type="range"]::-moz-range-track {
+    height: 6px;
+    background: #6b7084;
+    border-radius: 3px;
   }
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 20px;
     height: 20px;
-    background: #6366f1;
+    margin-top: -7px;
+    background: #818cf8;
     border-radius: 50%;
     cursor: pointer;
   }
   input[type="range"]::-moz-range-thumb {
     width: 20px;
     height: 20px;
-    background: #6366f1;
+    background: #818cf8;
     border-radius: 50%;
     cursor: pointer;
     border: none;
@@ -154,16 +176,85 @@
     margin-top: 12px;
   }
   .whatif-result .result-value { font-size: 1.25rem; }
-  .disclaimer {
-    text-align: center;
-    font-size: 0.75rem;
-    color: #555;
-    margin-top: 24px;
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+  }
+  /* Disclaimer notice (every page) and one-time acknowledgment dialog */
+  .atd-notice {
+    margin: -20px -20px 20px;
+    padding: 10px 16px;
+    background: #12141c;
+    color: #c0c3ce;
+    border-bottom: 1px solid #2a2d3a;
+    font-size: 0.8rem;
+    line-height: 1.55;
+    text-align: left;
+  }
+  .atd-notice p { max-width: 640px; margin: 0 auto; }
+  .atd-notice a { color: #c7c8ff; font-weight: 700; text-decoration: underline; text-underline-offset: 0.15em; }
+  /* 44px touch targets without spreading the sentence apart */
+  .atd-tel, .atd-more { position: relative; }
+  .atd-tel::after, .atd-more::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+  .atd-notice a:focus-visible, .atd-ack a:focus-visible, .atd-ack button:focus-visible {
+    outline: 2px solid #c7c8ff;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  .atd-ack {
+    width: min(36rem, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    margin: auto;
+    padding: 20px 20px 0;
+    overflow: auto;
+    background: #1a1d27;
+    color: #e2e4e9;
+    border: 1px solid #2a2d3a;
+    border-radius: 12px;
+    text-align: left;
+    line-height: 1.55;
+  }
+  .atd-ack::backdrop { background: rgba(0, 0, 0, 0.6); }
+  .atd-ack h2 { font-size: 1.15rem; font-weight: 700; margin: 0 0 12px; color: #e2e4e9; }
+  .atd-ack h2:focus { outline: none; }
+  .atd-ack ul { margin: 0 0 0 1.1em; padding: 0; font-size: 0.9rem; }
+  .atd-ack li { margin-bottom: 8px; }
+  .atd-ack a { color: #c7c8ff; font-weight: 700; }
+  .atd-ack-actions {
+    position: sticky;
+    bottom: 0;
+    padding: 12px 0 16px;
+    background: #1a1d27;
+  }
+  #atd-ack-accept {
+    min-height: 44px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #4f46e5;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #atd-ack-accept:hover { background: #4338ca; }
+  @media (prefers-reduced-motion: reduce) {
+    .atd-ack, .atd-ack::backdrop { animation: none; transition: none; }
   }
 </style>
 </head>
 <body>
-<div class="container">
+<aside class="atd-notice" aria-label="Disclaimer">
+  <p>Educational information only. Access to Business is not legal, medical, mental health, financial or safety advice, and using it creates no professional relationship. In danger now? Call <a class="atd-tel" href="tel:911">911</a>. For crisis support, call or text <a class="atd-tel" href="tel:988">988</a>. Confirm anything important with the official source or a licensed professional. <a class="atd-more" href="https://github.com/dougdevitre/access-to-business/blob/main/DISCLAIMER.md">Read the full disclaimer</a></p>
+</aside>
+<main class="container">
   <h1>Startup Runway Calculator</h1>
   <p class="subtitle">Know exactly how long your cash will last</p>
 
@@ -213,7 +304,7 @@
   <div class="card" id="whatifCard" style="display:none;">
     <h2>What If? Adjust Burn Rate</h2>
     <div class="slider-group">
-      <label>Adjusted Monthly Burn <span id="sliderVal">$0</span></label>
+      <label for="burnSlider">Adjusted Monthly Burn <span id="sliderVal">$0</span></label>
       <input type="range" id="burnSlider" min="0" max="200000" step="1000" oninput="whatif()">
     </div>
     <div class="whatif-result">
@@ -226,8 +317,7 @@
     </div>
   </div>
 
-  <p class="disclaimer">For planning purposes only. Not financial advice.</p>
-</div>
+</main>
 
 <script>
 function fmt(n) {
@@ -305,6 +395,72 @@ function whatif() {
   document.getElementById('whatifDate').textContent = endDateStr(months);
   document.getElementById('whatifDate').className = 'result-value ' + colors.text;
 }
+</script>
+<!-- One-time acknowledgment (interim wording, pending attorney review) -->
+<dialog class="atd-ack" id="atd-ack" aria-labelledby="atd-ack-title" aria-describedby="atd-ack-body">
+  <h2 id="atd-ack-title" tabindex="-1">Before you use this tool</h2>
+  <div id="atd-ack-body">
+    <ul>
+      <li>Access to Business provides general educational information only. It is not legal, medical, mental health, financial or safety advice. Using it does not create an attorney-client, clinician-patient or any other professional relationship with Doug Devitre, CoTrackPro or any contributor.</li>
+      <li><strong>Not for emergencies.</strong> If anyone is in danger, call <a class="atd-tel" href="tel:911">911</a>. For crisis support, call or text <a class="atd-tel" href="tel:988">988</a>.</li>
+      <li><strong>Not a substitute for a professional.</strong> Talk with a licensed attorney, clinician or trained advocate about your situation.</li>
+      <li><strong>Information can be wrong or out of date.</strong> Laws, programs, phone numbers, eligibility rules and deadlines change. Confirm everything with the official source before you rely on it.</li>
+      <li><strong>AI output can be incorrect.</strong> Review everything it produces. You are responsible for the decisions you make and anything you file or send.</li>
+      <li><strong>Protect privacy.</strong> Do not enter names, case numbers, addresses or other details that identify a person.</li>
+      <li><strong>No endorsement.</strong> Not affiliated with or endorsed by any court, agency or organization it mentions.</li>
+      <li><strong>No warranty.</strong> Provided "as is," without warranties of any kind. To the fullest extent the law allows, the maintainers and contributors are not liable for damages arising from its use.</li>
+    </ul>
+  </div>
+  <div class="atd-ack-actions">
+    <button type="button" id="atd-ack-accept">I understand</button>
+  </div>
+</dialog>
+<script>
+/* Shown once per browser before first use. Remembered under a versioned key
+   (bump it when the wording changes). Every storage read and write is guarded:
+   if storage is unavailable the dialog simply appears again next time. */
+(function () {
+  var KEY = "disclaimer-ack-v1";
+  var dialog = document.getElementById("atd-ack");
+  var accept = document.getElementById("atd-ack-accept");
+  var title = document.getElementById("atd-ack-title");
+  var accepted = false;
+  var store = null;
+  try { store = window.localStorage; } catch (e) { store = null; }
+
+  function hasAcknowledged() {
+    try { return !!store && store.getItem(KEY) === "yes"; } catch (e) { return false; }
+  }
+  function remember() {
+    try { if (store) store.setItem(KEY, "yes"); } catch (e) { /* show again next time */ }
+  }
+  function open() {
+    if (typeof dialog.showModal === "function") {
+      if (!dialog.open) dialog.showModal();
+    } else {
+      dialog.setAttribute("open", "");
+    }
+    title.focus();
+  }
+
+  if (!dialog || hasAcknowledged()) return;
+
+  accept.addEventListener("click", function () {
+    accepted = true;
+    remember();
+    if (typeof dialog.close === "function") dialog.close();
+    else dialog.removeAttribute("open");
+  });
+  // Esc must not dismiss the notice without an acknowledgment.
+  dialog.addEventListener("cancel", function (event) {
+    event.preventDefault();
+    accept.focus();
+  });
+  dialog.addEventListener("close", function () {
+    if (!accepted) open();
+  });
+  open();
+})();
 </script>
 </body>
 </html>

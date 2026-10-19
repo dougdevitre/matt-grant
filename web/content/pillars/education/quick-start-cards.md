@@ -60,7 +60,7 @@ graph LR
 A: Submit a written request to your school. Use `/letter evaluation-request` to generate one. The district has 60 calendar days from your signed consent to complete the evaluation.
 
 **Q: Can my child transfer to another school district?**
-A: Yes. Missouri allows voluntary interdistrict transfers (RSMo 162.1010). If your district is unaccredited, your child may transfer to an accredited district at the sending district's expense (RSMo 167.131).
+A: Yes. Some Missouri districts accept voluntary interdistrict transfers; ask both districts. If your district is unaccredited, your child may transfer to an accredited district at the sending district's expense (RSMo 167.131).
 
 **Q: What is the A+ Scholarship?**
 A: A tuition-reimbursement program at Missouri community colleges. Students need a 2.5 GPA, 95% attendance, 50 hours of tutoring/mentoring, and Proficient on the Algebra I EOC, among other requirements. Type `/a-plus` for a full eligibility check.

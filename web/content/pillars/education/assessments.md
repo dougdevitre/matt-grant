@@ -175,7 +175,7 @@ Same 4-level scale: Below Basic, Basic, Proficient, Advanced (based on alternate
 - **Not a high-stakes test:** does not determine kindergarten eligibility
 
 ### Kindergarten Entry Age
-Children must turn 5 by August 1 to enter kindergarten that year (RSMo 160.053). Parents may request early entry for children who turn 5 after August 1 through district assessment processes.
+Children must turn 5 before August 1 to enter kindergarten that year (RSMo 160.053). Parents may request early entry for children who turn 5 on or after August 1 through district assessment processes.
 
 ---
 

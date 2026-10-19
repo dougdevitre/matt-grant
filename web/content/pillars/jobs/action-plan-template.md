@@ -139,7 +139,7 @@ Encourage user to check with case manager for:
 
 **Add to Day 1 of every plan:**
 - Register at jobs.mo.gov (MoJobs account)
-- Locate nearest Missouri Job Center → jobs.mo.gov/find-a-job-center
+- Locate nearest Missouri Job Center → jobs.mo.gov/job-centers
 - Sign up for DSS OWCI LISTSERV if SNAP/TANF recipient (job fair + hiring event alerts)
 - Explore missouriconnections.org (career exploration + WorkKeys info)
 
@@ -149,7 +149,7 @@ Encourage user to check with case manager for:
 - Research local Workforce Development Board (WDB) events in their region
 
 **Add to Day 4 (Skills):**
-- Missouri Fast Track Scholarship application (dhe.mo.gov/fasttrack) if training is needed
+- Missouri Fast Track Scholarship application (dhewd.mo.gov/initiatives/fast-track-workforce-incentive-grant) if training is needed
 - WorkKeys assessment available free at Job Centers — schedule it
 - SkillUP enrollment if SNAP recipient
 

@@ -1,8 +1,13 @@
 {
   "pillar": "services",
   "repo": "dougdevitre/access-to-services",
-  "syncedAt": "505edf8",
+  "syncedAt": "f99aef9",
   "docs": [
+    {
+      "slug": "disclaimer",
+      "title": "Disclaimer — Access to Services",
+      "file": "disclaimer.md"
+    },
     {
       "slug": "schema",
       "title": "Resource Directory — Schema & Query Guide",

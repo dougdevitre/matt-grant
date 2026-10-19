@@ -74,23 +74,23 @@ Missouri education law is primarily contained in RSMo Chapters 160-178:
 ### Student-Related
 | Statute | Topic | Summary |
 |---------|-------|---------|
-| RSMo 160.053 | Kindergarten entry age | Child must turn 5 by August 1 |
+| RSMo 160.053 | Kindergarten entry age | Child must turn 5 before August 1 |
 | RSMo 160.261 | Discipline policy | Districts must adopt written discipline code; mandatory reporting for weapons/drugs/assault |
-| RSMo 160.263 | Corporal punishment | No statewide prohibition; district policy governs |
+| RSMo 160.263 | Seclusion | Limits on confining a student in seclusion |
 | RSMo 160.400-425 | Charter schools | Authorization, governance, funding for charter schools |
-| RSMo 160.526 | School improvement plans | CSIP requirement for every school |
+| RSMo 160.526 | Academic standards and assessment | Development of academic standards and the statewide assessment system |
 | RSMo 160.545 | A+ Schools Program | Eligibility criteria, benefits, school designation requirements |
 | RSMo 160.660 | School safety plans | Building-level crisis plans, drills, active threat protocols |
 | RSMo 167.031 | Compulsory attendance | Ages 7-17; homeschool exemptions |
 | RSMo 167.131 | Transfer from unaccredited district | Student transfer rights when district is unaccredited |
-| RSMo 167.161 | Suspension — short-term | Up to 10 days; due process requirements |
-| RSMo 167.171 | Suspension/expulsion — long-term | Hearing rights for suspensions >10 days and expulsions |
+| RSMo 167.161 | Suspension or expulsion by the board | Notice and hearing before the board |
+| RSMo 167.171 | Summary suspension | Principal and superintendent suspensions; hearing and appeal rights for suspensions >10 days |
 | RSMo 167.181 | Immunization requirements | Required immunizations for school enrollment; exemptions |
-| RSMo 167.231 | Transportation | 3.5-mile eligibility for state-funded transportation |
-| RSMo 167.621 | Diabetes management in schools | Student self-management and school support requirements |
+| RSMo 167.231 | Transportation | Districts must transport pupils living more than 3.5 miles from school |
+| RSMo 167.800–167.824 | Diabetes management in schools | Student self-management and school support requirements |
 | RSMo 167.627 | Self-administration of medications | Rescue inhalers and EpiPens; student self-carry policy |
 | RSMo 167.950 | Dyslexia screening | Screening and intervention requirements |
-| RSMo 170.013 | Personal finance instruction | Required for graduation |
+| RSMo 170.013 | Civics achievement examination | Missouri higher education civics achievement examination; when it is required |
 | RSMo 170.015 | Health/sex education opt-out | Parent right to opt child out |
 | RSMo 170.048 | Suicide prevention | School employee training on youth suicide awareness and prevention |
 | RSMo 170.310 | CPR instruction | Required before graduation |
@@ -99,22 +99,18 @@ Missouri education law is primarily contained in RSMo Chapters 160-178:
 | Statute | Topic | Summary |
 |---------|-------|---------|
 | RSMo 168.021 | Teacher certification | Certificate types, requirements, DESE authority |
-| RSMo 168.028 | Mentoring program | Required for new teachers |
 | RSMo 168.102-130 | Teacher Tenure Act | Probationary period, permanent status, termination procedures |
 | RSMo 168.104 | Probationary teacher | 5-year probationary period for tenure |
 | RSMo 168.114 | Tenure teacher termination | Termination for cause with due process; enumerated grounds |
 | RSMo 168.126 | Non-renewal notice | April 15 deadline for notifying non-tenured teachers |
 | RSMo 168.133 | Background checks | Required for all employees and volunteers with unsupervised child access |
-| RSMo 168.345 | National Board Certification | Salary supplement for NBCTs |
 
 ### District/Board-Related
 | Statute | Topic | Summary |
 |---------|-------|---------|
 | RSMo 162.081 | Lapse of corporate organization | State authority when district fails to meet standards |
-| RSMo 162.215 | Conflict of interest | Board member conflict disclosure requirements |
-| RSMo 162.1010-1060 | Voluntary transfer | Interdistrict student transfer provisions |
 | RSMo 163.011-191 | Foundation formula / state aid | State adequacy target, WADA, local effort, hold harmless |
-| RSMo 164.011 | Bond issue limits | Bonded indebtedness caps |
+| RSMo 164.011 | Tax rates | Annual estimate of required funds and the tax rates needed |
 | RSMo 165.121 | Annual audit | Required independent financial audit |
 
 ### Child Protection

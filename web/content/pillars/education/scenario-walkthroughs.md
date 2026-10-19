@@ -111,7 +111,7 @@ Apply through DESE's Educator Certification System (ECS). The IPC is valid for 4
 Apply to Missouri school districts. Your IPC allows you to teach in Missouri public schools in your certified content area(s).
 
 **Step 6: Complete mentoring program.**
-Your employing district must provide a mentoring/induction program (RSMo 168.028). You'll be paired with an experienced mentor teacher. This is a requirement for progressing to your career certificate.
+Your employing district must provide a mentoring/induction program. You'll be paired with an experienced mentor teacher. This is a requirement for progressing to your career certificate.
 
 **Step 7: Teach and grow.**
 During your 4 years on the IPC, you complete professional development, receive MEES evaluations, and build your practice. You're in your probationary period — you can be non-renewed (by April 15 notice) without cause.
@@ -125,7 +125,7 @@ CCPC requires ongoing professional development for renewal. Continue growing thr
 **Step 10: Career milestones.**
 - **Year 5:** Tenure eligibility (if 5 consecutive years in same district — RSMo 168.104)
 - **Any time:** Add content endorsements (additional coursework + assessment)
-- **Any time:** National Board Certification (optional; $2,000/year supplement per RSMo 168.345)
+- **Any time:** National Board Certification (optional; incentives vary by district)
 - **Retirement:** PSRS Rule of 80, or age 60 with 5+ years
 
 ---
@@ -568,7 +568,7 @@ flowchart TD
 
 **Step 7:** Missouri law allows students to self-carry and self-administer diabetes supplies.
 
-**Key Laws:** Section 504, ADA, RSMo 167.621 (self-administration)
+**Key Laws:** Section 504, ADA, RSMo 167.621 (medication administration)
 
 ---
 
@@ -753,7 +753,7 @@ flowchart TD
 
 **Step 6:** Schools cannot recruit or induce transfers for athletic purposes — this violates MSHSAA bylaws and can result in sanctions.
 
-**Key Laws:** MSHSAA Constitution and Bylaws, RSMo 167.020 (transfers)
+**Key Laws:** MSHSAA Constitution and Bylaws, RSMo 167.020 (registration and residency)
 
 ---
 
@@ -826,7 +826,7 @@ flowchart TD
 
 **Step 8:** Adjust transportation routes and communicate new schedules to families well in advance.
 
-**Key Laws:** RSMo 162.223–162.431, RSMo 168.124 (teacher contracts)
+**Key Laws:** RSMo 162.223–162.431, RSMo 168.124 (placing teachers on leave)
 
 ---
 

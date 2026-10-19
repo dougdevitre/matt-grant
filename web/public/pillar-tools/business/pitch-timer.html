@@ -12,6 +12,7 @@
     color: #e2e4e9;
     min-height: 100vh;
     padding: 20px;
+    overflow-wrap: break-word;
   }
   .container { max-width: 640px; margin: 0 auto; text-align: center; }
   h1 {
@@ -43,13 +44,15 @@
     transition: all 0.2s;
   }
   .preset-btn:hover { border-color: #6366f1; color: #fff; }
-  .preset-btn.active { background: #6366f1; border-color: #6366f1; color: #fff; }
+  /* #4f46e5: white text 6.3:1 (#6366f1 was 4.47:1) */
+  .preset-btn.active { background: #4f46e5; border-color: #4f46e5; color: #fff; }
   .preset-btn .preset-label { display: block; font-size: 0.7rem; color: #8b8fa3; margin-top: 2px; }
-  .preset-btn.active .preset-label { color: #c7c8ff; }
+  .preset-btn.active .preset-label { color: #e0e7ff; }
+  /* Shrinks with the screen instead of pushing it sideways */
   .timer-ring-container {
     position: relative;
-    width: 260px;
-    height: 260px;
+    width: min(260px, 100%);
+    aspect-ratio: 1 / 1;
     margin: 0 auto 24px;
   }
   .timer-ring-container svg {
@@ -85,11 +88,13 @@
   }
   .controls {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     gap: 12px;
     margin-bottom: 28px;
   }
   .ctrl-btn {
+    min-height: 44px;
     padding: 12px 28px;
     border-radius: 10px;
     border: none;
@@ -98,19 +103,28 @@
     cursor: pointer;
     transition: all 0.2s;
   }
-  .ctrl-btn.primary { background: #6366f1; color: #fff; }
-  .ctrl-btn.primary:hover { background: #5558e6; }
+  .ctrl-btn.primary { background: #4f46e5; color: #fff; }
+  .ctrl-btn.primary:hover { background: #4338ca; }
   .ctrl-btn.secondary { background: #1a1d27; color: #c0c3ce; border: 1px solid #2a2d3a; }
   .ctrl-btn.secondary:hover { border-color: #6366f1; }
   .ctrl-btn:disabled { opacity: 0.4; cursor: default; }
+  /* The whole label is the tap target: 44px tall */
   .audio-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
     margin-bottom: 28px;
     font-size: 0.85rem;
     color: #8b8fa3;
     cursor: pointer;
     user-select: none;
   }
-  .audio-toggle input { margin-right: 6px; accent-color: #6366f1; }
+  .audio-toggle input[type="checkbox"] { width: 20px; height: 20px; flex-shrink: 0; accent-color: #6366f1; }
+  .preset-btn:focus-visible, .ctrl-btn:focus-visible, .audio-toggle input:focus-visible {
+    outline: 3px solid #c7c8ff;
+    outline-offset: 2px;
+  }
   .card {
     background: #1a1d27;
     border: 1px solid #2a2d3a;
@@ -127,6 +141,7 @@
   }
   .section-row {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     padding: 8px 0;
     border-bottom: 1px solid #12141c;
@@ -134,7 +149,8 @@
   }
   .section-row:last-child { border-bottom: none; }
   .section-name { flex: 1; color: #e2e4e9; }
-  .section-time { color: #6366f1; font-weight: 600; min-width: 50px; text-align: right; }
+  /* #818cf8: 5.6:1 on the card (#6366f1 was 3.7:1) */
+  .section-time { color: #818cf8; font-weight: 600; min-width: 50px; text-align: right; }
   .section-bar-bg {
     flex: 1;
     height: 6px;
@@ -155,44 +171,113 @@
     margin-bottom: 12px;
     min-height: 1.4em;
   }
-  .current-section span { color: #6366f1; font-weight: 600; }
-  .disclaimer {
-    text-align: center;
-    font-size: 0.75rem;
-    color: #555;
-    margin-top: 24px;
+  .current-section span { color: #818cf8; font-weight: 600; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+  }
+  /* Disclaimer notice (every page) and one-time acknowledgment dialog */
+  .atd-notice {
+    margin: -20px -20px 20px;
+    padding: 10px 16px;
+    background: #12141c;
+    color: #c0c3ce;
+    border-bottom: 1px solid #2a2d3a;
+    font-size: 0.8rem;
+    line-height: 1.55;
+    text-align: left;
+  }
+  .atd-notice p { max-width: 640px; margin: 0 auto; }
+  .atd-notice a { color: #c7c8ff; font-weight: 700; text-decoration: underline; text-underline-offset: 0.15em; }
+  /* 44px touch targets without spreading the sentence apart */
+  .atd-tel, .atd-more { position: relative; }
+  .atd-tel::after, .atd-more::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+  .atd-notice a:focus-visible, .atd-ack a:focus-visible, .atd-ack button:focus-visible {
+    outline: 2px solid #c7c8ff;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  .atd-ack {
+    width: min(36rem, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    margin: auto;
+    padding: 20px 20px 0;
+    overflow: auto;
+    background: #1a1d27;
+    color: #e2e4e9;
+    border: 1px solid #2a2d3a;
+    border-radius: 12px;
+    text-align: left;
+    line-height: 1.55;
+  }
+  .atd-ack::backdrop { background: rgba(0, 0, 0, 0.6); }
+  .atd-ack h2 { font-size: 1.15rem; font-weight: 700; margin: 0 0 12px; color: #e2e4e9; }
+  .atd-ack h2:focus { outline: none; }
+  .atd-ack ul { margin: 0 0 0 1.1em; padding: 0; font-size: 0.9rem; }
+  .atd-ack li { margin-bottom: 8px; }
+  .atd-ack a { color: #c7c8ff; font-weight: 700; }
+  .atd-ack-actions {
+    position: sticky;
+    bottom: 0;
+    padding: 12px 0 16px;
+    background: #1a1d27;
+  }
+  #atd-ack-accept {
+    min-height: 44px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #4f46e5;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #atd-ack-accept:hover { background: #4338ca; }
+  @media (prefers-reduced-motion: reduce) {
+    .atd-ack, .atd-ack::backdrop { animation: none; transition: none; }
   }
 </style>
 </head>
 <body>
-<div class="container">
+<aside class="atd-notice" aria-label="Disclaimer">
+  <p>Educational information only. Access to Business is not legal, medical, mental health, financial or safety advice, and using it creates no professional relationship. In danger now? Call <a class="atd-tel" href="tel:911">911</a>. For crisis support, call or text <a class="atd-tel" href="tel:988">988</a>. Confirm anything important with the official source or a licensed professional. <a class="atd-more" href="https://github.com/dougdevitre/access-to-business/blob/main/DISCLAIMER.md">Read the full disclaimer</a></p>
+</aside>
+<main class="container">
   <h1>Pitch Practice Timer</h1>
   <p class="subtitle">Rehearse your pitch with structured time splits</p>
 
-  <div class="presets">
-    <button class="preset-btn" onclick="selectPreset(0)">0:30<span class="preset-label">Elevator</span></button>
-    <button class="preset-btn" onclick="selectPreset(1)">2:00<span class="preset-label">Intro</span></button>
-    <button class="preset-btn" onclick="selectPreset(2)">5:00<span class="preset-label">Investor</span></button>
-    <button class="preset-btn" onclick="selectPreset(3)">10:00<span class="preset-label">Full Pitch</span></button>
+  <div class="presets" role="group" aria-label="Pitch length">
+    <button type="button" class="preset-btn" aria-pressed="false" onclick="selectPreset(0)">0:30<span class="preset-label">Elevator</span></button>
+    <button type="button" class="preset-btn" aria-pressed="false" onclick="selectPreset(1)">2:00<span class="preset-label">Intro</span></button>
+    <button type="button" class="preset-btn" aria-pressed="false" onclick="selectPreset(2)">5:00<span class="preset-label">Investor</span></button>
+    <button type="button" class="preset-btn" aria-pressed="false" onclick="selectPreset(3)">10:00<span class="preset-label">Full Pitch</span></button>
   </div>
 
   <div class="current-section" id="currentSection"></div>
 
   <div class="timer-ring-container">
-    <svg viewBox="0 0 120 120">
+    <svg viewBox="0 0 120 120" aria-hidden="true" focusable="false">
       <circle class="ring-bg" cx="60" cy="60" r="52"/>
       <circle class="ring-progress" id="ringProgress" cx="60" cy="60" r="52"
         stroke-dasharray="326.73" stroke-dashoffset="0"/>
     </svg>
     <div class="timer-text">
       <div class="time" id="timeDisplay">0:00</div>
-      <div class="status" id="statusText">Select a preset</div>
+      <div class="status" id="statusText" role="status">Select a preset</div>
     </div>
   </div>
 
   <div class="controls">
-    <button class="ctrl-btn primary" id="startBtn" onclick="toggleStart()" disabled>Start</button>
-    <button class="ctrl-btn secondary" id="resetBtn" onclick="resetTimer()" disabled>Reset</button>
+    <button type="button" class="ctrl-btn primary" id="startBtn" onclick="toggleStart()" disabled>Start</button>
+    <button type="button" class="ctrl-btn secondary" id="resetBtn" onclick="resetTimer()" disabled>Reset</button>
   </div>
 
   <label class="audio-toggle">
@@ -203,7 +288,7 @@
     <h2>Suggested Time Splits</h2>
     <div id="sectionsContainer"></div>
   </div>
-</div>
+</main>
 
 <script>
 var presets = [
@@ -298,7 +383,10 @@ function selectPreset(idx) {
   remaining = totalSeconds;
 
   var btns = document.querySelectorAll('.preset-btn');
-  for (var i = 0; i < btns.length; i++) btns[i].className = 'preset-btn' + (i === idx ? ' active' : '');
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].className = 'preset-btn' + (i === idx ? ' active' : '');
+    btns[i].setAttribute('aria-pressed', i === idx ? 'true' : 'false');
+  }
 
   document.getElementById('startBtn').disabled = false;
   document.getElementById('timeDisplay').textContent = formatTime(remaining);
@@ -430,6 +518,72 @@ function resetTimer() {
     rows[i].style.borderLeft = '3px solid transparent';
   }
 }
+</script>
+<!-- One-time acknowledgment (interim wording, pending attorney review) -->
+<dialog class="atd-ack" id="atd-ack" aria-labelledby="atd-ack-title" aria-describedby="atd-ack-body">
+  <h2 id="atd-ack-title" tabindex="-1">Before you use this tool</h2>
+  <div id="atd-ack-body">
+    <ul>
+      <li>Access to Business provides general educational information only. It is not legal, medical, mental health, financial or safety advice. Using it does not create an attorney-client, clinician-patient or any other professional relationship with Doug Devitre, CoTrackPro or any contributor.</li>
+      <li><strong>Not for emergencies.</strong> If anyone is in danger, call <a class="atd-tel" href="tel:911">911</a>. For crisis support, call or text <a class="atd-tel" href="tel:988">988</a>.</li>
+      <li><strong>Not a substitute for a professional.</strong> Talk with a licensed attorney, clinician or trained advocate about your situation.</li>
+      <li><strong>Information can be wrong or out of date.</strong> Laws, programs, phone numbers, eligibility rules and deadlines change. Confirm everything with the official source before you rely on it.</li>
+      <li><strong>AI output can be incorrect.</strong> Review everything it produces. You are responsible for the decisions you make and anything you file or send.</li>
+      <li><strong>Protect privacy.</strong> Do not enter names, case numbers, addresses or other details that identify a person.</li>
+      <li><strong>No endorsement.</strong> Not affiliated with or endorsed by any court, agency or organization it mentions.</li>
+      <li><strong>No warranty.</strong> Provided "as is," without warranties of any kind. To the fullest extent the law allows, the maintainers and contributors are not liable for damages arising from its use.</li>
+    </ul>
+  </div>
+  <div class="atd-ack-actions">
+    <button type="button" id="atd-ack-accept">I understand</button>
+  </div>
+</dialog>
+<script>
+/* Shown once per browser before first use. Remembered under a versioned key
+   (bump it when the wording changes). Every storage read and write is guarded:
+   if storage is unavailable the dialog simply appears again next time. */
+(function () {
+  var KEY = "disclaimer-ack-v1";
+  var dialog = document.getElementById("atd-ack");
+  var accept = document.getElementById("atd-ack-accept");
+  var title = document.getElementById("atd-ack-title");
+  var accepted = false;
+  var store = null;
+  try { store = window.localStorage; } catch (e) { store = null; }
+
+  function hasAcknowledged() {
+    try { return !!store && store.getItem(KEY) === "yes"; } catch (e) { return false; }
+  }
+  function remember() {
+    try { if (store) store.setItem(KEY, "yes"); } catch (e) { /* show again next time */ }
+  }
+  function open() {
+    if (typeof dialog.showModal === "function") {
+      if (!dialog.open) dialog.showModal();
+    } else {
+      dialog.setAttribute("open", "");
+    }
+    title.focus();
+  }
+
+  if (!dialog || hasAcknowledged()) return;
+
+  accept.addEventListener("click", function () {
+    accepted = true;
+    remember();
+    if (typeof dialog.close === "function") dialog.close();
+    else dialog.removeAttribute("open");
+  });
+  // Esc must not dismiss the notice without an acknowledgment.
+  dialog.addEventListener("cancel", function (event) {
+    event.preventDefault();
+    accept.focus();
+  });
+  dialog.addEventListener("close", function () {
+    if (!accepted) open();
+  });
+  open();
+})();
 </script>
 </body>
 </html>

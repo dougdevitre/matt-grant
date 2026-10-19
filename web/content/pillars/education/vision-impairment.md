@@ -108,14 +108,14 @@ Districts must identify children with visual impairments through Child Find acti
 | **Assistive Technology Assessment** | AT specialist or TVI | Technology needs for access to curriculum |
 
 ### The Learning Media Assessment Is Critical
-Missouri law (RSMo 162.1120) requires that the IEP team consider braille instruction for any student who is blind or visually impaired. The LMA determines which learning media (braille, print, audio, combination) is appropriate and should drive IEP decisions.
+Federal law (IDEA §300.324(a)(2)(iii)) requires that the IEP team consider braille instruction for any student who is blind or visually impaired. The LMA determines which learning media (braille, print, audio, combination) is appropriate and should drive IEP decisions.
 
 ---
 
 ## 4. IEP Considerations for Visual Impairment
 
 ### Required Considerations (IDEA + Missouri)
-- **Braille instruction** must be considered for ALL students with visual impairments (RSMo 162.1120; IDEA §300.324(a)(2)(iii))
+- **Braille instruction** must be considered for ALL students with visual impairments (IDEA §300.324(a)(2)(iii))
 - **If braille is not provided,** the IEP must document the reasons why it is not appropriate and what alternative media will be used
 - **Expanded Core Curriculum (ECC)** areas should be addressed in the IEP (see §5)
 - **Orientation & Mobility** services should be considered
@@ -164,7 +164,7 @@ The ECC defines the additional skills that students with visual impairments need
 ## 6. Braille Literacy & the Braille Decision
 
 ### Missouri Braille Mandate
-RSMo 162.1120 requires IEP teams to provide instruction in braille and the use of braille unless the team determines, after evaluation, that braille instruction is not appropriate. **The presumption is IN FAVOR of braille** — the team must justify NOT providing it.
+IDEA §300.324(a)(2)(iii) requires IEP teams to provide instruction in braille and the use of braille unless the team determines, after evaluation, that braille instruction is not appropriate. **The presumption is IN FAVOR of braille** — the team must justify NOT providing it.
 
 ### When Braille Is Appropriate
 - Student is totally blind or has very limited functional vision
@@ -415,7 +415,7 @@ Adults who are blind or visually impaired experience significantly higher unempl
 
 | Resource | Contact |
 |----------|---------|
-| Missouri School for the Blind (MSB) | msb.dese.mo.gov / 314-633-1592 |
+| Missouri School for the Blind (MSB) | msb.dese.mo.gov / 314-776-4320 |
 | MoSPIN (birth-5 families) | Through MSB Outreach |
 | MPACT (Missouri Parents Act) | missouriparentsact.org |
 | National Federation of the Blind (NFB) — Missouri | nfb.org |

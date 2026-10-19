@@ -143,7 +143,7 @@ Steps increase with years of experience (typically 15-30 steps).
 - Coaching stipends (vary significantly by sport, level, and district)
 - Activity sponsor stipends (academic bowl, yearbook, drama, etc.)
 - Department chair/team leader supplements
-- National Board Certification supplement (RSMo 168.345 — up to $2,000/year)
+- National Board Certification incentives (set by districts; DESE keeps a partial list)
 - Hard-to-staff area supplements (some districts)
 - Summer school and extended year pay
 

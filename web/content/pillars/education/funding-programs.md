@@ -305,7 +305,7 @@ Districts receiving E-Rate must comply with the Children's Internet Protection A
 - Reimbursement typically covers a fraction of actual transportation costs (historically 30-50%)
 
 ### Eligibility
-- Students living more than 3.5 miles from school are generally eligible for state-reimbursed transportation (RSMo 167.231)
+- Districts must transport students living more than 3.5 miles from school; state transportation aid is calculated on students living one mile or more (RSMo 167.231)
 - Districts may (and many do) transport students living closer than 3.5 miles, but state reimbursement may be limited
 - IEP-mandated transportation is a related service obligation regardless of distance
 
@@ -316,7 +316,7 @@ Districts receiving E-Rate must comply with the Children's Internet Protection A
 ### General Obligation Bonds
 - Used for capital projects: building construction/renovation, technology infrastructure, buses, equipment
 - Require **4/7 voter approval** (57.14%) at a regular or special election
-- Bonded indebtedness limits: generally 15% of assessed valuation (RSMo 164.011)
+- Bonded indebtedness limits: generally 15% of assessed valuation (verify with bond counsel)
 - Repaid through debt service property tax levy
 
 ### Lease Purchase Agreements

@@ -207,7 +207,7 @@ Districts can bill Missouri Medicaid (MO HealthNet) for health-related services 
 | Condition | School Considerations |
 |-----------|---------------------|
 | **Asthma** | Asthma Action Plan; self-carry inhaler (RSMo 167.627); nurse training; environmental triggers |
-| **Diabetes (Type 1)** | Diabetes Medical Management Plan; insulin administration; blood glucose monitoring; self-management (RSMo 167.621); staff training |
+| **Diabetes (Type 1)** | Diabetes Medical Management Plan; insulin administration; blood glucose monitoring; self-management (RSMo 167.800–167.824); staff training |
 | **Severe allergies/anaphylaxis** | Allergy Action Plan; EpiPen access (RSMo 167.627); staff training; food allergy management in cafeteria; 504 plan may be appropriate |
 | **Epilepsy/seizures** | Seizure Action Plan; staff training on seizure response; medication administration; activity modifications |
 | **ADHD** | Academic accommodations (504 or IEP); medication administration; behavioral supports |

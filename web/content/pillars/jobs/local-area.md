@@ -144,7 +144,7 @@ St. Charles County is part of the St. Louis metro area — Missouri's largest la
 
 ## LOCAL TRAINING PROVIDERS (St. Charles County area)
 
-Always verify current program availability at jobs.mo.gov/eligible-training-providers
+Always verify current program availability at jobs.mo.gov/community/missouri-eligible-training-provider-list
 
 **Community Colleges:**
 - **St. Charles Community College (SCC)** — Primary provider; O'Fallon campus

@@ -139,7 +139,7 @@ Missouri school boards are the governing bodies of public school districts:
 - Not employed by the district (conflict of interest)
 
 ### Board Ethics
-- Conflict of interest disclosure (RSMo 162.215)
+- Conflict of interest disclosure
 - Prohibition on nepotism (varies by district policy; some statutory provisions)
 - Financial disclosure requirements for school officials
 - MSBA (Missouri School Boards Association) Code of Ethics (voluntary but widely adopted)
@@ -370,7 +370,7 @@ Missouri school districts use fund accounting:
 ### Annual Audit
 - Independent financial audit required annually (RSMo 165.121)
 - Audit report submitted to DESE and State Auditor's office
-- Single Audit required if federal expenditures exceed $750,000 (2 CFR Part 200)
+- Single Audit required if federal expenditures reach $1,000,000 in fiscal years starting on or after Oct 1, 2024 (2 CFR Part 200)
 
 ### Financial Transparency
 - Annual Secretary of the Board Report (ASBR) published and submitted to DESE

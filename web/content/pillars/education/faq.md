@@ -57,7 +57,7 @@ Report it to the school in writing (principal or counselor). Missouri law requir
 Missouri requires DTaP, IPV, MMR, Hepatitis B, and Varicella for school entry. Exemptions: medical (physician letter) or religious (parent statement). Missouri does NOT have a personal/philosophical exemption. (RSMo 167.181)
 
 **9. Can my child attend a different school in the district?**
-Intradistrict transfer is governed by board policy. Common reasons: safety, special programs, childcare proximity. Contact your district's enrollment office. Interdistrict transfer: RSMo 162.1010-1060. If your district is unaccredited, your child may transfer to an accredited district at the sending district's expense.
+Intradistrict transfer is governed by board policy. Common reasons: safety, special programs, childcare proximity. Contact your district's enrollment office. Interdistrict transfer: depends on the districts involved; ask both districts (verify the statutory basis with district counsel). If your district is unaccredited, your child may transfer to an accredited district at the sending district's expense.
 
 **10. What financial aid is available for college?**
 Start with FAFSA (opens October 1 — studentaid.gov). Missouri state aid: A+ Scholarship (community college tuition), Bright Flight (up to $3,000/yr for top ACT scores), Access Missouri ($300-$2,850/yr need-based). Plus federal Pell Grants, local scholarships. Your school counselor can help. → See `templates/counselor/checklists.md` §College Planning.
@@ -94,7 +94,7 @@ Document everything. Contact your association representative (MSTA or MNEA) imme
 Yes — DESE guidance supports using AI to enhance instruction. Always review AI outputs for accuracy, bias, and alignment before use. Never enter student PII into public AI tools. Follow your district's AI Acceptable Use Policy. → See `references/ai-in-education/ai-teaching-learning.md`.
 
 **10. What is the National Board Certification supplement?**
-Up to $2,000/year additional compensation for NBCTs (RSMo 168.345, subject to appropriation). Some districts provide additional local incentives.
+No statewide NBCT salary supplement could be confirmed. Incentives are set by districts; DESE keeps a partial list of district incentives for National Board Certified Teachers.
 
 ---
 
@@ -181,7 +181,7 @@ State-appointed advisory team or special administrative board, mandatory improve
 DESE guidance strongly recommends it. While not mandated by state law yet, DESE's AI Guidance for LEAs (V1.0, 2025-26) provides a framework. Multiple states are enacting mandatory AI policies. → Use `templates/admin/ai-policy-template.md`.
 
 **5. What's the bond election threshold?**
-4/7 voter approval (57.14%) required. Bonded indebtedness limit: generally 15% of assessed valuation (RSMo 164.011).
+4/7 voter approval (57.14%) required. Bonded indebtedness limit: generally 15% of assessed valuation (verify with bond counsel).
 
 ---
 

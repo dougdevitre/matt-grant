@@ -1,6 +1,6 @@
 # Links & Resources — Missouri K-12 Education
 
-<!-- Last verified: 2026-03 -->
+<!-- Last verified: 2026-10-18 (crisis lines and agency phones; external links are checked monthly by .github/workflows/link-check.yml) -->
 
 ```mermaid
 graph TD
@@ -111,7 +111,7 @@ graph TD
 | 988 Suicide & Crisis Lifeline | Call or text **988** |
 | Crisis Text Line | Text **HOME** to **741741** |
 | Children's Division Hotline (abuse/neglect) | **1-800-392-3738** |
-| Missouri School Safety Center | https://www.mshp.dps.missouri.gov/MSHPWeb/Root/schoolSafety.html |
+| Missouri School Safety Center | The old MSHP page is gone (404); ask DESE for the current contact (verify) |
 | FEMA School EOP Guide | https://rems.ed.gov |
 
 ## Child Care & Early Childhood
@@ -172,5 +172,5 @@ graph TD
 ## Missouri Broadband & Connectivity
 | Resource | URL |
 |----------|-----|
-| Missouri Office of Broadband Development | https://ded.mo.gov/programs/broadband |
+| Missouri Office of Broadband Development | https://ded.mo.gov (the old /programs/broadband page is gone; search "broadband") |
 | FCC Broadband Maps | https://broadbandmap.fcc.gov |

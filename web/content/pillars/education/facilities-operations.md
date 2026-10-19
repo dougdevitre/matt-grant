@@ -95,7 +95,7 @@ Districts should maintain a 5-10 year capital improvement plan addressing:
 ### Bond Issues
 - General obligation bonds are the primary mechanism for large capital projects
 - Require **4/7 voter approval (57.14%)** at election
-- Bonded indebtedness limit: generally 15% of assessed valuation (RSMo 164.011)
+- Bonded indebtedness limit: generally 15% of assessed valuation (verify with bond counsel)
 - Typical uses: new construction, major renovation, technology infrastructure, buses, equipment
 - Repaid through a debt service levy on property taxes
 

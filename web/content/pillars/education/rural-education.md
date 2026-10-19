@@ -112,7 +112,7 @@ Missouri's district count has declined over decades through consolidation but re
 | **Joint technology** | Shared IT infrastructure, support, and licensing | Regional fiber networks, shared SIS contracts, cooperative E-Rate applications |
 
 ### Legal Framework
-- RSMo 162.700-162.720 authorizes cooperative agreements between districts
+- Cooperative agreements between districts are common (verify the statutory authority with district counsel)
 - Agreements should be formalized in writing (MOU or interlocal agreement)
 - Board approval required for all participating districts
 - Financial terms, governance, and dispute resolution clearly defined

@@ -45,7 +45,7 @@ graph TD
 | Practical Arts | 1.0 | |
 | Physical Education | 1.0 | |
 | Health | 0.5 | |
-| Personal Finance | 0.5 | RSMo 170.013 |
+| Personal Finance | 0.5 | DESE graduation requirement |
 | Electives | 7.0 | |
 | **Total** | **24.0** | |
 
@@ -249,7 +249,7 @@ Missouri offers the MOST 529 Education Plan with state tax deductions for contri
 ## 9. Transfer & Open Enrollment
 
 ### Voluntary Interdistrict Transfer
-- RSMo 162.1010-162.1060 governs student transfers between districts
+- Transfers between districts depend on the districts involved; ask both districts (verify the statutory basis with district counsel)
 - Receiving districts may accept transfer students based on capacity
 - Transportation is generally the parent's responsibility unless otherwise agreed
 - Unaccredited district provisions: students in unaccredited districts may transfer to accredited districts; sending district pays tuition (RSMo 167.131)

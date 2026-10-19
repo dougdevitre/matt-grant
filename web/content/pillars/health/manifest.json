@@ -1,7 +1,7 @@
 {
   "pillar": "health",
   "repo": "dougdevitre/access-to-health",
-  "syncedAt": "ed3513a",
+  "syncedAt": "a9cf02c",
   "docs": [
     {
       "slug": "apha-knowledgebase",
@@ -42,6 +42,11 @@
       "slug": "changelog",
       "title": "Changelog",
       "file": "changelog.md"
+    },
+    {
+      "slug": "disclaimer",
+      "title": "Disclaimer — Access to Health",
+      "file": "disclaimer.md"
     },
     {
       "slug": "navigation",

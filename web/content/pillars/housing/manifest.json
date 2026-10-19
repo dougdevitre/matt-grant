@@ -1,7 +1,7 @@
 {
   "pillar": "housing",
   "repo": "dougdevitre/access-to-housing",
-  "syncedAt": "58a758a",
+  "syncedAt": "60a9b24",
   "docs": [
     {
       "slug": "pod",
@@ -12,6 +12,11 @@
       "slug": "changelog",
       "title": "Changelog",
       "file": "changelog.md"
+    },
+    {
+      "slug": "disclaimer",
+      "title": "Disclaimer — Access to Housing",
+      "file": "disclaimer.md"
     },
     {
       "slug": "fair-housing",

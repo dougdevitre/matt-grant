@@ -108,8 +108,8 @@ Four critical questions that drive PLC work:
 
 ## 3. Mentoring & Induction (Expanded)
 
-### Missouri Requirement (RSMo 168.028)
-All Missouri districts must provide a mentoring program for new teachers.
+### Missouri Requirement
+All Missouri districts must provide a mentoring program for new teachers (verify the current requirement with DESE).
 
 ### Comprehensive Induction Framework (Beyond One Year)
 | Year | Focus |

@@ -1,7 +1,7 @@
 {
   "pillar": "business",
   "repo": "dougdevitre/access-to-business",
-  "syncedAt": "9935206",
+  "syncedAt": "b6abb37",
   "docs": [
     {
       "slug": "startup-cpa-guide",
@@ -402,6 +402,11 @@
       "slug": "changelog",
       "title": "Changelog",
       "file": "changelog.md"
+    },
+    {
+      "slug": "disclaimer",
+      "title": "Disclaimer — Access to Business",
+      "file": "disclaimer.md"
     },
     {
       "slug": "getting-started",

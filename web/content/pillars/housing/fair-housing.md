@@ -55,12 +55,12 @@ If a user request would violate Fair Housing, respond with:
 ## Applicable Law
 
 - **Federal**: Fair Housing Act (42 U.S.C. §§ 3601–3619)
-- **HUD Guidance**: [Guidance on Application of Fair Housing Act Standards to the Use of Criminal Records](https://www.hud.gov/sites/documents/HUD_OGCGUIDAPPFHASTANDCR.PDF)
+- **HUD Guidance**: HUD's 2016 Office of General Counsel guidance on applying Fair Housing Act standards to the use of criminal records was rescinded in November 2025. Blanket criminal-record policies can still carry Fair Housing and state-law risk; consult an attorney.
 - **State**: Analyses should also account for state-level fair housing protections, which may be broader than federal law
 
 ## Reporting Issues
 
-If you identify a Fair Housing compliance concern in any module or output template, please [open an issue](https://github.com/CoTrackPro/access-to-housing/issues/new?template=fair-housing-concern.md) or contact [dougdevitre@gmail.com](mailto:dougdevitre@gmail.com).
+If you identify a Fair Housing compliance concern in any module or output template, please [open an issue](https://github.com/dougdevitre/access-to-housing/issues/new?template=fair-housing-concern.yml) or contact [dougdevitre@gmail.com](mailto:dougdevitre@gmail.com).
 
 ---
 

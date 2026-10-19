@@ -1,7 +1,18 @@
 {
   "pillar": "justice",
   "repo": "dougdevitre/access-to-justice",
-  "syncedAt": "34d090f",
-  "docs": [],
+  "syncedAt": "5a4c140",
+  "docs": [
+    {
+      "slug": "disclaimer",
+      "title": "Disclaimer — Access to Justice",
+      "file": "disclaimer.md"
+    },
+    {
+      "slug": "license-docs",
+      "title": "Documentation license",
+      "file": "license-docs.md"
+    }
+  ],
   "tools": []
 }

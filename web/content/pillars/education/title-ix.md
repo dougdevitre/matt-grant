@@ -76,7 +76,7 @@ Title IX protections in Missouri K-12 schools cover:
 | **Sexual harassment** | Unwelcome conduct of a sexual nature that is severe, pervasive, or objectively offensive; quid pro quo harassment by employees |
 | **Sexual violence** | Sexual assault, dating violence, domestic violence, stalking |
 | **Pregnancy discrimination** | Exclusion or penalization of pregnant or parenting students |
-| **LGBTQ+ protections** | Under current federal guidance, discrimination based on sexual orientation or gender identity is covered as sex-based discrimination |
+| **LGBTQ+ protections** | Contested. The 2024 rule that expressly covered sexual orientation and gender identity was vacated in January 2025; the Department enforces the 2020 regulations, restored to the CFR on September 29, 2026. Check current OCR guidance and consult district counsel |
 | **Retaliation** | Adverse action against anyone who reports, participates in, or opposes sex discrimination |
 
 > **Missouri note:** Missouri does not have a state-level equivalent statute that mirrors Title IX for K-12. Districts rely on federal Title IX and local board policies (typically Board Policy AC -- Prohibition Against Discrimination, Harassment, and Retaliation).
@@ -366,7 +366,7 @@ If a student, parent, or employee believes the district has not adequately addre
 |---|---|
 | **Online** | OCR Complaint Form at [https://ocrcas.ed.gov](https://ocrcas.ed.gov) |
 | **Email** | OCR.KansasCity@ed.gov (Kansas City regional office covers Missouri) |
-| **Mail** | Office for Civil Rights, Kansas City Office, U.S. Department of Education, 8930 Ward Parkway, Suite 2037, Kansas City, MO 64114 |
+| **Mail** | Office for Civil Rights, Kansas City Office, U.S. Department of Education, One Petticoat Lane, 1010 Walnut Street, 3rd floor, Suite 320, Kansas City, MO 64106 |
 | **Phone** | (816) 268-0550 |
 
 ### What Happens After Filing

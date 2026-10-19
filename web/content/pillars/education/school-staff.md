@@ -82,7 +82,7 @@ Required for all paraprofessionals (RSMo 168.133)
 - Written parent/guardian authorization AND physician order required
 - Medications must be in original pharmacy-labeled containers
 - School must maintain a medication administration log
-- Self-carry/self-administer policies for rescue inhalers and EpiPens (RSMo 167.627) and insulin (RSMo 167.621)
+- Self-carry/self-administer policies for rescue inhalers and EpiPens (RSMo 167.627) and diabetes care (RSMo 167.800–167.824)
 
 ### Student-to-Nurse Ratios (Recommended)
 - NASN recommends 1:750 for the general student population

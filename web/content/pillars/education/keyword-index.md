@@ -49,7 +49,7 @@ graph TD
 | BIP (Behavior Intervention Plan) | [specialists.md](roles/specialists.md), [discipline-behavior.md](operations/discipline-behavior.md) | Behavioral support plan following FBA |
 | Board of Education | [governance-policy.md](compliance/governance-policy.md), [administrators.md](roles/administrators.md) | School board governance, elections, Sunshine Law |
 | Bonds | [funding-programs.md](compliance/funding-programs.md), [facilities-operations.md](operations/facilities-operations.md) | Capital improvement bond elections |
-| Braille | [vision-impairment.md](special-needs/vision-impairment.md) | RSMo 162.1120 presumption in favor of braille |
+| Braille | [vision-impairment.md](special-needs/vision-impairment.md) | IDEA §300.324(a)(2)(iii) presumption in favor of braille |
 | Bullying | [discipline-behavior.md](operations/discipline-behavior.md), [school-culture-climate.md](operations/school-culture-climate.md) | Anti-bullying policies, reporting, intervention |
 
 ## C

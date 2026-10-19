@@ -90,7 +90,7 @@ skills until they reach a self-sufficient career."*
 - **Who qualifies:** Most adult Missourians (broad eligibility)
 - **Covers:** Tuition at Missouri community colleges, technical schools, colleges, universities
 - **Target:** High-demand fields (Healthcare, IT, Construction, Manufacturing, etc.)
-- **Apply:** dhe.mo.gov/fasttrack
+- **Apply:** dhewd.mo.gov/initiatives/fast-track-workforce-incentive-grant
 
 ### WIOA Individual Training Account (ITA)
 - **Who:** WIOA-eligible adults or dislocated workers

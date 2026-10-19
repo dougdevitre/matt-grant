@@ -48,17 +48,17 @@ Every school board must adopt a written discipline policy that includes:
 - District must report acts of school violence to DESE
 - Policy must be distributed to parents and students annually
 
-### RSMo 160.263 — Corporal Punishment
+### Corporal Punishment
 Missouri does not prohibit corporal punishment at the state level. Individual districts may prohibit it by board policy. Trend: most Missouri districts have eliminated corporal punishment.
 
-### RSMo 167.161 — Short-Term Suspension
+### RSMo 167.171 — Short-Term Suspension
 Suspension of 10 school days or fewer:
 - Oral or written notice of charges
 - Opportunity for student to respond
 - Parent notification
 - Principal authority
 
-### RSMo 167.171 — Long-Term Suspension / Expulsion
+### RSMo 167.161 and 167.171 — Long-Term Suspension / Expulsion
 Suspension exceeding 10 days or expulsion:
 - Written notice of charges
 - Right to hearing before board or hearing officer
@@ -308,10 +308,9 @@ Sexting (sending/receiving sexually explicit images via text or social media) am
 
 ## 9. Hazing
 
-### Missouri Law (RSMo 160.775 + RSMo 578.360-578.365)
+### Missouri Law (RSMo 160.775 + RSMo 578.365)
 - School anti-bullying policies must address hazing
-- RSMo 578.360 defines hazing as forced activity that could endanger physical health, regardless of the student's willingness to participate
-- Hazing is a Class A misdemeanor (RSMo 578.365)
+- RSMo 578.365 makes hazing in college and university organizations a crime (a Class A misdemeanor, or a felony when it creates a substantial risk to life); consent is not a defense. Verify with an attorney whether and how it applies to a K-12 situation
 
 ### Common Hazing Contexts
 - Athletic teams (initiation rituals)

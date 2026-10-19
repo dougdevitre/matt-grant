@@ -298,7 +298,7 @@ Regular board self-assessment improves governance effectiveness. MSBA and NSBA p
 
 ## 10. Ethics & Conflict of Interest
 
-### RSMo 162.215 — Conflict of Interest
+### Conflict of Interest
 - Board members must disclose any personal financial interest in contracts or transactions before the board
 - Board member must abstain from voting on matters where they have a conflict
 - Prohibition on board members being employed by the district they govern
@@ -343,7 +343,7 @@ Regular board self-assessment improves governance effectiveness. MSBA and NSBA p
 ## 12. School Board Elections
 
 ### Missouri School Board Elections
-- Held on the **first Tuesday in April** (consolidated election dates per RSMo 115.123)
+- Held on the **first Tuesday after the first Monday in April** (consolidated election dates per RSMo 115.123)
 - Board members serve **3-year staggered terms** (2-3 seats per election cycle)
 - **Filing period:** typically December through January (specific dates per RSMo)
 - **Qualifications:** resident of district, registered voter, age 24+ (most districts), no felony conviction, not employed by the district

@@ -55,7 +55,7 @@ graph TD
 ## 2. Comprehensive School Improvement Plan (CSIP)
 
 ### Requirement
-Every Missouri public school is required to develop and maintain a CSIP (RSMo 160.526). The CSIP is the primary vehicle for school improvement under [MSIP 6](../roles/administrators.md). ([CSIP template](../../templates/admin/csip-template.md))
+Every Missouri public school is required to develop and maintain a CSIP. The CSIP is the primary vehicle for school improvement under [MSIP 6](../roles/administrators.md). ([CSIP template](../../templates/admin/csip-template.md))
 
 ### Required Components
 1. **School profile data:** demographics, enrollment, attendance, assessment results, discipline data, graduation rate (high school), teacher qualifications
@@ -92,7 +92,7 @@ Principals (or designees) serve as primary evaluators for teachers:
 - Ensure tenured teachers receive evaluations per district schedule (minimum every 3 years)
 
 ### Mentoring & Induction
-- Districts are required to provide a mentoring program for new teachers (RSMo 168.028)
+- Districts are required to provide a mentoring program for new teachers (verify the current requirement with DESE)
 - Principals assign mentors and monitor the mentoring relationship
 - Mentoring is a requirement for progression from IPC to CCPC
 
@@ -254,7 +254,7 @@ Every school building must have a **school safety plan** that includes:
 6. Board approval
 7. Contract issuance
 
-### Induction Program Requirements (RSMo 168.028)
+### Induction Program Requirements
 - All new teachers (first year in the district or first year teaching) must participate in a district mentoring/induction program
 - Mentors should be experienced, effective teachers in the same or similar content/grade level
 - Induction programs typically include: mentor pairing, regular meetings, classroom observations (of and by the new teacher), professional development, and gradual release of responsibilities

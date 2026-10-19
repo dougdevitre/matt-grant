@@ -175,7 +175,7 @@ Students recovering from concussion may also need academic accommodations:
 
 ## 6. Sudden Cardiac Arrest Awareness
 
-### RSMo 167.775 (Lindsay's Law — Missouri)
+### Recommended practices (no Missouri statute confirmed; verify current requirements with MSHSAA and DESE)
 - Schools must provide sudden cardiac arrest awareness information to students and parents before participation in athletics
 - Coaches must complete training in recognizing signs and symptoms of sudden cardiac arrest
 - Student who shows signs of cardiac distress must be removed from activity and may not return until cleared by a physician

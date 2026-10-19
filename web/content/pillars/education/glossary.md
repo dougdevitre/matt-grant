@@ -61,7 +61,7 @@ graph TD
 | **CLD** | *Culturalmente y Lingüísticamente Diverso* | Culturally and Linguistically Diverse |
 | **CLNA** | *Evaluación Integral de Necesidades Locales* | Comprehensive Local Needs Assessment — required under Perkins V for CTE programs |
 | **COPPA** | *Ley de Protección de la Privacidad en Línea de los Niños* | Children's Online Privacy Protection Act — protects data of children under 13 online |
-| **CSIP** | *Plan Integral de Mejora Escolar* | Comprehensive School Improvement Plan — required for every Missouri school (RSMo 160.526) |
+| **CSIP** | *Plan Integral de Mejora Escolar* | Comprehensive School Improvement Plan — required for every Missouri school under MSIP 6 |
 | **CSTAG** | *Guías Integrales de Evaluación de Amenazas Escolares* | Comprehensive School Threat Assessment Guidelines — based on Dr. Dewey Cornell's research at University of Virginia |
 | **CTE** | *Educación Técnica y Profesional* | Career and Technical Education |
 | **CTSO** | *Organización Estudiantil de Carreras Técnicas* | Career and Technical Student Organization (FFA, FBLA, DECA, HOSA, etc.) |

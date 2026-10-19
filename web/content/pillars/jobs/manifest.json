@@ -1,7 +1,7 @@
 {
   "pillar": "jobs",
   "repo": "dougdevitre/access-to-jobs",
-  "syncedAt": "f405a71",
+  "syncedAt": "75aa326",
   "docs": [
     {
       "slug": "action-plan-template",
@@ -77,6 +77,11 @@
       "slug": "deployment",
       "title": "Deploying Access to Jobs to a New State",
       "file": "deployment.md"
+    },
+    {
+      "slug": "disclaimer",
+      "title": "Disclaimer — Access to Jobs",
+      "file": "disclaimer.md"
     },
     {
       "slug": "security",

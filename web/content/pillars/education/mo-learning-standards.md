@@ -229,7 +229,7 @@ Missouri Science Standards (2016) are organized by:
 - American Government (graduation requirement; EOC exam)
 - World History (graduation requirement)
 - RSMo 170.011: instruction in the U.S. and Missouri Constitutions required
-- RSMo 170.013: Personal Finance instruction required for graduation
+- Personal Finance (0.5 unit) is a DESE graduation requirement
 
 ### Civic Education
 Missouri has emphasized civic education:
@@ -288,7 +288,7 @@ Adopted in 2019, covering K-12:
 ### CS Education in Missouri
 - CS is not a graduation requirement (but RSMo 170.018 encourages CS instruction)
 - CS qualification for teachers: see `roles/teachers.md` (CS certification)
-- Missouri CS Education Grant (RSMo 160.520): funding for schools to develop CS programs (deadline and availability varies by appropriation)
+- Missouri CS education grants: funding for schools to develop CS programs, when appropriated (verify current programs with DESE)
 - Computer Science counts toward math, science, or practical arts graduation credit (per DESE guidance)
 
 ---

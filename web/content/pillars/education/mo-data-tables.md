@@ -44,7 +44,7 @@ graph LR
 | Practical Arts | 1.0 | |
 | Physical Education | 1.0 | |
 | Health | 0.5 | |
-| Personal Finance | 0.5 | RSMo 170.013 |
+| Personal Finance | 0.5 | DESE graduation requirement |
 | Electives | 7.0 | |
 | **TOTAL** | **24.0** | Districts may require more |
 
@@ -115,32 +115,29 @@ Scores are incorporated into course grades per local board policy. Participation
 
 | Statute | Topic | Key Provision |
 |---------|-------|--------------|
-| RSMo 160.053 | Kindergarten age | Turn 5 by August 1 |
+| RSMo 160.053 | Kindergarten age | Turn 5 before August 1 |
 | RSMo 160.261 | Discipline policy | Board must adopt; mandatory reporting for weapons/drugs/assault |
 | RSMo 160.400-425 | Charter schools | Authorization, governance, funding |
-| RSMo 160.526 | School improvement | CSIP requirement for every school |
+| RSMo 160.526 | Standards and assessment | Academic standards and statewide assessments |
 | RSMo 160.545 | A+ Schools | Eligibility, benefits, designation |
 | RSMo 160.660 | Safety plans | Building-level crisis plans, drills |
 | RSMo 160.775 | Anti-bullying | Policy requirement |
 | RSMo 161.096 | Student data privacy | No commercial use of student data |
 | RSMo 162.081 | Lapse of organization | State authority over failing districts |
-| RSMo 162.215 | Conflict of interest | Board member disclosure |
 | RSMo 167.031 | Compulsory attendance | Ages 7-17; homeschool exemption |
 | RSMo 167.131 | Unaccredited transfers | Student transfer rights |
 | RSMo 167.161 | Short-term suspension | ≤10 days; due process |
 | RSMo 167.171 | Long-term suspension | >10 days; hearing required |
 | RSMo 167.181 | Immunizations | Required for enrollment; exemptions |
-| RSMo 167.621 | Diabetes in schools | Self-management + school support |
+| RSMo 167.800–167.824 | Diabetes in schools | Self-management + school support |
 | RSMo 167.627 | Self-carry medications | Inhalers, EpiPens |
 | RSMo 167.765 | Concussion protocol | Return-to-play requirements |
 | RSMo 167.950 | Dyslexia screening | Screening and intervention |
-| RSMo 168.028 | Mentoring program | Required for new teachers |
 | RSMo 168.104 | Probation/tenure | 5-year probationary period |
 | RSMo 168.114 | Tenure termination | For cause; due process |
 | RSMo 168.126 | Non-renewal notice | April 15 deadline |
 | RSMo 168.133 | Background checks | All employees + volunteers |
-| RSMo 168.345 | NBCT supplement | Up to $2,000/year |
-| RSMo 170.013 | Personal finance | Required for graduation |
+| RSMo 170.013 | Civics exam | Civics achievement examination |
 | RSMo 170.015 | Sex ed opt-out | Parent right to opt out |
 | RSMo 170.048 | Suicide prevention | Staff training required |
 | RSMo 170.310 | CPR instruction | Required before graduation |
