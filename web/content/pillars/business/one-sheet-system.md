@@ -339,7 +339,7 @@ Sent to event organizers, conference program committees, and speaker bureaus. Al
 **Speaker name/credential line (60 characters max):**
 ```
 [Name] | Founder, [Company] | [Domain Expert Title]
-Example: "Doug DeVitre | Founder, CoTrackPro | Family Law Technology Speaker"
+Example: "Doug Devitre | Founder, CoTrackPro | Family Law Technology Speaker"
 ```
 
 **Talk title (50 characters max):**

@@ -1,6 +1,7 @@
 # Compliance Calendar & Checklists — Missouri K-12 Education Reference
 
 ## Table of Contents
+
 1. Annual Compliance Calendar (Month-by-Month)
 2. DESE Reporting Deadlines
 3. Federal Compliance Requirements
@@ -56,6 +57,7 @@ gantt
 ## 1. Annual Compliance Calendar (Month-by-Month)
 
 ### July
+
 - New fiscal year begins (July 1)
 - Board adopts annual budget
 - New employee onboarding and background checks (RSMo 168.133)
@@ -65,6 +67,7 @@ gantt
 - Post annual FERPA notice
 
 ### August
+
 - Begin-of-year mandated training (mandated reporter, bloodborne pathogens, emergency procedures, FERPA)
 - Kindergarten readiness assessment planning
 - Home Language Surveys for new enrollees (ELL identification)
@@ -73,6 +76,7 @@ gantt
 - Open enrollment / transfer deadline verification
 
 ### September
+
 - McKinney-Vento liaison identifies homeless students
 - Free/reduced meal applications processed
 - 504 plan reviews for returning students
@@ -82,6 +86,7 @@ gantt
 - Distribute procedural safeguards to parents of students with IEPs
 
 ### October
+
 - **October count date** (MOSIS fall data submission — enrollment, demographics, programs)
 - Core Data fall submission
 - MSIP 6 data review (APR indicators)
@@ -91,6 +96,7 @@ gantt
 - First tornado drill
 
 ### November
+
 - Veterans Day — military-connected student recognition
 - Parent-teacher conferences (fall)
 - Review A+ student eligibility progress
@@ -99,6 +105,7 @@ gantt
 - Review CSIP progress (mid-year check)
 
 ### December
+
 - School board election filing period opens
 - Semester exam administration
 - First semester grade reporting
@@ -106,6 +113,7 @@ gantt
 - Grant deadlines (various — check DESE, federal, foundation calendars)
 
 ### January
+
 - WIDA ACCESS for ELLs testing window opens
 - MAP Alternate Assessment planning
 - MLK Jr. Day — equity and inclusion programming
@@ -114,6 +122,7 @@ gantt
 - School board filing deadline (typically late January)
 
 ### February
+
 - Missouri FAFSA priority deadline (typically February 1)
 - Black History Month programming
 - School counselor week
@@ -122,6 +131,7 @@ gantt
 - Spring assessment preparation (MAP, EOC)
 
 ### March
+
 - MAP testing window begins (typically March)
 - EOC exams administered upon course completion
 - Spring parent-teacher conferences
@@ -130,6 +140,7 @@ gantt
 - Title I program review
 
 ### April
+
 - **School board elections** (first Tuesday after the first Monday in April)
 - **April 15: Non-renewal notification deadline** for non-tenured teachers (RSMo 168.126)
 - MAP/EOC testing continues
@@ -139,6 +150,7 @@ gantt
 - Earth Day / environmental education programming
 
 ### May
+
 - MAP/EOC testing closes
 - Teacher Appreciation Week
 - End-of-year IEP reviews and transition meetings
@@ -148,6 +160,7 @@ gantt
 - End-of-year MOSIS data preparation
 
 ### June
+
 - **End-of-year MOSIS submission** (attendance, discipline, grades, assessment, exit codes)
 - Core Data end-of-year submission
 - Annual financial audit preparation
@@ -162,7 +175,7 @@ gantt
 ## 2. DESE Reporting Deadlines
 
 | Report | Approximate Deadline | Description |
-|--------|---------------------|-------------|
+| -------- | --------------------- | ------------- |
 | **MOSIS Fall** | October (count date) | Enrollment, demographics, program participation |
 | **MOSIS EOY** | June-July | Attendance, discipline, grades, credits, assessment, exits |
 | **Core Data Fall** | October-November | Staffing, financial, facilities, programs |
@@ -179,8 +192,9 @@ gantt
 ## 3. Federal Compliance Requirements
 
 ### Annual Federal Compliance Actions
+
 | Action | Basis | Responsible Party |
-|--------|-------|------------------|
+| -------- | ------- | ------------------ |
 | Post FERPA notice | 20 U.S.C. §1232g | District administration |
 | Post non-discrimination notice | Title VI, IX, 504, ADA | District administration |
 | Distribute teacher qualification info to parents | ESSA | Building administration |
@@ -197,6 +211,7 @@ gantt
 ## 4. Special Education Compliance Checklist
 
 ### Annual / Ongoing
+
 - [ ] IEP annual reviews conducted within 365 days of previous IEP
 - [ ] Triennial reevaluations conducted within 3 years (or waived by agreement)
 - [ ] Evaluations completed within 60 calendar days of receiving parent consent
@@ -296,7 +311,7 @@ gantt
 - [ ] Tenure determinations made after 5 consecutive years (RSMo 168.104)
 - [ ] MEES evaluations completed per schedule (non-tenured: annually; tenured: per district schedule)
 - [ ] Mentoring program provided for new teachers
-- [ ] Substitute certificates verified (60+ credit hours; background check)
+- [ ] Substitute certificates verified (valid DESE substitute certificate; background check)
 - [ ] Paraprofessional qualifications verified (ESSA requirements for Title I schools)
 - [ ] Workers' compensation coverage maintained
 - [ ] FMLA procedures in place (districts with 50+ employees)
@@ -323,6 +338,7 @@ gantt
 ## 11. OCR / Civil Rights Self-Assessment
 
 ### Areas to Self-Audit
+
 - [ ] Discipline data disaggregated by race, gender, disability — disparities identified and addressed
 - [ ] Access to advanced coursework (AP, IB, dual credit, gifted) equitable across subgroups
 - [ ] Special education identification rates reviewed for disproportionality
@@ -339,6 +355,7 @@ gantt
 ## 12. Audit Preparation Guide
 
 ### Preparing for Financial Audit
+
 1. Reconcile all bank accounts and funds
 2. Ensure all journal entries are documented with supporting evidence
 3. Verify payroll records and tax filings
@@ -351,6 +368,7 @@ gantt
 10. Designate audit liaison and prepare work space for auditors
 
 ### Preparing for DESE Compliance Review
+
 1. Compile all required policies (current board-adopted versions)
 2. Organize special education files (IEPs, evaluations, PWN, procedural safeguards distribution)
 3. Prepare Title I documentation (needs assessment, parent engagement, expenditures, evidence-base for interventions)

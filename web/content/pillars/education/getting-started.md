@@ -42,7 +42,7 @@ claude
 
 That's it. Claude reads the `CLAUDE.md` file automatically and becomes your Missouri K-12 navigator. Start asking questions:
 
-```
+```text
 > What are the graduation requirements in Missouri?
 > My child was suspended. What are our rights?
 > /retire (I'm 54 with 27 years of service)
@@ -121,7 +121,7 @@ No special syntax needed. Just ask like you'd ask a colleague:
 ### Use slash commands for common workflows
 
 | Command | What it does |
-|---------|-------------|
+| --------- | ------------- |
 | `/start` | Introduction -- tells you what the skill can do for your role |
 | `/rights` | Look up parent rights by topic |
 | `/letter evaluation-request` | Generate a letter requesting a special education evaluation |
@@ -162,7 +162,7 @@ The skill responds in Spanish when you write in Spanish. English legal terms are
 ## Troubleshooting
 
 | Problem | Solution |
-|---------|----------|
+| --------- | ---------- |
 | Claude doesn't seem to know about Missouri education | Make sure `SKILL.md` is loaded as custom instructions (Option B) or that you're in the repo directory (Option A) |
 | Answers are too generic | Try stating your role: "As a special ed coordinator, ..." |
 | A fact seems wrong | Check `LAST_VERIFIED.md` for when that data was last verified. File an issue on GitHub if it's outdated |

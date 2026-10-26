@@ -73,10 +73,10 @@ CCPC renewal requires ongoing professional development aligned to your teaching 
 After 5 consecutive years in the same district with satisfactory evaluations (RSMo 168.104). Once tenured, you can only be terminated for cause with due process.
 
 **3. When can I retire?**
-PSRS: Rule of 80 (age + service ≥ 80, minimum age 48), OR age 60 with 5+ years, OR age 55 with 5+ years (reduced). Benefit = years × 2.5% × final average salary (3 highest consecutive years). Contact PSRS (psrs-peers.org) for a personalized estimate.
+PSRS: age 60 with 5+ years, OR 30+ years at any age, OR Rule of 80 (age + service ≥ 80). Early (reduced): age 55 with 5+ years, OR 25+ years. Benefit = years × 2.5% × final average salary (3 highest consecutive years). Contact PSRS (psrs-peers.org) for a personalized estimate.
 
 **4. Do I pay Social Security?**
-Most PSRS members do NOT pay Social Security on school earnings. If you have Social Security from other work, WEP may reduce your Social Security benefit. GPO may reduce spousal Social Security benefits. This is a critical retirement planning consideration.
+Most PSRS members do NOT pay Social Security on school earnings. If you have Social Security from other work, the Windfall Elimination Provision (WEP) and Government Pension Offset (GPO) no longer reduce it: the Social Security Fairness Act, signed January 5, 2025, ended both for benefits payable for months after December 2023 ([SSA](https://www.ssa.gov/benefits/retirement/social-security-fairness-act.html)). Check your Social Security record and estimate with SSA (ssa.gov).
 
 **5. Can I be non-renewed without a reason?**
 If you're non-tenured (first 5 years), yes — the district can non-renew without stating a cause. But they must notify you by April 15 (RSMo 168.126). If notification is late, the non-renewal may be invalid. If you're tenured, you can only be terminated for cause with a hearing.
@@ -104,7 +104,7 @@ No statewide NBCT salary supplement could be confirmed. Incentives are set by di
 60 calendar days from receiving parent's signed consent to complete the evaluation. (IDEA §300.301)
 
 **2. When is an MDR required?** ([discipline details](operations/discipline-behavior.md))
-When a student with an [IEP](roles/specialists.md) or [504 plan](../templates/specialist/plans-and-forms.md) is removed from their placement for more than 10 cumulative school days in a school year. The MDR must occur before any further removal.
+When a student with an [IEP](roles/specialists.md) or [504 plan](../templates/specialist/plans-and-forms.md) has a disciplinary removal that changes placement: more than 10 consecutive school days, or a series of removals totaling more than 10 school days in a school year that forms a pattern (34 CFR 300.536). The MDR must occur before any further removal.
 
 **3. Can I use RTI data to delay a parent's request for evaluation?**
 No. A parent can request a special education evaluation at any time, regardless of MTSS/RTI status. The district must respond to the request — they cannot use RTI to delay or deny evaluation. (IDEA §300.311)
@@ -181,7 +181,7 @@ State-appointed advisory team or special administrative board, mandatory improve
 DESE guidance strongly recommends it. While not mandated by state law yet, DESE's AI Guidance for LEAs (V1.0, 2025-26) provides a framework. Multiple states are enacting mandatory AI policies. → Use `templates/admin/ai-policy-template.md`.
 
 **5. What's the bond election threshold?**
-4/7 voter approval (57.14%) required. Bonded indebtedness limit: generally 15% of assessed valuation (verify with bond counsel).
+4/7 voter approval (57.14%) at the general municipal election day, primary or general elections; 2/3 at all other elections (Mo. Const. art. VI §26(b)). Bonded indebtedness limit: generally 15% of assessed valuation (verify with bond counsel).
 
 ---
 

@@ -93,6 +93,11 @@ Load this file when the user types: `/start` `/focus` `/sprint` `/recover` `/dec
 
 **Purpose:** Re-entry after being stuck, overwhelmed, or avoiding work.
 
+**First, check for distress.** If the founder mentions hopelessness, self-harm, suicide, or
+that they "can't go on", stop here. Do not give a task. Say:
+*"I'm going to pause the business work for a moment, because what you just said matters more. If you're in danger now, call 911. You can call or text 988, the Suicide & Crisis Lifeline, any time, day or night."*
+Listen, and resume only if they want to. Otherwise, continue below.
+
 **Execute:**
 1. Do NOT ask what went wrong
 2. Do NOT recap missed work

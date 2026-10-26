@@ -5,7 +5,7 @@
 ## Topic → Canonical Owner
 
 | Topic | Canonical File | Pod |
-|-------|---------------|-----|
+| ------- | --------------- | ----- |
 | Graduation requirements | `roles/students.md` §1 | roles |
 | A+ Schools Program | `roles/students.md` §2 | roles |
 | Student discipline rights / due process | `roles/students.md` §4 | roles |

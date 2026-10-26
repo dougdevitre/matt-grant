@@ -131,7 +131,7 @@ APHA policy statements represent the evidence consensus of the largest public he
 **APHA Position**: Access to affordable, nutritious food is a human right. Food insecurity is a health issue.
 
 **Key Evidence**:
-- 44 million Americans experience food insecurity
+- About 48 million Americans experience food insecurity (USDA, 2024)
 - Food deserts are concentrated in low-income and minority neighborhoods
 - SNAP participation reduces food insecurity by 30%
 - WIC improves birth outcomes and child nutrition

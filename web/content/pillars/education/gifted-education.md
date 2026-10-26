@@ -29,7 +29,8 @@ flowchart TD
 ```
 
 ## Table of Contents
-- [1. Missouri Gifted Definition (RSMo 162.675-162.695)](#1-missouri-gifted-definition-rsmo-162675-162695)
+
+- [1. Missouri Gifted Definition (RSMo 162.670–162.995)](#1-missouri-gifted-definition-rsmo-162670162995)
 - [2. Identification Process](#2-identification-process)
   - [Referral Sources](#referral-sources)
   - [Assessment Tools](#assessment-tools)
@@ -46,16 +47,16 @@ flowchart TD
 
 ---
 
-## 1. Missouri Gifted Definition (RSMo 162.675-162.695)
+## 1. Missouri Gifted Definition (RSMo 162.670–162.995)
 
 Missouri statute defines **gifted children** as students who exhibit high performance capability in intellectual, creative, or artistic areas, possess an unusual leadership capacity, or excel in specific academic fields, and who require services or activities not ordinarily provided by the school in order to fully develop those capabilities.
 
-Key statutory provisions under RSMo 162.675-162.695:
+Key statutory provisions under RSMo 162.670–162.995 (see 162.675 definitions):
 - **162.675** -- Definitions; "gifted children" means those identified as possessing demonstrated or potential ability that gives evidence of high performance in areas such as intellectual, creative, specific academic, or leadership ability
 - **162.680** -- Each district **may** establish a program for gifted education; DESE provides guidelines and technical assistance
 - **162.685** -- State funding provisions for approved gifted programs
 - **162.690** -- DESE shall develop and distribute guidelines covering identification procedures, program standards, and teacher qualifications
-- **162.695** -- Annual reporting requirements; districts with approved programs must submit data to DESE on students served, services provided, and program outcomes
+- **162.695** -- *(verify with an attorney: no RSMo 162.695 appears on revisor.mo.gov)* Annual reporting requirements; districts with approved programs must submit data to DESE on students served, services provided, and program outcomes
 
 **Important distinction:** Missouri gifted education is **permissive, not mandatory**. Districts are encouraged but not required to offer gifted programs. However, districts that do operate programs must follow DESE guidelines and meet reporting requirements.
 
@@ -79,7 +80,7 @@ Any of the following may initiate a referral for gifted evaluation:
 ### Assessment Tools
 
 | Domain | Common Instruments | What It Measures |
-|--------|--------------------|------------------|
+| -------- | -------------------- | ------------------ |
 | **Cognitive Ability** | CogAT, WISC-V, NNAT-3, KBIT-2 | General intellectual ability, reasoning |
 | **Achievement** | MAP scores, Iowa Assessments, STAR, district benchmarks | Academic performance relative to grade level |
 | **Creativity** | Torrance Tests of Creative Thinking (TTCT), Scales for Rating the Behavioral Characteristics of Superior Students (SRBCSS) | Divergent thinking, fluency, originality, elaboration |
@@ -106,7 +107,7 @@ Districts must document the identification process and maintain records for DESE
 Gifted programs nationally and in Missouri disproportionately underidentify students from certain groups. Districts should actively address barriers.
 
 | Population | Barriers to Identification | Recommended Strategies |
-|------------|---------------------------|----------------------|
+| ------------ | --------------------------- | ---------------------- |
 | **English Language Learners (ELL)** | Language-loaded tests depress scores; cultural differences in expressing giftedness | Use nonverbal measures (NNAT-3, Naglieri); assess in native language when possible; train teachers to recognize giftedness masked by language acquisition |
 | **Students with Disabilities (Twice-Exceptional)** | Disability masks giftedness; giftedness compensates for disability, creating "average" performance | Evaluate cognitive potential separately from achievement; look for uneven profiles; see [Section 9](#9-twice-exceptional-2e-students) |
 | **Low-Income Students** | Limited access to enrichment; fewer parent nominations; test prep gaps | Universal screening; use local norms alongside national norms; talent development programs as a bridge; fee waivers for gifted activities |
@@ -121,7 +122,7 @@ Gifted programs nationally and in Missouri disproportionately underidentify stud
 Missouri districts may use one or more of the following service delivery models:
 
 | Model | Description | Best For | Considerations |
-|-------|-------------|----------|----------------|
+| ------- | ------------- | ---------- | ---------------- |
 | **Pull-Out** | Students leave the general classroom for gifted instruction with a gifted specialist, typically 1-5 hours per week | Elementary; districts with a dedicated gifted teacher | Coordination with classroom teacher needed; students miss regular instruction |
 | **Cluster Grouping** | 5-8 identified gifted students placed in the same general education classroom with a teacher trained in gifted strategies | All grade levels; cost-effective | Requires trained classroom teacher; avoid clustering all high achievers in one room |
 | **Subject Acceleration** | Student advances to a higher grade level for one or more subjects (e.g., 4th grader takes 6th-grade math) | Students with domain-specific strengths | Requires scheduling flexibility; plan for social needs |
@@ -141,7 +142,7 @@ Acceleration is one of the most research-supported interventions for gifted stud
 ### Types of Acceleration
 
 | Type | Description | Key Considerations |
-|------|-------------|--------------------|
+| ------ | ------------- | -------------------- |
 | **Early Kindergarten Entrance** | Admitting a child before the age cutoff based on demonstrated readiness | Cognitive, academic, social-emotional, and physical readiness assessments |
 | **Grade Skipping** | Advancing a student one or more full grade levels | Use Iowa Acceleration Scale; consider all developmental domains |
 | **Subject Acceleration** | Advancing in one content area while remaining with age peers otherwise | Most common form; scheduling logistics; transcript documentation |
@@ -207,7 +208,7 @@ Missouri provides state funding for approved gifted education programs through t
 Missouri DESE sets expectations for educators serving gifted students:
 
 | Role | Qualifications |
-|------|---------------|
+| ------ | --------------- |
 | **Gifted Education Coordinator** | Valid Missouri teaching certificate; completion of DESE-approved gifted education coursework or graduate certificate/degree in gifted education; experience in gifted programming |
 | **Gifted Pull-Out/Resource Teacher** | Valid Missouri teaching certificate; gifted education endorsement or completion of approved coursework (minimum 12 graduate hours in gifted education recommended) |
 | **Cluster Classroom Teacher** | Valid Missouri teaching certificate; professional development in gifted strategies (differentiation, compacting, depth and complexity); ongoing PD recommended |
@@ -246,7 +247,7 @@ When a student qualifies for both special education services (IEP or 504 plan) a
 ### Accommodation Strategies for 2e Learners
 
 | Strategy | Purpose |
-|----------|---------|
+| ---------- | --------- |
 | Assistive technology (text-to-speech, speech-to-text) | Bypass disability barriers while accessing advanced content |
 | Extended time on assessments | Reduce disability-related time pressure without limiting intellectual challenge |
 | Alternative output formats | Allow students to demonstrate knowledge through preferred modality (oral, visual, digital) |
@@ -261,21 +262,25 @@ When a student qualifies for both special education services (IEP or 504 plan) a
 Gifted students face distinct social-emotional challenges that educators and parents should understand:
 
 ### Perfectionism
+
 - **Healthy vs. unhealthy perfectionism:** healthy perfectionism drives high standards; unhealthy perfectionism creates paralysis, fear of failure, and avoidance of challenge
 - **Signs:** refusal to turn in "imperfect" work, meltdowns over mistakes, procrastination, reluctance to try new things
 - **Strategies:** normalize mistakes as learning; praise effort and process over product; model imperfection; teach growth mindset explicitly
 
 ### Asynchronous Development
+
 - Gifted students often develop unevenly -- a child may read at a 10th-grade level but have the emotional regulation of a typical 7-year-old
 - This mismatch creates frustration for the student, confusion for teachers, and unrealistic expectations from adults
 - **Strategies:** set expectations based on the developmental area (academic expectations can be advanced; behavioral expectations should match emotional age); provide age-appropriate social opportunities alongside intellectual peers
 
 ### Peer Relationships
+
 - Gifted students may feel "different" from age peers and struggle to find intellectual equals
 - Risk of social isolation, bullying (sometimes for being "too smart"), or hiding abilities to fit in
 - **Strategies:** connect with intellectual peers through gifted programming, competitions, or interest-based groups; teach social skills explicitly when needed; validate the experience of feeling different
 
 ### Overexcitabilities (Dabrowski)
+
 Gifted individuals may exhibit heightened intensities in five areas:
 - **Psychomotor** -- high energy, rapid speech, need for movement
 - **Sensual** -- heightened sensitivity to sensory input (sounds, textures, tastes)
@@ -286,6 +291,7 @@ Gifted individuals may exhibit heightened intensities in five areas:
 These are not disorders but characteristics of gifted development. Educators should understand overexcitabilities to avoid misinterpreting them as behavioral problems or symptoms of ADHD.
 
 ### Existential Concerns
+
 - Gifted students may grapple with existential questions (meaning of life, death, justice, inequality) earlier than age peers
 - This can cause anxiety, depression, or a sense of isolation
 - **Strategies:** validate their questions; provide access to philosophical and ethical discussions; connect with a school counselor who understands gifted development
@@ -295,7 +301,7 @@ These are not disorders but characteristics of gifted development. Educators sho
 ## 11. Related Resources
 
 | Resource | Path | Relevance |
-|----------|------|-----------|
+| ---------- | ------ | ----------- |
 | Student rights and graduation requirements | [roles/students.md](../roles/students.md) | Dual credit, graduation pathways, academic planning |
 | Specialist caseload and evaluation guidance | [roles/specialists.md](../roles/specialists.md) | Evaluation procedures, service delivery models |
 | Equity and access compliance | [compliance/equity-access.md](../compliance/equity-access.md) | FERPA, nondiscrimination, equitable access |

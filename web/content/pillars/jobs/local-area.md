@@ -2,6 +2,12 @@
 ## Configure for any local workforce area
 ### Source: Missouri WIOA State Plan PY 2024-2027
 
+> **Missouri only.** Everything in this file applies to Missouri. If the user lives or is
+> looking for work in another state, do not present these programs, agencies, phone numbers
+> or figures as their options. Use the national path in SKILL.md instead: CareerOneStop
+> (careeronestop.org) and the American Job Center Finder, or the U.S. Department of Labor
+> help line, 1-877-US2-JOBS (1-877-872-5627).
+
 > REDEPLOYMENT NOTE: This file is the only thing that changes when deploying
 > this skill to a different Missouri county. Update:
 >   1. LWDA name and WIOA region assignment
@@ -172,7 +178,7 @@ Always verify current program availability at jobs.mo.gov/community/missouri-eli
 3. Meeting includes: DES (UI information), MJC representative (programs), union rep (if applicable)
 4. Handouts: Rapid Response brochure, DES UI fact sheet, MERIC Regional Real Time Labor Market Summary
 5. Trade Act Navigator notified if trade-related layoff suspected
-6. Workers informed of TAA petition filing (without promising certification)
+6. Workers told that TAA has taken no new petitions since July 1, 2022 (only workers certified earlier may still qualify)
 7. Referrals to Job Center initiated immediately
 
 **For layoffs of 24 or fewer:**
@@ -209,8 +215,8 @@ Always verify current program availability at jobs.mo.gov/community/missouri-eli
 
 **How to access:**
 - Identify veteran status at intake (all veterans get priority of service)
-- Connect veteran to DVOP/CODL staff at St. Charles Job Center
-- DVOP/CODL coordinates Show-Me Heroes OJT with employer
+- Connect veteran to DVOP/LVER staff at St. Charles Job Center
+- DVOP/LVER coordinates Show-Me Heroes OJT with employer
 
 **Staff note:** Always screen for veteran status at intake — it unlocks Show-Me Heroes,
 DVOP intensive services, and priority queue placement.

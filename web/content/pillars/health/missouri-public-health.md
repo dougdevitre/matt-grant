@@ -2,6 +2,7 @@
 
 > State-specific reference for Missouri public health professionals
 > Updated regularly — verify current data before citing
+> Last verified: 2026-10-20 (agency count, statutes and program limits; indicator estimates are approximate)
 
 ---
 
@@ -16,7 +17,7 @@
   - Office of Epidemiology
 
 ### Local Health Department Structure
-- Missouri has **114 local public health agencies** (LPHAs)
+- Missouri has **115 local public health agencies** (LPHAs)
   - City health departments, county health departments, and combined city-county agencies
   - Home rule charter cities may operate independent health departments
   - Some counties share services through multi-county health departments
@@ -176,9 +177,9 @@
 |---------|-----------|
 | RSMo 192.006-192.300 | DHSS powers and duties |
 | RSMo 192.020 | Authority to investigate disease and health threats |
-| RSMo 192.300 | Reportable diseases and conditions |
-| RSMo 67.300-67.320 | Local board of health authority |
-| RSMo 191.630-191.656 | HIV/STI testing, reporting, and confidentiality |
+| RSMo 192.300 | County commission and county health center board health orders, ordinances and rules |
+| RSMo 67.300-67.320 | Local board of health authority (citation not confirmed; verify with an attorney) |
+| RSMo 191.656 | Confidentiality of HIV test results and HIV status |
 | RSMo 210.110-210.183 | Child abuse and neglect reporting |
 | RSMo 630 | Mental health records protection |
 | RSMo 196 | Food safety and inspection |

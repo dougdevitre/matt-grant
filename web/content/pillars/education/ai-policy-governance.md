@@ -44,6 +44,7 @@ graph TD
 ```
 
 ## Table of Contents
+
 1. Missouri DESE AI Guidance
 2. Federal AI in Education Landscape
 3. AI Policy Development for Districts
@@ -59,9 +60,11 @@ graph TD
 ## 1. Missouri DESE AI Guidance
 
 ### Overview
+
 In 2025, DESE released its first formal guidance document for AI in education: *Artificial Intelligence Guidance for Local Education Agencies* (Version 1.0, 2025-26 school year). The document was developed by Missouri's Computer Science Advisory Council.
 
 ### DESE's Core Principles
+
 - AI should **enhance, not replace** teacher work and human relationships
 - Teachers must remain the **primary decision-makers** in the classroom
 - AI tools must always be used **under human supervision**
@@ -69,8 +72,9 @@ In 2025, DESE released its first formal guidance document for AI in education: *
 - AI use must align with **Missouri Learning Standards** and current assessment frameworks
 
 ### DESE's Key Recommendations
+
 | Area | Guidance |
-|------|---------|
+| ------ | --------- |
 | **Human oversight** | Always have a human review AI-generated content for bias and accuracy |
 | **Teacher role** | Teachers must continue to be the main decision-makers |
 | **Cybersecurity** | Maintain strong cybersecurity practices when using AI tools |
@@ -80,6 +84,7 @@ In 2025, DESE released its first formal guidance document for AI in education: *
 | **Local control** | Under Missouri law, each district develops its own AI policies and procedures |
 
 ### DESE's Identified Benefits of AI
+
 - Creating practice problems and exercises
 - Brainstorming and refining student writing
 - Serving as a personalized tutor
@@ -88,6 +93,7 @@ In 2025, DESE released its first formal guidance document for AI in education: *
 - Supporting differentiated learning
 
 ### DESE's Identified Challenges
+
 - Risk of copyright infringement and plagiarism
 - Inaccuracy and hallucination in AI outputs
 - Over-reliance and dependency
@@ -96,6 +102,7 @@ In 2025, DESE released its first formal guidance document for AI in education: *
 - Students unable to learn content for themselves
 
 ### Additional Missouri Policy Resources
+
 - **MSBA (Missouri School Boards Association):** AI toolkit incorporating safety, equity, and human supervision
 - **Missouri Consultants for Education (MCE):** sample AI policies for districts
 - **PRiME Center (SLU):** policy brief on AI in Missouri schools with equity recommendations
@@ -106,6 +113,7 @@ In 2025, DESE released its first formal guidance document for AI in education: *
 ## 2. Federal AI in Education Landscape
 
 ### U.S. Department of Education
+
 The U.S. Department of Education has taken several actions on AI in education:
 
 **Dear Colleague Letter (2025):** guidance on leveraging federal grant funds for responsible AI integration, addressing:
@@ -124,13 +132,16 @@ The U.S. Department of Education has taken several actions on AI in education:
 - Using AI to enhance classroom efficiency and reduce administrative burden
 
 ### Executive Orders
+
 - Executive Order on Removing Barriers to American Leadership in Artificial Intelligence
 - AI literacy and workforce readiness as national priorities
 
 ### U.S. Department of Labor AI Literacy Framework (2026)
+
 DOL published an AI Literacy Framework defining foundational knowledge areas for workers, job seekers, students, and employers — relevant to career readiness and workforce development programs.
 
 ### National Landscape (2026)
+
 - 31+ state departments of education have released AI guidance
 - States like Ohio (HB 96) and Tennessee (SB 1711) have enacted legislation requiring districts to adopt AI policies
 - 52+ bills across 25 states address AI in classroom instruction (FutureEd 2026 tracker)
@@ -138,13 +149,14 @@ DOL published an AI Literacy Framework defining foundational knowledge areas for
 
 ---
 
-
 ## 8. AI Policy Development for Districts
 
 ### DESE's Approach: Local Control
+
 Missouri law allows each district to develop its own AI policies. DESE provides guidance, not mandates. Districts should develop comprehensive AI policies rather than ad-hoc reactions.
 
 ### Seven-Step Policy Development Process (Referenced in DESE Guidance)
+
 1. **Convene an AI Task Force** — teachers, administrators, technology staff, counselors, parents, students (secondary), board members, community partners
 2. **Assess current state** — what AI tools are already being used? by whom? for what? with what oversight?
 3. **Review guidance** — DESE guidance, MSBA model policies, MCE samples, peer district policies, national frameworks (TeachAI, CoSN, ISTE)
@@ -154,8 +166,9 @@ Missouri law allows each district to develop its own AI policies. DESE provides 
 7. **Implement, train, and revise** — professional development, student education, annual policy review
 
 ### AI Policy Framework (Key Areas to Address)
+
 | Policy Area | Key Questions |
-|-------------|-------------|
+| ------------- | ------------- |
 | **Scope** | Which AI tools are covered? (generative AI, adaptive platforms, automated systems) Who is covered? (students, teachers, staff, administrators) |
 | **Acceptable use** | What AI uses are allowed, encouraged, or prohibited? By role? By grade level? |
 | **Academic integrity** | How must students disclose AI use? What constitutes misuse? What are consequences? How are assignments designed to maintain integrity? |
@@ -169,6 +182,7 @@ Missouri law allows each district to develop its own AI policies. DESE provides 
 | **Review cycle** | How often will the policy be reviewed and updated? (annually recommended, given pace of change) |
 
 ### Missouri District Examples
+
 Several Missouri districts are developing AI policies:
 - **Blue Springs:** early adopter of AI in elementary instruction (individualized instruction highlighted by DESE Deputy Commissioner)
 - **Carl Junction:** formed a learning group with student, teacher, and parent input to develop guidelines
@@ -179,17 +193,20 @@ Several Missouri districts are developing AI policies:
 ## 9. AI and Academic Integrity
 
 ### The Challenge
+
 Generative AI can produce essays, solve math problems, write code, and create presentations — making traditional assessments vulnerable to academic dishonesty.
 
 ### Policy Approaches (Spectrum)
+
 | Approach | Description | When Appropriate |
-|----------|-----------|----------------|
+| ---------- | ----------- | ---------------- |
 | **Ban** | No AI use allowed on any assignment | Rarely recommended as standalone policy (students use AI outside school regardless) |
 | **Restricted** | AI use prohibited on specific assignments; allowed on others with disclosure | Most common current approach |
 | **Integrated** | AI use expected and taught as a skill; assignments designed for AI-enhanced work | Emerging best practice for many tasks |
 | **Transparent** | Students must document their AI use (what tool, what prompts, what was AI-generated vs. human-generated) | Recommended across all approaches |
 
 ### Assignment Design for the AI Era
+
 Rather than trying to "catch" AI use, design assignments that are AI-resistant or AI-enhanced:
 
 **AI-Resistant Assignments:**
@@ -210,11 +227,13 @@ Rather than trying to "catch" AI use, design assignments that are AI-resistant o
 - "Create an AI-generated product, then write a reflective critique of its quality"
 
 ### Detection
+
 - AI detection tools (Turnitin, GPTZero, Originality.ai) are **unreliable** — high false positive rates, especially for ELL students and students with certain writing styles
 - **Do not rely on AI detection tools** as sole evidence of academic dishonesty
 - Better approach: know your students' writing, require process evidence (drafts, outlines, conferences), use authentic assessments
 
 ### Updating Academic Integrity Policies
+
 Districts should update honor codes and academic integrity policies to:
 - Define what constitutes acceptable vs. unacceptable AI use
 - Require disclosure of AI assistance (what tool, what prompts, what portions)
@@ -227,25 +246,29 @@ Districts should update honor codes and academic integrity policies to:
 ## 10. AI and Student Data Privacy
 
 ### FERPA and AI
+
 | Rule | AI Application |
-|------|---------------|
+| ------ | --------------- |
 | **Student PII** | Never enter student personally identifiable information (names, IDs, grades, disability status, behavioral records) into public AI tools (ChatGPT, Gemini, etc.) |
 | **Vendor agreements** | AI tools that access student data must be covered by FERPA-compliant data privacy agreements |
 | **School official exception** | AI vendors may qualify as "school officials" if proper agreements are in place (direct control, legitimate educational interest, no re-disclosure) |
 | **Directory information** | AI tools processing student directory information must comply with district directory information policies and opt-out rights |
 
 ### COPPA and AI
+
 - AI tools used by students under 13 must comply with COPPA
 - Schools may consent on behalf of parents for educational purposes (but must understand what data is collected)
 - AI tools must not collect more data than necessary for the educational purpose
 - Parents must be informed about AI tools used in classrooms
 
 ### RSMo 161.096 (Missouri Student Data Privacy)
+
 - Prohibits use of student data for commercial purposes
 - Requires transparency about data collection
 - Applies to all technology vendors, including AI providers
 
 ### Practical Data Privacy Guidelines for AI
+
 1. **Never enter student PII into public AI tools** — no names, IDs, grades, IEP information, behavioral records, or health information
 2. **Use de-identified data** when using AI for analysis — remove all identifiers before processing
 3. **Vet all AI tools** through the district's technology procurement process before classroom use
@@ -260,8 +283,9 @@ Districts should update honor codes and academic integrity policies to:
 ## 11. AI and Equity
 
 ### Equity Concerns
+
 | Concern | Description |
-|---------|-----------|
+| --------- | ----------- |
 | **Access gap** | Students with home internet, devices, and paid AI tool access have advantages over students without |
 | **Algorithmic bias** | AI models trained on biased data may produce biased outputs (racial, gender, socioeconomic, linguistic) |
 | **Language bias** | AI tools perform better in English than in other languages; may disadvantage ELL students |
@@ -271,6 +295,7 @@ Districts should update honor codes and academic integrity policies to:
 | **Digital literacy gap** | Students from higher-income families may have more AI literacy from home exposure |
 
 ### Equity-Centered AI Practices
+
 - Provide equitable access to AI tools in school (don't assume home access)
 - Select AI tools evaluated for accessibility (WCAG 2.1 compliance)
 - Monitor AI-generated content for bias before using with students
@@ -282,10 +307,10 @@ Districts should update honor codes and academic integrity policies to:
 
 ---
 
-
 ## 15. Responsible AI Use Framework
 
 ### DESE-Aligned Responsible Use Principles
+
 1. **Human in the loop** — every AI output reviewed by a qualified human before use
 2. **Transparency** — disclose when AI is used; be honest about its role
 3. **Accuracy** — verify all AI-generated content against reliable sources
@@ -298,6 +323,7 @@ Districts should update honor codes and academic integrity policies to:
 10. **Continuous learning** — policies, practices, and skills evolve as technology evolves
 
 ### AI Acceptable Use Policy (Template Elements)
+
 An AI AUP should supplement (or be integrated into) the existing technology AUP:
 - Definition of AI tools covered
 - Approved tools list (maintained by district technology department)
@@ -310,12 +336,12 @@ An AI AUP should supplement (or be integrated into) the existing technology AUP:
 
 ---
 
-
 ## 20. AI Governance & Oversight
 
 ### District-Level Governance
+
 | Structure | Role |
-|-----------|------|
+| ----------- | ------ |
 | **AI Task Force / Committee** | Develop and review AI policy; recommend tools; address emerging issues |
 | **Technology Director** | Vet AI tools for privacy and security; manage approved tools list; ensure infrastructure readiness |
 | **Curriculum Director** | Align AI integration to Missouri Learning Standards; oversee AI literacy curriculum |
@@ -323,14 +349,16 @@ An AI AUP should supplement (or be integrated into) the existing technology AUP:
 | **School Board** | Adopt AI policy; provide oversight; allocate resources |
 
 ### State-Level Governance
+
 - **DESE:** issues guidance, provides PD, integrates AI into CS standards framework
 - **DESE Computer Science Advisory Council:** developed the AI guidance; advises on AI in education
 - **MSBA:** provides model AI policies for districts
 - **Missouri General Assembly:** may enact legislation on AI in education (monitor annual session)
 
 ### National Governance Resources
+
 | Organization | Resource |
-|-------------|---------|
+| ------------- | --------- |
 | **TeachAI (teachai.org)** | AI Guidance for Schools Toolkit — comprehensive framework |
 | **CoSN (Consortium for School Networking)** | AI guidance for school technology leaders |
 | **ISTE** | AI standards and competencies for students and educators |
@@ -338,6 +366,7 @@ An AI AUP should supplement (or be integrated into) the existing technology AUP:
 | **AI for Education (aiforeducation.io)** | State-by-state guidance tracker, prompts, frameworks |
 
 ### Annual Policy Review
+
 Given the rapid pace of AI development, AI policies should be reviewed and updated **at least annually**:
 - What new AI tools have emerged?
 - What new risks have been identified?
@@ -351,11 +380,13 @@ Given the rapid pace of AI development, AI policies should be reviewed and updat
 ## 9. SB 68 Device Ban Interaction
 
 ### Missouri Senate Bill 68 (Signed July 9, 2025)
+
 Governor Kehoe signed SB 68 enacting a statewide ban on electronic communication devices in Missouri public and charter schools beginning with the 2025-26 academic year.
 
 ### Implications for AI in Education
+
 | Area | Impact |
-|------|--------|
+| ------ | -------- |
 | **Student device access** | Personal phones/devices restricted during school day; AI access shifts entirely to school-provided devices |
 | **1:1 programs** | School-issued devices (Chromebooks, iPads) remain the primary student access point for approved AI tools |
 | **BYOD programs** | BYOD models may need restructuring depending on how districts implement SB 68 |
@@ -365,6 +396,7 @@ Governor Kehoe signed SB 68 enacting a statewide ban on electronic communication
 | **Enforcement** | Districts must establish confiscation/storage procedures; AI policy enforcement simplified when access is device-controlled |
 
 ### Policy Coordination
+
 Districts should ensure their AI Acceptable Use Policy and SB 68 implementation procedures are aligned and do not create contradictions. The device ban may simplify AI governance by channeling all student AI access through managed, filtered school devices.
 
 ---

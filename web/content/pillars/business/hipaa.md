@@ -143,15 +143,16 @@ PHI is any **individually identifiable health information** that relates to:
 
 If PHI is breached (unauthorized access, disclosure, or use):
 
-- **< 500 individuals affected:** Notify affected individuals within 60 days; notify HHS annually
-- **> 500 individuals affected:** Notify affected individuals AND HHS AND local media within 60 days
+- **Fewer than 500 individuals affected:** Notify affected individuals within 60 days; notify HHS within 60 days after the end of the calendar year
+- **500 or more individuals affected:** Notify affected individuals AND HHS within 60 days; also notify local media if more than 500 residents of one state or jurisdiction are affected
 - **HHS notification:** hhs.gov/hipaa/for-professionals/breach-notification
 
 **Penalties:**
-- Tier 1 (unknowing violation): $100–$50,000 per violation; max $1.9M/year
-- Tier 2 (reasonable cause): $1,000–$50,000 per violation
-- Tier 3 (willful neglect, corrected): $10,000–$50,000 per violation
-- Tier 4 (willful neglect, uncorrected): $50,000 per violation; max $1.9M/year
+(Amounts in effect from January 28, 2026; adjusted for inflation each year. OCR's 2019 enforcement-discretion notice sets lower annual caps for Tiers 1–3.)
+- Tier 1 (unknowing violation): $145–$73,011 per violation; max $2,190,294/year
+- Tier 2 (reasonable cause): $1,461–$73,011 per violation
+- Tier 3 (willful neglect, corrected): $14,602–$73,011 per violation
+- Tier 4 (willful neglect, uncorrected): $73,011+ per violation; max $2,190,294/year
 - Criminal: Up to 10 years in prison for intentional misuse
 
 ---

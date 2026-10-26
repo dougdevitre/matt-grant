@@ -143,7 +143,7 @@ Ask: What exactly is my child accused of? Who are the witnesses? What evidence d
 **Step 3: Know the consequence level and your rights.**
 
 | Consequence | Your Rights |
-|------------|------------|
+| ------------ | ------------ |
 | Detention, in-school suspension, minor consequence | Limited formal rights; school should follow board policy |
 | Out-of-school suspension 1-10 days | Notice of charges + opportunity for child to respond + parent notification |
 | Out-of-school suspension >10 days | Written charges + formal hearing + right to representation + right to present evidence + written decision + appeal |
@@ -170,14 +170,16 @@ If your child is removed from school, the district must continue educational ser
 
 ### The Full Path: Explore → Prepare → Apply → Fund → Decide → Transition
 
-**Grades 9-10: Explore and Build**
+#### Grades 9-10: Explore and Build
+
 - Take challenging courses (honors, pre-AP, dual credit when available)
 - Complete career assessments on Missouri Connections (missouriconnections.org)
 - Begin your Individual Learning Plan (ILP) with your school counselor
 - Get involved in activities (clubs, sports, community service, work)
 - Start tracking A+ eligibility if your school is an A+ school (2.5 GPA, 95% attendance, tutoring hours, citizenship)
 
-**Grade 11: Prepare**
+#### Grade 11: Prepare
+
 - Take the ACT (free statewide administration for all juniors)
 - Consider retaking the ACT or taking the SAT for better scores
 - Visit college campuses (in-state options, community colleges, universities)
@@ -186,7 +188,8 @@ If your child is removed from school, the district must continue educational ser
 - Attend college fairs and financial aid nights
 - Begin scholarship search
 
-**Grade 12 (Fall): Apply**
+#### Grade 12 (Fall): Apply
+
 - Complete college applications (most deadlines: November-February)
 - Request transcripts from your school counselor
 - Ask teachers and counselors for recommendation letters (give them 3+ weeks)
@@ -195,7 +198,8 @@ If your child is removed from school, the district must continue educational ser
 - Apply for scholarships (local, state, national)
 - Submit A+ eligibility verification with your A+ coordinator
 
-**Grade 12 (Spring): Decide**
+#### Grade 12 (Spring): Decide
+
 - Compare financial aid award letters (cost of attendance minus aid = what you actually pay)
 - Visit finalist schools
 - Commit by May 1 (typical national decision deadline)
@@ -258,9 +262,11 @@ Within 1-2 weeks, convene the crisis team: What was supposed to happen? What act
 - **PEERS** (non-certificated staff — paras, bus drivers, food service): defined benefit pension. You DO pay Social Security.
 
 **Step 2: Check eligibility.**
+
 | Path | Requirement |
-|------|------------|
-| Rule of 80 | Age + years of service ≥ 80 (minimum age 48) |
+| ------ | ------------ |
+| Rule of 80 | Age + years of service ≥ 80 |
+| 30 years | 30+ years of service at any age |
 | Age + service | Age 60 with 5+ years of service |
 | Early retirement | Age 55 with 5+ years (reduced benefit) |
 | 25-and-out | 25 years regardless of age (reduced if under Rule of 80) |
@@ -269,8 +275,7 @@ Within 1-2 weeks, convene the crisis team: What was supposed to happen? What act
 Annual benefit = Years of service × 2.5% × Final Average Salary (3 highest consecutive years). Contact PSRS/PEERS (psrs-peers.org) for a personalized estimate.
 
 **Step 4: Understand the fine print.**
-- **WEP (Windfall Elimination Provision):** if you also worked in a Social Security-covered job, your Social Security benefit may be reduced
-- **GPO (Government Pension Offset):** if your spouse has Social Security, your spousal benefit may be reduced
+- **WEP and GPO no longer apply:** the Social Security Fairness Act (signed January 5, 2025) ended the Windfall Elimination Provision and the Government Pension Offset for benefits payable for months after December 2023 ([SSA](https://www.ssa.gov/benefits/retirement/social-security-fairness-act.html)). A PSRS pension no longer reduces your own Social Security benefit from other covered work or a spousal/survivor benefit. Check your record and estimate with SSA (ssa.gov).
 - **Working after retirement:** PSRS limits post-retirement school employment. Working too many hours/days can affect your pension. Check current rules with PSRS.
 - **Health insurance:** PSRS offers retiree health insurance options, but they're not automatic. Plan ahead.
 
@@ -298,7 +303,7 @@ Survey your staff: What AI tools are you already using? For what? With what over
 Read: DESE AI Guidance (Version 1.0), MSBA model AI policy, MCE sample policies, peer district policies, TeachAI toolkit. Load `references/ai-in-education/ai-policy-governance.md` for the full framework.
 
 **Step 4: Draft the policy.**
-Use `templates/ai-policy-template.md` as your scaffold. Key sections: scope, guiding principles, approved tools list, staff use (permitted/prohibited), student use (by grade band), academic integrity, data privacy, equity, PD requirements, transparency, review cycle.
+Use `templates/admin/ai-policy-template.md` as your scaffold. Key sections: scope, guiding principles, approved tools list, staff use (permitted/prohibited), student use (by grade band), academic integrity, data privacy, equity, PD requirements, transparency, review cycle.
 
 **Step 5: Gather stakeholder input.**
 Share the draft with: all staff (feedback survey + Q&A session), parents (information session + comment period), students (advisory council or classroom discussion), board (work session).

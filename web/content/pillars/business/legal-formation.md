@@ -91,7 +91,7 @@ An S-Corp election lets you avoid double taxation while maintaining corporate st
 4. Set up vesting agreements for all founders
 5. Register as foreign corporation in your home state (if not Delaware)
 6. Open bank account + apply for EIN
-7. Pay Delaware franchise tax annually (~$400 minimum, due March 1)
+7. Pay Delaware franchise tax annually ($175–$400 minimum plus $50 annual report fee, due March 1)
 
 ---
 
@@ -198,9 +198,9 @@ Before taking any money or writing any code together:
 
 ## QSBS (Qualified Small Business Stock)
 
-- **Up to $10 million** in federal capital gains tax exclusion
-- Requires: C-Corp, original issuance (not secondary), held 5+ years
-- Company must have < $50M in assets at time of issuance
+- **Up to $15 million** in federal capital gains tax exclusion for stock acquired after July 4, 2025 (**$10 million** for earlier stock)
+- Requires: C-Corp, original issuance (not secondary), held 5+ years for the full exclusion (post-July 4, 2025 stock: 50% after 3 years, 75% after 4)
+- Company must have < $75M in assets at time of issuance ($50M for stock issued on or before July 4, 2025)
 - **One of the most valuable tax benefits for early startup founders and investors**
 - **State treatment varies:** Some states (CA) don't conform; others (MO) do. Check your state.
 

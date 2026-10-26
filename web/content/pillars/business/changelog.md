@@ -26,6 +26,12 @@ flowchart LR
 - `CONTRIBUTING.md` — Code of Conduct section now links to the standalone file
 
 ### Fixed
+- `SKILL.md` — new Distress Check before every mode: if a founder mentions hopelessness, self-harm, suicide or "can't go on", coaching pauses and the reply gives 911 (danger now) and 988 (call or text); RECOVERY, Failure Interrupt and Overwhelm now point to it. Same pause added to `/recover` and to Burnout Level 4 in `resilience.md`
+- `SKILL.md` — Start Protocol opener now comes after the disclaimer notice
+- `SKILL.md` — file tree lists only files shipped in the skill zip (dropped README, CONTRIBUTING, CHANGELOG and evals; added DISCLAIMER.md)
+- `references/ip/README.md` — broken `ip-assignments.md` and `trade-secrets.md` pointers now name `trademarks-trade-secrets-copyright.md`; "Missouri Startups" heading made national
+- `references/regional/california.md` — Quick Facts no longer says QSBS is "partially recognized"; California does not conform to IRC 1202
+- Author name spelled "Devitre" throughout
 - Documentation drift: eval count, state deployment list, and reference-directory count are now consistent across `README.md`, `CLAUDE.md`, `MANIFEST.json`, and disk
 
 ---

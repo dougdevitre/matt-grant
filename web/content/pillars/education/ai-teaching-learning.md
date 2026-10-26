@@ -41,6 +41,7 @@ flowchart LR
 ```
 
 ## Table of Contents
+
 1. AI-Enhanced Teaching Workflows
 2. Prompt Engineering for Educators
 3. What AI Should NOT Do in Instruction
@@ -58,8 +59,9 @@ flowchart LR
 ## 3. AI for Teaching & Instruction
 
 ### AI-Enhanced Teaching Workflows
+
 | Workflow | How AI Helps | Human Role |
-|----------|-------------|-----------|
+| ---------- | ------------- | ----------- |
 | **Lesson planning** | Generate lesson outlines, suggest activities, align to Missouri Learning Standards, create warm-ups and exit tickets | Teacher reviews, customizes, selects what fits their students |
 | **Differentiation** | Create tiered materials at different reading levels, generate scaffolded questions, produce multilingual versions | Teacher assigns appropriate materials to students, monitors understanding |
 | **Assessment creation** | Generate quiz questions, rubrics, multiple-choice items, constructed-response prompts aligned to standards | Teacher reviews for accuracy, rigor, and alignment; selects and edits items |
@@ -70,9 +72,11 @@ flowchart LR
 | **Communication** | Draft parent emails, newsletter content, conference notes, IEP meeting summaries | Teacher reviews for accuracy, tone, and FERPA compliance |
 
 ### AI as Co-Teacher (Not Replacement)
+
 The research and policy consensus is clear: AI enhances teaching when it handles routine cognitive tasks (generating practice problems, providing initial feedback, organizing information) so teachers can focus on high-value human tasks (building relationships, motivating students, facilitating discussion, addressing social-emotional needs, making professional judgments).
 
 ### Prompt Engineering for Educators
+
 DESE's guidance references the **"Five S" model** (from AI for Education):
 1. **Situation** — define the context (grade level, subject, student characteristics)
 2. **Specific task** — state exactly what you want the AI to produce
@@ -81,6 +85,7 @@ DESE's guidance references the **"Five S" model** (from AI for Education):
 5. **Share** — plan for how the output will be reviewed, edited, and shared
 
 ### What AI Should NOT Do in Instruction
+
 - Replace teacher-student relationships
 - Make high-stakes decisions about student placement, grades, or discipline without human review
 - Serve as the sole source of instruction (students need human interaction)
@@ -94,6 +99,7 @@ DESE's guidance references the **"Five S" model** (from AI for Education):
 ## 4. AI for Student Learning & Reinforcement
 
 ### AI as Personalized Tutor
+
 AI tutoring tools can provide:
 - **Adaptive practice:** adjusts difficulty based on student performance in real time
 - **Immediate feedback:** tells students what they got wrong and why, with hints and scaffolds
@@ -102,16 +108,18 @@ AI tutoring tools can provide:
 - **Unlimited patience:** students can ask the same question repeatedly without stigma
 
 ### Student-Facing AI Use Cases by Grade Band
+
 | Grade Band | Appropriate AI Uses | Guardrails |
-|-----------|-------------------|-----------|
+| ----------- | ------------------- | ----------- |
 | **K-2** | AI-powered reading tools (phonics practice, leveled readers with audio), math fact fluency games, adaptive learning apps under teacher supervision | No generative AI chatbot use; all AI tools teacher-selected and monitored; no student data collection beyond what's educationally necessary |
 | **3-5** | Adaptive practice platforms (math, reading), AI-assisted research (with teacher guidance on evaluating sources), writing revision tools for grammar/mechanics, educational simulations | AI tools embedded in curriculum; teacher reviews AI suggestions before students see them; explicit instruction on "AI is not always right" |
 | **6-8** | AI writing assistants for drafting and revision (not final product), research tools, math problem-solving assistants, coding platforms with AI support, career exploration | Students learn to verify AI outputs; academic integrity expectations explicit; assignments designed to be AI-enhanced (not AI-completed) |
 | **9-12** | Generative AI as a thinking partner (brainstorming, outlining, debugging code, analyzing data), college application essay revision, career pathway exploration, AP/dual credit study support | Students demonstrate understanding independently; AI use disclosed per policy; critical evaluation of AI outputs is a learning objective; original thinking valued over AI-polished output |
 
 ### AI-Powered Learning Platforms in Missouri Schools
+
 | Platform | Type | Use |
-|----------|------|-----|
+| ---------- | ------ | ----- |
 | **Khan Academy / Khanmigo** | Adaptive tutoring | Math, science, test prep — AI tutor provides hints and explanations |
 | **Waggle** | Adaptive practice | ELA and math practice with AI-driven recommendations |
 | **Curipod** | Interactive presentations | AI-generated discussion prompts, formative assessment |
@@ -124,6 +132,7 @@ AI tutoring tools can provide:
 | **Grammarly / ProWritingAid** | Writing support | AI-powered grammar, style, and clarity suggestions |
 
 ### AI for Reinforcement & Practice
+
 Effective AI-powered reinforcement follows learning science principles:
 - **Spaced practice:** AI schedules review of previously learned material at optimal intervals
 - **Interleaving:** AI mixes problem types rather than blocking by topic
@@ -136,8 +145,9 @@ Effective AI-powered reinforcement follows learning science principles:
 ## 5. AI for Communication & Administration
 
 ### Administrative AI Use Cases
+
 | Function | AI Application | Human Oversight Required |
-|----------|---------------|------------------------|
+| ---------- | --------------- | ------------------------ |
 | **Parent communication** | Draft newsletters, email updates, event announcements, translation of communications into multiple languages | Review for accuracy, tone, FERPA compliance before sending |
 | **IEP/504 documentation** | Draft present levels, summarize evaluation data, suggest goal language based on data | Specialist must review, customize, and own all final IEP/504 content |
 | **Scheduling** | Optimize master schedules, identify conflicts, generate course recommendation sequences | Human review for equity, student needs, teacher preferences |
@@ -149,8 +159,9 @@ Effective AI-powered reinforcement follows learning science principles:
 | **Social media** | Draft posts, suggest content calendar, monitor mentions | Staff reviews all posts before publishing; FERPA awareness |
 
 ### AI for School Counselor Workflows
+
 | Task | AI Support | Counselor Role |
-|------|-----------|---------------|
+| ------ | ----------- | --------------- |
 | **College list generation** | Suggest college matches based on student profile (GPA, interests, geography, cost) | Counselor validates matches, discusses with student and family |
 | **Scholarship search** | Identify potential scholarships based on student demographics and interests | Counselor verifies eligibility, helps with applications |
 | **FAFSA support** | Answer common FAFSA questions, walk through form fields | Counselor handles sensitive financial conversations, verifies completion |
@@ -158,6 +169,7 @@ Effective AI-powered reinforcement follows learning science principles:
 | **Communication drafts** | Draft recommendation letters (teacher provides specific details), parent outreach emails | Counselor reviews and personalizes all communications |
 
 ### AI for Data-Driven Decision Making
+
 - **Early warning systems:** AI analyzes attendance, behavior, and course performance (ABC) data to flag at-risk students earlier than manual review
 - **Assessment analysis:** AI identifies item-level patterns, misconceptions, and standards gaps across classrooms
 - **Enrollment forecasting:** AI models predict enrollment trends for budget and staffing planning
@@ -168,8 +180,9 @@ Effective AI-powered reinforcement follows learning science principles:
 ## 6. AI for Special Populations & Accessibility
 
 ### AI and Special Education
+
 | Application | How AI Helps | Cautions |
-|------------|-------------|---------|
+| ------------ | ------------- | --------- |
 | **Assistive technology** | Text-to-speech, speech-to-text, word prediction, image description, sign language translation | AT decisions must be made by the IEP team, not AI |
 | **Progress monitoring** | AI analyzes IEP goal progress data, identifies trends, suggests instructional adjustments | Specialists interpret data in context; AI supplements, not replaces, professional judgment |
 | **Material modification** | Generate simplified text, visual supports, graphic organizers, alternate formats | Specialist reviews modifications for accuracy and alignment to IEP goals |
@@ -177,6 +190,7 @@ Effective AI-powered reinforcement follows learning science principles:
 | **Behavior analysis** | Pattern recognition in behavioral data (ABC data analysis) | FBA must be conducted by trained professional; AI assists with data organization |
 
 ### AI and English Language Learners
+
 - Real-time translation of instructional materials
 - AI-powered language practice (pronunciation, vocabulary, grammar)
 - Scaffolded content at multiple proficiency levels
@@ -184,6 +198,7 @@ Effective AI-powered reinforcement follows learning science principles:
 - Caution: AI translation quality varies; professional translation for high-stakes documents (IEP, discipline, enrollment)
 
 ### AI and Gifted Education
+
 - AI-powered enrichment and acceleration platforms
 - Complex problem generation at advanced levels
 - Research assistance for independent projects
@@ -191,6 +206,7 @@ Effective AI-powered reinforcement follows learning science principles:
 - Caution: gifted students may over-rely on AI; emphasize original thinking
 
 ### AI Accessibility Features
+
 - Screen readers enhanced by AI (better image descriptions, document understanding)
 - AI-powered captioning for deaf/hard of hearing students
 - AI voice generation for students with speech impairments

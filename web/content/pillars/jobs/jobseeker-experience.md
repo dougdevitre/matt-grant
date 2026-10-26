@@ -261,7 +261,7 @@ Best,
 **Use when:** "how much should I ask for" / "they offered me X" / "salary negotiation" / "is this a good offer"
 
 **Missouri wage context:**
-- Missouri minimum wage 2025: $13.75/hour (check current rate)
+- Missouri minimum wage 2026: $15.00/hour (no longer adjusted for inflation each year; check current rate)
 - Living wage estimate for St. Charles County single adult: approximately $18–22/hour
 - WIOA median earnings target (Adult program, Q2 after exit): tracked statewide
 
@@ -305,10 +305,9 @@ Take 24 hours to review the written offer before signing.
 a performance metric. This is not a reason to reject a lower offer — any employed outcome
 is better than no employment — but your case manager can help you evaluate offers.
 
-**WOTC note for job seekers:** If you qualify for WOTC (veteran, ex-felon, SNAP recipient,
-long-term unemployed, etc.), some employers specifically seek WOTC-eligible candidates.
-This can slightly strengthen your position in negotiation — you're bringing a tax benefit.
-Ask your Job Center staff if you qualify.
+**WOTC note for job seekers:** WOTC expired for workers who begin work after December 31, 2025. Check irs.gov to see whether Congress has renewed it before counting on it. If it has been renewed and you are in a target group
+(veteran, person with a past conviction, SNAP recipient, long-term unemployed, etc.), some
+employers look for WOTC-eligible candidates. Ask your Job Center staff whether it applies.
 
 ---
 

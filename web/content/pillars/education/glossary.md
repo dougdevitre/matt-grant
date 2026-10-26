@@ -1,4 +1,5 @@
 # Education Glossary — Acronyms & Terms
+
 # Glosario Educativo — Siglas y Términos
 
 **Use this file when a user asks "what does ___ mean?" or uses an acronym you need to define for a non-specialist audience.**
@@ -30,8 +31,9 @@ graph TD
 ```
 
 ## A
+
 | Term | Spanish | Definition |
-|------|---------|-----------|
+| ------ | --------- | ----------- |
 | **504 Plan** | *Plan 504* | Accommodation plan under Section 504 of the Rehabilitation Act for students with disabilities who don't need an IEP but need accommodations to access education |
 | **A+** | *Programa A+* | Missouri A+ Schools Program — tuition reimbursement at community colleges for eligible graduates (RSMo 160.545) |
 | **AAC** | *Comunicación Aumentativa y Alternativa (CAA)* | Augmentative and Alternative Communication — devices and strategies for people who cannot rely on speech |
@@ -48,8 +50,9 @@ graph TD
 | **AT** | *Tecnología de Asistencia* | Assistive Technology |
 
 ## B-C
+
 | Term | Spanish | Definition |
-|------|---------|-----------|
+| ------ | --------- | ----------- |
 | **BIP** | *Plan de Intervención de Comportamiento* | Behavior Intervention Plan — individualized plan based on an FBA to address challenging behavior |
 | **BID** | *Determinación del Mejor Interés* | Best Interest Determination — process for deciding school placement for foster care students |
 | **CAPS** | *Sistema de Planificación Universitaria y Profesional* | College and Career Planning System |
@@ -68,8 +71,9 @@ graph TD
 | **CVI** | *Impedimento Visual Cortical* | Cortical Visual Impairment — visual processing difficulty in the brain rather than the eye |
 
 ## D-E
+
 | Term | Spanish | Definition |
-|------|---------|-----------|
+| ------ | --------- | ----------- |
 | **DESE** | *Departamento de Educación Primaria y Secundaria de Missouri* | Missouri Department of Elementary and Secondary Education |
 | **DSIP** | *Plan de Mejora Escolar del Distrito* | District School Improvement Plan |
 | **Dyslexia** | *Dislexia* | Specific learning disability affecting reading fluency and comprehension |
@@ -84,8 +88,9 @@ graph TD
 | **EWS** | *Sistema de Alerta Temprana* | Early Warning System — data dashboard tracking attendance, behavior, and course performance to flag at-risk students |
 
 ## F-G
+
 | Term | Spanish | Definition |
-|------|---------|-----------|
+| ------ | --------- | ----------- |
 | **FAPE** | *Educación Pública Gratuita y Apropiada* | Free Appropriate Public Education — the right of every student with a disability under IDEA |
 | **FBA** | *Evaluación Funcional de Comportamiento* | Functional Behavior Assessment — systematic process to determine WHY a behavior occurs |
 | **FERPA** | *Ley de Derechos Educativos y Privacidad Familiar* | Family Educational Rights and Privacy Act — federal law protecting student education records |
@@ -96,11 +101,12 @@ graph TD
 | **GAL** | *Tutor Ad Litem* | Guardian Ad Litem (family court context) |
 | **GED** | *Desarrollo Educativo General* | General Educational Development (Missouri uses HiSET, not GED) |
 | **GPA (Weighted vs. Unweighted)** | *Promedio de Calificaciones* | Grade Point Average — weighted includes bonus points for AP/honors; unweighted does not |
-| **GPO** | *Compensación de Pensión Gubernamental* | Government Pension Offset — may reduce Social Security spousal benefits for PSRS members |
+| **GPO** | *Compensación de Pensión Gubernamental* | Government Pension Offset — formerly reduced Social Security spousal/survivor benefits for PSRS members; repealed by the Social Security Fairness Act (signed Jan. 5, 2025) for benefits payable after December 2023 (ssa.gov) |
 
 ## H-I
+
 | Term | Spanish | Definition |
-|------|---------|-----------|
+| ------ | --------- | ----------- |
 | **HiSET** | *Examen de Equivalencia de Escuela Secundaria* | High School Equivalency Test — Missouri's approved HSE exam (replaced GED in 2014) |
 | **HLS** | *Encuesta del Idioma del Hogar* | Home Language Survey — enrollment questionnaire identifying potential ELLs |
 | **IDEA** | *Ley de Educación para Individuos con Discapacidades* | Individuals with Disabilities Education Act — federal special education law |
@@ -114,8 +120,9 @@ graph TD
 | **ISS** | *Suspensión Dentro de la Escuela* | In-School Suspension |
 
 ## L-M
+
 | Term | Spanish | Definition |
-|------|---------|-----------|
+| ------ | --------- | ----------- |
 | **LEA** | *Agencia de Educación Local (distrito escolar)* | Local Education Agency — school district |
 | **LLM** | *Modelo de Lenguaje Grande* | Large Language Model — AI system trained on text data (e.g., ChatGPT, Claude) |
 | **LRE** | *Ambiente Menos Restrictivo* | Least Restrictive Environment — IDEA principle that students with disabilities should be educated with non-disabled peers to the maximum extent appropriate |
@@ -136,8 +143,9 @@ graph TD
 | **MTSS** | *Sistema de Apoyos de Múltiples Niveles* | Multi-Tiered System of Supports — framework integrating academic and behavioral support |
 
 ## N-P
+
 | Term | Spanish | Definition |
-|------|---------|-----------|
+| ------ | --------- | ----------- |
 | **NAEP** | *Evaluación Nacional del Progreso Educativo ("Boleta de la Nación")* | National Assessment of Educational Progress (the "Nation's Report Card") |
 | **NBCT** | *Maestro Certificado por la Junta Nacional* | National Board Certified Teacher |
 | **OCR** | *Oficina de Derechos Civiles* | Office for Civil Rights (U.S. Department of Education) |
@@ -157,8 +165,9 @@ graph TD
 | **PWN** | *Aviso Previo por Escrito* | Prior Written Notice — required notification from school to parent before any IEP/504 change |
 
 ## R-S
+
 | Term | Spanish | Definition |
-|------|---------|-----------|
+| ------ | --------- | ----------- |
 | **Restorative Justice** | *Justicia Restaurativa* | Discipline approach focused on repairing harm rather than punishment |
 | **RPDC** | *Centro Regional de Desarrollo Profesional* | Regional Professional Development Center |
 | **RTI** | *Respuesta a la Intervención* | Response to Intervention — predecessor framework to MTSS |
@@ -176,8 +185,9 @@ graph TD
 | **SW-PBS** | *Apoyo de Comportamiento Positivo a Nivel Escolar* | Missouri Schoolwide Positive Behavior Support |
 
 ## T-W
+
 | Term | Spanish | Definition |
-|------|---------|-----------|
+| ------ | --------- | ----------- |
 | **TAC** | *Certificado de Autorización Temporal* | Temporary Authorization Certificate — interim teaching certificate |
 | **Trauma-Informed Care** | *Atención Informada sobre el Trauma* | Approach recognizing impact of adverse experiences on learning |
 | **TVI** | *Maestro de Estudiantes con Discapacidad Visual* | Teacher of the Visually Impaired |
@@ -186,14 +196,15 @@ graph TD
 | **WADA** | *Asistencia Diaria Promedio Ponderada* | Weighted Average Daily Attendance — ADA adjusted for special populations (funding formula) |
 | **WBL** | *Aprendizaje Basado en el Trabajo* | Work-Based Learning |
 | **WCAG** | *Pautas de Accesibilidad para el Contenido Web* | Web Content Accessibility Guidelines |
-| **WEP** | *Provisión de Eliminación por Ganancias Inesperadas* | Windfall Elimination Provision — may reduce Social Security for PSRS members with other covered employment |
+| **WEP** | *Provisión de Eliminación por Ganancias Inesperadas* | Windfall Elimination Provision — formerly reduced Social Security for PSRS members with other covered employment; repealed by the Social Security Fairness Act (signed Jan. 5, 2025) for benefits payable after December 2023 (ssa.gov) |
 | **WIDA** | *Diseño y Evaluación Instruccional de Clase Mundial* | World-class Instructional Design and Assessment — consortium for ELL assessment (ACCESS test) |
 | **WIOA** | *Ley de Innovación y Oportunidad de la Fuerza Laboral* | Workforce Innovation and Opportunity Act |
 | **YC-DD** | *Niño Pequeño con Retraso en el Desarrollo* | Young Child with a Developmental Delay — IDEA eligibility category for ages 3-5 |
 
 ## Additional Terms from Guía de Padres / Additional Terms from Parent Guide
+
 | Term | Spanish | Definition |
-|------|---------|-----------|
+| ------ | --------- | ----------- |
 | **Accommodation** | *Acomodación* | A change in how instruction or assessment is delivered that allows a student to access the curriculum without altering content expectations (e.g., extended time, preferential seating) |
 | **Due Process** | *Debido Proceso* | A formal legal procedure under IDEA allowing parents to resolve disputes with the school district about identification, evaluation, placement, or services for a student with a disability |
 | **Enrollment** | *Inscripción / Matrícula* | The process of registering a student in a school; schools cannot ask about immigration status (Plyler v. Doe, 1982) |

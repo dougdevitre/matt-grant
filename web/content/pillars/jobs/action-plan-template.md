@@ -145,7 +145,7 @@ Encourage user to check with case manager for:
 
 **Add to Day 3 (Networking):**
 - Contact nearest Missouri Job Center about upcoming job fairs
-- Check if user qualifies for DVOP/CODL services (veterans) or SkillUP (SNAP recipients)
+- Check if user qualifies for DVOP/LVER services (veterans) or SkillUP (SNAP recipients)
 - Research local Workforce Development Board (WDB) events in their region
 
 **Add to Day 4 (Skills):**

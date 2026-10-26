@@ -12,7 +12,7 @@ flowchart TD
     B -->|State| S[State Job Portal<br/>mostatejobs.com]
     B -->|Local| L[City/County/School<br/>District Website]
     
-    F --> F1[Build Federal Resume<br/>4-6 pages, narrative format]
+    F --> F1[Build Federal Resume<br/>2-page limit on USAJOBS]
     F1 --> F2[Write KSA Statements<br/>CCAR method]
     F2 --> F3[Apply on USAJobs<br/>Before closing date]
     F3 --> F4{HR Screens<br/>Qualifications}
@@ -51,7 +51,7 @@ not connections. This means the application process is more structured, more doc
 and more transparent than private-sector hiring.
 
 **Key differences from private sector:**
-- Applications are longer and more detailed (federal resumes are 4–6 pages)
+- Applications ask for more specific details (federal resumes must list hours per week and start and end dates for each job, and are limited to 2 pages on USAJOBS)
 - Positions have strict minimum qualification requirements — you either qualify or you don't
 - Veteran preference gives eligible veterans a scoring advantage
 - Many positions require written exams or structured assessments
@@ -74,8 +74,10 @@ and more transparent than private-sector hiring.
 
 ### Federal Resume Format
 
-Federal resumes are NOT the same as private-sector resumes. They are **longer, more detailed,
-and follow a specific format.**
+Federal resumes are NOT the same as private-sector resumes. They **follow a specific format and
+must include details a private-sector resume usually leaves out** (hours per week, month/year
+dates, grade/series). Federal resumes are limited to 2 pages on USAJOBS: agencies accept resumes
+of up to 2 pages, and USAJOBS will not let you upload or build a longer one.
 
 **Required elements (every federal resume must include):**
 - Full legal name and contact information
@@ -88,18 +90,23 @@ and follow a specific format.**
   - Start and end dates (month/year)
   - Hours per week
   - Salary
-  - Detailed description of duties, accomplishments, and scope of responsibility
+  - Duties, accomplishments, and scope of responsibility, showing how you meet the
+    announcement's required qualifications
 - Education: institution, city/state, degree, major, date conferred, GPA (if required)
 - Relevant training courses with dates and hours
 - Certifications and licenses
 - Awards and honors
 
 **Critical formatting rules:**
-- Length: 4–6 pages is normal (do NOT condense to 1 page)
-- Write in paragraph form with bullet points for key accomplishments
-- Quantify everything: budgets managed, people supervised, scope of programs
+- Length: Federal resumes are limited to 2 pages on USAJOBS. Keep the required details (hours
+  per week, start and end dates, grade/series if federal) and cut long narrative.
+- Use short bullet points for duties and key accomplishments rather than long paragraphs
+- Quantify results: budgets managed, people supervised, scope of programs
 - Mirror the exact language from the vacancy announcement
-- Include ALL relevant experience — federal HR can only credit what you write
+- Include the experience that shows you meet the qualifications — federal HR can only credit
+  what you write, so prioritize relevant jobs over older or unrelated ones
+- Check the announcement for anything else it requires (for example, security clearance,
+  job-related training, or references)
 - Use plain text; no graphics, columns, or fancy formatting
 
 ### How Federal Qualifications Work
@@ -260,7 +267,7 @@ Missouri state positions are posted at **mostatejobs.com** (or the state HR port
 
 **State resume guidance:**
 - Follow the state's application form — fill every field
-- More detailed than a private-sector resume but less than a federal resume
+- More detailed than a private-sector resume (follow the state's own length and field rules)
 - Include all relevant education, training, certifications, and licenses
 - Describe experience in enough detail for HR to determine qualifications
 - Mention state-specific credentials (WorkKeys NCRC, Missouri certifications)
@@ -403,7 +410,7 @@ through the traditional competitive hiring process.
 - Provide or assist in obtaining a Schedule A letter
 - Help prepare federal resumes tailored to Schedule A applications
 - Connect individuals with federal agency SPPCs
-- Coordinate with DVOP/CODL for veterans with disabilities
+- Coordinate with DVOP/LVER for veterans with disabilities
 
 ---
 
@@ -420,7 +427,7 @@ through the traditional competitive hiring process.
 - [ ] Determine if veteran preference, Schedule A, or other special authorities apply
 
 ### Preparing Your Application
-- [ ] Federal: Build a 4–6 page federal resume (NOT a private-sector resume)
+- [ ] Federal: Build a federal resume of no more than 2 pages with hours per week, start and end dates, and grade/series if federal (NOT a private-sector resume)
 - [ ] State: Complete the state application system in full
 - [ ] Local: Follow agency-specific application instructions
 - [ ] Mirror keywords and phrases from the announcement in your resume

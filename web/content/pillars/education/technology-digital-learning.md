@@ -21,6 +21,7 @@ flowchart TD
 ```
 
 ## Table of Contents
+
 1. 1:1 Device Programs
 2. Learning Management Systems (LMS)
 3. Digital Citizenship
@@ -40,20 +41,23 @@ flowchart TD
 ## 1. 1:1 Device Programs
 
 ### Implementation Models
+
 | Model | Description |
-|-------|-----------|
+| ------- | ----------- |
 | **Take-home 1:1** | Every student assigned a device they take home daily |
 | **In-school 1:1** | Every student has a device during school hours; devices stay at school |
 | **BYOD (Bring Your Own Device)** | Students use personal devices; school provides for those without |
 | **Shared carts** | Devices shared among classrooms on a schedule |
 
 ### Device Options
+
 - Chromebooks (most common in Missouri — low cost, easy management, Google Workspace integration)
 - iPads (common in elementary, special education, fine arts)
 - Windows laptops (common in CTE, STEM, secondary)
 - Desktop labs (legacy; still used for specialized software, CTE, testing)
 
 ### Program Considerations
+
 - Acceptable Use Policy (AUP) — required; signed by student and parent
 - Device insurance/repair programs
 - Internet access at home (equity concern — hotspot lending, community Wi-Fi partnerships)
@@ -67,8 +71,9 @@ flowchart TD
 ## 2. Learning Management Systems (LMS)
 
 ### Common LMS Platforms in Missouri Schools
+
 | Platform | Common Usage |
-|----------|-------------|
+| ---------- | ------------- |
 | **Google Classroom** | Most widely adopted (K-12); integrated with Google Workspace |
 | **Canvas** | Growing adoption, especially secondary and districts with post-secondary partnerships |
 | **Schoology** | Some districts; strong assessment tools |
@@ -76,6 +81,7 @@ flowchart TD
 | **Microsoft Teams** | Some districts using Microsoft 365 ecosystem |
 
 ### LMS Best Practices
+
 - Consistent use across the district (reduces family confusion)
 - Parent/guardian access (view assignments, grades, communications)
 - Accessibility compliance (WCAG 2.1 standards for students with disabilities)
@@ -88,6 +94,7 @@ flowchart TD
 ## 3. Digital Citizenship
 
 ### ISTE (International Society for Technology in Education) Standards
+
 Missouri has adopted ISTE Standards for Students as a framework:
 1. Empowered Learner
 2. Digital Citizen
@@ -98,8 +105,9 @@ Missouri has adopted ISTE Standards for Students as a framework:
 7. Global Collaborator
 
 ### Digital Citizenship Curriculum Topics
+
 | Topic | Grade Level Focus |
-|-------|------------------|
+| ------- | ------------------ |
 | **Online safety** | K-5 (stranger danger online, personal information, trusted adults) |
 | **Cyberbullying** | 3-12 (recognition, prevention, reporting, bystander intervention) |
 | **Digital footprint** | 5-12 (permanent nature of online activity, social media, college/employer searches) |
@@ -110,6 +118,7 @@ Missouri has adopted ISTE Standards for Students as a framework:
 | **Digital communication** | 3-12 (tone, netiquette, appropriate sharing, context collapse) |
 
 ### Common Digital Citizenship Programs
+
 - Common Sense Education (most widely used free curriculum)
 - Google Be Internet Awesome (elementary)
 - NetSmartz (National Center for Missing & Exploited Children)
@@ -130,8 +139,9 @@ Missouri has adopted ISTE Standards for Students as a framework:
 See `references/alternative-education.md` for MOCAP details.
 
 ### Blended Learning Models
+
 | Model | Description |
-|-------|-----------|
+| ------- | ----------- |
 | **Station rotation** | Students rotate between online and face-to-face learning stations in the classroom |
 | **Flipped classroom** | Students access content (video, reading) online at home; class time for practice and application |
 | **Flex** | Primarily online with teacher available for support; student moves at own pace |
@@ -139,6 +149,7 @@ See `references/alternative-education.md` for MOCAP details.
 | **Enriched virtual** | Primarily online with required in-person sessions |
 
 ### Virtual Learning Best Practices
+
 - Synchronous + asynchronous balance (live interaction matters)
 - Regular check-ins and progress monitoring
 - Accessible content (captions, alt text, screen reader compatibility)
@@ -151,9 +162,11 @@ See `references/alternative-education.md` for MOCAP details.
 ## 6. CIPA Compliance & Internet Filtering
 
 ### Children's Internet Protection Act (47 U.S.C. §254)
+
 Required for schools receiving E-Rate funding:
 
 ### Requirements
+
 1. **Internet filtering** — technology protection measure that blocks visual depictions that are:
    - Obscene
    - Child pornography
@@ -168,6 +181,7 @@ Required for schools receiving E-Rate funding:
 4. **Education** — educating minors about appropriate online behavior, cyberbullying awareness, and interaction on social networking sites
 
 ### Filtering Implementation
+
 - Enterprise-level content filtering (e.g., GoGuardian, Lightspeed, Securly, Cisco Umbrella)
 - Filtering must apply to school network AND school-owned devices used off-campus
 - Authorized adults (teachers, administrators) may request unblocking of specific sites for educational purposes
@@ -178,11 +192,13 @@ Required for schools receiving E-Rate funding:
 ## 7. Student Data Privacy
 
 ### FERPA (20 U.S.C. §1232g)
+
 See `references/students.md` for FERPA overview. Technology-specific applications:
 
 ### Key Technology Privacy Requirements
+
 | Requirement | Description |
-|-------------|-----------|
+| ------------- | ----------- |
 | **Vendor agreements** | Districts must have agreements with all technology vendors who access student PII; agreements must specify data use, retention, deletion, and security |
 | **RSMo 161.096** | Missouri student data privacy law — prohibits use of student data for commercial purposes; requires transparency about data collection |
 | **COPPA (Children's Online Privacy Protection Act)** | Applies to online services collecting data from children under 13; schools can consent on behalf of parents for educational purposes |
@@ -190,6 +206,7 @@ See `references/students.md` for FERPA overview. Technology-specific application
 | **Data breach notification** | District must have a plan for responding to data breaches; Missouri has a general breach notification law (RSMo 407.1500) |
 
 ### Technology Vendor Vetting
+
 Before adopting any educational technology tool:
 1. Review privacy policy and terms of service
 2. Determine what student data is collected, how it's used, stored, and shared
@@ -200,6 +217,7 @@ Before adopting any educational technology tool:
 7. Review for accessibility compliance (Section 508 / WCAG 2.1)
 
 ### Student Data Governance
+
 Districts should establish a data governance framework:
 - Data governance committee (IT, administration, legal, teaching)
 - Data classification system (public, internal, confidential, restricted)
@@ -213,6 +231,7 @@ Districts should establish a data governance framework:
 ## 8. Cybersecurity
 
 ### Threats to School Districts
+
 - Ransomware attacks (increasingly targeting school districts)
 - Phishing (email and social engineering attacks on staff)
 - Data breaches (student and employee records)
@@ -220,6 +239,7 @@ Districts should establish a data governance framework:
 - DDoS attacks (disrupting online learning and operations)
 
 ### Cybersecurity Best Practices
+
 - Multi-factor authentication (MFA) for all staff accounts
 - Regular security awareness training for staff
 - Endpoint protection (antivirus, device management)
@@ -238,8 +258,9 @@ Districts should establish a data governance framework:
 See `references/specialists.md` for AT overview. Technology-specific details:
 
 ### Software-Based AT Common in Missouri Schools
+
 | Tool Category | Examples |
-|--------------|---------|
+| -------------- | --------- |
 | **Text-to-speech** | Read&Write, NaturalReader, Immersive Reader (Microsoft), screen readers (JAWS, NVDA, VoiceOver) |
 | **Speech-to-text** | Dragon NaturallySpeaking, Google Voice Typing, Apple Dictation |
 | **Word prediction** | Co:Writer, Google predictive text |
@@ -248,6 +269,7 @@ See `references/specialists.md` for AT overview. Technology-specific details:
 | **Accessibility features** | Built-in OS accessibility (zoom, color contrast, captions, switch access) |
 
 ### Accessibility Standards
+
 - WCAG 2.1 (Web Content Accessibility Guidelines) — applies to all digital content used in instruction
 - Section 508 (federal) — federal technology must be accessible; often used as benchmark for school technology procurement
 - VPAT (Voluntary Product Accessibility Template) — request from vendors before purchasing educational technology
@@ -259,8 +281,9 @@ See `references/specialists.md` for AT overview. Technology-specific details:
 See `references/funding-programs.md` for detailed E-Rate information.
 
 ### Additional Technology Funding Sources
+
 | Source | Use |
-|--------|-----|
+| -------- | ----- |
 | **Title IV-A** | Effective use of technology (devices, infrastructure, PD, digital literacy) — no more than 15% on devices |
 | **IDEA Part B** | Assistive technology devices and services for students with IEPs |
 | **Perkins V** | CTE technology and equipment |
@@ -274,11 +297,13 @@ See `references/funding-programs.md` for detailed E-Rate information.
 ## 11. Infrastructure & Connectivity
 
 ### Bandwidth Recommendations
+
 - FCC goal: 1 Mbps per student (external internet)
 - 10 Gbps internal network backbone per school (for modern learning environments)
 - Sufficient Wi-Fi density for 1:1 + IoT devices
 
 ### Network Architecture
+
 - Wired backbone (fiber to each building, Cat6a+ to access points)
 - Wi-Fi 6 (802.11ax) or newer access points
 - Network management and monitoring tools
@@ -287,6 +312,7 @@ See `references/funding-programs.md` for detailed E-Rate information.
 - IoT network segmentation (HVAC, security cameras, etc.)
 
 ### Rural Broadband Challenges
+
 See `references/rural-education.md` for detailed rural connectivity information.
 
 ---
@@ -294,6 +320,7 @@ See `references/rural-education.md` for detailed rural connectivity information.
 ## 12. Professional Development for Technology
 
 ### ISTE Standards for Educators
+
 1. Learner — continually improving through technology-enabled professional learning
 2. Leader — seeking leadership opportunities for technology integration
 3. Citizen — modeling responsible digital citizenship
@@ -303,6 +330,7 @@ See `references/rural-education.md` for detailed rural connectivity information.
 7. Analyst — using data and technology to improve instruction
 
 ### PD Models for Technology
+
 - Coaching and mentoring (technology integration coaches)
 - Just-in-time training (micro-learning, video tutorials, help desk)
 - Professional learning communities (PLCs) focused on technology
@@ -316,16 +344,19 @@ See `references/rural-education.md` for detailed rural connectivity information.
 ## 13. SB 68 — Electronic Communication Device Ban
 
 ### Missouri Senate Bill 68 (Signed July 9, 2025)
+
 Governor Kehoe signed SB 68 enacting a statewide ban on electronic communication devices in Missouri public and charter schools beginning with the 2025-26 academic year.
 
 ### Key Provisions
+
 - Personal electronic communication devices (phones, smartwatches with communication capability) restricted during the school day
 - Districts must adopt policies implementing the ban
 - Specific implementation details (collection, storage, exceptions, enforcement) are determined by local board policy
 
 ### Implementation Considerations
+
 | Area | Guidance |
-|------|---------|
+| ------ | --------- |
 | **Collection method** | Options: phone pouches (Yondr), phone lockers, turned in to teacher, kept in locker (powered off) — district policy determines method |
 | **Exceptions** | Medical devices, IEP/504 accommodations requiring device access, parental emergency communication procedures, teacher-directed instructional use (district policy defines) |
 | **Enforcement** | Progressive consequences per board policy; should not result in disproportionate discipline |
@@ -335,6 +366,7 @@ Governor Kehoe signed SB 68 enacting a statewide ban on electronic communication
 | **Extracurriculars** | Policy may or may not cover activities outside the school day — board policy determines |
 
 ### Interaction with Other Policies
+
 - **AI policy:** SB 68 simplifies AI governance by channeling student technology access through managed school devices
 - **1:1 programs:** school-issued devices become the sole student access point during school hours
 - **BYOD programs:** effectively suspended during school day (may still apply before/after school)

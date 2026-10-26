@@ -27,7 +27,7 @@ graph TD
 ## A
 
 | Keyword | File(s) | Context |
-|---------|---------|---------|
+| --------- | --------- | --------- |
 | 504 Plan | [specialists.md](roles/specialists.md), [plans-and-forms.md](../templates/specialist/plans-and-forms.md) | Section 504 accommodations for disabilities |
 | A+ Scholarship | [students.md](roles/students.md), [graduation-audit.md](../templates/counselor/graduation-audit.md) | Missouri scholarship for community college |
 | Accreditation | [administrators.md](roles/administrators.md), [mo-education-law.md](compliance/mo-education-law.md) | MSIP 6 district accreditation standards |
@@ -44,7 +44,7 @@ graph TD
 ## B
 
 | Keyword | File(s) | Context |
-|---------|---------|---------|
+| --------- | --------- | --------- |
 | Background Check | [school-staff.md](roles/school-staff.md), [mo-education-law.md](compliance/mo-education-law.md) | RSMo 168.133 requirements for school employees |
 | BIP (Behavior Intervention Plan) | [specialists.md](roles/specialists.md), [discipline-behavior.md](operations/discipline-behavior.md) | Behavioral support plan following FBA |
 | Board of Education | [governance-policy.md](compliance/governance-policy.md), [administrators.md](roles/administrators.md) | School board governance, elections, Sunshine Law |
@@ -55,7 +55,7 @@ graph TD
 ## C
 
 | Keyword | File(s) | Context |
-|---------|---------|---------|
+| --------- | --------- | --------- |
 | Career Pathways | [career-pathways.md](operations/career-pathways.md) | CTE, dual credit, work-based learning |
 | Certification (Teacher) | [teachers.md](roles/teachers.md), [educator-workforce.md](programs/educator-workforce.md) | IPC, CCPC, certification renewal |
 | Child Abuse Reporting | [school-staff.md](roles/school-staff.md), [mo-education-law.md](compliance/mo-education-law.md) | RSMo 210.115 mandated reporter duties |
@@ -76,7 +76,7 @@ graph TD
 ## D
 
 | Keyword | File(s) | Context |
-|---------|---------|---------|
+| --------- | --------- | --------- |
 | DESE | [administrators.md](roles/administrators.md), [compliance-calendar.md](compliance/compliance-calendar.md) | Dept. of Elementary and Secondary Education |
 | Discipline | [discipline-behavior.md](operations/discipline-behavior.md), [students.md](roles/students.md) | Suspension, expulsion, due process rights |
 | Dual Credit | [career-pathways.md](operations/career-pathways.md), [students.md](roles/students.md) | College credit earned in high school |
@@ -85,7 +85,7 @@ graph TD
 ## E
 
 | Keyword | File(s) | Context |
-|---------|---------|---------|
+| --------- | --------- | --------- |
 | Early Childhood | [early-childhood.md](programs/early-childhood.md) | PAT, Head Start, MPP, First Steps |
 | ELL / English Learners | [english-learners.md](programs/english-learners.md), [ell-planning.md](../templates/teacher/ell-planning.md) | ELL identification, WIDA, program models |
 | E-Rate | [technology-digital-learning.md](operations/technology-digital-learning.md) | Federal broadband/telecom funding |
@@ -96,7 +96,7 @@ graph TD
 ## F
 
 | Keyword | File(s) | Context |
-|---------|---------|---------|
+| --------- | --------- | --------- |
 | Facilities | [facilities-operations.md](operations/facilities-operations.md) | Capital planning, ADA, maintenance |
 | FAPE | [specialists.md](roles/specialists.md), [mo-education-law.md](compliance/mo-education-law.md) | Free Appropriate Public Education under IDEA |
 | FBA | [specialists.md](roles/specialists.md), [plans-and-forms.md](../templates/specialist/plans-and-forms.md) | Functional Behavior Assessment process |
@@ -109,7 +109,7 @@ graph TD
 ## G
 
 | Keyword | File(s) | Context |
-|---------|---------|---------|
+| --------- | --------- | --------- |
 | GED | [alternative-education.md](programs/alternative-education.md) | HiSET/GED equivalency pathways |
 | Gifted Education | [specialists.md](roles/specialists.md), [special-populations.md](programs/special-populations.md) | Gifted identification and programming |
 | Governance | [governance-policy.md](compliance/governance-policy.md) | Board policy, superintendent, authority chain |
@@ -118,7 +118,7 @@ graph TD
 ## H
 
 | Keyword | File(s) | Context |
-|---------|---------|---------|
+| --------- | --------- | --------- |
 | Head Start | [early-childhood.md](programs/early-childhood.md) | Federal preschool program for low-income families |
 | Health / Wellness | [health-wellness.md](operations/health-wellness.md) | Nursing, mental health, immunizations, prevention |
 | Hearing Impairment | [hearing-impairment.md](special-needs/hearing-impairment.md) | DHH services, ASL, cochlear implants, TOD |
@@ -128,7 +128,7 @@ graph TD
 ## I
 
 | Keyword | File(s) | Context |
-|---------|---------|---------|
+| --------- | --------- | --------- |
 | IDEA | [specialists.md](roles/specialists.md), [mo-education-law.md](compliance/mo-education-law.md) | Individuals with Disabilities Education Act |
 | IEE | [specialists.md](roles/specialists.md) | Independent Educational Evaluation at public expense |
 | IEP | [specialists.md](roles/specialists.md), [iep-compliance-checklist.md](../templates/specialist/iep-compliance-checklist.md) | Individualized Education Program |
@@ -140,14 +140,14 @@ graph TD
 ## K–L
 
 | Keyword | File(s) | Context |
-|---------|---------|---------|
+| --- | --- | --- |
 | Kindergarten | [early-childhood.md](programs/early-childhood.md), [assessments.md](operations/assessments.md) | Readiness assessment, enrollment age |
 | LRE | [specialists.md](roles/specialists.md) | Least Restrictive Environment under IDEA |
 
 ## M
 
 | Keyword | File(s) | Context |
-|---------|---------|---------|
+| --------- | --------- | --------- |
 | Mandated Reporter | [school-staff.md](roles/school-staff.md), [mo-education-law.md](compliance/mo-education-law.md) | RSMo 210.115, child abuse reporting duty |
 | MAP | [assessments.md](operations/assessments.md) | Missouri Assessment Program (grades 3-8) |
 | McKinney-Vento | [special-populations.md](programs/special-populations.md), [equity-access.md](compliance/equity-access.md) | Homeless student rights and protections |
@@ -165,7 +165,7 @@ graph TD
 ## N–O
 
 | Keyword | File(s) | Context |
-|---------|---------|---------|
+| --------- | --------- | --------- |
 | National Board Certification | [teachers.md](roles/teachers.md), [professional-learning.md](programs/professional-learning.md) | Advanced certification pathway |
 | Newcomer Program | [english-learners.md](programs/english-learners.md) | Intensive support for newly arrived ELLs |
 | O&M (Orientation & Mobility) | [vision-impairment.md](special-needs/vision-impairment.md) | Travel training for students with vision loss |
@@ -174,7 +174,7 @@ graph TD
 ## P
 
 | Keyword | File(s) | Context |
-|---------|---------|---------|
+| --------- | --------- | --------- |
 | Paraprofessional | [school-staff.md](roles/school-staff.md) | ESSA qualifications, supervision requirements |
 | Parent Letters | [letters.md](../templates/parent/letters.md) | Evaluation request, IEP dispute, records request |
 | Parent Rights | [students.md](roles/students.md), [guia-padres-espanol.md](guia-padres-espanol.md) | FERPA, IDEA, participation rights |
@@ -189,16 +189,16 @@ graph TD
 ## R
 
 | Keyword | File(s) | Context |
-|---------|---------|---------|
+| --------- | --------- | --------- |
 | Restorative Justice | [discipline-behavior.md](operations/discipline-behavior.md), [school-culture-climate.md](operations/school-culture-climate.md) | Alternative to exclusionary discipline |
-| Retirement | [teachers.md](roles/teachers.md), [educator-workforce.md](programs/educator-workforce.md) | Rule of 80, PSRS benefits, WEP/GPO |
+| Retirement | [teachers.md](roles/teachers.md), [educator-workforce.md](programs/educator-workforce.md) | Rule of 80, PSRS benefits, WEP/GPO (repealed 2025) |
 | RPDC | [professional-learning.md](programs/professional-learning.md) | Regional Professional Development Centers |
 | Rural Education | [rural-education.md](programs/rural-education.md) | Shared services, 4-day weeks, teacher shortage |
 
 ## S
 
 | Keyword | File(s) | Context |
-|---------|---------|---------|
+| --------- | --------- | --------- |
 | Safety | [crisis-emergency.md](operations/crisis-emergency.md), [safety-plan-outline.md](../templates/admin/safety-plan-outline.md) | EOP, drills, threat assessment |
 | School Board | [governance-policy.md](compliance/governance-policy.md) | Elections, open meetings, policy adoption |
 | School Counselor | [school-counseling.md](roles/school-counseling.md) | Academic, career, social-emotional domains |
@@ -217,7 +217,7 @@ graph TD
 ## T
 
 | Keyword | File(s) | Context |
-|---------|---------|---------|
+| --------- | --------- | --------- |
 | Teacher Certification | [teachers.md](roles/teachers.md) | IPC, CCPC, alternative pathways |
 | Technology | [technology-digital-learning.md](operations/technology-digital-learning.md) | 1:1 devices, LMS, digital citizenship |
 | Tenure | [teachers.md](roles/teachers.md), [mo-education-law.md](compliance/mo-education-law.md) | RSMo 168.102-168.130, permanent status |
@@ -233,7 +233,7 @@ graph TD
 ## V–W
 
 | Keyword | File(s) | Context |
-|---------|---------|---------|
+| --------- | --------- | --------- |
 | Virtual Learning | [alternative-education.md](programs/alternative-education.md), [technology-digital-learning.md](operations/technology-digital-learning.md) | MOCAP, virtual schools, remote instruction |
 | Vision Impairment | [vision-impairment.md](special-needs/vision-impairment.md) | TVI, braille, O&M, CVI, ECC |
 | WIDA | [english-learners.md](programs/english-learners.md), [assessments.md](operations/assessments.md) | WIDA Screener and ACCESS proficiency test |

@@ -17,6 +17,7 @@ graph TD
 ```
 
 ## Table of Contents
+
 1. Paraprofessionals / Instructional Aides
 2. School Nurses
 3. Transportation Staff (Bus Drivers)
@@ -33,12 +34,14 @@ graph TD
 ## 1. Paraprofessionals / Instructional Aides
 
 ### ESSA Requirements (Title I Schools)
+
 Paraprofessionals working in Title I programs in an instructional support role must meet ONE of the following:
 1. **60 semester hours** of college credit from an accredited institution, OR
 2. **Associate's degree** (or higher), OR
 3. Passing score on an approved **paraprofessional assessment** (e.g., ParaPro Assessment, state-approved equivalent)
 
 ### Roles
+
 - Instructional support under teacher supervision (small group, one-on-one, reinforcement)
 - Special education paraprofessionals (supporting students with IEPs)
 - Title I instructional aides
@@ -46,15 +49,18 @@ Paraprofessionals working in Title I programs in an instructional support role m
 - Computer lab aides
 
 ### Key Limitations
+
 - Paraprofessionals may NOT serve as the teacher of record
 - Must work under the direct supervision of a certified teacher
 - May not introduce new content or concepts without teacher direction
 - Special education paras must follow the IEP and work under the direction of the special education teacher
 
 ### Background Check
+
 Required for all paraprofessionals (RSMo 168.133)
 
 ### Professional Development
+
 - Districts should provide PD specific to paraprofessional roles
 - Topics: behavior management, instructional strategies, disability awareness, de-escalation, confidentiality, mandated reporting
 
@@ -63,12 +69,14 @@ Required for all paraprofessionals (RSMo 168.133)
 ## 2. School Nurses
 
 ### Certification / Licensure
+
 - **Registered Nurse (RN):** Missouri Board of Nursing licensure required; preferred for school nurse role
 - **Licensed Practical Nurse (LPN):** may serve under RN supervision in many districts
 - **DESE School Nurse Certificate:** optional but recommended; requires RN licensure + additional school nursing coursework
 - **National certification:** NBCSN (National Board Certification in School Nursing) through NASN
 
 ### Responsibilities
+
 - Health assessments and screenings (vision, hearing, scoliosis, BMI)
 - Medication administration and management
 - Emergency care and first aid
@@ -79,17 +87,20 @@ Required for all paraprofessionals (RSMo 168.133)
 - Delegation and training of unlicensed personnel for specific health tasks (e.g., diabetes management, seizure response)
 
 ### Medication Administration
+
 - Written parent/guardian authorization AND physician order required
 - Medications must be in original pharmacy-labeled containers
 - School must maintain a medication administration log
 - Self-carry/self-administer policies for rescue inhalers and EpiPens (RSMo 167.627) and diabetes care (RSMo 167.800–167.824)
 
 ### Student-to-Nurse Ratios (Recommended)
+
 - NASN recommends 1:750 for the general student population
 - Lower ratios for schools serving students with complex health needs
 - Many Missouri districts, particularly rural ones, exceed these ratios significantly
 
 ### Immunization Requirements (RSMo 167.181)
+
 Missouri requires immunizations for school attendance. Current schedule includes: DTaP, IPV, MMR, Hepatitis B, Varicella. Students without documented immunizations must be excluded unless they have a medical or religious exemption on file.
 
 ---
@@ -97,6 +108,7 @@ Missouri requires immunizations for school attendance. Current schedule includes
 ## 3. Transportation Staff (Bus Drivers)
 
 ### Requirements
+
 - **Commercial Driver's License (CDL)** with Passenger (P) and School Bus (S) endorsements
 - **Background check:** FBI fingerprint + Missouri Highway Patrol (RSMo 168.133)
 - **Physical examination:** DOT medical card (renewed every 2 years)
@@ -104,6 +116,7 @@ Missouri requires immunizations for school attendance. Current schedule includes
 - **Training:** annual district-provided safety training (emergency procedures, student management, defensive driving, special needs awareness)
 
 ### Key Policies
+
 - Maximum driving hours per DOT regulations
 - Pre-trip and post-trip vehicle inspections required
 - Student head count on boarding and exiting
@@ -112,6 +125,7 @@ Missouri requires immunizations for school attendance. Current schedule includes
 - Bus discipline reports forwarded to building administration
 
 ### Special Transportation (IEP)
+
 - IEP teams may include specialized transportation as a related service
 - May include wheelchair-accessible vehicles, aide on the bus, modified routes, harness/restraint systems
 - District is responsible for providing transportation specified in the IEP
@@ -121,16 +135,19 @@ Missouri requires immunizations for school attendance. Current schedule includes
 ## 4. Food Service Staff
 
 ### Federal Programs
+
 - **National School Lunch Program (NSLP)** and **School Breakfast Program (SBP):** administered by USDA through Missouri DESE's School Food Services section
 - **Community Eligibility Provision (CEP):** high-poverty schools may provide free meals to ALL students without individual applications (if ≥40% identified students)
 - **Fresh Fruit and Vegetable Program:** supplemental program for selected elementary schools
 
 ### Staff Requirements
+
 - Food handler training/certification (per local health department requirements)
 - USDA professional standards for school nutrition professionals (training hours based on role)
 - Background check (RSMo 168.133)
 
 ### Key Compliance
+
 - USDA meal pattern requirements (whole grains, fruits/vegetables, protein, milk, sodium/fat limits)
 - Free and Reduced Price Meal (FRPM) applications and income verification
 - Accurate meal counting and claiming for federal reimbursement
@@ -142,11 +159,13 @@ Missouri requires immunizations for school attendance. Current schedule includes
 ## 5. Custodial & Maintenance Staff
 
 ### Requirements
+
 - Background check (RSMo 168.133)
 - Training in: hazardous materials handling (OSHA), blood-borne pathogens, fire safety, building security procedures
 - Asbestos awareness training (if building contains asbestos materials — AHERA compliance)
 
 ### Key Responsibilities
+
 - Building cleanliness and sanitation
 - Emergency response (spills, facility damage, weather-related)
 - Security (lock/unlock procedures, alarm systems, key management)
@@ -159,10 +178,12 @@ Missouri requires immunizations for school attendance. Current schedule includes
 ## 6. Office / Clerical Staff
 
 ### Requirements
+
 - Background check (RSMo 168.133)
 - Training in: FERPA (student records confidentiality), HIPAA (if handling health information), emergency procedures, attendance reporting, visitor management
 
 ### Responsibilities
+
 - Student enrollment and records management
 - Attendance tracking and reporting
 - Communication hub (phone, email, visitor reception)
@@ -176,12 +197,14 @@ Missouri requires immunizations for school attendance. Current schedule includes
 ## 7. Technology Staff
 
 ### Roles
+
 - Technology coordinator / IT director (district level)
 - Building-level tech support
 - Network administrators
 - Student data system administrators (SIS, LMS)
 
 ### Key Compliance Areas
+
 - **CIPA (Children's Internet Protection Act):** districts receiving E-Rate must implement internet filtering and internet safety policies
 - **FERPA:** protecting student data in all technology systems
 - **Data security:** encryption, access controls, backups, incident response
@@ -189,6 +212,7 @@ Missouri requires immunizations for school attendance. Current schedule includes
 - **Student data privacy agreements:** vendor contracts must comply with FERPA and Missouri's student data privacy provisions (RSMo 161.096)
 
 ### E-Rate
+
 Federal program that subsidizes internet connectivity and telecommunications for schools:
 - Category 1: Internet access and data transport
 - Category 2: Internal networking equipment (switches, Wi-Fi, cabling)
@@ -200,10 +224,12 @@ Federal program that subsidizes internet connectivity and telecommunications for
 ## 8. School Resource Officers (SROs)
 
 ### MOU Requirements
+
 - ESSA requires districts using COPS grant-funded SROs to have a written MOU
 - Best practice: ALL SRO programs should have an MOU defining roles, authority, and limitations
 
 ### MOU Should Address
+
 - SRO role (law enforcement, informal counselor/mentor, educator on legal topics)
 - Scope of authority on school grounds
 - Student interview protocols (rights, parent notification)
@@ -214,6 +240,7 @@ Federal program that subsidizes internet connectivity and telecommunications for
 - Complaint process
 
 ### Key Principles
+
 - SROs should not be involved in routine school discipline matters
 - SROs should not be used to enforce school attendance or dress code
 - Student Miranda rights apply if SRO is conducting a criminal investigation
@@ -224,6 +251,7 @@ Federal program that subsidizes internet connectivity and telecommunications for
 ## 9. Before/After School Program Staff
 
 ### 21st Century Community Learning Centers (21st CCLC)
+
 Federal grant program providing before/after school enrichment:
 - Academic support (tutoring, homework help)
 - Enrichment activities (STEM, arts, physical activity, social-emotional learning)
@@ -231,6 +259,7 @@ Federal grant program providing before/after school enrichment:
 - Operates during non-school hours, weekends, and summer
 
 ### Staff Requirements
+
 - Background checks (RSMo 168.133)
 - Training in: child supervision, emergency procedures, behavior management, mandated reporting
 - Licensed childcare requirements may apply if program serves younger children (Missouri DHSS childcare licensing)
@@ -240,9 +269,11 @@ Federal grant program providing before/after school enrichment:
 ## 10. All Staff: Mandated Reporting & Training
 
 ### Mandated Reporter Status (RSMo 210.115)
+
 **ALL school employees** (teachers, administrators, paras, bus drivers, custodians, food service, office staff, coaches, volunteers with regular contact) are mandated reporters of child abuse and neglect.
 
 ### Reporting Obligations
+
 - Report suspected abuse or neglect **immediately** to the Children's Division hotline: **1-800-392-3738**
 - No internal reporting hierarchy required — any employee may (and should) report directly to the hotline
 - Reporter's identity is confidential (RSMo 210.150)
@@ -250,6 +281,7 @@ Federal grant program providing before/after school enrichment:
 - **Failure to report is a Class A misdemeanor** (RSMo 210.165)
 
 ### Types of Reportable Abuse/Neglect
+
 - Physical abuse
 - Sexual abuse
 - Emotional abuse
@@ -257,8 +289,9 @@ Federal grant program providing before/after school enrichment:
 - Educational neglect (habitual truancy without parental effort)
 
 ### Required Training for All Staff
+
 | Topic | Basis | Frequency |
-|-------|-------|-----------|
+| ------- | ------- | ----------- |
 | Mandated reporting | RSMo 210.115 | Annual (recommended) |
 | Bloodborne pathogens | OSHA | Annual |
 | Emergency procedures (fire, weather, lockdown) | RSMo 160.660 | Annual |

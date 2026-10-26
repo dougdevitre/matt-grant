@@ -29,7 +29,7 @@ If you deploy this skill in a shared environment (library kiosk, Job Center comp
 1. **Clear conversations** after each participant session
 2. **Do not save** conversation transcripts containing PII without participant consent
 3. **Post a notice** informing users that the AI assistant does not store their information
-4. **Follow your organization's** existing data privacy policies (WIOA requires participant consent for data collection — see 20 CFR 677.175)
+4. **Follow your organization's** existing data privacy policies and your state workforce agency's WIOA participant-data rules (confirm consent requirements with that agency)
 
 ---
 

@@ -42,7 +42,7 @@ A trademark protects brand identifiers that distinguish your goods or services f
 
 Before investing in a brand:
 
-**Step 1: USPTO TESS Search (Free)**
+**Step 1: USPTO Trademark Search (Free; replaced TESS in 2023)**
 - Go to: tmsearch.uspto.gov
 - Search for: Exact name, phonetic equivalents, similar spellings
 - Search in the relevant class(es) — see International Classes below
@@ -78,7 +78,7 @@ You must specify classes when filing. Most SaaS/tech startups register in:
 | **Class 44** | Medical software, health services |
 | **Class 41** | Education, online training platforms |
 
-Filing fee: ~$350 per class (TEAS Plus filing, electronic)
+Filing fee: $350 per class (base application since January 18, 2025), plus surcharges for free-form descriptions or missing information
 
 ---
 
@@ -87,7 +87,7 @@ Filing fee: ~$350 per class (TEAS Plus filing, electronic)
 ```
 Step 1: File Application
 → File at: teas.uspto.gov
-→ Choose: TEAS Plus ($350/class) or TEAS Standard ($450/class)
+→ Base application: $350/class; surcharges: $100 insufficient information, $200 free-form goods/services text, $200 per extra 1,000 characters
 → Include: Mark, owner info, class(es), specimen of use (or intent-to-use)
 
 Step 2: USPTO Examination (3–4 months after filing)

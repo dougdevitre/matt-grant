@@ -22,6 +22,7 @@ flowchart TD
 ```
 
 ## Table of Contents
+
 1. Professional Learning Communities (PLCs)
 2. Instructional Coaching
 3. Mentoring & Induction (Expanded)
@@ -40,6 +41,7 @@ flowchart TD
 ## 1. Professional Learning Communities (PLCs)
 
 ### DuFour PLC Model (Most Widely Used in Missouri)
+
 Four critical questions that drive PLC work:
 1. **What do we want students to learn?** (Essential standards identification)
 2. **How will we know when they have learned it?** (Common formative assessments)
@@ -47,8 +49,9 @@ Four critical questions that drive PLC work:
 4. **What will we do when they already know it?** (Enrichment/extension)
 
 ### PLC Structure
+
 | Element | Description |
-|---------|-----------|
+| --------- | ----------- |
 | **Collaborative teams** | Teachers organized by grade level, content area, or course (not by "committee" — by shared students/standards) |
 | **Shared mission/vision/values** | Collective commitment to student learning |
 | **Collective inquiry** | Teams study best practices and current reality together |
@@ -57,6 +60,7 @@ Four critical questions that drive PLC work:
 | **SMART goals** | Specific, Measurable, Attainable, Results-oriented, Time-bound team goals |
 
 ### PLC Meeting Cycle (Typical)
+
 1. **Identify essential standards** for the upcoming unit
 2. **Design common formative assessment** aligned to standards
 3. **Teach** the unit (each teacher, own classroom)
@@ -66,6 +70,7 @@ Four critical questions that drive PLC work:
 7. **Reflect:** what worked? what needs to change?
 
 ### Administrative Support for PLCs
+
 - Protected, scheduled collaborative time (during the school day — not after hours)
 - Norms and protocols for productive meetings
 - Facilitation support (instructional coach or team leader)
@@ -77,8 +82,9 @@ Four critical questions that drive PLC work:
 ## 2. Instructional Coaching
 
 ### Coaching Models
+
 | Model | Description |
-|-------|-----------|
+| ------- | ----------- |
 | **Cognitive Coaching (Costa & Garmston)** | Develops teacher's self-directedness through structured planning, reflecting, and problem-resolving conversations |
 | **Jim Knight's Impact Cycle** | Identify → Learn → Improve cycle; teacher chooses focus; coach provides support |
 | **Student-Centered Coaching (Sweeney)** | Coaching goals tied to student outcomes, not teacher behavior |
@@ -86,8 +92,9 @@ Four critical questions that drive PLC work:
 | **Instructional Rounds** | Team-based observations and analysis of instructional practice (not evaluative) |
 
 ### Coaching vs. Evaluation
+
 | Coaching | Evaluation |
-|----------|-----------|
+| ---------- | ----------- |
 | Supportive and formative | Summative and judgmental |
 | Teacher-directed focus | Administrator-directed criteria |
 | Confidential (coaching conversations not shared with evaluators) | Documented and placed in personnel file |
@@ -95,6 +102,7 @@ Four critical questions that drive PLC work:
 | Voluntary (ideally) | Mandatory |
 
 ### Effective Coaching Practices
+
 - Build trusting relationships (confidentiality is essential)
 - Use data to identify coaching priorities
 - Model lessons (demonstrate in the teacher's classroom)
@@ -109,16 +117,19 @@ Four critical questions that drive PLC work:
 ## 3. Mentoring & Induction (Expanded)
 
 ### Missouri Requirement
+
 All Missouri districts must provide a mentoring program for new teachers (verify the current requirement with DESE).
 
 ### Comprehensive Induction Framework (Beyond One Year)
+
 | Year | Focus |
-|------|-------|
+| ------ | ------- |
 | **Year 1** | Survival and orientation: classroom management, curriculum, procedures, building relationships |
 | **Year 2** | Refinement: assessment literacy, differentiation, data use, deepening content knowledge |
 | **Year 3** | Leadership: mentoring others, leading teams, contributing to school improvement |
 
 ### Mentor Selection Criteria
+
 - Experienced and effective teacher (minimum 3-5 years)
 - Same or similar content area/grade level (when possible)
 - Strong interpersonal skills and empathy
@@ -127,6 +138,7 @@ All Missouri districts must provide a mentoring program for new teachers (verify
 - Formal mentor training (required by most programs)
 
 ### Mentor Activities
+
 - Regular meetings (weekly during year 1; biweekly in year 2)
 - Classroom observations (mentor observes new teacher; new teacher observes mentor)
 - Co-planning
@@ -140,15 +152,18 @@ All Missouri districts must provide a mentoring program for new teachers (verify
 ## 4. Micro-Credentials & Digital Badges
 
 ### What They Are
+
 Micro-credentials are competency-based, digital certifications demonstrating mastery of specific skills. Teachers earn them by submitting evidence of practice.
 
 ### Platforms
+
 - **Digital Promise** (Educator Micro-credentials)
 - **BloomBoard** (micro-credentials aligned to evaluation standards)
 - **ISTE** (digital learning micro-credentials)
 - **District-developed** micro-credential systems
 
 ### Applications in Missouri
+
 - Professional development credit for certificate renewal
 - Evidence for MEES evaluation (Standard 8: Professionalism)
 - Salary schedule advancement (some districts accept micro-credentials in lieu of graduate credits)
@@ -160,6 +175,7 @@ Micro-credentials are competency-based, digital certifications demonstrating mas
 ## 5. Action Research
 
 ### Definition
+
 Teacher-led systematic inquiry into their own practice:
 1. **Identify a question** — What am I curious about? What problem do I want to solve?
 2. **Review literature** — What does research say about this topic?
@@ -170,6 +186,7 @@ Teacher-led systematic inquiry into their own practice:
 7. **Share findings** — Present to colleagues, contribute to school's knowledge base
 
 ### Benefits
+
 - Develops teacher agency and professional autonomy
 - Bridges theory and practice
 - Creates a culture of inquiry
@@ -181,6 +198,7 @@ Teacher-led systematic inquiry into their own practice:
 ## 6. Lesson Study
 
 ### Japanese Model (Adapted for U.S.)
+
 1. **Plan together** — team collaboratively designs a "research lesson" focused on a specific learning goal
 2. **Teach** — one team member teaches the lesson while others observe (focus is on STUDENT learning, not teacher performance)
 3. **Debrief** — team discusses observations of student learning during the lesson
@@ -189,6 +207,7 @@ Teacher-led systematic inquiry into their own practice:
 6. **Reflect and share** — document findings and share with broader staff
 
 ### Key Principles
+
 - Focus on student learning, not teacher evaluation
 - Collaborative (not competitive)
 - Iterative (plan-teach-observe-revise cycle)
@@ -200,6 +219,7 @@ Teacher-led systematic inquiry into their own practice:
 ## 7. Peer Observation & Learning Walks
 
 ### Peer Observation
+
 Voluntary, non-evaluative observation between teacher peers:
 - Teacher A observes Teacher B (with invitation)
 - Focus area agreed upon in advance
@@ -208,6 +228,7 @@ Voluntary, non-evaluative observation between teacher peers:
 - Reciprocal: both teachers observe each other
 
 ### Learning Walks (Instructional Rounds)
+
 Structured team observations across multiple classrooms:
 - Team of 4-8 (teachers, coaches, administrators)
 - Brief visits (10-15 minutes per classroom)
@@ -222,8 +243,9 @@ Structured team observations across multiple classrooms:
 ## 8. Conference & Workshop PD
 
 ### Key Conferences for Missouri Educators
+
 | Conference | Focus | Organizer |
-|-----------|-------|-----------|
+| ----------- | ------- | ----------- |
 | **MSTA Conference** | All subjects, all levels | Missouri State Teachers Association |
 | **MNEA Conference** | Professional issues, instruction | Missouri National Education Association |
 | **METC (Missouri Educational Technology Conference)** | Ed tech, digital learning | METC / DESE |
@@ -234,6 +256,7 @@ Structured team observations across multiple classrooms:
 | **MSCA Conference** | School counseling | Missouri School Counselor Association |
 
 ### Workshop Quality Indicators
+
 - Aligned to school/district improvement goals
 - Research-based content
 - Active engagement (not sit-and-listen)
@@ -246,8 +269,9 @@ Structured team observations across multiple classrooms:
 ## 9. Online & Self-Directed PD
 
 ### Platforms
+
 | Platform | Content |
-|----------|---------|
+| ---------- | --------- |
 | **DESE Online PD** | State-specific training modules |
 | **RPDC online offerings** | Regional PD delivered virtually |
 | **Coursera / edX / FutureLearn** | University-partnered courses (some free) |
@@ -258,6 +282,7 @@ Structured team observations across multiple classrooms:
 | **ISTE** | Technology integration standards and courses |
 
 ### Self-Directed PD Best Practices
+
 - Set specific learning goals
 - Document learning (reflective journal, portfolio)
 - Apply learning in the classroom
@@ -270,6 +295,7 @@ Structured team observations across multiple classrooms:
 ## 10. PD Planning & Evaluation
 
 ### Characteristics of Effective PD (Learning Forward Standards)
+
 1. **Learning communities** — occurs within collaborative communities
 2. **Leadership** — requires skillful leaders who develop capacity
 3. **Resources** — adequate time, money, technology, and human resources
@@ -279,6 +305,7 @@ Structured team observations across multiple classrooms:
 7. **Outcomes** — aligns with educator performance and student results
 
 ### PD Needs Assessment
+
 - Student achievement data (assessment results, grades, growth data)
 - Teacher evaluation data (MEES trends, common growth areas)
 - Staff surveys (perceived needs, interests, barriers)
@@ -287,8 +314,9 @@ Structured team observations across multiple classrooms:
 - New initiative needs (curriculum adoption, technology rollout)
 
 ### Evaluating PD Impact (Guskey's 5 Levels)
+
 | Level | Question | Data Sources |
-|-------|---------|-------------|
+| ------- | --------- | ------------- |
 | 1 | Did participants like it? | Satisfaction surveys |
 | 2 | Did participants learn? | Pre/post assessments, quizzes |
 | 3 | Was the organization supportive? | Implementation logs, support availability |
@@ -300,6 +328,7 @@ Structured team observations across multiple classrooms:
 ## 11. Missouri PD Infrastructure
 
 ### RPDCs
+
 See `references/rural-education.md` for RPDC network details. Key services:
 - Free and low-cost PD across all content areas and grade levels
 - New teacher support and mentoring training
@@ -309,12 +338,14 @@ See `references/rural-education.md` for RPDC network details. Key services:
 - Virtual PD options
 
 ### DESE Professional Development
+
 - DESE-hosted webinars and training sessions
 - Mandated training modules (mandated reporter, suicide prevention, etc.)
 - Content-area specialist consultants available through DESE
 - Missouri Leadership Development System (MLDS) for administrator development
 
 ### University Partnerships
+
 - Graduate coursework for salary advancement and endorsement additions
 - Professional development schools (PDS) model
 - Research partnerships
@@ -325,10 +356,11 @@ See `references/rural-education.md` for RPDC network details. Key services:
 ## 12. MEES-Aligned Professional Growth
 
 ### Using MEES for Professional Growth
+
 MEES Standard 8 (Professionalism) explicitly addresses professional growth. But ALL 8 standards can drive PD:
 
 | Standard | PD Connection |
-|----------|--------------|
+| ---------- | -------------- |
 | **1. Content Knowledge** | Content-area deepening (graduate courses, institutes, content PD) |
 | **2. Student Learning** | Developmental psychology, learning theory, differentiation |
 | **3. Curriculum Implementation** | Curriculum design, standards alignment, scope and sequence |
@@ -339,6 +371,7 @@ MEES Standard 8 (Professionalism) explicitly addresses professional growth. But 
 | **8. Professionalism** | PLCs, coaching, leadership, ethics, collaboration |
 
 ### Individual Professional Growth Plan
+
 Best practice: every teacher has a written professional growth plan:
 - Based on self-assessment and evaluation feedback
 - Aligned to 1-2 specific MEES indicators

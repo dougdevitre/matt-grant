@@ -2,6 +2,12 @@
 ## Access to Jobs — Module 9
 ### Source: Missouri WIOA Combined State Plan, PY 2024–2027
 
+> **Missouri only.** Everything in this file applies to Missouri. If the user lives or is
+> looking for work in another state, do not present these programs, agencies, phone numbers
+> or figures as their options. Use the national path in SKILL.md instead: CareerOneStop
+> (careeronestop.org) and the American Job Center Finder, or the U.S. Department of Labor
+> help line, 1-877-US2-JOBS (1-877-872-5627).
+
 ---
 
 ## STACKABLE CREDENTIAL PATHWAYS
@@ -87,9 +93,10 @@ skills until they reach a self-sufficient career."*
 
 ### Fast Track Scholarship
 - **Administered by:** Missouri Dept. of Higher Education and Workforce Development (DHEWD)
-- **Who qualifies:** Most adult Missourians (broad eligibility)
-- **Covers:** Tuition at Missouri community colleges, technical schools, colleges, universities
-- **Target:** High-demand fields (Healthcare, IT, Construction, Manufacturing, etc.)
+- **Who qualifies:** Age 25+ (or out of high school/college for 2+ years); adjusted gross income $40,000 or less ($80,000 married filing jointly); Missouri resident for 2+ years; no bachelor's degree; at least half-time in a designated program (DOL-approved apprentices also qualify)
+- **Covers:** Remaining tuition and general fees after other non-loan aid (last-dollar) at participating Missouri schools; up to $500 for books or other costs if aid already covers tuition; tools, books and uniforms for apprentices
+- **Target:** High-demand fields designated by DHEWD (Healthcare, IT, Construction, Manufacturing, etc.)
+- **Last verified:** 2026-10-20 (DHEWD program summary)
 - **Apply:** dhewd.mo.gov/initiatives/fast-track-workforce-incentive-grant
 
 ### WIOA Individual Training Account (ITA)
@@ -104,9 +111,9 @@ skills until they reach a self-sufficient career."*
 - **Partners:** Missouri Community Action Network, Community College Association, OWD
 - **Access:** DSS offices; opt-in text messages to SNAP households
 
-### Credential Training Fund
+### Credential Training Program (Missouri One Start, DED)
 - **Who:** Employers (funding passes through to workers)
-- **What:** Reimbursement up to $2,000/person; $30,000 max per company per state fiscal year
+- **What:** Reimbursement up to $2,000 per employee per credential earned; $30,000 max per company per state fiscal year; apply in January, April, July or October
 - **For:** Industry-recognized credentials
 - **Route:** Employer must apply; worker benefits indirectly
 
@@ -163,7 +170,7 @@ skills until they reach a self-sufficient career."*
 
 ### Veterans
 - GI Bill benefits stack with some WIOA services — check with Job Center
-- Priority of service for all WIOA programs; DVOP/CODL provide intensive case management
+- Priority of service for all WIOA programs; DVOP/LVER provide intensive case management
 - Registered apprenticeship programs increasingly military-skill aligned
 
 ### English Language Learners

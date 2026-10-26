@@ -1,6 +1,7 @@
 # Missouri Education Law — Reference
 
 ## Table of Contents
+
 1. Missouri Revised Statutes — Education Chapters
 2. Key Statutes by Topic
 3. DESE Administrative Rules (5 CSR 20)
@@ -45,7 +46,7 @@ graph TD
 Missouri education law is primarily contained in RSMo Chapters 160-178:
 
 | Chapter | Subject |
-|---------|---------|
+| --------- | --------- |
 | **160** | Schools — General Provisions (MSIP, charter schools, safety, A+ program, curriculum requirements) |
 | **161** | Department of Elementary and Secondary Education (DESE powers, data collection, student privacy) |
 | **162** | School Districts — Organization and Governance (boards, boundary changes, consolidation, superintendent) |
@@ -61,8 +62,9 @@ Missouri education law is primarily contained in RSMo Chapters 160-178:
 | **173-178** | Higher Education (various) |
 
 ### Other Relevant Chapters
+
 | Chapter | Subject |
-|---------|---------|
+| --- | --- |
 | **210** | Child Protection (mandated reporting — RSMo 210.115) |
 | **610** | Sunshine Law (open meetings, open records) |
 | **213** | Missouri Human Rights Act (anti-discrimination) |
@@ -72,8 +74,9 @@ Missouri education law is primarily contained in RSMo Chapters 160-178:
 ## 2. Key Statutes by Topic
 
 ### Student-Related
+
 | Statute | Topic | Summary |
-|---------|-------|---------|
+| --------- | ------- | --------- |
 | RSMo 160.053 | Kindergarten entry age | Child must turn 5 before August 1 |
 | RSMo 160.261 | Discipline policy | Districts must adopt written discipline code; mandatory reporting for weapons/drugs/assault |
 | RSMo 160.263 | Seclusion | Limits on confining a student in seclusion |
@@ -96,8 +99,9 @@ Missouri education law is primarily contained in RSMo Chapters 160-178:
 | RSMo 170.310 | CPR instruction | Required before graduation |
 
 ### Teacher/Employee-Related
+
 | Statute | Topic | Summary |
-|---------|-------|---------|
+| --------- | ------- | --------- |
 | RSMo 168.021 | Teacher certification | Certificate types, requirements, DESE authority |
 | RSMo 168.102-130 | Teacher Tenure Act | Probationary period, permanent status, termination procedures |
 | RSMo 168.104 | Probationary teacher | 5-year probationary period for tenure |
@@ -106,16 +110,18 @@ Missouri education law is primarily contained in RSMo Chapters 160-178:
 | RSMo 168.133 | Background checks | Required for all employees and volunteers with unsupervised child access |
 
 ### District/Board-Related
+
 | Statute | Topic | Summary |
-|---------|-------|---------|
+| --------- | ------- | --------- |
 | RSMo 162.081 | Lapse of corporate organization | State authority when district fails to meet standards |
 | RSMo 163.011-191 | Foundation formula / state aid | State adequacy target, WADA, local effort, hold harmless |
 | RSMo 164.011 | Tax rates | Annual estimate of required funds and the tax rates needed |
 | RSMo 165.121 | Annual audit | Required independent financial audit |
 
 ### Child Protection
+
 | Statute | Topic | Summary |
-|---------|-------|---------|
+| --------- | ------- | --------- |
 | RSMo 210.115 | Mandated reporting | All persons (including all school employees) must report suspected child abuse/neglect |
 | RSMo 210.135 | Immunity for reporters | Good-faith reporters are immune from civil and criminal liability |
 | RSMo 210.150 | Reporter confidentiality | Identity of reporter is confidential |
@@ -128,7 +134,7 @@ Missouri education law is primarily contained in RSMo Chapters 160-178:
 DESE promulgates rules under Title 5 of the Code of State Regulations (CSR), Division 20:
 
 | Division | Subject |
-|----------|---------|
+| ---------- | --------- |
 | **5 CSR 20-100** | General Administration (MSIP, accreditation, school calendar, data reporting) |
 | **5 CSR 20-200** | School Finance (state aid calculations, budgeting, reporting) |
 | **5 CSR 20-300** | Special Education (Missouri's IDEA State Plan rules, evaluation procedures, IEP requirements, discipline of students with disabilities, procedural safeguards) |
@@ -139,6 +145,7 @@ DESE promulgates rules under Title 5 of the Code of State Regulations (CSR), Div
 | **5 CSR 20-800** | Adult and Community Education |
 
 ### Accessing Rules
+
 - Missouri Secretary of State website: sos.mo.gov/adrules/csr/current/5csr/5csr.asp
 - DESE website: dese.mo.gov (guidance documents, handbooks, and FAQ supplements to formal rules)
 
@@ -147,8 +154,9 @@ DESE promulgates rules under Title 5 of the Code of State Regulations (CSR), Div
 ## 4. Federal Laws Applicable to Missouri Schools
 
 ### Major Federal Education Laws
+
 | Law | Citation | Key Provisions |
-|-----|----------|---------------|
+| ----- | ---------- | --------------- |
 | **ESSA (Every Student Succeeds Act)** | P.L. 114-95 | State accountability plans, assessments, Title programs, teacher quality, school improvement |
 | **IDEA (Individuals with Disabilities Education Act)** | 20 U.S.C. §1400 et seq. | FAPE, LRE, IEP, procedural safeguards, discipline protections, transition |
 | **Section 504 (Rehabilitation Act)** | 29 U.S.C. §794 | Disability accommodation in federally funded programs |
@@ -161,8 +169,9 @@ DESE promulgates rules under Title 5 of the Code of State Regulations (CSR), Div
 | **CIPA (Children's Internet Protection Act)** | 47 U.S.C. §254(h)(5) | Internet filtering and safety policy for E-Rate recipients |
 
 ### Implementing Regulations
+
 | Regulation | Law | Content |
-|-----------|-----|---------|
+| ----------- | ----- | --------- |
 | 34 CFR Part 300 | IDEA | Special education regulations |
 | 34 CFR Part 104 | Section 504 | Nondiscrimination on the basis of handicap |
 | 34 CFR Part 99 | FERPA | Student records privacy regulations |
@@ -174,28 +183,34 @@ DESE promulgates rules under Title 5 of the Code of State Regulations (CSR), Div
 ## 5. Key Legal Concepts
 
 ### Due Process
+
 The constitutional guarantee (5th and 14th Amendments) that government cannot deprive a person of life, liberty, or property without fair procedures. In education:
 - **Substantive due process:** government action must be reasonable and not arbitrary
 - **Procedural due process:** affected individuals must receive notice and an opportunity to be heard before significant actions (e.g., suspension, expulsion, termination)
 
 ### In Loco Parentis
+
 Schools act "in the place of parents" during school hours — granting authority over student conduct and safety, but also imposing duty of care.
 
 ### Qualified Immunity
+
 Government officials (including educators) may be shielded from personal liability for discretionary actions performed in good faith, unless they violated clearly established constitutional rights.
 
 ### Search and Seizure in Schools
+
 - **New Jersey v. T.L.O. (1985):** school officials may search students based on **reasonable suspicion** (lower standard than probable cause required of law enforcement)
 - Reasonable suspicion requires: (1) the search is justified at its inception, and (2) the search is reasonable in scope
 - SROs conducting searches in their law enforcement capacity may be held to the higher probable cause standard (jurisdiction varies)
 
 ### Free Speech in Schools
+
 - **Tinker v. Des Moines (1969):** students retain First Amendment rights in school, subject to limitation when speech would cause substantial disruption or infringe on the rights of others
 - **Bethel v. Fraser (1986):** schools may restrict lewd or vulgar student speech
 - **Hazelwood v. Kuhlmeier (1988):** schools may exercise editorial control over school-sponsored expression
 - **Mahanoy v. B.L. (2021):** schools have limited authority to regulate off-campus speech (including social media)
 
 ### Mandatory Reporting Law
+
 RSMo 210.115 makes ALL persons (not just professionals) mandated reporters. In practice, school employees are primary reporters due to daily contact with children. Key: reasonable suspicion triggers the duty to report — not certainty.
 
 ---
@@ -203,18 +218,21 @@ RSMo 210.115 makes ALL persons (not just professionals) mandated reporters. In p
 ## 6. DESE Organizational Structure
 
 ### Commissioner of Education
+
 - Appointed by the State Board of Education
 - Leads DESE; oversees all divisions
 - Implements policies set by the State Board
 
 ### State Board of Education
+
 - 8 members appointed by the Governor (confirmed by Senate)
 - Sets education policy for Missouri
 - Approves state standards, assessment policies, accreditation decisions, and educator certification rules
 
 ### Key DESE Divisions/Offices
+
 | Division/Office | Responsibilities |
-|----------------|-----------------|
+| ---------------- | ----------------- |
 | Office of Quality Schools | MSIP, school improvement, accountability |
 | Office of Special Education | IDEA compliance, Part B, Part C (First Steps), dispute resolution |
 | Office of Educator Quality | Certification, educator preparation, professional development |
@@ -230,7 +248,7 @@ RSMo 210.115 makes ALL persons (not just professionals) mandated reporters. In p
 ### Where to File Complaints
 
 | Issue | File With | Process |
-|-------|----------|---------|
+| ------- | ---------- | --------- |
 | Special education (IDEA) | DESE Office of Special Education | State complaint (60-day resolution) or due process hearing |
 | Section 504 / ADA / Title VI / Title IX | U.S. Dept. of Education, Office for Civil Rights (OCR) | Investigation within 180 days of alleged violation |
 | FERPA violation | U.S. Dept. of Education, FPCO (Family Policy Compliance Office) | Written complaint |
@@ -241,6 +259,7 @@ RSMo 210.115 makes ALL persons (not just professionals) mandated reporters. In p
 | Employment discrimination | EEOC and/or Missouri Commission on Human Rights | Investigation per Title VII / Missouri Human Rights Act |
 
 ### DESE Authority
+
 - DESE can require corrective action for districts found in noncompliance
 - DESE can withhold federal or state funds for persistent noncompliance
 - DESE can direct special education compensatory services
@@ -253,6 +272,7 @@ RSMo 210.115 makes ALL persons (not just professionals) mandated reporters. In p
 **Note:** This section reflects general trends in Missouri education legislation. Specific bills and enacted laws should be verified through the Missouri General Assembly website (house.mo.gov / senate.mo.gov) and DESE guidance.
 
 ### Common Legislative Areas
+
 - **School choice:** voucher proposals, education savings accounts, charter school expansion
 - **Curriculum:** restrictions or requirements around certain topics; transparency in curriculum materials
 - **School safety:** resource officer funding, mental health funding, threat assessment teams
@@ -263,6 +283,7 @@ RSMo 210.115 makes ALL persons (not just professionals) mandated reporters. In p
 - **Early childhood:** universal pre-K proposals, Missouri Preschool Program expansion
 
 ### Staying Current
+
 - DESE publishes legislative summaries and guidance after each session
 - Missouri School Boards Association (MSBA) tracks legislation and provides analysis
 - Missouri National Education Association (MNEA) and Missouri State Teachers Association (MSTA) monitor legislation affecting educators

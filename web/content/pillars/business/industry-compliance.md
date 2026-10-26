@@ -226,7 +226,7 @@ Use a PCI-compliant payment processor (Stripe, Braintree, Square) and implement 
 - **Level 2:** Advanced (110 NIST SP 800-171 practices) — third-party assessment for most
 - **Level 3:** Expert (DoD-led assessment)
 
-**Timeline:** CMMC requirements being phased into contracts 2024–2026.
+**Timeline:** CMMC requirements are phased into DoD contracts from November 10, 2025 (Phase 1) to November 10, 2028 (Phase 4).
 
 **Missouri relevance:** Critical for any startup pursuing DoD contracts or subcontracting with Boeing, Leidos, etc.
 

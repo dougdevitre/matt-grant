@@ -2,6 +2,12 @@
 ## Access to Jobs — Module 1 — Job Matching
 ### Source: Missouri WIOA Combined State Plan, PY 2024–2027 / MERIC / Lightcast
 
+> **Missouri only.** Everything in this file applies to Missouri. If the user lives or is
+> looking for work in another state, do not present these programs, agencies, phone numbers
+> or figures as their options. Use the national path in SKILL.md instead: CareerOneStop
+> (careeronestop.org) and the American Job Center Finder, or the U.S. Department of Labor
+> help line, 1-877-US2-JOBS (1-877-872-5627).
+
 ---
 
 ## MISSOURI JOB TIER FRAMEWORK

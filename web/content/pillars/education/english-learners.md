@@ -28,7 +28,8 @@ flowchart TD
 ```
 
 ## Table of Contents
-- [1. WIDA Proficiency Levels — What Teachers Need to Know](#1-wida-proficiency-levels-what-teachers-need-to-know)
+
+- [1. WIDA Proficiency Levels — What Teachers Need to Know](#1-wida-proficiency-levels--what-teachers-need-to-know)
   - [The 4 Language Domains](#the-4-language-domains)
 - [2. Writing Language Objectives](#2-writing-language-objectives)
   - [Language Objective Formula](#language-objective-formula)
@@ -51,15 +52,15 @@ flowchart TD
   - [Communication Requirements](#communication-requirements)
   - [Building Trust with ELL Families](#building-trust-with-ell-families)
 - [8. Program Models in Missouri](#8-program-models-in-missouri)
-  - [SIOP (Sheltered Instruction Observation Protocol) — Key Components](#siop-sheltered-instruction-observation-protocol-key-components)
-- [9. Legal Requirements — Quick Reference](#9-legal-requirements-quick-reference)
+  - [SIOP (Sheltered Instruction Observation Protocol) — Key Components](#siop-sheltered-instruction-observation-protocol--key-components)
+- [9. Legal Requirements — Quick Reference](#9-legal-requirements--quick-reference)
 
 ## 1. WIDA Proficiency Levels — What Teachers Need to Know
 
 WIDA defines 6 levels of English proficiency. **Every instructional decision for an ELL should start with their WIDA level.**
 
 | Level | Label | What the student CAN do | What the student NEEDS |
-|-------|-------|------------------------|----------------------|
+| ------- | ------- | ------------------------ | ---------------------- |
 | **1** | Entering | Single words, phrases, gestures. Can match pictures to words. Can copy text. | Visual supports for everything. Word banks. Sentence frames. L1 (home language) support. Survival vocabulary. |
 | **2** | Emerging | Short phrases, simple sentences. Can follow 1-2 step directions. Can write lists and label. | Graphic organizers. Simplified text. Sentence starters. Repetition. Partner work with bilingual peers. |
 | **3** | Developing | Simple and some complex sentences. Can retell, compare, sequence. Can write short paragraphs with support. | Adapted grade-level text. Content vocabulary pre-teaching. Sentence frames for academic language. Small group instruction. |
@@ -68,10 +69,11 @@ WIDA defines 6 levels of English proficiency. **Every instructional decision for
 | **6** | Reaching | Comparable to English-proficient peers. | No specific ELL services; may still be in monitoring period. |
 
 ### The 4 Language Domains
+
 Every WIDA level applies across 4 domains. A student may be Level 3 in listening but Level 1 in writing.
 
 | Domain | What it covers | How it shows up in class |
-|--------|---------------|------------------------|
+| -------- | --------------- | ------------------------ |
 | **Listening** | Understanding spoken English | Following directions, comprehending lectures, participating in discussions |
 | **Speaking** | Producing spoken English | Answering questions, presenting, explaining thinking, collaborating |
 | **Reading** | Understanding written English | Decoding, comprehending text, interpreting graphics/charts |
@@ -87,12 +89,13 @@ Every WIDA level applies across 4 domains. A student may be Level 3 in listening
 2. **Language objective** — what language students will USE to demonstrate learning
 
 ### Language Objective Formula
+
 > Students will [language function] + [content topic] + [support/scaffold]
 
 ### Language Functions by Cognitive Demand
 
 | Lower demand | Higher demand |
-|-------------|--------------|
+| ------------- | -------------- |
 | List, label, name, match | Compare, contrast, explain |
 | Identify, describe, retell | Analyze, justify, evaluate |
 | Categorize, sequence, define | Argue, synthesize, critique |
@@ -100,7 +103,7 @@ Every WIDA level applies across 4 domains. A student may be Level 3 in listening
 ### Examples by Subject
 
 | Subject | Content Objective | Language Objective |
-|---------|------------------|-------------------|
+| --------- | ------------------ | ------------------- |
 | **Science** | Explain the water cycle stages | Students will **describe** the water cycle using sequence words (first, next, then, finally) and a labeled diagram |
 | **Math** | Solve two-step word problems | Students will **explain** their problem-solving steps using sentence frames: "First I ___, then I ___, so the answer is ___" |
 | **Social Studies** | Analyze causes of the Civil War | Students will **compare** two causes of the Civil War using a Venn diagram and the frame: "___ is similar to ___ because ___. They differ because ___." |
@@ -113,7 +116,7 @@ Every WIDA level applies across 4 domains. A student may be Level 3 in listening
 ### For Levels 1-2 (Entering/Emerging)
 
 | Strategy | How to do it |
-|----------|-------------|
+| ---------- | ------------- |
 | **Visual supports** | Anchor charts, labeled diagrams, picture dictionaries, real objects (realia), gestures |
 | **Word banks** | Pre-select 5-8 key vocabulary words with pictures and L1 translations. Display prominently. |
 | **Sentence frames** | Provide fill-in-the-blank structures: "The main character is ___ because ___." |
@@ -125,7 +128,7 @@ Every WIDA level applies across 4 domains. A student may be Level 3 in listening
 ### For Levels 3-4 (Developing/Expanding)
 
 | Strategy | How to do it |
-|----------|-------------|
+| ---------- | ------------- |
 | **Academic vocabulary** | Pre-teach Tier 2 (cross-content) and Tier 3 (subject-specific) words explicitly |
 | **Adapted text** | Grade-level text with glossed vocabulary, chunked paragraphs, guiding questions |
 | **Sentence starters** | More complex than frames: "Based on the evidence, I can conclude that ___" |
@@ -136,7 +139,7 @@ Every WIDA level applies across 4 domains. A student may be Level 3 in listening
 ### For Level 5 (Bridging)
 
 | Strategy | How to do it |
-|----------|-------------|
+| ---------- | ------------- |
 | **Academic language focus** | Emphasis on register, genre conventions, discipline-specific discourse |
 | **Gradual release** | Remove scaffolds systematically — from frames to starters to independent |
 | **Peer teaching** | Pair with lower-level ELLs to explain concepts (reinforces their own learning) |
@@ -153,7 +156,7 @@ Every WIDA level applies across 4 domains. A student may be Level 3 in listening
 **Step 3:** Differentiate the task, not the rigor
 
 | Component | Levels 1-2 | Levels 3-4 | Level 5+ |
-|-----------|-----------|-----------|---------|
+| ----------- | ----------- | ----------- | --------- |
 | **Input** | Visuals, realia, simplified text, L1 support | Adapted grade-level text with glossary | Grade-level text |
 | **Process** | Matching, sorting, labeling, drawing | Comparing, summarizing, explaining with frames | Analyzing, evaluating, arguing |
 | **Output** | Words, phrases, labeled pictures, T-charts | Sentences, short paragraphs with starters | Paragraphs, essays, presentations |
@@ -196,7 +199,7 @@ Every WIDA level applies across 4 domains. A student may be Level 3 in listening
 ### Classroom Assessments (Teacher-Made)
 
 | Accommodation | When to use |
-|--------------|-------------|
+| -------------- | ------------- |
 | **Extended time** | All levels; especially Levels 1-3 |
 | **Bilingual dictionary/glossary** | All levels; word-to-word (no definitions) |
 | **Simplified language on tests** | Levels 1-3; simplify the question, not the content |
@@ -210,12 +213,13 @@ Every WIDA level applies across 4 domains. A student may be Level 3 in listening
 ### State Assessments (MAP/EOC)
 
 | Assessment | ELL Accommodations (DESE-approved) |
-|-----------|----------------------------------|
+| ----------- | ---------------------------------- |
 | **MAP (Grades 3-8)** | Extended time, separate setting, bilingual word-to-word dictionary (no definitions), text-to-speech (for math/science), translation of directions |
 | **EOC** | Same as MAP; specific accommodations must be documented in student's ELL plan and used regularly in instruction |
 | **ACCESS for ELLs** | Specific accommodations allowed per WIDA guidelines (varies by domain — e.g., extended time for writing, but NOT bilingual dictionaries on a language proficiency test) |
 
 ### Important: ELL ≠ IEP
+
 - ELL accommodations are based on language proficiency, NOT disability
 - An ELL student may ALSO have an IEP — dual-identified students receive BOTH sets of accommodations
 - Never assume academic difficulty is due to language alone — if a student has been in the US 5+ years and is still struggling, consider whether evaluation for a learning disability is warranted (but language difference alone is NOT a disability)
@@ -225,6 +229,7 @@ Every WIDA level applies across 4 domains. A student may be Level 3 in listening
 ## 6. Newcomer Students
 
 ### First 30 Days Checklist
+
 When a newcomer (recently arrived, minimal or no English) enrolls:
 
 - [ ] Enroll immediately — cannot delay for records, transcripts, or immunizations (Plyler v. Doe)
@@ -239,6 +244,7 @@ When a newcomer (recently arrived, minimal or no English) enrolls:
 - [ ] Connect family with community resources (ESL classes for adults, cultural organizations)
 
 ### Students with Interrupted Formal Education (SIFE)
+
 Students who have gaps of 2+ years in schooling due to war, migration, poverty, or other factors:
 - May be at grade level cognitively but years behind in literacy (in any language)
 - Need simultaneous literacy instruction AND content access
@@ -251,11 +257,13 @@ Students who have gaps of 2+ years in schooling due to war, migration, poverty, 
 ## 7. ELL Family Engagement
 
 ### Communication Requirements
+
 - All parent communication must be in a language families understand (Title VI, Lau v. Nichols)
 - If the district cannot translate a document, they must provide oral interpretation
 - Parents must be notified of: ELL identification, program placement, assessment results, exit from services, right to decline services
 
 ### Building Trust with ELL Families
+
 - Many immigrant families have experienced institutions as hostile — building trust takes time
 - Use bilingual liaisons or interpreters at conferences (not the student)
 - Explain the US school system explicitly — grading, attendance expectations, parent roles, how to contact teachers
@@ -269,7 +277,7 @@ Students who have gaps of 2+ years in schooling due to war, migration, poverty, 
 ## 8. Program Models in Missouri
 
 | Model | Description | Where used |
-|-------|-------------|-----------|
+| ------- | ------------- | ----------- |
 | **Sheltered Instruction (SIOP)** | Content taught in English with systematic scaffolding. Most common model in Missouri. | Statewide |
 | **Pull-out ESL** | Students leave general ed for dedicated English instruction | Smaller districts, lower ELL counts |
 | **Push-in ESL** | ESL teacher co-teaches or supports in the general ed classroom | Growing in popularity |
@@ -278,6 +286,7 @@ Students who have gaps of 2+ years in schooling due to war, migration, poverty, 
 | **Heritage language programs** | Support for students who speak a language other than English at home | Very limited in Missouri |
 
 ### SIOP (Sheltered Instruction Observation Protocol) — Key Components
+
 1. **Lesson preparation** — content + language objectives, adapted text, supplementary materials
 2. **Building background** — connect to prior knowledge, pre-teach vocabulary, link to students' experiences
 3. **Comprehensible input** — speak clearly, use visuals, model, demonstrate, avoid idioms
@@ -292,7 +301,7 @@ Students who have gaps of 2+ years in schooling due to war, migration, poverty, 
 ## 9. Legal Requirements — Quick Reference
 
 | Requirement | Citation | What it means |
-|------------|---------|--------------|
+| ------------ | --------- | -------------- |
 | Cannot deny enrollment based on language or immigration status | Plyler v. Doe (1982) | Enroll immediately, no questions about immigration |
 | Must identify ELLs | Title VI, EEOA | Home Language Survey → WIDA Screener |
 | Must provide effective language program | Lau v. Nichols (1974), Castaneda v. Pickard (1981) | Program must be (1) based on sound theory, (2) implemented with adequate resources, (3) evaluated and adjusted if not working |

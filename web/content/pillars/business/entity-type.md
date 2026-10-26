@@ -64,7 +64,7 @@ If you are profitable and paying yourself, the entity structure significantly af
 
 This is the threshold where the S-Corp election typically starts saving money. Here is why:
 
-- **LLC (sole proprietor):** All profit is subject to self-employment tax (15.3% on the first ~$160K).
+- **LLC (sole proprietor):** All profit is subject to self-employment tax (15.3% up to the Social Security wage base, $184,500 in 2026).
 - **S-Corp:** You pay yourself a "reasonable salary" (subject to payroll tax) and take remaining profit as a distribution (no self-employment tax).
 
 Example: $150K profit
@@ -85,7 +85,7 @@ The savings grow as profit increases. Below $50K, the added complexity and payro
 | **Stock options** | Cannot issue stock options (can do profit interests) | Can issue options but less standard | Standard; ISOs, NSOs, QSBS benefits |
 | **VC compatible** | No | No | Yes |
 | **Formation cost** | $50-$500 | $50-$500 + S-election filing | $500-$2,000 (legal fees) |
-| **Ongoing costs** | Minimal | Payroll processing, annual tax filing | Delaware franchise tax ($400+), registered agent, annual filings |
+| **Ongoing costs** | Minimal | Payroll processing, annual tax filing | Delaware franchise tax ($175–$400+ plus $50 report fee), registered agent, annual filings |
 | **Complexity** | Low | Medium | High |
 
 ## Common Paths by Founder Type

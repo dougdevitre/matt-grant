@@ -166,12 +166,12 @@ Ask: [Specific intro, feedback, or connection]
 
 | Resource | Type | Amount |
 |----------|------|--------|
-| Arch Grants | Non-dilutive grant | $50K |
+| Arch Grants | Non-dilutive grant | $75K |
 | Capital Innovators | Accelerator | ~$50K |
 | ITEN | Network + support | Varies |
 | Cultivation Capital | VC (St. Louis) | Seed–Series A |
 | Missouri Technology Corporation | Grant/loan | Varies |
-| SBA SBIR/STTR | Federal grant | Phase I: $275K |
+| SBA SBIR/STTR | Federal grant | Phase I: ~$314K |
 
 Verify details directly — program availability changes.
 

@@ -103,7 +103,7 @@
 - [ ] Timeline built backwards from deadline
 - [ ] SAM.gov registration current (federal grants require this)
 - [ ] UEI number active
-- [ ] Indirect cost rate negotiated (or de minimis 10%)
+- [ ] Indirect cost rate negotiated (or the 15% de minimis rate; 10% for awards before Oct 1, 2024)
 - [ ] Letters of support requested (allow 2+ weeks)
 - [ ] Data compiled (needs assessment, disparity data, program results)
 

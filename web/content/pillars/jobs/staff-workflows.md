@@ -74,7 +74,7 @@ Ask these questions in order. Document answers in MoJobs.
 |---|---|
 | Active military / veteran / military spouse? | → Priority queue + Show-Me Heroes screen + DVOP |
 | Public assistance (SNAP/TANF/Medicaid)? | → SkillUP + DSS OWCI screen |
-| Mass layoff (25+) or trade-affected? | → Dislocated Worker + Rapid Response + TAA screen |
+| Mass layoff (25+) or trade-affected? | → Dislocated Worker + Rapid Response (TAA only if certified and separated by June 30, 2022) |
 | UI claimant? | → RESEA awareness + Coursera + work search reminder |
 | Under age 24? | → WIOA Youth program screen + JAG/Futures |
 | No high school diploma? | → AEL / Excel Center referral |
@@ -104,7 +104,7 @@ Does that sound helpful?"
 Job seeker walks in
        ↓
 Veteran or military spouse?
-  YES → Priority queue → DVOP/CODL screen → Show-Me Heroes OJT if applicable
+  YES → Priority queue → DVOP/LVER screen → Show-Me Heroes OJT if applicable
   NO ↓
 Currently on UI?
   YES → RESEA awareness → Coursera license → Work search = Job Center counts
@@ -113,7 +113,7 @@ SNAP/TANF recipient?
   YES → SkillUP screen → DSS OWCI → Text opt-in for events
   NO ↓
 Recent layoff (25+) or trade-affected industry?
-  YES → Dislocated Worker → Rapid Response → TAA screen
+  YES → Dislocated Worker → Rapid Response → TAA check (only workers certified and separated by 6/30/2022)
   NO ↓
 Youth (14–24)?
   YES → WIOA Youth → JAG / Futures / Excel Center screen
@@ -229,7 +229,7 @@ jobs.mo.gov
 - AEL program: no diploma, low literacy, English learners
 - DSS OWCI: SNAP/TANF participants needing SkillUP or employment services
 - OWD Reentry Specialist: justice-involved participants
-- DVOP/CODL: veterans with significant barriers
+- DVOP/LVER: veterans with significant barriers
 - Community Action Agency: housing, utilities, emergency support
 - Excel Center: adults 21+ needing high school diploma
 
@@ -285,17 +285,21 @@ Can I send you more information, or would you prefer I stop by?"
 
 ### WOTC (Work Opportunity Tax Credit) Explanation
 
+**Status check first:** WOTC expired for workers who begin work after December 31, 2025. Check irs.gov to see whether Congress has renewed it before counting on it. Use the script below only if irs.gov shows WOTC has been
+renewed for the hire date in question. Otherwise, pitch OJT, IWT, Federal Bonding, and
+apprenticeship instead.
+
 ```
-"You may already know about WOTC — the federal tax credit for hiring workers from
-certain target groups: veterans, ex-felons, long-term unemployed, SNAP recipients,
-people with disabilities, and others.
+"You may have heard of WOTC — the federal tax credit for hiring workers from certain
+target groups: veterans, people with past convictions, long-term unemployed, SNAP
+recipients, people with disabilities, and others.
 
-The credit can be worth $2,400 to $9,600 per eligible hire depending on the group.
+When it is authorized, the credit has been worth $2,400 to $9,600 per eligible hire,
+depending on the group. It expired for workers who begin work after December 31, 2025,
+so check irs.gov for its current status before counting on it.
 
-We can help you identify eligible candidates, handle the certification paperwork, and
-connect you with a talent pipeline from our job seeker pool — many of whom qualify.
-
-This isn't extra work for your HR team. We do the paperwork. You get the credit."
+If it applies, we can help you identify eligible candidates and explain the certification
+paperwork. Your tax professional can confirm whether you can claim it."
 ```
 
 ---

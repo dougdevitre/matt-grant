@@ -135,7 +135,7 @@ graph LR
 ### Common Questions
 
 **Q: What triggers a Manifestation Determination Review (MDR)?**
-A: An MDR is required before any disciplinary removal exceeding 10 cumulative school days in a year for a student with an IEP or 504 plan. The team determines whether the behavior was caused by the disability or by a failure to implement the plan.
+A: An MDR is required for a disciplinary removal that changes placement for a student with an IEP or 504 plan: more than 10 consecutive school days, or a series of removals totaling more than 10 school days in a year that forms a pattern (34 CFR 300.536). The team determines whether the behavior was caused by the disability or by a failure to implement the plan.
 
 **Q: What are the 13 IDEA disability categories?**
 A: Autism, Deaf-Blindness, Deafness, Emotional Disturbance, Hearing Impairment, Intellectual Disability, Multiple Disabilities, Orthopedic Impairment, Other Health Impairment, Specific Learning Disability, Speech/Language Impairment, Traumatic Brain Injury, and Visual Impairment. Missouri also uses "Young Child with a Developmental Delay" for ages 3-5.

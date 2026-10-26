@@ -15,7 +15,24 @@ graph TD
     A --> L[Homeschool /<br/>HiSET Options]
 ```
 
+## If You Need Help Right Now
+
+If you are a student or parent and something feels unsafe or too heavy to carry alone, you can reach someone today. These lines are free, confidential and open 24/7.
+
+| Situation | Who to contact |
+| --- | --- |
+| In danger right now | Call **911** |
+| Thinking about hurting yourself, or feeling hopeless | Call or text **988** (Suicide & Crisis Lifeline). En español: llame al 988 y marque 2, o envíe AYUDA al 988. |
+| Want to text instead of call | Text **HOME** to **741741** (Crisis Text Line). En español: envíe HOLA al 741741. |
+| LGBTQ+ young people | **Trevor Project:** call 1-866-488-7386, or text START to 678-678 |
+| Someone at home is hurting you or not taking care of you | **Childhelp:** call or text 1-800-422-4453. In Missouri, you or an adult can also call the **Child Abuse & Neglect Hotline** at 1-800-392-3738 (Missouri only). |
+
+You can also tell a school counselor, teacher or other adult you trust. You do not have to have the right words. Saying "I need help" is enough.
+
+---
+
 ## Table of Contents
+
 1. Graduation Requirements
 2. A+ Schools Program
 3. Student Attendance & Truancy
@@ -35,8 +52,9 @@ graph TD
 **Minimum credits for graduation: 24 units of credit** (DESE minimum; districts may require more)
 
 ### Required Subject Areas
+
 | Subject | Minimum Credits | Notes |
-|---------|----------------|-------|
+| --------- | ---------------- | ------- |
 | English Language Arts | 4.0 | |
 | Mathematics | 3.0 | Must include Algebra I or higher |
 | Science | 3.0 | Must include at least 1 lab science |
@@ -56,6 +74,7 @@ graph TD
 - Students must participate in MAP/EOC assessments (scores do not prevent graduation, but participation is required)
 
 ### End-of-Course (EOC) Exams
+
 Missouri requires EOC exams in:
 - English II
 - Algebra I (or Algebra II if taken)
@@ -65,6 +84,7 @@ Missouri requires EOC exams in:
 EOC scores are factored into course grades per local board policy. Participation is mandatory; passing is not a graduation gate (as of current DESE guidance).
 
 ### Early Graduation
+
 Districts may allow early graduation. Student must meet all credit and assessment requirements. Board policy governs the process.
 
 ---
@@ -74,6 +94,7 @@ Districts may allow early graduation. Student must meet all credit and assessmen
 **Statutory basis:** RSMo 160.545
 
 ### Eligibility Requirements (Student)
+
 To qualify for A+ tuition reimbursement at participating Missouri community colleges and vocational/technical schools:
 
 1. **Attend a designated A+ school** for 3 consecutive years prior to graduation (or the student's entire high school enrollment if fewer than 3 years)
@@ -85,12 +106,14 @@ To qualify for A+ tuition reimbursement at participating Missouri community coll
 7. **Score Proficient or Advanced on the Algebra I EOC** (or a qualifying score on the Math section of an approved alternative assessment)
 
 ### A+ Benefits
+
 - Tuition reimbursement (not fees/books) at any Missouri public community college or vocational/technical school
 - Benefits last for up to 48 months after high school graduation (students must use benefits within this window)
 - Students must maintain a 2.5 GPA and attend full-time (12+ credit hours) at the college level
 - Benefits are "last dollar" — applied after all other non-loan financial aid
 
 ### A+ Coordinator Role
+
 Each A+ school designates a coordinator who tracks student eligibility, mentoring hours, citizenship, and GPA/attendance. Students should check with their A+ coordinator regularly.
 
 ---
@@ -98,16 +121,19 @@ Each A+ school designates a coordinator who tracks student eligibility, mentorin
 ## 3. Student Attendance & Truancy
 
 ### Compulsory Attendance
+
 - **Ages 7 through 17** must attend school regularly (RSMo 167.031)
 - Children may begin kindergarten if they turn 5 before August 1 of that school year
 - Compulsory attendance exceptions: homeschool (RSMo 167.031.2), documented illness, religious holidays, suspension/expulsion, certain employment situations
 
 ### Truancy Definitions
+
 - **Truant:** absent without valid excuse
 - **Habitual truant:** absent without valid excuse for a specified number of days (typically 10+ in Missouri, but district policy varies)
 - Schools must have truancy intervention plans; referral to juvenile court or Children's Division is a last resort
 
 ### Attendance Interventions (Typical Progression)
+
 1. Parent notification (phone, letter) after 3-5 unexcused absences
 2. School-based meeting with family (attendance team, counselor, social worker)
 3. Written attendance contract/improvement plan
@@ -115,6 +141,7 @@ Each A+ school designates a coordinator who tracks student eligibility, mentorin
 5. Referral to juvenile office or Division of Family Services (habitual truancy)
 
 ### Chronic Absenteeism
+
 ESSA defines chronic absenteeism as missing 10% or more of school days (excused or unexcused). Missouri reports chronic absenteeism as part of [MSIP 6](../roles/administrators.md) / school quality indicators.
 
 ---
@@ -139,16 +166,19 @@ ESSA defines chronic absenteeism as missing 10% or more of school days (excused 
 - Right to appeal to the school board (if initial hearing was before a hearing officer)
 
 ### Discipline of Students with Disabilities (IDEA / [Section 504](../../templates/specialist/plans-and-forms.md))
-- **Manifestation Determination Review (MDR):** required before any removal exceeding 10 cumulative school days in a year for a student with an [IEP](../roles/specialists.md) or [504 plan](../../templates/specialist/plans-and-forms.md)
+
+- **Manifestation Determination Review (MDR):** required for a disciplinary removal that changes placement (more than 10 consecutive school days, or a series totaling more than 10 school days in a year that forms a pattern; 34 CFR 300.536) for a student with an [IEP](../roles/specialists.md) or [504 plan](../../templates/specialist/plans-and-forms.md)
 - MDR team must determine: (1) Was the conduct caused by or substantially related to the disability? (2) Was the conduct a direct result of the district's failure to implement the IEP/504?
 - If YES to either → the behavior IS a manifestation → student returns to placement; IEP/504 team reviews and revises the plan; FBA/BIP conducted
 - If NO → district may apply standard discipline, but must continue FAPE (Free Appropriate Public Education) during removal
 - **Special circumstances exceptions:** weapons, drugs, serious bodily injury → district may move student to interim alternative educational setting for up to 45 school days regardless of manifestation finding
 
 ### Corporal Punishment
+
 Missouri law does not prohibit corporal punishment statewide, but individual districts may prohibit it by board policy. Many Missouri districts have eliminated it.
 
 ### Restorative Practices
+
 Increasingly adopted across Missouri districts as alternative/complementary to exclusionary discipline. Not mandated statewide but encouraged by DESE.
 
 ---
@@ -156,17 +186,20 @@ Increasingly adopted across Missouri districts as alternative/complementary to e
 ## 5. Student Records & Privacy (FERPA)
 
 ### Family Educational Rights and Privacy Act (20 U.S.C. §1232g) ([full legal reference](../compliance/mo-education-law.md))
+
 - Parents (or eligible students age 18+) have the right to inspect and review education records
 - Schools must respond to requests within 45 days
 - Parents may request amendment of records they believe are inaccurate
 - Schools may not disclose personally identifiable information (PII) from education records without consent, except under specific FERPA exceptions (school officials with legitimate educational interest, transfer to another school, health/safety emergency, etc.)
 
 ### Directory Information
+
 - Schools may designate certain information as "directory information" (name, address, phone, grade level, participation in activities, honors, etc.)
 - Parents must be notified annually and given the right to opt out of directory information disclosure
 - Missouri districts must include this in their annual FERPA notice
 
 ### Record Retention
+
 Missouri DESE requires retention of student records per the Missouri Secretary of State's records retention schedule. Permanent records (transcript, immunization, demographic) are retained indefinitely.
 
 ---
@@ -174,6 +207,7 @@ Missouri DESE requires retention of student records per the Missouri Secretary o
 ## 6. Parent Rights in Education
 
 ### General Rights
+
 - Right to review curriculum materials
 - Right to opt child out of sex education (RSMo 170.015)
 - Right to opt child out of surveys collecting sensitive information (PPRA)
@@ -182,6 +216,7 @@ Missouri DESE requires retention of student records per the Missouri Secretary o
 - Right to file complaints with DESE or OCR for civil rights violations
 
 ### Rights at [IEP](../roles/specialists.md)/[504](../../templates/specialist/plans-and-forms.md) Meetings
+
 - Right to participate as equal member of the IEP team
 - Right to receive Prior Written Notice (PWN) of proposed changes
 - Right to consent (or refuse consent) for evaluation, initial placement, and services
@@ -191,6 +226,7 @@ Missouri DESE requires retention of student records per the Missouri Secretary o
 - Right to bring advocates, attorneys, or other support persons
 
 ### Rights of Non-Custodial Parents
+
 - Both parents generally have equal rights to access education records (unless a court order restricts access)
 - Schools should not require a custody agreement to provide records to either parent
 - Schools must comply with court orders that restrict a parent's access
@@ -200,6 +236,7 @@ Missouri DESE requires retention of student records per the Missouri Secretary o
 ## 7. College & Career Readiness
 
 ### Missouri Connections
+
 Missouri's career planning platform (missouriconnections.org) — free for all Missouri students:
 - Career assessments and exploration
 - College and program searches
@@ -207,18 +244,21 @@ Missouri's career planning platform (missouriconnections.org) — free for all M
 - Financial aid information
 
 ### College Readiness Indicators
+
 - ACT/SAT scores (Missouri participates in statewide ACT testing for juniors)
 - AP/IB/dual enrollment course completion
 - EOC exam performance
 - College-ready benchmark: ACT composite 21+ (or subject-specific benchmarks)
 
 ### Dual Credit / Dual Enrollment
+
 - Students earn both high school and college credit simultaneously
 - Governed by district partnership agreements with colleges
 - DESE provides dual credit guidance; some state funding support available
 - A+ benefits can be used for dual enrollment courses at community colleges
 
 ### Career and Technical Education (CTE)
+
 - Missouri has 16 career clusters aligned to Perkins V
 - Area Career Centers serve multiple districts
 - Students can earn industry-recognized credentials
@@ -229,19 +269,22 @@ Missouri's career planning platform (missouriconnections.org) — free for all M
 ## 8. Scholarships & Financial Aid
 
 ### State Scholarships
+
 | Scholarship | Basis | Amount (approximate) | Requirements |
-|-------------|-------|---------------------|--------------|
+| ------------- | ------- | --------------------- | -------------- |
 | **A+ Scholarship** | Merit + need | Tuition at community colleges | See A+ section above |
 | **Bright Flight (Missouri Higher Education Academic Scholarship)** | Merit | Up to $3,000/year | Top composite ACT/SAT scores; in-state institution |
 | **Access Missouri Financial Assistance** | Need | $300–$2,850/year | EFC-based; enrolled at approved MO institution |
 | **Missouri Higher Education Academic Scholarship (Bright Flight)** | Merit | Tiered by score | ACT/SAT percentile thresholds |
 
 ### FAFSA Requirement
+
 - A+ students must complete the FAFSA to receive A+ benefits
 - FAFSA (or the simplified FAFSA for 2024-25 forward) opens October 1 annually
 - Missouri's FAFSA priority deadline is typically February 1
 
 ### Missouri 529 Plans (MOST)
+
 Missouri offers the MOST 529 Education Plan with state tax deductions for contributions.
 
 ---
@@ -249,12 +292,14 @@ Missouri offers the MOST 529 Education Plan with state tax deductions for contri
 ## 9. Transfer & Open Enrollment
 
 ### Voluntary Interdistrict Transfer
+
 - Transfers between districts depend on the districts involved; ask both districts (verify the statutory basis with district counsel)
 - Receiving districts may accept transfer students based on capacity
 - Transportation is generally the parent's responsibility unless otherwise agreed
 - Unaccredited district provisions: students in unaccredited districts may transfer to accredited districts; sending district pays tuition (RSMo 167.131)
 
 ### Intradistrict Transfer
+
 - Board policy governs within-district transfers (school-to-school)
 - Common reasons: safety, special programs, childcare proximity, IEP placement
 
@@ -276,6 +321,7 @@ Missouri homeschool requirements:
 ## 11. GED/HiSET Equivalency
 
 ### Missouri High School Equivalency (HSE)
+
 - Missouri uses the **HiSET exam** (replaced GED in 2014 as the state-approved HSE test)
 - Eligibility: age 17+ (with documented withdrawal from school), or age 16 with special circumstances
 - Five subtests: Language Arts Reading, Language Arts Writing, Mathematics, Science, Social Studies

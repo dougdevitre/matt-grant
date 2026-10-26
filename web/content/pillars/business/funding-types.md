@@ -155,9 +155,9 @@ graph LR
 
 **How it works:** Government or nonprofit programs award non-dilutive capital, typically for research, innovation, or economic development.
 
-- **SBIR/STTR Phase I:** ~$275K for 6–12 months of R&D feasibility.
+- **SBIR/STTR Phase I:** ~$314K (SBA guideline; agencies vary) for 6–12 months of R&D feasibility.
 - **SBIR/STTR Phase II:** ~$1M–$2M for full R&D and commercialization.
-- **State programs:** Vary widely. Missouri examples: Arch Grants ($50K), Missouri Technology Corporation, ITEN.
+- **State programs:** Vary widely. Missouri examples: Arch Grants ($75K), Missouri Technology Corporation, ITEN.
 - **Pros:** Non-dilutive. Validates your technology. Builds credibility.
 - **Cons:** Slow (3–9 month application cycles). Competitive. Reporting requirements. Restricted use of funds.
 - **When to use:** You're building deep tech, health tech, or research-driven products. You have patience for long timelines. You want to preserve equity.

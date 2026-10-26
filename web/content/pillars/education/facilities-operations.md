@@ -22,6 +22,7 @@ flowchart TD
 ```
 
 ## Table of Contents
+
 1. ADA Accessibility
 2. Environmental Health & Safety
 3. Capital Planning & Bond Issues
@@ -40,11 +41,13 @@ flowchart TD
 ## 1. ADA Accessibility
 
 ### Requirements
+
 - All new construction must comply with ADA Accessibility Standards (2010 ADA Standards for Accessible Design)
 - Existing facilities must provide **program access** — the program/activity must be accessible even if every part of the building is not fully accessible
 - Alterations to existing buildings trigger accessibility requirements for the altered area
 
 ### Common Accessibility Elements
+
 - Accessible entrances, routes, and exits
 - Elevators or lifts (multi-story buildings)
 - Accessible restrooms on each floor with accessible classrooms
@@ -57,6 +60,7 @@ flowchart TD
 - Visual alarm devices (for deaf/hard of hearing)
 
 ### Self-Evaluation & Transition Plan
+
 - ADA requires public entities to conduct a self-evaluation of facilities and programs
 - Develop a Transition Plan to address identified barriers
 - Prioritize: (1) access to programs, (2) access to state and local government services, (3) employee access
@@ -66,8 +70,9 @@ flowchart TD
 ## 2. Environmental Health & Safety
 
 ### Key Regulatory Areas
+
 | Area | Authority | Requirements |
-|------|----------|-------------|
+| ------ | ---------- | ------------- |
 | **Fire safety** | State Fire Marshal, local fire department | Annual inspection, fire alarm testing, sprinkler system maintenance, egress compliance |
 | **OSHA** | Federal/State OSHA | Hazard communication, bloodborne pathogens, lockout/tagout, PPE, confined spaces |
 | **Drinking water** | EPA / Missouri DNR | Lead testing (Lead-Free Schools provisions); safe drinking water act compliance |
@@ -76,6 +81,7 @@ flowchart TD
 | **Pest management** | EPA / Missouri Dept of Agriculture | Integrated Pest Management (IPM) recommended; notification requirements for pesticide application in schools |
 
 ### Health & Safety Committee
+
 Best practice: establish a building-level health and safety committee including administration, custodial, nursing, teaching, and parent representatives. Conduct annual facility walk-throughs and address identified hazards.
 
 ---
@@ -83,6 +89,7 @@ Best practice: establish a building-level health and safety committee including 
 ## 3. Capital Planning & Bond Issues
 
 ### Long-Range Facility Plan
+
 Districts should maintain a 5-10 year capital improvement plan addressing:
 - Facility condition assessment (roof, HVAC, plumbing, electrical, structural, ADA)
 - Enrollment projections
@@ -93,13 +100,15 @@ Districts should maintain a 5-10 year capital improvement plan addressing:
 - Athletic/activity facility needs
 
 ### Bond Issues
+
 - General obligation bonds are the primary mechanism for large capital projects
-- Require **4/7 voter approval (57.14%)** at election
+- Require **4/7 voter approval (57.14%)** at the general municipal election day, primary or general elections; **2/3** at all other elections (Mo. Const. art. VI §26(b))
 - Bonded indebtedness limit: generally 15% of assessed valuation (verify with bond counsel)
 - Typical uses: new construction, major renovation, technology infrastructure, buses, equipment
 - Repaid through a debt service levy on property taxes
 
 ### Lease-Purchase Agreements
+
 - Alternative financing for equipment, technology, vehicles
 - Board approval required; does not require voter approval
 - Annual payments from operating budget
@@ -107,6 +116,7 @@ Districts should maintain a 5-10 year capital improvement plan addressing:
 - Useful for smaller projects or equipment with shorter useful life
 
 ### No-Tax-Increase Bonds
+
 Districts may issue no-tax-increase bonds by refinancing existing bonds at lower rates, freeing up capacity within the existing levy.
 
 ---
@@ -114,10 +124,12 @@ Districts may issue no-tax-increase bonds by refinancing existing bonds at lower
 ## 4. New Construction & Renovation
 
 ### DESE Requirements
+
 - School facility plans should be submitted to DESE for review
 - DESE provides guidance on minimum square footage per student, classroom sizes, and facility requirements
 
 ### Planning Process
+
 1. Needs assessment (enrollment data, facility condition, educational adequacy)
 2. Community engagement (input sessions, surveys, task forces)
 3. Architectural programming (educational specifications → schematic design)
@@ -129,6 +141,7 @@ Districts may issue no-tax-increase bonds by refinancing existing bonds at lower
 9. Post-occupancy evaluation
 
 ### Prevailing Wage
+
 Missouri prevailing wage law (RSMo 290.210) applies to public construction projects over $75,000. Contractors and subcontractors must pay workers the prevailing wage rate for the locality.
 
 ---
@@ -136,12 +149,14 @@ Missouri prevailing wage law (RSMo 290.210) applies to public construction proje
 ## 5. Indoor Air Quality (IAQ)
 
 ### EPA Tools for Schools Program
+
 EPA recommends schools use the "IAQ Tools for Schools" framework:
 - Designate an IAQ coordinator
 - Conduct IAQ walk-throughs regularly
 - Address the six IAQ pathways: HVAC, moisture, chemical sources, biological sources, ventilation, filtration
 
 ### Common IAQ Issues in Schools
+
 - Inadequate ventilation (especially in older buildings)
 - Mold growth (moisture intrusion, condensation, plumbing leaks)
 - Chemical off-gassing (cleaning products, new construction materials, science labs)
@@ -150,6 +165,7 @@ EPA recommends schools use the "IAQ Tools for Schools" framework:
 - Vehicle exhaust near air intakes (bus loading zones)
 
 ### COVID-19 Legacy: Ventilation Improvements
+
 - Many Missouri districts used ESSER funds (federal pandemic relief) to upgrade HVAC systems
 - ASHRAE standards for school ventilation (minimum outdoor air per occupant)
 - MERV-13 filtration recommended (or highest rated filter compatible with HVAC system)
@@ -160,6 +176,7 @@ EPA recommends schools use the "IAQ Tools for Schools" framework:
 ## 6. Lead & Asbestos Management
 
 ### Lead in Drinking Water
+
 - EPA Lead-Free Schools guidance and some state requirements for lead testing in school drinking water
 - Missouri DNR and DHSS provide guidance
 - Action level: EPA recommends action at 15 ppb (parts per billion); many schools use 5 ppb
@@ -167,7 +184,9 @@ EPA recommends schools use the "IAQ Tools for Schools" framework:
 - Testing recommended at all drinking fountains, food service taps, and classroom sinks used for drinking
 
 ### Asbestos (AHERA)
-**Asbestos Hazard Emergency Response Act (40 CFR Part 763)**
+
+#### Asbestos Hazard Emergency Response Act (40 CFR Part 763)
+
 - All schools (K-12) must have an Asbestos Management Plan on file
 - Initial inspection and periodic re-inspections (every 3 years) by accredited inspectors
 - Asbestos-containing materials (ACM) must be managed: encapsulated, enclosed, or removed
@@ -180,6 +199,7 @@ EPA recommends schools use the "IAQ Tools for Schools" framework:
 ## 7. Playground Safety
 
 ### CPSC Guidelines
+
 Consumer Product Safety Commission (CPSC) publishes the Public Playground Safety Handbook:
 - Age-appropriate equipment (separate areas for 2-5 and 5-12)
 - Fall zone surfacing (engineered wood fiber, rubber mulch, poured rubber — minimum 12" depth)
@@ -188,11 +208,13 @@ Consumer Product Safety Commission (CPSC) publishes the Public Playground Safety
 - Regular inspection and maintenance schedule
 
 ### ADA Accessibility
+
 - Playground must include accessible routes to and through the play area
 - Accessible play components (ground-level activities)
 - Accessible surfacing (firm, stable, slip-resistant — poured rubber preferred for wheelchair access)
 
 ### Inspection
+
 - Routine inspection by trained staff (weekly/monthly)
 - Annual comprehensive inspection by certified playground safety inspector (CPSI)
 - Document all inspections and maintenance
@@ -202,9 +224,11 @@ Consumer Product Safety Commission (CPSC) publishes the Public Playground Safety
 ## 8. Energy Management
 
 ### Energy Costs
+
 Energy is typically the second-largest operating expenditure for school districts (after personnel). Energy efficiency reduces operating costs and can redirect savings to instruction.
 
 ### Strategies
+
 - Energy audits (ASHRAE Level I, II, or III)
 - HVAC upgrades (high-efficiency equipment, building automation systems)
 - LED lighting conversion
@@ -215,6 +239,7 @@ Energy is typically the second-largest operating expenditure for school district
 - Utility incentive programs (Ameren, Evergy, others offer rebates)
 
 ### Guaranteed Energy Savings Contracts (GESC)
+
 Missouri law (RSMo 8.231) allows school districts to enter into guaranteed energy savings contracts:
 - Energy service company (ESCO) guarantees savings from efficiency improvements
 - Project financed through the guaranteed savings (no upfront capital required)
@@ -225,6 +250,7 @@ Missouri law (RSMo 8.231) allows school districts to enter into guaranteed energ
 ## 9. Maintenance & Custodial Operations
 
 ### Staffing Guidelines
+
 APPA (Association of Physical Plant Administrators) recommends cleaning levels:
 - Level 1 (Orderly Tidiness): ~10,000-11,000 sq ft per custodian per shift
 - Level 2 (Ordinary Tidiness): ~18,000-20,000 sq ft
@@ -232,6 +258,7 @@ APPA (Association of Physical Plant Administrators) recommends cleaning levels:
 - Most schools target Level 2 or 3 due to budget constraints
 
 ### Preventive Maintenance
+
 - Scheduled maintenance program (HVAC, electrical, plumbing, roofing, grounds)
 - Work order system for tracking requests and completion
 - Preventive maintenance extends equipment life and reduces emergency repairs
@@ -244,6 +271,7 @@ APPA (Association of Physical Plant Administrators) recommends cleaning levels:
 See `references/school-staff.md` for bus driver requirements.
 
 ### Key Operational Areas
+
 - Route planning and optimization (software tools: Transfinder, Versatrans, Tyler)
 - Fleet management (vehicle maintenance, replacement schedule, inspections)
 - GPS tracking and monitoring
@@ -258,6 +286,7 @@ See `references/school-staff.md` for bus driver requirements.
 ## 11. Food Service Facilities
 
 ### Kitchen Design & Equipment
+
 - Must comply with local health department requirements
 - USDA meal production requirements
 - Equipment for scratch cooking vs. heat-and-serve (trend toward scratch cooking)
@@ -265,6 +294,7 @@ See `references/school-staff.md` for bus driver requirements.
 - Walk-in cooler/freezer storage for USDA commodity foods
 
 ### Cafeteria Space
+
 - Adequate seating capacity for student population
 - Multiple lunch periods for large schools
 - Serving line efficiency
@@ -275,6 +305,7 @@ See `references/school-staff.md` for bus driver requirements.
 ## 12. Security Infrastructure
 
 ### Physical Security
+
 - Controlled access (single-point entry, buzz-in systems, visitor management)
 - Security cameras (interior and exterior)
 - Communication systems (intercoms, radios, mass notification)
@@ -285,6 +316,7 @@ See `references/school-staff.md` for bus driver requirements.
 - Emergency lighting and exit signage
 
 ### Visitor Management Systems
+
 - Digital visitor management (Raptor, LobbyGuard, School Gate Guardian)
 - Sex offender registry check upon sign-in
 - Photo ID badge printing
@@ -292,6 +324,7 @@ See `references/school-staff.md` for bus driver requirements.
 - Clear signage directing all visitors to main office
 
 ### School Safety Assessments
+
 - CPTED (Crime Prevention Through Environmental Design) assessment
 - Vulnerability assessment (conducted by law enforcement or security consultants)
 - Annual review and update of safety plans

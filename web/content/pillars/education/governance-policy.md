@@ -1,6 +1,7 @@
 # Governance & Policy — Missouri K-12 Education Reference
 
 ## Table of Contents
+
 1. Board Policy Development
 2. Policy Manual Organization (MSBA/NSBA)
 3. Strategic Planning
@@ -56,6 +57,7 @@ graph TD
 ## 1. Board Policy Development
 
 ### Policy Hierarchy
+
 1. **Federal law** (ESSA, IDEA, Title IX, ADA, FERPA, etc.)
 2. **Missouri Constitution & statutes** (RSMo 160-178, etc.)
 3. **DESE administrative rules** (5 CSR 20)
@@ -64,6 +66,7 @@ graph TD
 6. **Building-level procedures** (principal implements within building)
 
 ### Policy Development Process
+
 1. **Identify need** — new law, problem, stakeholder concern, legal recommendation, accreditation finding
 2. **Draft policy** — board policy committee, superintendent, legal counsel, MSBA model policies
 3. **First reading** — present to full board for discussion (no vote on first reading)
@@ -75,6 +78,7 @@ graph TD
 9. **Review cycle** — periodic review (3-5 year cycle recommended; annually for legally-mandated policies)
 
 ### MSBA Model Policies
+
 Missouri School Boards Association (MSBA) provides model policies and updates:
 - Aligned to Missouri law and federal requirements
 - Regularly updated when laws change
@@ -87,8 +91,9 @@ Missouri School Boards Association (MSBA) provides model policies and updates:
 ## 2. Policy Manual Organization (MSBA/NSBA)
 
 ### Standard Classification System
+
 | Section | Topic |
-|---------|-------|
+| --------- | ------- |
 | **A** | Foundations and Basic Commitments (mission, vision, nondiscrimination, equity) |
 | **B** | Board Governance and Operations (membership, meetings, officers, committees) |
 | **C** | General School Administration (superintendent, organizational chart, administrative team) |
@@ -107,6 +112,7 @@ Missouri School Boards Association (MSBA) provides model policies and updates:
 ## 3. Strategic Planning
 
 ### Components of a District Strategic Plan
+
 1. **Vision statement** — aspirational picture of the future
 2. **Mission statement** — core purpose of the district
 3. **Core values/beliefs** — guiding principles
@@ -121,6 +127,7 @@ Missouri School Boards Association (MSBA) provides model policies and updates:
 12. **Review and revision** — annual review with full revision every 3-5 years
 
 ### Stakeholder Engagement in Strategic Planning
+
 - Community forums and town halls
 - Online surveys (staff, parents, students, community)
 - Focus groups (diverse representation)
@@ -134,13 +141,15 @@ Missouri School Boards Association (MSBA) provides model policies and updates:
 ## 4. Superintendent Evaluation
 
 ### Missouri Requirements
+
 - Board must evaluate the superintendent annually (best practice and contractual obligation)
 - Evaluation criteria should be established at the beginning of the evaluation cycle
 - Evaluation should be based on: district goals, board goals, professional standards, student outcomes, fiscal management, community relations, personal professional growth
 
 ### Evaluation Framework
+
 | Domain | Indicators |
-|--------|-----------|
+| -------- | ----------- |
 | **Vision & leadership** | Strategic direction, school improvement, innovation |
 | **Instructional leadership** | Curriculum oversight, assessment analysis, professional development |
 | **Operations** | Budget management, facilities, transportation, technology, safety |
@@ -151,6 +160,7 @@ Missouri School Boards Association (MSBA) provides model policies and updates:
 | **Student outcomes** | Academic achievement, graduation rates, equity, school quality |
 
 ### Evaluation Process
+
 1. Board and superintendent establish goals and success metrics (beginning of year)
 2. Mid-year check-in (progress review, adjustments)
 3. Superintendent self-evaluation
@@ -167,6 +177,7 @@ Missouri School Boards Association (MSBA) provides model policies and updates:
 ### RSMo Chapter 610 — Missouri Sunshine Law
 
 ### Open Meetings (RSMo 610.010-610.030)
+
 - All meetings of public governmental bodies must be open to the public
 - **Meeting definition:** any gathering of a quorum of members at which public business is discussed, decided, or public policy is formulated (including electronic communication)
 - **Walking quorum:** serial communications between members that collectively reach a quorum and discuss public business violate the Sunshine Law
@@ -177,9 +188,11 @@ Missouri School Boards Association (MSBA) provides model policies and updates:
 - **Public participation:** boards may (but are not required to) allow public comment; if allowed, reasonable time/place/manner restrictions are permissible
 
 ### Closed Sessions (RSMo 610.021)
+
 Boards may close meetings ONLY for specific enumerated reasons:
+
 | Reason | RSMo 610.021 Subsection |
-|--------|------------------------|
+| -------- | ------------------------ |
 | Legal actions and litigation | .1 |
 | Real estate purchase/sale/lease | .2 |
 | Hiring, firing, discipline, promotion of employees | .3 |
@@ -191,12 +204,14 @@ Boards may close meetings ONLY for specific enumerated reasons:
 | Records related to negotiations | .12 |
 
 ### Closed Session Requirements
+
 - Must be approved by roll call vote in open session (state the specific statutory basis)
 - Minutes taken (kept confidential but subject to judicial review)
 - Only topics cited in the motion may be discussed
 - Vote to close must state the specific subsection of RSMo 610.021 that authorizes the closure
 
 ### Open Records (RSMo 610.010-610.035)
+
 - Public records must be available for inspection and copying upon request
 - **Response time:** 3 business days to respond (may extend for good cause)
 - **Fees:** may charge reasonable fees for copies (not for inspection)
@@ -208,6 +223,7 @@ Boards may close meetings ONLY for specific enumerated reasons:
 ## 6. Robert's Rules & Meeting Procedures
 
 ### Basics for School Board Meetings
+
 - **Quorum:** majority of board members (typically 4 of 7) required to conduct business
 - **Chair:** board president presides; maintains order and follows agenda
 - **Motions:** member makes motion → another member seconds → discussion → vote
@@ -217,8 +233,9 @@ Boards may close meetings ONLY for specific enumerated reasons:
 - **Consent agenda:** routine items grouped for a single vote (members may pull items for individual discussion)
 
 ### Parliamentary Procedure Cheat Sheet
+
 | Action | Requires Second? | Debatable? | Vote Required? |
-|--------|-----------------|-----------|---------------|
+| -------- | ----------------- | ----------- | --------------- |
 | Main motion | Yes | Yes | Majority |
 | Amend a motion | Yes | Yes | Majority |
 | Table/postpone | Yes | No (table) / Yes (postpone) | Majority |
@@ -231,6 +248,7 @@ Boards may close meetings ONLY for specific enumerated reasons:
 ## 7. Community Relations & Media
 
 ### Communication Plan
+
 Districts should maintain a proactive communication plan:
 - Regular newsletters/updates (email, social media, website)
 - Media relations protocol (designated spokesperson — typically superintendent or communications director)
@@ -240,6 +258,7 @@ Districts should maintain a proactive communication plan:
 - Social media management (brand consistency, response protocols, comment moderation, FERPA awareness)
 
 ### Media Relations Best Practices
+
 - Designate a single spokesperson for media inquiries
 - Respond promptly (within hours, not days)
 - Provide factual, concise statements
@@ -254,14 +273,16 @@ Districts should maintain a proactive communication plan:
 ## 8. Legislative Advocacy
 
 ### Missouri General Assembly
+
 - Senate: 34 members, 4-year terms
 - House: 163 members, 2-year terms
 - Legislative session: January through May (approximately)
 - Education committees in both chambers
 
 ### Advocacy Organizations
+
 | Organization | Represents |
-|-------------|-----------|
+| ------------- | ----------- |
 | **MSBA (Missouri School Boards Association)** | School boards; legislative tracking and advocacy |
 | **MASA (Missouri Association of School Administrators)** | Superintendents and district administrators |
 | **MNEA (Missouri National Education Association)** | Teachers (union — affiliated with NEA) |
@@ -270,6 +291,7 @@ Districts should maintain a proactive communication plan:
 | **MoCASE (Missouri Council of Administrators of Special Education)** | Special education administrators |
 
 ### Board Member Advocacy
+
 - Board members may advocate for legislation as individuals
 - District resources should not be used for political campaigns or endorsements
 - Factual information sharing with legislators is appropriate and encouraged
@@ -281,9 +303,11 @@ Districts should maintain a proactive communication plan:
 ## 9. Board Self-Assessment
 
 ### Purpose
+
 Regular board self-assessment improves governance effectiveness. MSBA and NSBA provide tools.
 
 ### Assessment Areas
+
 - Understanding and adherence to board roles and responsibilities
 - Relationship with superintendent
 - Policy governance and oversight
@@ -299,16 +323,19 @@ Regular board self-assessment improves governance effectiveness. MSBA and NSBA p
 ## 10. Ethics & Conflict of Interest
 
 ### Conflict of Interest
+
 - Board members must disclose any personal financial interest in contracts or transactions before the board
 - Board member must abstain from voting on matters where they have a conflict
 - Prohibition on board members being employed by the district they govern
 
 ### Nepotism
+
 - Many districts have anti-nepotism policies (board member's relatives cannot be hired or supervised)
 - Missouri law does not have a comprehensive statewide nepotism statute for school boards, but RSMo 105.454 addresses some conflicts
 - Board policy should clearly define nepotism prohibitions
 
 ### Financial Disclosure
+
 - Certain school officials may be required to file financial disclosure statements
 - RSMo 105.483-105.492 — Financial Disclosure Act applies to some public officials
 
@@ -317,8 +344,9 @@ Regular board self-assessment improves governance effectiveness. MSBA and NSBA p
 ## 11. Board-Superintendent Relationship
 
 ### Governance vs. Management
+
 | Board's Role (Governance) | Superintendent's Role (Management) |
-|--------------------------|-----------------------------------|
+| -------------------------- | ----------------------------------- |
 | Set vision, mission, goals | Implement vision and goals |
 | Adopt policy | Develop procedures to implement policy |
 | Approve budget | Develop and manage budget |
@@ -329,6 +357,7 @@ Regular board self-assessment improves governance effectiveness. MSBA and NSBA p
 | Adopt curriculum | Select and implement curriculum |
 
 ### Keys to Effective Partnership
+
 - Clear role definition (avoid board micromanagement or superintendent overreach)
 - Regular communication (superintendent keeps board informed; no surprises)
 - Unified public message (board speaks with one voice after decisions)
@@ -343,6 +372,7 @@ Regular board self-assessment improves governance effectiveness. MSBA and NSBA p
 ## 12. School Board Elections
 
 ### Missouri School Board Elections
+
 - Held on the **first Tuesday after the first Monday in April** (consolidated election dates per RSMo 115.123)
 - Board members serve **3-year staggered terms** (2-3 seats per election cycle)
 - **Filing period:** typically December through January (specific dates per RSMo)
@@ -352,6 +382,7 @@ Regular board self-assessment improves governance effectiveness. MSBA and NSBA p
 - **Campaign finance:** RSMo Chapter 130 applies to school board candidates (disclosure requirements)
 
 ### New Board Member Orientation
+
 MSBA recommends comprehensive orientation for new board members:
 - District overview (finances, demographics, programs, facilities, staffing)
 - Board policies and procedures

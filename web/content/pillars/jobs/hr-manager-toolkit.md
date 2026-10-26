@@ -345,7 +345,7 @@ EEO compliance check:
 |---|---|---|
 | On-the-Job Training (OJT) | WIOA reimburses 50–90% of wages during training period | Reduces training cost; worker learns your way |
 | Incumbent Worker Training (IWT) | Offsets cost of upskilling existing employees | Reduces turnover; increases productivity |
-| Work Opportunity Tax Credit (WOTC) | Tax credit for hiring from target groups | $2,400–$9,600 per eligible hire |
+| Work Opportunity Tax Credit (WOTC) | Tax credit for hiring from target groups. WOTC expired for workers who begin work after December 31, 2025. Check irs.gov to see whether Congress has renewed it before counting on it. | Was $2,400–$9,600 per eligible hire while authorized |
 | Federal Bonding Program | Free fidelity bonds for high-risk hires | Removes financial risk of hiring justice-involved |
 | Apprenticeship | Structured earn-and-learn with credential | Build your own workforce pipeline |
 | Intern/Apprentice Tax Credit (MO) | $1,500 state tax credit per apprentice | Additional incentive on top of federal |

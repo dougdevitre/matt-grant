@@ -14,6 +14,8 @@ flowchart LR
 
 **Disclaimer:** Tax deadlines change. Verify all dates with your CPA and at irs.gov and dor.mo.gov each year. Missing tax deadlines results in penalties and interest.
 
+*Last verified: 2026-10-20 (1099 threshold, Missouri SOS fees, Delaware franchise tax, Section 179, bonus depreciation, Missouri R&D credit).*
+
 ---
 
 ## Monthly Obligations (Ongoing)
@@ -44,12 +46,12 @@ flowchart LR
 
 ### January
 - **Jan 31:** W-2s to employees; W-3 to SSA
-- **Jan 31:** 1099-NECs to contractors (≥ $600 paid); file with IRS
+- **Jan 31:** 1099-NECs to contractors (≥ $2,000 paid for 2026 payments; ≥ $600 through 2025); file with IRS
 - **Jan 31:** Employer's Annual Federal Unemployment Tax (Form 940)
 - **Jan 31:** Missouri Annual Reconciliation of Income Taxes Withheld (MO-W3)
 
 ### March
-- **Mar 1:** Delaware Franchise Tax (if Delaware C-Corp) — minimum $400, often higher
+- **Mar 1:** Delaware Franchise Tax (if Delaware C-Corp) — minimum $175 (Authorized Shares method) or $400 (Assumed Par Value Capital method), plus a $50 annual report fee
 - **Mar 15:** S-Corporation tax return (Form 1120-S) — or extension request
 - **Mar 15:** Partnership return (Form 1065) — or extension request
 - **Mar 15:** Missouri S-Corp/Partnership return — same date as federal
@@ -61,9 +63,8 @@ flowchart LR
 - **Apr 15:** First quarter estimated taxes due (federal and Missouri)
 
 ### May–August
-- **May 15:** Missouri Annual Report for LLCs and corporations (verify — tied to registration anniversary)
+- **Anniversary month:** Missouri corporations file an annual registration report by the end of the month they incorporated (Missouri LLCs file no annual report)
 - **Jun 15:** Second quarter estimated taxes due
-- **Jul 31:** Missouri Secretary of State annual report (varies by entity/anniversary month)
 
 ### September
 - **Sep 15:** Third quarter estimated taxes due
@@ -83,11 +84,11 @@ flowchart LR
 ## Missouri-Specific Annual Requirements
 
 ### Missouri Secretary of State Annual Report
-- **LLCs:** Annual registration fee due by anniversary of formation
-- **Corporations:** Annual report due by anniversary
-- **Fee:** ~$45 online
+- **LLCs:** No annual report and no annual fee in Missouri
+- **Corporations:** Annual registration report due by the end of the anniversary month
+- **Fee:** $20 online | $45 paper (late reports add $15 per 30 days)
 - **File at:** sos.mo.gov
-- **Consequence of missing:** Administrative dissolution after ~2 years
+- **Consequence of missing:** Late fees, then possible administrative dissolution
 
 ### Missouri Registered Agent
 - Maintain a registered agent at all times
@@ -112,7 +113,7 @@ flowchart LR
 | **941** | Quarterly payroll tax return | Any employer |
 | **940** | Annual federal unemployment tax | Any employer |
 | **W-2** | Employee wages and withholding | For each W-2 employee |
-| **1099-NEC** | Non-employee compensation | For each contractor paid ≥ $600 |
+| **1099-NEC** | Non-employee compensation | For each contractor paid ≥ $2,000 (2026 payments; $600 through 2025) |
 | **83(b) Election** | Restricted stock tax election | Founders with vesting (file within 30 days) |
 | **MO-1120** | Missouri corporate income tax | Missouri C-Corps and foreign corps with MO income |
 | **MO-1040** | Missouri individual income tax | Missouri residents |
@@ -132,10 +133,11 @@ Many Missouri tech startups qualify for R&D tax credits and don't claim them.
 - **What qualifies:** Employee wages, contractor costs, and supply costs for qualifying activities
 - **Typical credit:** 6–8% of qualifying R&D spend (simplified method)
 
-**Missouri R&D Credit:**
-- 15% of Missouri qualified research expenses above a base amount
-- Carryforward: 10 years
-- **Apply separately at dor.mo.gov**
+**Missouri R&D Credit (tax years 2023–2028):**
+- 15% of Missouri qualified research expenses above the prior 3-year average (20% for research done with a Missouri college or university)
+- Caps: $300,000 per taxpayer per year; $10M statewide per year
+- Carryforward: 12 years; credits can be transferred or sold
+- **Apply to the Missouri Department of Economic Development** (not DOR); program sunsets December 31, 2028
 
 **Practical steps:**
 1. Track time spent by developers on qualifying activities (time logs or estimates)
@@ -150,13 +152,13 @@ Many Missouri tech startups qualify for R&D tax credits and don't claim them.
 
 **Section 179 Deduction:**
 - Deduct the full cost of qualifying equipment and software in the year purchased
-- 2024 limit: $1,160,000 (verify current year limit)
+- 2025 limit: $2,500,000 (indexed for inflation after 2025; verify current year limit)
 - Qualifying property: computers, servers, software, office equipment, vehicles (limits apply)
 - Must be placed in service by December 31
 
 **Bonus Depreciation:**
 - Additional first-year depreciation on qualifying property
-- 2023: 80%; 2024: 60%; phases down each year (check current year)
+- 100% for qualifying property acquired and placed in service after January 19, 2025 (made permanent in 2025; earlier phase-down: 2023 80%, 2024 60%)
 - Can create a loss that carries forward
 
 **Practical note:** Buy equipment before December 31 if you want the deduction this year.

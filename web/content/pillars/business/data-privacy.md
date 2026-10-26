@@ -50,7 +50,7 @@ You are subject to privacy law if you:
 
 ### CCPA / CPRA (California Consumer Privacy Act / Rights Act)
 - **Who it applies to:** Businesses that collect personal data of California residents AND meet one of:
-  - Annual gross revenue > $25M
+  - Annual gross revenue > $26.625M (adjusted January 1, 2025; was $25M)
   - Buy/sell/receive personal data of 100,000+ consumers/households annually
   - Derive 50%+ of revenue from selling personal data
 - **Most early-stage startups:** Not yet subject to CCPA thresholds, but best practice to comply anyway
@@ -71,8 +71,8 @@ You are subject to privacy law if you:
   - No deceptive subject lines or headers
   - Physical mailing address in every email
   - Clear unsubscribe mechanism
-  - Honor unsubscribe requests within 10 days
-- **Penalty:** Up to $50,120 per email violation
+  - Honor unsubscribe requests within 10 business days
+- **Penalty:** Up to $53,088 per email violation (2025 inflation-adjusted amount)
 
 ### COPPA (Children's Online Privacy Protection Act)
 - **Applies to:** Any online service directed at children under 13, or that knowingly collects data from children under 13
@@ -154,7 +154,7 @@ WITHIN 72 HOURS (if GDPR applies):
 [ ] Notify relevant EU Data Protection Authority
 [ ] Document: what data, how many people, what happened
 
-WITHIN 30 DAYS (CCPA breach notification, if applicable):
+WITHIN 30 CALENDAR DAYS (California breach notification law, since January 1, 2026):
 [ ] Notify affected California residents
 [ ] Notify California Attorney General if 500+ residents affected
 

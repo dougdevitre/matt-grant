@@ -61,7 +61,7 @@ flowchart LR
 - Establishes a filing date (priority date) for 12 months
 - NOT a patent — just a placeholder
 - Does NOT get examined or granted
-- Cost: $1,500–$5,000 (attorney-assisted); $320 USPTO fee (if filed pro se)
+- Cost: $1,500–$5,000 (attorney-assisted); $65–$325 USPTO filing fee by entity size (micro / small / large)
 - Use case: You have an invention you want to protect but aren't ready to file a full utility patent
 - **The 12-month clock starts when you file the provisional** — file the utility patent before then or lose the priority date
 
@@ -72,7 +72,7 @@ flowchart LR
 ```
 Step 1: Prior Art Search (1–2 months)
 → Search existing patents and publications to assess patentability
-→ Tools: Google Patents, USPTO PAIR, Espacenet
+→ Tools: Google Patents, USPTO Patent Public Search, Espacenet
 → If you find similar patents, assess whether your innovation is truly distinct
 
 Step 2: Patent Prosecution Decision

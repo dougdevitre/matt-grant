@@ -2,6 +2,12 @@
 ## Access to Jobs — Module 0 — Educational Information Only
 ### Source: Missouri WIOA Combined State Plan, PY 2024–2027
 
+> **Missouri only.** Everything in this file applies to Missouri. If the user lives or is
+> looking for work in another state, do not present these programs, agencies, phone numbers
+> or figures as their options. Use the national path in SKILL.md instead: CareerOneStop
+> (careeronestop.org) and the American Job Center Finder, or the U.S. Department of Labor
+> help line, 1-877-US2-JOBS (1-877-872-5627).
+
 > ⚠️ This is educational information. Do not make eligibility determinations.
 > Always direct users to a Missouri Job Center or jobs.mo.gov for official enrollment.
 
@@ -51,7 +57,7 @@ flowchart TD
 ### Dislocated Worker Program
 - **Who:** Individuals laid off, plant closures, self-employed who lost business, military spouses
 - **Services:** Career counseling, resume help, retraining, job placement
-- **Note:** Trade Act Assistance (TAA) available for trade-impacted layoffs
+- **Note:** Trade Adjustment Assistance (TAA) has taken no new petitions since July 1, 2022; only workers certified earlier may still qualify
 - **Access:** Missouri Job Centers; Rapid Response for mass layoffs
 
 ### Youth Program (Title I)
@@ -101,14 +107,16 @@ flowchart TD
 - **Youth:** TANF funds subsidized employment for youth ages 14–24 at ≤185% poverty level
 
 ### Jobs for Veterans State Grants (JVSG)
-- **Staff:** Disabled Veterans' Outreach Program (DVOP) and Consolidated Omnibus Directors (CODL)
+- **Staff:** Disabled Veterans' Outreach Program (DVOP) specialists, Local Veterans' Employment Representatives (LVER), and consolidated DVOP/LVER positions
 - **Priority:** Veterans with significant barriers to employment (Qualified Eligible with Barrier — QEB)
 - **Services:** Intensive case management, individualized career services
 - **Priority of Service:** ALL veterans receive priority service at Missouri Job Centers
 
 ### Trade Adjustment Assistance (TAA)
-- **Who:** Workers laid off due to foreign trade/competition (must be certified group)
-- **What:** Extended income support, retraining, job search allowances, relocation support
+- **Status:** TAA has accepted no new petitions since July 1, 2022, when its termination provision took effect. Only workers in groups certified earlier (and separated by June 30, 2022) may still qualify. Check dol.gov/agencies/eta/tradeact for current status.
+- **Who:** Workers in a previously certified group laid off due to foreign trade/competition
+- **What:** Income support, retraining, job search allowances, relocation support for those still eligible
+- **New trade-affected layoffs:** Route to the Dislocated Worker Program and Rapid Response instead
 
 ### Unemployment Insurance (UI)
 - **Access:** UInteract system (DES); claimants required to register at Job Center
@@ -148,7 +156,7 @@ Through WIOA partners and co-enrollment:
 - Mental health referrals
 - Housing and homeless services coordination
 - Federal Bonding Program (fidelity bonds for at-risk job seekers)
-- Work Opportunity Tax Credit (WOTC) — employer incentive to hire barrier populations
+- Work Opportunity Tax Credit (WOTC) — federal employer incentive to hire barrier populations. WOTC expired for workers who begin work after December 31, 2025. Check irs.gov to see whether Congress has renewed it before counting on it.
 
 ---
 

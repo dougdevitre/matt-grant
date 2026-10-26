@@ -41,7 +41,7 @@ flowchart TD
 - **Houston:** Energy tech, space (NASA/SpaceX), medical (Texas Medical Center — world's largest)
 - **Dallas/Fort Worth:** Fintech, enterprise software, logistics, telecom
 - **San Antonio:** Cybersecurity (NSA/military presence), defense tech, bioscience
-- **Texas franchise tax (margin tax):** Applies to entities with revenue > $2.47M; most early startups are exempt
+- **Texas franchise tax (margin tax):** No tax due below $2.65M in revenue (2026 reports); most early startups owe none but still file an information report
 - **No state QSBS issue** — since Texas has no income tax, federal QSBS exclusion applies fully
 - **University pipeline:** UT Austin, Texas A&M, Rice, SMU, UT Dallas — strong engineering and business programs
 - **Cost of living 20-40% below** Bay Area, making salary dollars go further
@@ -189,7 +189,7 @@ flowchart TD
 - Fee: **$300**
 - Processing: 2-3 business days online
 - No state income tax (major advantage over most states)
-- Franchise tax: Only applies if revenue exceeds $2.47M (most startups exempt)
+- Franchise tax: Only owed if revenue exceeds $2.65M (2026 reports; most startups owe none)
 - Annual report: **No annual report required** (unlike most states)
 
 ### Delaware C-Corp — Best for (even in Texas):
@@ -201,8 +201,8 @@ flowchart TD
 - Form in Delaware via Stripe Atlas ($500), Clerky ($399+), or attorney
 - Register as foreign corporation in Texas → sos.texas.gov → **$750 filing fee**
 - No state income tax on personal income (federal QSBS exclusion applies fully)
-- Texas franchise tax: Only on entities with > $2.47M in total revenue
-- Delaware franchise tax: ~$400/year minimum (due March 1)
+- Texas franchise tax: Only owed by entities with > $2.65M in total revenue (2026 reports)
+- Delaware franchise tax: $175–$400/year minimum plus $50 annual report fee (due March 1)
 
 ### Texas Tax Advantages
 
@@ -210,7 +210,7 @@ flowchart TD
 |-----|-------|-----------|----------|
 | State income tax | **None** | 13.3% top rate | 10.9% top rate |
 | QSBS state treatment | **No state tax to worry about** | Fully taxed | Partially excluded |
-| Franchise/margin tax | >$2.47M revenue only | $800 minimum | Various |
+| Franchise/margin tax | >$2.65M revenue only (2026) | $800 minimum | Various |
 | Sales tax | 6.25% + local (up to 8.25%) | 7.25% + local | 4% + local |
 
 ---
@@ -229,8 +229,8 @@ flowchart TD
 - **Note:** Verify current program status — has been restructured
 
 ### SBIR/STTR (Federal — applicable to Texas companies)
-- **Phase I:** Up to $275,000
-- **Phase II:** Up to $1,750,000
+- **Phase I:** Up to about $314,000 (SBA guideline; agencies vary)
+- **Phase II:** Up to about $2.1 million
 - **Website:** sbir.gov
 - **Note:** Texas companies win significant SBIR/STTR awards, especially in defense and energy
 

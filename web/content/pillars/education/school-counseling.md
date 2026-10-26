@@ -17,6 +17,7 @@ graph TD
 ```
 
 ## Table of Contents
+
 1. Missouri Comprehensive School Counseling Program
 2. ASCA National Model
 3. Individual Student Planning
@@ -38,17 +39,20 @@ graph TD
 ## 1. Missouri Comprehensive School Counseling Program
 
 ### Overview
+
 Missouri's school counseling framework is aligned to the ASCA (American School Counselor Association) National Model and organized around three domains: academic, career, and social-emotional development.
 
 ### Missouri School Counseling Standards
+
 DESE has adopted standards for school counseling programs that include:
 - Student standards: knowledge, attitudes, and skills students acquire through the counseling program
 - Program standards: structural components, delivery methods, management, and accountability
 - Ethical standards: aligned to ASCA Ethical Standards for School Counselors
 
 ### Program Components
+
 | Component | % of Time (ASCA Recommendation) | Description |
-|-----------|--------------------------------|-------------|
+| ----------- | -------------------------------- | ------------- |
 | **Direct student services** | 80%+ | Instruction, appraisal/advisement, counseling |
 | **Indirect student services** | Included in 80% | Referrals, consultation, collaboration |
 | **Program management** | ≤20% | Planning, data analysis, program evaluation, fair-share duties |
@@ -58,19 +62,22 @@ DESE has adopted standards for school counseling programs that include:
 ## 2. ASCA National Model
 
 ### Four Components
+
 1. **Define** — program focus (vision, mission, beliefs, student standards)
 2. **Manage** — assessments, tools, action plans, calendars, data tracking
 3. **Deliver** — direct and indirect student services
 4. **Assess** — program results, counselor competency, counselor performance
 
 ### ASCA Mindsets & Behaviors
+
 ASCA has defined student standards organized as:
 - **Mindsets** (M1-M6): beliefs about self, learning, and growth (e.g., "Belief in development of whole self," "Self-confidence in ability to succeed")
 - **Behaviors:** learning strategies (B-LS), self-management skills (B-SMS), social skills (B-SS)
 
 ### Delivery System
+
 | Method | Description |
-|--------|-----------|
+| -------- | ----------- |
 | **Classroom instruction** | School counselor delivers or co-delivers lessons on academic skills, career exploration, SEL, conflict resolution, study skills, college readiness |
 | **Small-group counseling** | 4-8 students with shared needs (grief, divorce, social skills, anger management, transition, academic support) |
 | **Individual counseling** | Short-term, solution-focused counseling for students experiencing barriers to learning |
@@ -84,6 +91,7 @@ ASCA has defined student standards organized as:
 ## 3. Individual Student Planning
 
 ### Academic Planning
+
 - **Course selection guidance** — helping students choose courses aligned to graduation requirements, interests, and post-secondary goals
 - **Graduation tracking** — monitoring credit accumulation, [A+ eligibility](../roles/students.md), testing requirements ([graduation audit template](../../templates/counselor/graduation-audit.md))
 - **Individual Learning Plans (ILPs)** — career-connected academic plans (see `references/career-pathways.md`)
@@ -92,12 +100,14 @@ ASCA has defined student standards organized as:
 - **Credit recovery planning** — for students behind in credits
 
 ### Career Planning
+
 - **Career assessments** — interest inventories, aptitude assessments, values clarification (via Missouri Connections platform)
 - **Career exploration activities** — research, job shadowing, informational interviews, career fairs
 - **Post-secondary planning** — college applications, financial aid, military options, trade schools, workforce entry
 - **CTE pathway advising** — connecting students to CTE programs and industry credentials
 
 ### Social-Emotional Planning
+
 - **Transition support** — elementary to middle, middle to high school, high school to post-secondary
 - **Goal setting** — academic and personal goal setting with regular check-ins
 - **Self-advocacy skills** — teaching students to communicate needs and access support
@@ -107,6 +117,7 @@ ASCA has defined student standards organized as:
 ## 4. Responsive Services
 
 ### Individual Counseling
+
 - Short-term (typically 4-8 sessions)
 - Solution-focused, strengths-based approach
 - Common concerns: academic stress, peer conflict, family changes, grief, anxiety, self-esteem, identity exploration, behavioral issues
@@ -114,6 +125,7 @@ ASCA has defined student standards organized as:
 - Document sessions in confidential counseling notes (separate from education records)
 
 ### Small-Group Counseling
+
 Common group topics:
 - Grief and loss
 - Family changes (divorce, separation, incarceration of a parent)
@@ -126,6 +138,7 @@ Common group topics:
 - Substance use awareness
 
 ### Crisis Response
+
 See [Crisis & Emergency](../operations/crisis-emergency.md) for detailed crisis protocols. School counselor's role:
 - Member of the Building Crisis Team
 - Conduct suicide risk screenings (C-SSRS, ASQ)
@@ -136,6 +149,7 @@ See [Crisis & Emergency](../operations/crisis-emergency.md) for detailed crisis 
 - Support postvention activities (after a student death, community trauma)
 
 ### Peer Mediation / Conflict Resolution
+
 - School counselors may train and supervise peer mediators
 - Mediation used for interpersonal conflicts (not bullying — power imbalance makes mediation inappropriate for bullying)
 - Structured process: ground rules → each party shares perspective → identify needs → brainstorm solutions → agreement
@@ -145,14 +159,16 @@ See [Crisis & Emergency](../operations/crisis-emergency.md) for detailed crisis 
 ## 5. System Support
 
 ### Consultation
+
 | With Whom | Focus |
-|-----------|-------|
+| ----------- | ------- |
 | **Teachers** | Student behavior strategies, classroom management, academic interventions, recognizing warning signs |
 | **Parents/guardians** | Child development, parenting strategies, school navigation, resource connection |
 | **Administrators** | Discipline alternatives, school climate, program development, data analysis |
 | **Community agencies** | Coordinating services for students/families (mental health, housing, food, medical) |
 
 ### Program Management
+
 - Develop and maintain the annual school counseling program calendar
 - Analyze school data to identify student needs (attendance, grades, discipline, assessment, climate surveys)
 - Create and implement action plans for each domain (academic, career, social-emotional)
@@ -160,6 +176,7 @@ See [Crisis & Emergency](../operations/crisis-emergency.md) for detailed crisis 
 - Advocate for program resources and reasonable counselor-to-student ratios
 
 ### Advisory Council
+
 Best practice: establish a school counseling advisory council with stakeholders (parents, teachers, students, administrators, community members) to review program goals, provide input, and advocate for the program.
 
 ---
@@ -167,6 +184,7 @@ Best practice: establish a school counseling advisory council with stakeholders 
 ## 6. School Counselor Certification
 
 ### Missouri Requirements
+
 - **Master's degree** in school counseling from a DESE-approved or CACREP-accredited program
 - **Practicum and internship** (600+ hours typically)
 - **Missouri School Counselor Certificate** (K-12)
@@ -174,11 +192,13 @@ Best practice: establish a school counseling advisory council with stakeholders 
 - **Content assessment** (Missouri Content Assessment for School Counselors or approved equivalent)
 
 ### National Certification
+
 - **NBCC (National Board for Certified Counselors):** NCC (National Certified Counselor)
 - **NBCC:** NCSC (National Certified School Counselor)
 - National certification is optional but demonstrates advanced competency
 
 ### Professional Development
+
 - DESE requires ongoing PD for certificate maintenance
 - Missouri School Counselor Association (MSCA) provides conferences and professional learning
 - ASCA provides national webinars, conferences, and resources
@@ -189,15 +209,18 @@ Best practice: establish a school counseling advisory council with stakeholders 
 ## 7. Caseload & Ratios
 
 ### ASCA Recommendation
-**1 school counselor : 250 students**
+
+**1 school counselor : 250 students.**
 
 ### Missouri Reality
+
 Many Missouri districts exceed this ratio significantly:
 - Urban districts may have ratios of 1:400-500+
 - Rural districts may have even higher ratios (one counselor for an entire K-12 building or district)
 - Counselor shortages are a statewide concern
 
 ### Impact of High Ratios
+
 - Less time for individual counseling and small groups
 - More time consumed by non-counseling duties (testing, scheduling, lunch duty)
 - Reduced capacity for proactive programming (classroom lessons, career planning)
@@ -208,8 +231,9 @@ Many Missouri districts exceed this ratio significantly:
 ## 8. College & Career Readiness Counseling
 
 ### College Application Process
+
 | Task | Timing | Counselor Role |
-|------|--------|---------------|
+| ------ | -------- | --------------- |
 | **Career exploration** | Grades 6-10 | Facilitate assessments, career research, course planning |
 | **College search** | Grades 10-11 | Help students identify college matches (academic, financial, social fit) |
 | **Standardized testing** | Grade 11-12 | ACT/SAT preparation, fee waivers, registration support |
@@ -218,6 +242,7 @@ Many Missouri districts exceed this ratio significantly:
 | **Decision support** | Grade 12 (spring) | Compare offers, commit, enrollment deposits, transition planning |
 
 ### FAFSA Completion
+
 - Missouri has emphasized FAFSA completion rates as a school quality indicator
 - [A+ Scholarship](../roles/students.md) requires FAFSA completion (or waiver)
 - School counselors host FAFSA completion events and provide individual assistance
@@ -225,6 +250,7 @@ Many Missouri districts exceed this ratio significantly:
 - FAFSA Simplification (2024-25 forward) reduces questions and uses IRS data transfer
 
 ### First-Generation College Students
+
 Special attention needed for students whose parents did not attend college:
 - Navigate unfamiliar application processes
 - Explain financial aid and scholarships
@@ -237,6 +263,7 @@ Special attention needed for students whose parents did not attend college:
 ## 9. Mental Health Referral & Triage
 
 ### When to Refer Out
+
 School counselors provide short-term support but refer to community providers when:
 - Student needs long-term or intensive therapy (more than 6-8 sessions)
 - Student presents with clinical-level symptoms (major depression, PTSD, psychosis, eating disorders, substance dependence)
@@ -245,6 +272,7 @@ School counselors provide short-term support but refer to community providers wh
 - Student's needs exceed the counselor's scope of competence
 
 ### Referral Process
+
 1. Assess the student's needs (screening tools, interview, observation)
 2. Consult with school psychologist or social worker if available
 3. Contact parent/guardian to discuss concerns and recommend referral
@@ -254,6 +282,7 @@ School counselors provide short-term support but refer to community providers wh
 7. Follow up with the family and student regularly
 
 ### Community Mental Health Resources (Missouri)
+
 - Community mental health centers (Comprehensive Mental Health Services, Behavioral Health Response, etc.)
 - Regional federally qualified health centers (FQHCs) with behavioral health
 - Missouri Department of Mental Health (DMH) — local offices
@@ -266,6 +295,7 @@ School counselors provide short-term support but refer to community providers wh
 ## 10. Crisis Counseling
 
 ### School Counselor's Crisis Role
+
 - Immediate emotional stabilization for affected students
 - Active listening, validation, and containment
 - Assess for imminent risk (suicidality, self-harm, harm to others)
@@ -275,6 +305,7 @@ School counselors provide short-term support but refer to community providers wh
 - Facilitate re-entry after absence related to crisis
 
 ### Psychological First Aid (PFA)
+
 Evidence-informed approach for crisis response:
 1. **Contact and engagement** — approach the person with compassion
 2. **Safety and comfort** — ensure physical and emotional safety
@@ -290,6 +321,7 @@ Evidence-informed approach for crisis response:
 ## 11. Group Counseling
 
 ### Group Formation
+
 - Screen potential members (individual pre-group interview)
 - Obtain parent/guardian consent (passive or active, per district policy)
 - Group size: 4-8 members (smaller for younger students)
@@ -297,6 +329,7 @@ Evidence-informed approach for crisis response:
 - Closed groups preferred (same members throughout)
 
 ### Group Stages (Tuckman)
+
 1. Forming — orientation, getting to know each other, establishing norms
 2. Storming — resistance, testing boundaries, power dynamics
 3. Norming — cohesion, trust building, group identity
@@ -308,6 +341,7 @@ Evidence-informed approach for crisis response:
 ## 12. Ethical & Legal Considerations
 
 ### ASCA Ethical Standards (Key Principles)
+
 - **Student autonomy** — respect student decision-making capacity (age-appropriate)
 - **Confidentiality** — counseling conversations are confidential with specific exceptions:
   - Imminent danger to self or others (duty to warn/protect)
@@ -320,6 +354,7 @@ Evidence-informed approach for crisis response:
 - **Professional boundaries** — maintain appropriate relationships with students
 
 ### Confidentiality with Minors
+
 - Missouri law does not grant minors an absolute right to confidential counseling (except in specific clinical contexts)
 - Best practice: explain confidentiality limits at the outset of counseling
 - Balance student trust with parental rights — use professional judgment
@@ -327,6 +362,7 @@ Evidence-informed approach for crisis response:
 - When breaking confidentiality is necessary, inform the student first (when safe to do so)
 
 ### Records
+
 - Counseling notes (sole possession records) are generally exempt from FERPA if kept solely for the counselor's own use and not shared
 - Once counseling notes are shared with others or placed in the student's education file, they become education records subject to [FERPA](../compliance/mo-education-law.md)
 - Maintain notes separately from cumulative files
@@ -336,11 +372,13 @@ Evidence-informed approach for crisis response:
 ## 13. School Counselor Evaluation
 
 ### DESE Evaluation
+
 School counselors in Missouri may be evaluated using:
 - Missouri Educator Evaluation System (MEES) adapted for counselors, OR
 - A locally-developed evaluation instrument aligned to ASCA standards
 
 ### ASCA School Counselor Performance Standards
+
 1. Program planning, design, implementation
 2. Direct student services
 3. Indirect student services
@@ -355,8 +393,9 @@ School counselors in Missouri may be evaluated using:
 ## 14. Elementary vs. Secondary Counseling
 
 ### Elementary (K-5)
+
 | Focus | Activities |
-|-------|-----------|
+| ------- | ----------- |
 | **Classroom guidance** | SEL lessons, conflict resolution, career awareness, study skills, kindness/anti-bullying |
 | **Individual counseling** | Play-based or talk-based counseling for social-emotional concerns |
 | **Small groups** | Friendship, grief, family changes, self-regulation, new student transition |
@@ -365,8 +404,9 @@ School counselors in Missouri may be evaluated using:
 | **Transition** | Kindergarten readiness, transition to middle school |
 
 ### Secondary (6-12)
+
 | Focus | Activities |
-|-------|-----------|
+| ------- | ----------- |
 | **Academic advising** | Course selection, graduation tracking, credit recovery planning |
 | **Career development** | Career assessments, ILP, Missouri Connections, CTE advising, work-based learning coordination |
 | **College readiness** | College search, applications, FAFSA, scholarships, test preparation |
@@ -380,6 +420,7 @@ School counselors in Missouri may be evaluated using:
 ## 15. Non-Counseling Duties (Advocacy)
 
 ### ASCA Position: Appropriate vs. Inappropriate Duties
+
 **Appropriate:**
 - Classroom guidance lessons, individual/group counseling, academic planning, crisis response, consultation, referral, program management, data analysis, leadership team participation
 
@@ -393,6 +434,7 @@ School counselors in Missouri may be evaluated using:
 - IEP case management (school counselors may participate in IEP teams but should not serve as case manager)
 
 ### Advocacy
+
 - ASCA recommends counselors spend 80%+ of time in direct/indirect student services
 - School counselors should advocate with administrators and boards for appropriate use of their time
 - Use time studies (ASCA Use of Time calculator) to document how time is spent

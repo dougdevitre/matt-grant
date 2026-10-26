@@ -71,7 +71,7 @@ Title IX of the Education Amendments of 1972 (20 U.S.C. SS 1681) states: **"No p
 Title IX protections in Missouri K-12 schools cover:
 
 | Category | Examples |
-|---|---|
+| --- | --- |
 | **Sex-based discrimination** | Unequal treatment in academics, activities, or discipline based on sex |
 | **Sexual harassment** | Unwelcome conduct of a sexual nature that is severe, pervasive, or objectively offensive; quid pro quo harassment by employees |
 | **Sexual violence** | Sexual assault, dating violence, domestic violence, stalking |
@@ -132,7 +132,7 @@ Any person may report sex discrimination, whether or not the person is the alleg
 ### How to Report
 
 | Method | Details |
-|---|---|
+| --- | --- |
 | **In person** | To the Title IX Coordinator, any school administrator, counselor, or teacher |
 | **In writing** | Letter or email to the Title IX Coordinator |
 | **By phone** | Call the Title IX Coordinator's published number |
@@ -195,12 +195,12 @@ During the investigation, the district may implement:
 ### Formal vs. Informal Resolution
 
 | Feature | Formal Resolution | Informal Resolution |
-|---|---|---|
+| --- | --- | --- |
 | **Trigger** | Formal complaint filed | Both parties voluntarily agree |
 | **Process** | Full investigation and determination | Mediation, restorative practices, or agreement |
 | **Decision-maker** | Independent decision-maker (not the investigator or coordinator) | Facilitator or mediator |
 | **Available for** | All complaints | Not available when an employee is the respondent accused of harassing a student |
-| **Withdrawal** | Either party may withdraw from informal and proceed to formal at any time |
+| **Withdrawal** | Either party may withdraw from informal and proceed to formal at any time | |
 
 ### Decision-Maker Independence
 
@@ -226,7 +226,7 @@ The decision-maker must issue a written determination that includes:
 Supportive measures are **non-disciplinary, non-punitive** individualized services offered as appropriate to either party, regardless of whether a formal complaint is filed. They must be designed to restore or preserve equal access to education without unreasonably burdening the other party.
 
 | Measure | Description |
-|---|---|
+| --- | --- |
 | **No-contact orders** | Mutual or one-sided directives prohibiting direct or indirect communication between parties |
 | **Schedule changes** | Adjusting class schedules, lunch periods, or extracurricular assignments to minimize contact |
 | **Counseling referrals** | Connecting students to school counselors, community mental health services, or crisis resources |
@@ -268,7 +268,7 @@ Retaliation includes but is not limited to:
 Title IX requires **equal opportunity** in athletics, not necessarily identical programs. Missouri districts must provide equitable access across the following factors:
 
 | Factor | What Equity Looks Like |
-|---|---|
+| --- | --- |
 | **Participation opportunities** | The number of athletic opportunities for each sex should be substantially proportionate to enrollment, or the district must show a history of expanding opportunities for the underrepresented sex |
 | **Equipment and supplies** | Comparable quality, quantity, and availability |
 | **Scheduling** | Equitable game and practice times, including access to prime-time slots |
@@ -294,7 +294,7 @@ Title IX requires **equal opportunity** in athletics, not necessarily identical 
 ### Required Accommodations
 
 | Accommodation | Details |
-|---|---|
+| --- | --- |
 | **Excused absences** | Absences for pregnancy, childbirth, and related medical conditions must be excused for as long as the student's doctor deems medically necessary |
 | **Make-up work** | Students must be allowed to make up missed assignments and tests |
 | **Homebound instruction** | If a student voluntarily chooses to participate in an alternative program, it must be comparable in quality to the regular program |
@@ -338,7 +338,7 @@ The Title IX Coordinator, investigators, decision-makers, and informal resolutio
 Districts must maintain records related to Title IX compliance for a minimum of **seven (7) years**. Required records include:
 
 | Record Type | Details |
-|---|---|
+| --- | --- |
 | **Formal complaints and investigations** | Every investigation, determination, disciplinary sanction, remedy, and appeal |
 | **Informal resolutions** | Documentation of the process and any agreement reached |
 | **Supportive measures** | Records of all measures offered and the basis for the district's response |
@@ -363,7 +363,7 @@ If a student, parent, or employee believes the district has not adequately addre
 ### How to File
 
 | Method | Details |
-|---|---|
+| --- | --- |
 | **Online** | OCR Complaint Form at [https://ocrcas.ed.gov](https://ocrcas.ed.gov) |
 | **Email** | OCR.KansasCity@ed.gov (Kansas City regional office covers Missouri) |
 | **Mail** | Office for Civil Rights, Kansas City Office, U.S. Department of Education, One Petticoat Lane, 1010 Walnut Street, 3rd floor, Suite 320, Kansas City, MO 64106 |
@@ -387,22 +387,25 @@ If a student, parent, or employee believes the district has not adequately addre
 ## 13. Related Resources
 
 ### Federal Resources
+
 - **U.S. Department of Education, Office for Civil Rights** -- [www2.ed.gov/ocr](https://www2.ed.gov/ocr)
 - **Title IX Regulations** -- 34 C.F.R. Part 106
 - **Know Your Rights: Title IX** -- ED.gov resource page for students and families
 
 ### Missouri Resources
+
 - **Missouri Department of Elementary and Secondary Education (DESE)** -- [dese.mo.gov](https://dese.mo.gov)
 - **Missouri Commission on Human Rights** -- handles state-level discrimination complaints
 - **Missouri School Boards' Association (MSBA)** -- model policies (Board Policy AC, AC-R)
 - **MSHSAA** -- athletics equity guidance and compliance resources
 
 ### Within This Knowledge Base
+
 - `references/compliance/mo-education-law.md` -- federal laws applicable to Missouri schools, including civil rights statutes
 - `references/compliance/equity-access.md` -- broader equity and access guidance
-- `references/roles/role-parent.md` -- parent rights, including how to advocate around Title IX
-- `references/roles/role-principal.md` -- building-level compliance responsibilities
-- `references/operations/school-safety.md` -- safety protocols related to sexual violence and threat assessment
+- `references/roles/students.md` -- student and parent rights (see §6 Parent Rights in Education), including how to advocate around Title IX
+- `references/roles/building-leaders.md` -- building-level compliance responsibilities
+- `references/operations/crisis-emergency.md` -- safety and crisis response protocols, including threat assessment
 - `templates/` -- letter templates for parent complaints, due process requests, and formal grievances
 
 ---

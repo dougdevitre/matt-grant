@@ -19,10 +19,11 @@ flowchart TD
 ```
 
 ## Table of Contents
+
 - [Before You Arrive](#before-you-arrive)
 - [First 10 Minutes in the Room](#first-10-minutes-in-the-room)
 - [Taking Attendance](#taking-attendance)
-- [Classroom Management — The Basics](#classroom-management-the-basics)
+- [Classroom Management — The Basics](#classroom-management--the-basics)
   - [What works](#what-works)
   - [What doesn't work](#what-doesnt-work)
   - [If a student refuses to comply](#if-a-student-refuses-to-comply)
@@ -31,8 +32,8 @@ flowchart TD
   - [You are a mandated reporter](#you-are-a-mandated-reporter)
   - [Student privacy (FERPA)](#student-privacy-ferpa)
   - [Student medications](#student-medications)
-- [Students With Special Needs — What the Sub Must Do](#students-with-special-needs-what-the-sub-must-do)
-  - [IEP / 504 Students](#iep-504-students)
+- [Students With Special Needs — What the Sub Must Do](#students-with-special-needs--what-the-sub-must-do)
+  - [IEP / 504 Students](#iep--504-students)
   - [ELL Students](#ell-students)
   - [Students in crisis](#students-in-crisis)
 - [End of the Day](#end-of-the-day)
@@ -76,6 +77,7 @@ flowchart TD
 ## Classroom Management — The Basics
 
 ### What works
+
 - **Be calm, consistent, and confident** — students sense uncertainty
 - **Use the teacher's rules** — say "Your teacher's expectation is..." not "my rule is..."
 - **Stand near problems** — proximity is your most powerful tool. Walk the room.
@@ -84,6 +86,7 @@ flowchart TD
 - **Learn 3-4 names fast** — use the seating chart. Using a student's name changes the dynamic.
 
 ### What doesn't work
+
 - Yelling or threatening — you'll lose the room
 - Taking it personally — it's not about you
 - Trying to be their friend — be warm but firm
@@ -91,12 +94,14 @@ flowchart TD
 - Engaging in public power struggles — redirect privately
 
 ### If a student refuses to comply
+
 1. One calm, quiet redirect: "I need you to [specific behavior]."
 2. If they refuse: "I'm going to give you a minute to make a good choice."
 3. If they escalate: send to the office or call the neighbor teacher. Don't argue.
 4. Document: student name, what happened, what you did. Leave it in the sub notes.
 
 ### If a fight breaks out
+
 1. **Do NOT physically intervene** — you can be held liable
 2. Send a student to get an administrator immediately
 3. Clear other students away from the area
@@ -108,6 +113,7 @@ flowchart TD
 ## Legal Things You Must Know
 
 ### You are a mandated reporter
+
 Under **RSMo 210.115**, ALL school employees — including substitutes — must report suspected child abuse or neglect **immediately**.
 - **Call:** Children's Division hotline **1-800-392-3738**
 - You do NOT need proof. A child's statement or visible injuries are enough.
@@ -115,11 +121,13 @@ Under **RSMo 210.115**, ALL school employees — including substitutes — must 
 - **Failure to report is a Class A misdemeanor.**
 
 ### Student privacy (FERPA)
+
 - Do NOT discuss student grades, behavior, or IEP/504 information with other students
 - The sub binder's student alert page is **CONFIDENTIAL** — keep it face-down or in the binder
 - Do not take photos of student work or behavior
 
 ### Student medications
+
 - **Never** administer medication — that's the school nurse's job
 - If a student says they need medication, send them to the nurse (or call the nurse to the room)
 - Exception: if a student is having a severe allergic reaction and their EpiPen is in the classroom, follow the emergency plan in the sub binder
@@ -129,6 +137,7 @@ Under **RSMo 210.115**, ALL school employees — including substitutes — must 
 ## Students With Special Needs — What the Sub Must Do
 
 ### IEP / 504 Students
+
 - Check the sub binder for accommodations — **these are legally required, not optional**
 - Common accommodations you'll see:
   - Extended time → let them keep working while others move on
@@ -138,6 +147,7 @@ Under **RSMo 210.115**, ALL school employees — including substitutes — must 
 - If you're unsure, ask the special education teacher (listed in the sub binder's key people section)
 
 ### ELL Students
+
 - Check the sub binder for ELL students and their supports
 - Speak clearly and at a moderate pace — don't shout
 - Use the visuals, word banks, and sentence frames the teacher left
@@ -145,6 +155,7 @@ Under **RSMo 210.115**, ALL school employees — including substitutes — must 
 - Pair them with a bilingual buddy if one is identified
 
 ### Students in crisis
+
 - If a student discloses abuse, self-harm, or suicidal thoughts → **take it seriously**
 - Stay calm. Say: "Thank you for telling me. I need to make sure you're safe."
 - Immediately contact the school counselor or administrator
@@ -172,9 +183,9 @@ Under **RSMo 210.115**, ALL school employees — including substitutes — must 
 ## Missouri Substitute Teacher Requirements
 
 | Requirement | Details |
-|------------|---------|
+| ------------ | --------- |
 | **Certificate** | Substitute certificate from DESE (4-year validity) |
-| **Education** | Minimum 60 college credit hours |
+| **Education** | 36+ college semester hours, OR a high school diploma/equivalent plus 20 clock hours of DESE-approved substitute training |
 | **Background check** | FBI fingerprint + Missouri Highway Patrol |
 | **Long-term sub (60+ days same assignment)** | Must hold a valid Missouri teaching certificate |
 | **Pay** | Set by district — typically $80-$150/day (no state minimum) |
@@ -185,7 +196,7 @@ Under **RSMo 210.115**, ALL school employees — including substitutes — must 
 ## Helpful Phrases for Tough Moments
 
 | Situation | What to say |
-|-----------|------------|
+| ----------- | ------------ |
 | Student says "You're not our real teacher" | "You're right — I'm your sub today, and I'm here to help you learn. Let's have a good day." |
 | Student says "We don't do it that way" | "Thanks for letting me know. Today we'll follow the plans your teacher left." |
 | Student refuses to work | "I'm not going to force you, but I do need to let your teacher know. Want to give it a try?" |

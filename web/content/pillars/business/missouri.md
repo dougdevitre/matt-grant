@@ -19,6 +19,7 @@ flowchart TD
 **Part of Access to Business — Pillar 7 of the Access To Initiative**
 
 **Disclaimer:** Program details, availability, fees, and contact information change.
+*Last verified: 2026-10-20 (SOS fees, MTC, Arch Grants, SBDC, APEX, angel credit, SBIR, QSBS). Ecosystem listings in section 2 were not re-verified.*
 Always verify directly with each organization before applying or reaching out.
 This is educational context — not legal, tax, or financial advice.
 
@@ -37,8 +38,8 @@ This is educational context — not legal, tax, or financial advice.
 
 ## 1. Missouri Startup Quick Facts
 
-- **No state-level capital gains tax** on QSBS — one of few states with this advantage
-- **Missouri Angel Investor Tax Credit** — 40% credit on qualified investments
+- **Missouri capital gains subtraction** — individuals can subtract 100% of capital gain reported for federal tax purposes, which covers any QSBS gain not already excluded federally (RSMo §143.121). DOR gives conflicting start years (2025 or 2026); see the QSBS section below and confirm with DOR or a tax professional
+- **Missouri Angel Investment Incentive** — 40%–60% state tax credit for qualified investments, starting January 1, 2027
 - **Strong life sciences + defense corridors** — BJC/WashU, Boeing, Centene create enterprise customer opportunities
 - **Lower cost of living** than coastal hubs — salary leverage for early hires
 - **Two major metros:** St. Louis (finance, health, agtech, defense) + Kansas City (fintech, animal health, agtech)
@@ -62,7 +63,7 @@ This is educational context — not legal, tax, or financial advice.
 
 ### Arch Grants
 - **Type:** Non-dilutive grant program
-- **Amount:** $50,000 grants (no equity taken)
+- **Amount:** $75,000 grants (no equity taken), plus $25,000 for companies relocating to St. Louis
 - **Requirement:** Relocate or be based in St. Louis for 1 year
 - **Focus:** Any sector; emphasis on scalable tech
 - **Competitive:** ~300+ applicants per cycle; ~15 grants awarded
@@ -152,25 +153,25 @@ This is educational context — not legal, tax, or financial advice.
 
 ### Missouri Technology Corporation (MTC)
 - **Type:** State quasi-public agency
-- **Programs:**
-  - IDEA Grants (up to $75K for early-stage tech companies)
-  - Proof of Concept grants
-  - SBIR/STTR matching funds (up to $100K matching)
-- **Website:** missouritechnology.org
+- **Programs (IDEA Fund co-investments, not grants; at least 1:1 private match):**
+  - TechLaunch: up to $250K (from the October 2026 cycle)
+  - Seed Capital: up to $1M
+  - Venture Capital: up to $4M
+- **Website:** missouritechnology.com
 - **Eligibility:** Missouri-based for-profit companies
 
 ### Missouri Small Business Development Center (SBDC)
 - **Type:** Free consulting + training (federally funded)
 - **Services:** Business plan development, financial projections, market research, loan prep
 - **Locations:** Statewide; hosted at universities and chambers
-- **Website:** mo-sbdc.org
+- **Website:** sbdc.missouri.edu
 - **Best for:** Founders who need free expert guidance on formation, finance, and operations
 
-### Missouri PTAC (Procurement Technical Assistance Center)
+### Missouri APEX Accelerator (formerly PTAC, Procurement Technical Assistance Center)
 - **Type:** Free government contracting support
 - **Services:** Help winning federal, state, and local government contracts
 - **Best for:** Startups targeting government as a customer
-- **Website:** missouriptac.org
+- **Website:** extension.missouri.edu/programs/apex-accelerator
 
 ### SCORE St. Louis / Kansas City
 - **Type:** Free mentoring (volunteer executives)
@@ -265,7 +266,7 @@ This is educational context — not legal, tax, or financial advice.
 - Simple to form ($50 filing fee)
 - Pass-through taxation (no double tax)
 - Flexible management structure
-- No annual report required (but annual registration fee applies)
+- No annual report or annual fee required
 
 **Missouri LLC cons:**
 - VCs typically won't invest in LLCs
@@ -281,15 +282,15 @@ This is educational context — not legal, tax, or financial advice.
 
 **Delaware C-Corp pros:**
 - Required/preferred by virtually all institutional investors
-- QSBS eligibility (up to $10M tax-free gain)
+- QSBS eligibility (up to $15M tax-free gain for stock acquired after July 4, 2025; $10M before)
 - Flexible stock structure (common, preferred, options)
 - Well-established case law for corporate governance
 - Easy to add investors without restructuring
 
 **Delaware C-Corp cons:**
 - More expensive to form and maintain (~$500–$1,500)
-- Requires annual Delaware franchise tax (~$400 minimum; can be higher)
-- Must register as foreign corporation in Missouri (~$105)
+- Requires annual Delaware franchise tax ($175–$400 minimum depending on method, plus $50 annual report fee; can be higher)
+- Must register as foreign corporation in Missouri ($155)
 - Double taxation (corporate + dividend) unless S-Corp election
 
 ### Missouri C-Corp — Rarely recommended
@@ -358,10 +359,9 @@ This is educational context — not legal, tax, or financial advice.
 - **Other cities:** Check with city clerk — requirements vary
 
 ### Step 9: Annual Requirements
-- **Annual Report/Registration Fee:** Due by the last day of the month of your anniversary
-- **Fee:** $45 online | $50 paper (verify current fee at sos.mo.gov)
+- **Annual report:** Missouri LLCs file no annual report and pay no annual fee
+- **Keep current:** Update your registered agent or office address with the SOS when it changes ($10)
 - File at: **sos.mo.gov**
-- Failure to file: Administrative dissolution after ~2 years of non-filing
 
 ---
 
@@ -384,12 +384,12 @@ This is educational context — not legal, tax, or financial advice.
 1. **Incorporate in Delaware** via chosen service or attorney
    - Choose authorized shares: typically 10,000,000 common shares at $0.0001 par value
    - File with Delaware Division of Corporations
-   - Pay Delaware franchise tax: ~$400/year minimum (higher based on shares/assets)
+   - Pay Delaware franchise tax: $175 (Authorized Shares) or $400 (Assumed Par Value Capital) minimum, plus $50 annual report fee
 
 2. **Register as Foreign Corporation in Missouri**
    - Required to do business in Missouri
    - File at: **sos.mo.gov** → Foreign Corporation Registration
-   - Fee: **$105** | Processing: 5–7 business days
+   - Fee: **$155** | Processing: 5–7 business days
    - Requires: Certificate of Good Standing from Delaware (get from Delaware SOS)
 
 3. **Get EIN:** irs.gov/ein (same as LLC process)
@@ -411,11 +411,11 @@ This is educational context — not legal, tax, or financial advice.
 
 7. **Delaware Annual Franchise Tax**
    - Due: March 1 each year
-   - Minimum: $400 (Authorized Shares Method can be expensive — use Assumed Par Value Capital Method)
+   - Minimum: $175 (Authorized Shares) or $400 (Assumed Par Value Capital); the Authorized Shares method can be expensive for startups with many shares, so compare both
    - File at: **corp.delaware.gov**
 
 8. **Missouri Annual Requirements**
-   - Annual Report for foreign corporations: ~$45/year
+   - Annual registration report for foreign corporations: $20 online | $45 paper
    - File at: **sos.mo.gov**
 
 ---
@@ -462,8 +462,8 @@ This is educational context — not legal, tax, or financial advice.
 
 ## Non-Dilutive Grants
 
-### Arch Grants — $50,000
-- **Amount:** $50,000 (non-dilutive, no equity)
+### Arch Grants — $75,000
+- **Amount:** $75,000 (non-dilutive, no equity), plus $25,000 for companies relocating
 - **Requirement:** Commit to operating in St. Louis for at least 1 year post-award
 - **Eligibility:** Early-stage, scalable companies; any industry
 - **Selection:** Highly competitive; ~15 grants/year from 300+ applicants
@@ -471,19 +471,13 @@ This is educational context — not legal, tax, or financial advice.
 - **Website:** archgrants.org
 - **When to apply:** Annual cycle; typically opens Q1; check website for current cycle
 
-### Missouri Technology Corporation (MTC) — IDEA Grants
-- **Amount:** Up to $75,000
+### Missouri Technology Corporation (MTC) — IDEA Fund
+- **Type:** Co-investment (not a grant); requires at least a 1:1 private match
+- **Amount:** TechLaunch up to $250,000 (from the October 2026 cycle); larger Seed and Venture Capital programs
 - **Purpose:** Support early commercialization of technology
 - **Eligibility:** Missouri-based for-profit companies; tech focus
-- **Match requirement:** Grantees must demonstrate matching funds or in-kind support
-- **Website:** missouritechnology.org
-- **Note:** MTC also offers proof-of-concept funding and SBIR/STTR matching
-
-### MTC — SBIR/STTR Matching Program
-- **Amount:** Up to $100,000 matching funds
-- **Purpose:** Match federal SBIR/STTR Phase I or II awards
-- **Eligibility:** Missouri-based companies that received a federal SBIR/STTR award
-- **Website:** missouritechnology.org
+- **Website:** missouritechnology.com
+- **Note:** An MTC SBIR/STTR matching program could not be confirmed; ask MTC
 
 ### Digital Sandbox KC — Up to $50,000
 - **Amount:** Up to $50,000 (proof-of-concept funding)
@@ -492,30 +486,28 @@ This is educational context — not legal, tax, or financial advice.
 - **Website:** digitalsandboxkc.com
 
 ### SBA SBIR/STTR (Federal — applicable to Missouri companies)
-- **Phase I:** Up to $275,000 (feasibility study)
-- **Phase II:** Up to $1,750,000 (R&D, prototype development)
+- **Phase I:** Up to about $314,000 (SBA guideline; agencies set their own limits) (feasibility study)
+- **Phase II:** Up to about $2.1 million (R&D, prototype development)
+- **Status:** Reauthorized April 13, 2026 through September 30, 2031, after a six-month lapse
 - **Eligibility:** U.S. small businesses (< 500 employees); American-owned
 - **Focus:** Research and development in areas of federal interest
 - **No equity taken:** Grants, not investments
 - **Website:** sbir.gov
-- **Missouri-specific:** MTC can help Missouri companies apply (missouritechnology.org)
+- **Missouri-specific:** MTC can help Missouri companies apply (missouritechnology.com)
 
 ---
 
 ## Missouri Tax Incentives
 
-### Missouri Angel Investor Tax Credit
-- **Credit amount:** 40% of investment in a qualified Missouri company
-- **Maximum credit per investor:** $50,000/year
-- **Maximum credits per company:** $250,000
-- **Eligibility (company):** Missouri-based, for-profit, fewer than 100 employees, less than $10M revenue
-- **Eligibility (investor):** Must be a "qualified investor" (net worth $1M+ or income $200K+)
-- **How it works:** Investor gets a 40% state tax credit on their investment — powerful incentive for Missouri angel investors
-- **Website:** ded.mo.gov → Business Incentives → Angel Investor Tax Credit
-- **Practical impact:** When pitching Missouri angel investors, lead with this — it dramatically lowers their effective cost basis
+### Missouri Angel Investment Incentive (starts January 1, 2027)
+- **Credit amount:** 40%–60% state tax credit on cash investments in an MTC-designated qualified Missouri business (higher in rural counties and Missouri Innovation Zones)
+- **Enacted:** 2026 session (HB 3231 and HB 2531)
+- **Administered by:** Missouri Technology Corporation, with the Department of Economic Development
+- **Caps and eligibility rules:** Not yet published; check missouritechnology.com before relying on numbers
+- **Practical impact:** Once the program opens, it can lower Missouri angels' effective cost
 
-### Missouri Small Business Innovation Research (SSBCI) — Capital Access
-- **Type:** Loan and equity capital programs
+### State Small Business Credit Initiative (SSBCI) — Capital Access
+- **Type:** Loan and equity capital programs (SSBCI 2.0 also funds MTC's IDEA Fund)
 - **Purpose:** Increase access to capital for small businesses
 - **Administered by:** Missouri Department of Economic Development
 - **Website:** ded.mo.gov
@@ -551,16 +543,16 @@ This is educational context — not legal, tax, or financial advice.
 ## Federal Tax Benefits (Highly Relevant to Missouri Startups)
 
 ### Qualified Small Business Stock (QSBS) — Section 1202
-- **Benefit:** Up to **$10 million** (or 10x basis) in federal capital gains tax exclusion
+- **Benefit:** Up to **$15 million** (or 10x basis) in federal capital gains tax exclusion for stock acquired after July 4, 2025; **$10 million** for earlier stock
 - **Eligibility (company):**
   - Must be a C-Corporation (LLC does not qualify)
-  - Assets must be under $50M at time of issuance
+  - Assets must be under $75M at time of issuance ($50M for stock issued on or before July 4, 2025)
   - Must be an active business (not professional services, finance, hospitality)
 - **Eligibility (holder):**
   - Must be original issuance (not secondary market purchase)
-  - Must hold for 5+ years
-- **Missouri note:** Missouri does NOT tax QSBS gains either — unlike many states that do. This is a material advantage for Missouri startups.
-- **Practical impact:** A Missouri C-Corp founder or early investor with $1M basis who sells for $11M pays $0 federal tax on the $10M gain
+  - Must hold for 5+ years for the full exclusion (stock acquired after July 4, 2025: 50% after 3 years, 75% after 4, nothing under 3 years; stock acquired on or before July 4, 2025 must be held more than 5 years; 26 U.S.C. §1202(a)(1), (a)(4), (a)(5))
+- **Missouri note:** Gain excluded under §1202 is not in federal adjusted gross income, which is where Missouri adjusted gross income starts (RSMo §143.121). Separately, Missouri lets individuals subtract 100% of capital gain reported for federal tax purposes (RSMo §143.121, claimed on Form MO-A), so a QSBS gain that is only partly excluded federally can still be subtracted on the Missouri return. Trusts and other fiduciaries, and pass-through entities paying the PTE tax, do not qualify; corporations qualify only from the tax year after the top individual rate falls to 4.5% or lower (it is 4.7% for 2025). The start year is not settled: the [DOR capital gains subtraction FAQ](https://dor.mo.gov/faq/taxation/individual/capital-gains-subtraction.html) says both "effective for the 2025 tax year" and that it "applies to tax years beginning on or after January 1, 2026," while the [DOR 2025 tax legislative changes summary](https://dor.mo.gov/taxation/individual/tax-types/income/year-changes/documents/2025-Tax-Legislative-Changes.pdf) (HBs 594 & 508) says it is effective for individuals starting January 1, 2025. Confirm the year with DOR or a tax professional before relying on it. This is a material advantage for Missouri startups compared with states that tax QSBS gains, such as California.
+- **Practical impact** (example, assuming the stock qualifies and the gain is within the per-issuer limit): A Missouri C-Corp founder or early investor with $1M basis who sells for $11M pays $0 federal tax on the $10M gain only after holding long enough. For stock acquired after July 4, 2025, the whole gain is excluded from federal income tax only after holding 5 years or more. Sold after 3 or 4 years, only 50% or 75% is excluded and the rest is federally taxable; sold before 3 years, none is excluded. Stock acquired on or before July 4, 2025 must be held more than 5 years. Model the timing with a tax professional before planning a sale
 
 ### R&D Tax Credit (Section 41)
 - **Credit:** 20% of qualified research expenses above base amount; simplified method available
@@ -578,7 +570,8 @@ This is educational context — not legal, tax, or financial advice.
 ## Loan Programs
 
 ### Missouri Small Business Loan Program (MOSLP)
-- **Amount:** Up to $500,000
+- **Status:** Program name and amount could not be confirmed; check ded.mo.gov for current state loan programs
+- **Amount:** Up to $500,000 (unconfirmed)
 - **Purpose:** Working capital, equipment, real estate
 - **Administered by:** Missouri Department of Economic Development
 - **Website:** ded.mo.gov
@@ -606,9 +599,9 @@ This is educational context — not legal, tax, or financial advice.
 ## Incentive Application Tips for Missouri Founders
 
 1. **Apply for Arch Grants even if you don't win** — the process forces binder discipline and the feedback is valuable
-2. **Mention the Missouri Angel Investor Tax Credit in every pitch to MO angels** — many don't know about it
+2. **Mention the Missouri Angel Investment Incentive to MO angels once it opens (January 1, 2027)** — many don't know about it
 3. **File for R&D tax credits every year** starting from Year 1 — the payroll tax offset is real money even pre-revenue
-4. **Stack incentives where possible** — Arch Grant + MTC IDEA Grant + R&D credit can cover early runway without dilution
+4. **Stack incentives where possible** — Arch Grant + R&D credit (plus an MTC IDEA Fund co-investment) can extend early runway
 5. **SBIR is underused** — if your product has any research or defense/health application, investigate Phase I
 6. **Get a startup-specialized CPA** early — not a general accountant. The incentives above require someone who knows them.
 
@@ -690,8 +683,8 @@ For funded startups needing VC-standard documents and investor familiarity:
 - **Website:** lsem.org
 - **Income limits:** Apply; limited to qualifying income levels
 
-### Missouri Bar Lawyer Referral Service
-- **Service:** Referral to vetted Missouri attorneys; first consultation often reduced fee
+### The Missouri Bar — LawyerSearch and Legal Resource Line
+- **Service:** LawyerSearch lists Missouri lawyers accepting new clients; the phone line points you to legal resources
 - **Website:** mobar.org
 - **Phone:** 573-636-3635
 

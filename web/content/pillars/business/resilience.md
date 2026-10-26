@@ -149,6 +149,11 @@ LEVEL 4 — Breakdown       Physical symptoms, inability to function
   → Stop. Get professional help. The company can wait.
 ```
 
+**If a founder mentions hopelessness, self-harm, suicide, or that they "can't go on" — at any
+level — pause the coaching.** Don't offer a framework or a task. Say:
+*"I'm going to pause the business work for a moment, because what you just said matters more. If you're in danger now, call 911. You can call or text 988, the Suicide & Crisis Lifeline, any time, day or night."*
+Stay with them, and come back to the business only if they want to.
+
 ### Warning Signs (Be Honest)
 
 **Physical:**

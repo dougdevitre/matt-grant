@@ -22,6 +22,7 @@ flowchart TD
 ```
 
 ## Table of Contents
+
 1. PSRS (Public School Retirement System)
 2. PEERS (Public Education Employee Retirement System)
 3. Health Insurance & Benefits
@@ -40,22 +41,27 @@ flowchart TD
 ## 1. PSRS (Public School Retirement System of Missouri)
 
 ### Overview
+
 PSRS is the defined benefit pension system for certificated (certified) employees of Missouri public schools: teachers, administrators, counselors, librarians, and other professional staff.
 
 ### Membership
+
 - Mandatory for all full-time certificated employees of Missouri public school districts, community colleges, and DESE
 - Employees contribute a percentage of salary (member contribution rate set annually by the PSRS Board — historically around 14.5% of salary, shared between employee and employer)
 
 ### Retirement Eligibility
+
 | Condition | Requirements |
-|-----------|-------------|
-| **Normal retirement (Rule of 80)** | Age + years of service = 80 (minimum age 48) |
+| ----------- | ------------- |
+| **Normal retirement (Rule of 80)** | Age + years of service ≥ 80 |
+| **Normal retirement (30 years)** | 30+ years of service at any age |
 | **Normal retirement (age/service)** | Age 60 with 5+ years of service |
 | **Early retirement** | Age 55 with 5+ years of service (reduced benefit) |
 | **25-and-out** | 25 years of service regardless of age (with reduction if under Rule of 80) |
 
 ### Benefit Calculation
-```
+
+```text
 Annual Benefit = Years of Service × Multiplier × Final Average Salary
 ```
 - **Multiplier:** 2.5% per year of service (for most members)
@@ -63,6 +69,7 @@ Annual Benefit = Years of Service × Multiplier × Final Average Salary
 - **Maximum benefit:** capped at a percentage of FAS (check current PSRS rules)
 
 ### Key Features
+
 - **Vesting:** 5 years of creditable service
 - **Cost of Living Adjustment (COLA):** PSRS has provided COLAs historically (not guaranteed; depends on board action and funding status)
 - **Disability retirement:** available for members who become disabled
@@ -70,22 +77,25 @@ Annual Benefit = Years of Service × Multiplier × Final Average Salary
 - **Service purchase:** members may purchase credit for certain types of prior service (military, out-of-state teaching, etc.)
 - **No Social Security:** most PSRS members do NOT participate in Social Security for their school employment (Missouri is a non-Social Security state for public school employees)
 
-### WEP and GPO
-Because PSRS members typically do not pay Social Security:
-- **Windfall Elimination Provision (WEP):** may reduce Social Security benefits earned from other employment
-- **Government Pension Offset (GPO):** may reduce spousal/survivor Social Security benefits
-- Important financial planning consideration for educators
+### WEP and GPO (repealed)
+
+The Social Security Fairness Act, signed January 5, 2025, ended both provisions for Social Security benefits payable for months after December 2023 ([SSA](https://www.ssa.gov/benefits/retirement/social-security-fairness-act.html)):
+- **Windfall Elimination Provision (WEP):** no longer reduces Social Security benefits earned from other employment because of a PSRS pension
+- **Government Pension Offset (GPO):** no longer reduces spousal/survivor Social Security benefits because of a PSRS pension
+- Still a planning point: PSRS school service does not earn Social Security credits, so any Social Security benefit comes from other covered work. Check your own record and estimate with SSA (ssa.gov).
 
 ---
 
 ## 2. PEERS (Public Education Employee Retirement System)
 
 ### Overview
+
 PEERS is the defined benefit pension for non-certificated (classified) employees of Missouri public schools: paraprofessionals, bus drivers, custodians, food service, office staff, and other support staff.
 
 ### Key Differences from PSRS
+
 | Feature | PSRS (Certificated) | PEERS (Non-Certificated) |
-|---------|---------------------|-------------------------|
+| --------- | --------------------- | ------------------------- |
 | **Membership** | Certificated staff | Non-certificated staff |
 | **Multiplier** | 2.5% | 1.61% |
 | **Contribution rate** | ~14.5% | ~6.86% (employee) + employer match |
@@ -93,6 +103,7 @@ PEERS is the defined benefit pension for non-certificated (classified) employees
 | **Normal retirement** | Rule of 80 or age 60/5 | Same: Rule of 80 or age 60/5 |
 
 ### PEERS Membership
+
 Mandatory for non-certificated employees working 20+ hours/week for at least 5 months. Some seasonal or part-time employees may not meet the threshold.
 
 ---
@@ -100,9 +111,11 @@ Mandatory for non-certificated employees working 20+ hours/week for at least 5 m
 ## 3. Health Insurance & Benefits
 
 ### Missouri Consolidated Health Care Plan (MCHCP)
+
 MCHCP does NOT cover K-12 public school employees (it covers state employees and some other public entities). Missouri school districts independently provide health insurance.
 
 ### District-Provided Health Insurance
+
 - Each district selects and administers its own health insurance plan(s)
 - Common approaches: self-insured, fully insured, or health insurance pools/cooperatives
 - Plans typically include: medical, dental, vision, life insurance, disability
@@ -110,6 +123,7 @@ MCHCP does NOT cover K-12 public school employees (it covers state employees and
 - Dependent coverage available but often at higher employee cost
 
 ### Other Benefits
+
 - **Sick leave:** accumulated per board policy (no statewide minimum for school employees)
 - **Personal leave:** varies by district
 - **Bereavement leave:** varies by district
@@ -123,13 +137,15 @@ MCHCP does NOT cover K-12 public school employees (it covers state employees and
 ## 4. Compensation & Salary Schedules
 
 ### Missouri Salary Landscape
+
 - Missouri teacher salaries historically rank below the national average
 - Minimum teacher salary: RSMo 163.172 establishes a minimum starting salary (adjusted periodically by the legislature — verify current amount)
 - Most districts use step-and-lane salary schedules (based on years of experience and education level)
 
 ### Salary Schedule Structure
+
 | Lane | Education Level |
-|------|---------------|
+| ------ | --------------- |
 | **BS/BA** | Bachelor's degree |
 | **BS+15/30** | Bachelor's + additional credit hours |
 | **MA/MS** | Master's degree |
@@ -140,6 +156,7 @@ MCHCP does NOT cover K-12 public school employees (it covers state employees and
 Steps increase with years of experience (typically 15-30 steps).
 
 ### Extra-Duty Pay
+
 - Coaching stipends (vary significantly by sport, level, and district)
 - Activity sponsor stipends (academic bowl, yearbook, drama, etc.)
 - Department chair/team leader supplements
@@ -152,6 +169,7 @@ Steps increase with years of experience (typically 15-30 steps).
 ## 5. Teacher Shortages
 
 ### Shortage Areas in Missouri
+
 DESE identifies teacher shortage areas annually for federal Teacher Loan Forgiveness and TEACH Grant purposes. Persistent shortage areas include:
 - **Special education** (all levels)
 - **Mathematics** (secondary)
@@ -165,6 +183,7 @@ DESE identifies teacher shortage areas annually for federal Teacher Loan Forgive
 - **Rural districts** (most content areas)
 
 ### Contributing Factors
+
 - Low compensation relative to other professions requiring similar education
 - High workload and accountability pressure
 - Student behavior challenges and safety concerns
@@ -176,6 +195,7 @@ DESE identifies teacher shortage areas annually for federal Teacher Loan Forgive
 - COVID-19 accelerated burnout and exits
 
 ### Measuring Shortages
+
 - DESE's annual Teacher Vacancy Survey
 - Unfilled positions data reported through Core Data
 - Emergency/temporary certifications issued (indicator of shortage)
@@ -186,8 +206,9 @@ DESE identifies teacher shortage areas annually for federal Teacher Loan Forgive
 ## 6. Alternative Certification Pathways
 
 ### Missouri Alternative Routes to Certification
+
 | Pathway | Description | Requirements |
-|---------|-----------|-------------|
+| --------- | ----------- | ------------- |
 | **American Board for Certification of Teacher Excellence (ABCTE)** | Competency-based certification | Bachelor's degree, pass ABCTE content exam, professional teaching knowledge exam, background check |
 | **Teach for America (TFA)** | Two-year placement with certification pathway | Bachelor's degree, TFA selection, intensive summer training, concurrent enrollment in certification program |
 | **Temporary Authorization Certificate (TAC)** | District-specific, DESE-approved | Bachelor's degree, enrolled in certification coursework, district sponsorship |
@@ -196,6 +217,7 @@ DESE identifies teacher shortage areas annually for federal Teacher Loan Forgive
 | **Missouri Adjunct Teaching Certificate** | For professionals teaching part-time | Bachelor's degree + expertise in the field, district sponsorship |
 
 ### Grow Your Own Programs
+
 Some Missouri districts are developing "grow your own" teacher pipeline programs:
 - Paraprofessional-to-teacher pathways (tuition assistance for paras earning education degrees)
 - High school teaching cadet programs (Future Educators, Educators Rising)
@@ -207,8 +229,9 @@ Some Missouri districts are developing "grow your own" teacher pipeline programs
 ## 7. Loan Forgiveness Programs
 
 ### Federal Programs
+
 | Program | Eligibility | Benefit |
-|---------|-----------|---------|
+| --------- | ----------- | --------- |
 | **Public Service Loan Forgiveness (PSLF)** | 10 years of qualifying payments while employed full-time by a public school district | Remaining federal loan balance forgiven (tax-free) |
 | **Teacher Loan Forgiveness** | 5 consecutive years teaching in a low-income school (Title I eligible) | Up to $17,500 forgiven (math, science, special ed) or $5,000 (other subjects) |
 | **TEACH Grant** | Serve in high-need field at low-income school for 4 years within 8 years of completing program | Up to $4,000/year during preparation (converts to loan if service obligation not met) |
@@ -216,6 +239,7 @@ Some Missouri districts are developing "grow your own" teacher pipeline programs
 | **Perkins Loan Cancellation** | Teaching in shortage areas or low-income schools | Up to 100% cancellation over 5 years |
 
 ### State Programs
+
 Missouri has periodically offered state-level loan forgiveness or scholarship programs for teachers in shortage areas. Availability varies by legislative appropriation. Check MDHEWD for current programs.
 
 ---
@@ -223,11 +247,13 @@ Missouri has periodically offered state-level loan forgiveness or scholarship pr
 ## 8. Teacher Pipeline & Recruitment
 
 ### University-Based Preparation
+
 - Missouri has 30+ DESE-approved educator preparation programs (universities and alternative providers)
 - Programs must meet DESE's Educator Preparation Program Standards
 - EPP (Educator Preparation Program) graduates must pass: content assessment (MoCA/Praxis), performance assessment (edTPA/MoPTA), and basic skills (MoGEA or equivalent)
 
 ### Recruitment Strategies
+
 - Competitive starting salaries and benefits
 - Signing bonuses for hard-to-staff positions
 - Housing assistance (some rural districts)
@@ -245,6 +271,7 @@ Missouri has periodically offered state-level loan forgiveness or scholarship pr
 ## 9. Retention Strategies
 
 ### Evidence-Based Retention Practices
+
 - **Mentoring and induction:** structured multi-year support for new teachers (not just year 1)
 - **Administrative support:** responsive, respectful, and supportive building leadership
 - **Professional development:** meaningful, teacher-directed, job-embedded PD
@@ -262,6 +289,7 @@ Missouri has periodically offered state-level loan forgiveness or scholarship pr
 See `references/health-wellness.md` (Staff Wellness section) for detailed information on secondary trauma and burnout.
 
 ### Key Support Structures
+
 - Employee Assistance Programs (EAP)
 - Wellness committees (building and district level)
 - Mental health days (some districts have begun explicitly designating these)
@@ -274,6 +302,7 @@ See `references/health-wellness.md` (Staff Wellness section) for detailed inform
 ## 11. Labor Relations
 
 ### Missouri Law (RSMo 105.500-105.530)
+
 - Missouri is a **permissive collective bargaining** state (not mandatory)
 - School districts are NOT required to negotiate with teacher unions/associations
 - Teachers have the right to organize and join unions/associations
@@ -282,6 +311,7 @@ See `references/health-wellness.md` (Staff Wellness section) for detailed inform
 - Teacher organizations in Missouri: MNEA (Missouri National Education Association), MSTA (Missouri State Teachers Association), AFT-Missouri
 
 ### At-Will Employment
+
 - Non-tenured teachers are essentially at-will during their probationary period (may be non-renewed without cause)
 - Tenured teachers have due process protections (RSMo 168.114)
 - Non-certificated staff are generally at-will employees (unless board policy or contract provides otherwise)
@@ -291,6 +321,7 @@ See `references/health-wellness.md` (Staff Wellness section) for detailed inform
 ## 12. Substitute Teacher Workforce
 
 ### Persistent Challenges
+
 - Chronic substitute shortages across Missouri (urban, suburban, and rural)
 - Low daily rates discourage participation
 - Lack of benefits for short-term substitutes
@@ -298,9 +329,10 @@ See `references/health-wellness.md` (Staff Wellness section) for detailed inform
 - Increasing complexity of classroom management
 
 ### Strategies to Address Substitute Shortages
+
 - Increase daily pay rates (competitive analysis with neighboring districts)
 - Provide long-term substitute benefits (health insurance, pro-rated)
-- Streamline substitute certification process (DESE substitute certificate requires only 60 credit hours)
+- Streamline substitute certification process (DESE substitute certificate requires 36 college semester hours, or 20 clock hours of DESE-approved training)
 - Build a dedicated substitute pool (recruit retirees, community members, college students)
 - Partner with substitute management companies (Kelly Education, Swing Education, etc.)
 - Internal coverage systems (admin coverage rotation, study hall consolidation, combined classes as last resort)
